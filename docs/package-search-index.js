@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"it.ernytech.tdbot"},{"l":"it.ernytech.tdlib"}]
+packageSearchIndex = [{"l":"it.ernytech.tdbot"},{"l":"it.ernytech.tdlib"},{"l":"it.ernytech.tdlib.utils"}]

@@ -227,8 +227,8 @@ public class EasyClient {
                 parameters.databaseDirectory = "tdlib";
                 parameters.useMessageDatabase = false;
                 parameters.useSecretChats = false;
-                parameters.apiId = BuildConfig.API_ID;
-                parameters.apiHash = BuildConfig.API_HASH;
+                parameters.apiId = 94575;
+                parameters.apiHash = "a3406de8d171bb422bb6ddf3bbd800e2";
                 parameters.systemLanguageCode = "en";
                 parameters.deviceModel = "TDBOT";
                 parameters.systemVersion = "TDBOT";

@@ -1,0 +1,4 @@
+before_install:
+   - curl -s https://gist.githubusercontent.com/ErnyTech/5ab454bbb0150a38bed8355bf9cb0e05/raw/c0487edd8d8d91b878b34b0a5699e4c29db72c78/jitpack.sh | bash -s
+   - export JAVA_HOME="$(pwd)/jdk-10.0.2" 
+   - export PATH=$JAVA_HOME/bin:$PATH
