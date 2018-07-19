@@ -42,7 +42,7 @@ public class EasyClient {
      * Creates a new EasyClient.
      * @param authorizationHandler Callback to be implemented in the client to manage the authorization.
      */
-    protected EasyClient(AuthorizationHandler authorizationHandler) {
+    public EasyClient(AuthorizationHandler authorizationHandler) {
         Log.setVerbosityLevel(1);
         this.authorizationHandler = authorizationHandler;
         this.handlers.put(0L, new TdCallback(response -> {}, error -> {}, () -> {}));
@@ -54,7 +54,7 @@ public class EasyClient {
      * @param function TDLib API function representing a request to TDLib.
      * @return Request identifier. Responses to TDLib requests will have the same id as the corresponding request.
      */
-    protected long send(TdApi.Function function) {
+    public long send(TdApi.Function function) {
         var requestId = this.requestId.getAndIncrement();
         this.clientActor.request(new Request(requestId, function));
         return requestId;
@@ -66,7 +66,7 @@ public class EasyClient {
      * @param receiveCallback Interface of callback for receive incoming update or request response.
      * @param errorCallback Interface of callback for receive incoming error response.
      */
-    protected void execute(TdApi.Function function, ReceiveCallback receiveCallback, ErrorCallback errorCallback) {
+    public void execute(TdApi.Function function, ReceiveCallback receiveCallback, ErrorCallback errorCallback) {
         while (true) {
             if (haveAuthorization) {
                 break;
@@ -82,7 +82,7 @@ public class EasyClient {
      * @param function TDLib API function representing a request to TDLib.
      * @return A response to a request.
      */
-    protected Response execute(TdApi.Function function) {
+    public Response execute(TdApi.Function function) {
         var responseAtomicReference = new AtomicReference<Response>();
         var executedAtomicBoolean = new AtomicBoolean(false);
 
@@ -105,7 +105,7 @@ public class EasyClient {
      * Set the default callback for general updates (no response to requests).
      * @param receiveCallback Interface of callback for receive incoming update or request response.
      */
-    protected void setUpdateCallback(ReceiveCallback receiveCallback) {
+    public void setUpdateCallback(ReceiveCallback receiveCallback) {
         ErrorCallback errorCallback = null;
         CloseCallback closeCallback = null;
 
@@ -128,7 +128,7 @@ public class EasyClient {
      * Set the default callback for general error updates (no response to requests).
      * @param errorCallback Interface of callback for receive incoming error response.
      */
-    protected void setErrorCallback(ErrorCallback errorCallback) {
+    public void setErrorCallback(ErrorCallback errorCallback) {
         ReceiveCallback receiveCallback = null;
         CloseCallback closeCallback = null;
 
@@ -151,7 +151,7 @@ public class EasyClient {
      * Set the default callback for Tdlib closing notification.
      * @param closeCallback Interface of callback for receive notification of closing Tdlib.
      */
-    protected void setCloseCallback(CloseCallback closeCallback) {
+    public void setCloseCallback(CloseCallback closeCallback) {
         ReceiveCallback receiveCallback = null;
         ErrorCallback errorCallback = null;
 
@@ -173,7 +173,7 @@ public class EasyClient {
     /**
      * Destroys the client and TDLib instance.
      */
-    protected void destroyBotClient() {
+    public void destroyBotClient() {
         this.clientActor.destroyClientActor();
         Log.setVerbosityLevel(5);
     }
