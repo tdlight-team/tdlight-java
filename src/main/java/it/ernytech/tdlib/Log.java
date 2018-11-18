@@ -30,8 +30,9 @@ public class Log {
     static {
         try {
             Init.start();
-        } catch (CantLoadLibrary cantLoadLibrary) {
-            throw new MissingTdlibLibrary();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            System.exit(0);
         }
     }
 

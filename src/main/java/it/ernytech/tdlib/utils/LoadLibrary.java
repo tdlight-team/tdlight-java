@@ -32,9 +32,9 @@ public class LoadLibrary {
      * @param libname The name of the library.
      * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
      */
-    public static void load(String libname) throws CantLoadLibrary {
+    public static void load(String libname) throws Throwable {
         if (libname == null || libname.trim().isEmpty()) {
-            throw new CantLoadLibrary();
+            throw new IllegalArgumentException();
         }
 
         if (libraryLoaded.containsKey(libname)) {
@@ -47,8 +47,8 @@ public class LoadLibrary {
         libraryLoaded.put(libname, true);
     }
 
-    private static void loadLibrary(String libname) throws CantLoadLibrary {
-        if (loadSysLibrary(libname) == 0) {
+    private static void loadLibrary(String libname) throws Throwable {
+        if (loadSysLibrary(libname)) {
             return;
         }
 
@@ -56,66 +56,40 @@ public class LoadLibrary {
         var os = getOs();
 
         if (arch == Arch.unknown) {
-            throw new CantLoadLibrary();
+            throw new CantLoadLibrary().initCause(new IllegalStateException("Arch: \"" + System.getProperty("os.arch") + "\" is unknown"));
         }
 
         if (os == Os.unknown) {
-            throw new CantLoadLibrary();
+            throw new CantLoadLibrary().initCause(new IllegalStateException("Os: \"" + System.getProperty("os.name") + "\" is unknown"));
         }
 
-        if (loadJarLibrary(libname, arch, os) == 0) {
-            return;
+        try {
+            loadJarLibrary(libname, arch, os);
+        } catch (IOException | CantLoadLibrary | UnsatisfiedLinkError e) {
+            throw new CantLoadLibrary().initCause(e);
         }
-
-        throw new CantLoadLibrary();
     }
 
-    private static int loadSysLibrary(String libname) {
+    private static boolean loadSysLibrary(String libname) {
         try {
             System.loadLibrary(libname);
         } catch (UnsatisfiedLinkError e) {
-            return 1;
+            return false;
         }
 
-        return 0;
+        return true;
     }
 
-    private static int loadJarLibrary(String libname, Arch arch, Os os) {
-        Path tempPath;
-
-        try {
-            tempPath = Files.createTempDirectory(libname);
-        } catch (IOException e) {
-            return 1;
-        }
-
+    private static void loadJarLibrary(String libname, Arch arch, Os os) throws IOException, CantLoadLibrary {
+        Path tempPath = Files.createTempDirectory(libname);
         deleteOnExit(tempPath);
         Path tempFile = Paths.get(tempPath.toString(), libname + getExt(os));
         deleteOnExit(tempPath);
         var libInputStream = LoadLibrary.class.getResourceAsStream(createPath("libs", os.name(), arch.name(), libname) + getExt(os));
-
-        try {
-            Files.copy(libInputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            return 1;
-        }
-
-        try {
-            loadLibraryPath(tempFile);
-        } catch (CantLoadLibrary cantLoadLibrary) {
-            return 1;
-        }
-
-        return 0;
+        Files.copy(libInputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+        System.load(tempFile.toFile().getAbsolutePath());
     }
 
-    private static void loadLibraryPath(Path path) throws CantLoadLibrary {
-        try {
-            System.load(path.toFile().getAbsolutePath());
-        } catch (UnsatisfiedLinkError e) {
-            throw new CantLoadLibrary();
-        }
-    }
 
     private static Arch getCpuArch() {
         var arch = System.getProperty("os.arch").trim();

@@ -44,10 +44,10 @@ public class Client {
     public Client() {
         try {
             Init.start();
-        } catch (CantLoadLibrary cantLoadLibrary) {
-            throw new MissingTdlibLibrary();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            System.exit(1);
         }
-
         this.clientId = createNativeClient();
     }
 

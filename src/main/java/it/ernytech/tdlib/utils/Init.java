@@ -27,7 +27,7 @@ public class Init {
      * Initialize Tdlib
      * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
      */
-    public static void start() throws CantLoadLibrary {
+    public static void start() throws Throwable {
         var os = LoadLibrary.getOs();
 
         if (os == Os.win) {

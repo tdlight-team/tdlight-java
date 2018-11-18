@@ -20,7 +20,7 @@ package it.ernytech.tdlib.utils;
 /**
  * An exception that is thrown when the LoadLibrary class fails to load the library.
  */
-public class CantLoadLibrary extends Exception {
+public class CantLoadLibrary extends RuntimeException {
     /**
      * Creates a new CantLoadLibrary exception.
      */
