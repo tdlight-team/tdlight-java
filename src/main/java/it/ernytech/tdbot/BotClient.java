@@ -29,6 +29,6 @@ public class BotClient extends EasyClient {
      * @param botToken The bot token generated with t.me/BotFather
      */
     public BotClient(String botToken) {
-        super(easyClient -> easyClient.send(new TdApi.CheckAuthenticationBotToken(botToken)));
+        super(easyClient -> easyClient.sendRaw(new TdApi.CheckAuthenticationBotToken(botToken)));
     }
 }

@@ -29,6 +29,6 @@ public class UserClient extends EasyClient {
      * @param phoneNumber The phone number of user.
      */
     public UserClient(long phoneNumber) {
-        super(easyClient -> easyClient.send(new TdApi.SetAuthenticationPhoneNumber(String.valueOf(phoneNumber), false, false)));
+        super(easyClient -> easyClient.sendRaw(new TdApi.SetAuthenticationPhoneNumber(String.valueOf(phoneNumber), false, false)));
     }
 }

@@ -17,9 +17,7 @@
 
 package it.ernytech.tdlib;
 
-import it.ernytech.tdlib.utils.CantLoadLibrary;
 import it.ernytech.tdlib.utils.Init;
-import it.ernytech.tdlib.utils.MissingTdlibLibrary;
 
 import java.util.Objects;
 

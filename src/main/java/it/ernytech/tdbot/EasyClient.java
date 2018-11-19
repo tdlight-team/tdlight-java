@@ -24,6 +24,8 @@ import it.ernytech.tdlib.utils.ReceiveCallback;
 
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -36,17 +38,28 @@ public class EasyClient {
     private ClientActor clientActor;
     private ConcurrentHashMap<Long, TdCallback> handlers = new ConcurrentHashMap<>();
     private AtomicLong requestId = new AtomicLong(1);
+    private ExecutorService executors = Executors.newFixedThreadPool(10);
     protected volatile boolean haveAuthorization = false;
+    private volatile boolean haveClosed = false;
 
     /**
      * Creates a new EasyClient.
      * @param authorizationHandler Callback to be implemented in the client to manage the authorization.
      */
     public EasyClient(AuthorizationHandler authorizationHandler) {
-        Log.setVerbosityLevel(1);
         this.authorizationHandler = authorizationHandler;
         this.handlers.put(0L, new TdCallback(response -> {}, error -> {}, () -> {}));
-        this.clientActor = new ClientActor(new TdCallback(this::onResult, this::onError, this::onClosed));
+        open();
+    }
+
+    public EasyClient(AuthorizationHandler authorizationHandler, boolean logoutAtShutdown) {
+        this.authorizationHandler = authorizationHandler;
+        this.handlers.put(0L, new TdCallback(response -> {}, error -> {}, () -> {}));
+        open();
+
+        if (logoutAtShutdown) {
+            Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+        }
     }
 
     /**
@@ -56,7 +69,15 @@ public class EasyClient {
      */
     public long send(TdApi.Function function) {
         var requestId = this.requestId.getAndIncrement();
-        this.clientActor.request(new Request(requestId, function));
+        this.executors.execute(() -> {
+            while (true) {
+                if (this.haveAuthorization) {
+                    break;
+                }
+            }
+
+            this.clientActor.request(new Request(requestId, function));
+        });
         return requestId;
     }
 
@@ -67,12 +88,6 @@ public class EasyClient {
      * @param errorCallback Interface of callback for receive incoming error response.
      */
     public void execute(TdApi.Function function, ReceiveCallback receiveCallback, ErrorCallback errorCallback) {
-        while (true) {
-            if (haveAuthorization) {
-                break;
-            }
-        }
-
         var requestId = send(function);
         this.handlers.put(requestId, new TdCallback(receiveCallback, errorCallback));
     }
@@ -170,6 +185,17 @@ public class EasyClient {
         this.handlers.put(0L, new TdCallback(receiveCallback, errorCallback, closeCallback));
     }
 
+    public void close() {
+        send(new TdApi.LogOut());
+        this.executors.shutdown();
+        this.haveClosed = true;
+    }
+
+    public void open() {
+        Log.setVerbosityLevel(1);
+        inizializeClient();
+    }
+
     /**
      * Destroys the client and TDLib instance.
      */
@@ -179,8 +205,10 @@ public class EasyClient {
     }
 
     private void onResult(Response response) {
+        System.out.println(response.getObject());
         if (response.getObject().getConstructor() == TdApi.UpdateAuthorizationState.CONSTRUCTOR) {
-            authorizationHandler((TdApi.UpdateAuthorizationState) response.getObject());
+            TdApi.UpdateAuthorizationState updateAuthorizationState = (TdApi.UpdateAuthorizationState) response.getObject();
+            authorizationHandler(updateAuthorizationState.authorizationState);
             return;
         }
 
@@ -199,6 +227,24 @@ public class EasyClient {
     }
 
     private void onError(Response error) {
+        TdApi.Error tdError = (TdApi.Error) error.getObject();
+
+        if (tdError.message.equals("PHONE_CODE_INVALID")) {
+            authorizationHandler(new TdApi.AuthorizationStateWaitCode());
+        }
+
+        if (tdError.message.equals("PASSWORD_HASH_INVALID")) {
+            authorizationHandler(new TdApi.AuthorizationStateWaitPassword());
+        }
+
+        if (tdError.message.equals("PHONE_NUMBER_INVALID")) {
+            throw new IllegalArgumentException("Phone number is invalid!");
+        }
+
+        if (tdError.message.equals("ACCESS_TOKEN_INVALID")) {
+            throw new IllegalArgumentException("Bot token is invalid!");
+        }
+
         if (error.getId() == 0) {
             this.handlers.get(0L).getErrorCallback().onError(error);
         } else {
@@ -216,12 +262,21 @@ public class EasyClient {
         this.handlers.get(0L).getCloseCallback().onClosed();
     }
 
+    private void inizializeClient() {
+        this.clientActor = new ClientActor(new TdCallback(this::onResult, this::onError, this::onClosed));
+    }
+
+    public void sendRaw(TdApi.Function function) {
+        var requestId = this.requestId.getAndIncrement();
+        this.clientActor.request(new Request(requestId, function));
+    }
+
     /**
      * Manages the authorization state updates.
      * @param authorizationState The status of the authorization.
      */
-    protected void authorizationHandler(TdApi.UpdateAuthorizationState authorizationState) {
-        switch (authorizationState.authorizationState.getConstructor()) {
+    protected void authorizationHandler(TdApi.AuthorizationState authorizationState) {
+        switch (authorizationState.getConstructor()) {
             case TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR : {
                 var parameters = new TdApi.TdlibParameters();
                 parameters.databaseDirectory = "tdlib";
@@ -234,12 +289,12 @@ public class EasyClient {
                 parameters.systemVersion = "TDBOT";
                 parameters.applicationVersion = "1.0";
                 parameters.enableStorageOptimizer = true;
-                send(new TdApi.SetTdlibParameters(parameters));
+                sendRaw(new TdApi.SetTdlibParameters(parameters));
                 break;
             }
 
             case TdApi.AuthorizationStateWaitEncryptionKey.CONSTRUCTOR: {
-                send(new TdApi.CheckDatabaseEncryptionKey());
+                sendRaw(new TdApi.CheckDatabaseEncryptionKey());
                 break;
             }
 
@@ -251,15 +306,17 @@ public class EasyClient {
             case TdApi.AuthorizationStateWaitCode.CONSTRUCTOR: {
                 var scanner = new Scanner(System.in);
                 System.out.print("Insert your code: ");
-                send(new TdApi.CheckAuthenticationCode(scanner.nextLine(), "", ""));
+                sendRaw(new TdApi.CheckAuthenticationCode(scanner.nextLine(), "", ""));
                 System.out.println();
                 break;
             }
 
             case TdApi.AuthorizationStateWaitPassword.CONSTRUCTOR: {
                 var scanner = new Scanner(System.in);
+                System.out.println("Password authorization");
+                System.out.println("Password hint: " + ((TdApi.AuthorizationStateWaitPassword) authorizationState).passwordHint);
                 System.out.print("Insert your password: ");
-                send(new TdApi.CheckAuthenticationPassword(scanner.nextLine()));
+                sendRaw(new TdApi.CheckAuthenticationPassword(scanner.nextLine()));
                 System.out.println();
                 break;
             }
@@ -267,6 +324,27 @@ public class EasyClient {
             case TdApi.AuthorizationStateReady.CONSTRUCTOR: {
                 this.haveAuthorization = true;
                 break;
+            }
+            case TdApi.AuthorizationStateLoggingOut.CONSTRUCTOR: {
+                this.haveAuthorization = false;
+                break;
+            }
+            case TdApi.AuthorizationStateClosing.CONSTRUCTOR: {
+                this.haveAuthorization = false;
+                break;
+            }
+            case TdApi.AuthorizationStateClosed.CONSTRUCTOR: {
+                if(this.haveClosed) {
+                    this.destroyBotClient();
+                } else {
+                    this.destroyBotClient();
+                    inizializeClient();
+                }
+                break;
+            }
+
+            default: {
+                throw new IllegalStateException("Unsupported authorization state:\n" + authorizationState);
             }
         }
     }
