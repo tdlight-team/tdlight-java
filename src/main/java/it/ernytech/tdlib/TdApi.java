@@ -66,7 +66,75 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1324495492;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Describes an address.
+     */
+    public static class Address extends Object {
+        /**
+         * A two-letter ISO 3166-1 alpha-2 country code.
+         */
+        public String countryCode;
+        /**
+         * State, if applicable.
+         */
+        public String state;
+        /**
+         * City.
+         */
+        public String city;
+        /**
+         * First line of the address.
+         */
+        public String streetLine1;
+        /**
+         * Second line of the address.
+         */
+        public String streetLine2;
+        /**
+         * Address postal code.
+         */
+        public String postalCode;
+
+        /**
+         * Default constructor.
+         */
+        public Address() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param countryCode A two-letter ISO 3166-1 alpha-2 country code.
+         * @param state State, if applicable.
+         * @param city City.
+         * @param streetLine1 First line of the address.
+         * @param streetLine2 Second line of the address.
+         * @param postalCode Address postal code.
+         */
+        public Address(String countryCode, String state, String city, String streetLine1, String streetLine2, String postalCode) {
+            this.countryCode = countryCode;
+            this.state = state;
+            this.city = city;
+            this.streetLine1 = streetLine1;
+            this.streetLine2 = streetLine2;
+            this.postalCode = postalCode;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -2043654342;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -140,7 +208,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1723168340;
+            return CONSTRUCTOR;
         }
     }
 
@@ -178,7 +246,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 344216945;
+            return CONSTRUCTOR;
         }
     }
 
@@ -252,7 +320,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 383148432;
+            return CONSTRUCTOR;
         }
     }
 
@@ -308,7 +376,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -860345416;
+            return CONSTRUCTOR;
         }
     }
 
@@ -353,7 +421,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2079628074;
+            return CONSTRUCTOR;
         }
     }
 
@@ -391,7 +459,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 962650760;
+            return CONSTRUCTOR;
         }
     }
 
@@ -429,7 +497,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1636265063;
+            return CONSTRUCTOR;
         }
     }
 
@@ -467,7 +535,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1395882402;
+            return CONSTRUCTOR;
         }
     }
 
@@ -499,7 +567,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 904720988;
+            return CONSTRUCTOR;
         }
     }
 
@@ -537,7 +605,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 612103496;
+            return CONSTRUCTOR;
         }
     }
 
@@ -562,7 +630,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 306402531;
+            return CONSTRUCTOR;
         }
     }
 
@@ -574,6 +642,10 @@ public class TdApi {
          * True, if the user is already registered.
          */
         public boolean isRegistered;
+        /**
+         * Telegram terms of service, which should be accepted before user can continue registration; may be null.
+         */
+        public TermsOfService termsOfService;
         /**
          * Information about the authorization code that was sent.
          */
@@ -589,24 +661,26 @@ public class TdApi {
          * Constructor for initialization of all fields.
          *
          * @param isRegistered True, if the user is already registered.
+         * @param termsOfService Telegram terms of service, which should be accepted before user can continue registration; may be null.
          * @param codeInfo Information about the authorization code that was sent.
          */
-        public AuthorizationStateWaitCode(boolean isRegistered, AuthenticationCodeInfo codeInfo) {
+        public AuthorizationStateWaitCode(boolean isRegistered, TermsOfService termsOfService, AuthenticationCodeInfo codeInfo) {
             this.isRegistered = isRegistered;
+            this.termsOfService = termsOfService;
             this.codeInfo = codeInfo;
         }
 
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = -483510157;
+        public static final int CONSTRUCTOR = -122899120;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return -483510157;
+            return CONSTRUCTOR;
         }
     }
 
@@ -656,7 +730,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 187548796;
+            return CONSTRUCTOR;
         }
     }
 
@@ -681,7 +755,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1834871737;
+            return CONSTRUCTOR;
         }
     }
 
@@ -706,7 +780,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 154449270;
+            return CONSTRUCTOR;
         }
     }
 
@@ -731,7 +805,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 445855311;
+            return CONSTRUCTOR;
         }
     }
 
@@ -756,7 +830,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1526047584;
+            return CONSTRUCTOR;
         }
     }
 
@@ -824,7 +898,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1572712718;
+            return CONSTRUCTOR;
         }
     }
 
@@ -874,7 +948,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 952266076;
+            return CONSTRUCTOR;
         }
     }
 
@@ -918,7 +992,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1032140601;
+            return CONSTRUCTOR;
         }
     }
 
@@ -962,7 +1036,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1296528907;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1018,7 +1092,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1837599107;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1080,7 +1154,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1318542714;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1112,7 +1186,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1258917949;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1137,7 +1211,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1680358012;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1162,7 +1236,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1729926094;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1187,7 +1261,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1342872670;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1212,7 +1286,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 438216166;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1250,7 +1324,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 65717769;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1306,7 +1380,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1042830667;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1357,7 +1431,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1073048620;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1382,7 +1456,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1848149403;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1444,7 +1518,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1518705438;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1469,7 +1543,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2133790038;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1519,7 +1593,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -190853167;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1557,7 +1631,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -975215467;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1607,7 +1681,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 360867933;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1652,7 +1726,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1977729946;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1690,7 +1764,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1303571512;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1727,9 +1801,21 @@ public class TdApi {
          */
         public boolean isPinned;
         /**
+         * True, if the chat is marked as unread.
+         */
+        public boolean isMarkedAsUnread;
+        /**
+         * True, if the chat is sponsored by the user's MTProxy server.
+         */
+        public boolean isSponsored;
+        /**
          * True, if the chat can be reported to Telegram moderators through reportChat.
          */
         public boolean canBeReported;
+        /**
+         * Default value of the disableNotification parameter, used when a message is sent to the chat.
+         */
+        public boolean defaultDisableNotification;
         /**
          * Number of unread messages in the chat.
          */
@@ -1749,7 +1835,7 @@ public class TdApi {
         /**
          * Notification settings for this chat.
          */
-        public NotificationSettings notificationSettings;
+        public ChatNotificationSettings notificationSettings;
         /**
          * Identifier of the message from which reply markup needs to be used; 0 if there is no default custom reply markup in the chat.
          */
@@ -1779,7 +1865,10 @@ public class TdApi {
          * @param lastMessage Last message in the chat; may be null.
          * @param order Descending parameter by which chats are sorted in the main chat list. If the order number of two chats is the same, they must be sorted in descending order by ID. If 0, the position of the chat in the list is undetermined.
          * @param isPinned True, if the chat is pinned.
+         * @param isMarkedAsUnread True, if the chat is marked as unread.
+         * @param isSponsored True, if the chat is sponsored by the user's MTProxy server.
          * @param canBeReported True, if the chat can be reported to Telegram moderators through reportChat.
+         * @param defaultDisableNotification Default value of the disableNotification parameter, used when a message is sent to the chat.
          * @param unreadCount Number of unread messages in the chat.
          * @param lastReadInboxMessageId Identifier of the last read incoming message.
          * @param lastReadOutboxMessageId Identifier of the last read outgoing message.
@@ -1789,7 +1878,7 @@ public class TdApi {
          * @param draftMessage A draft of a message in the chat; may be null.
          * @param clientData Contains client-specific data associated with the chat. (For example, the chat position or local chat notification settings can be stored here.) Persistent if a message database is used.
          */
-        public Chat(long id, ChatType type, String title, ChatPhoto photo, Message lastMessage, long order, boolean isPinned, boolean canBeReported, int unreadCount, long lastReadInboxMessageId, long lastReadOutboxMessageId, int unreadMentionCount, NotificationSettings notificationSettings, long replyMarkupMessageId, DraftMessage draftMessage, String clientData) {
+        public Chat(long id, ChatType type, String title, ChatPhoto photo, Message lastMessage, long order, boolean isPinned, boolean isMarkedAsUnread, boolean isSponsored, boolean canBeReported, boolean defaultDisableNotification, int unreadCount, long lastReadInboxMessageId, long lastReadOutboxMessageId, int unreadMentionCount, ChatNotificationSettings notificationSettings, long replyMarkupMessageId, DraftMessage draftMessage, String clientData) {
             this.id = id;
             this.type = type;
             this.title = title;
@@ -1797,7 +1886,10 @@ public class TdApi {
             this.lastMessage = lastMessage;
             this.order = order;
             this.isPinned = isPinned;
+            this.isMarkedAsUnread = isMarkedAsUnread;
+            this.isSponsored = isSponsored;
             this.canBeReported = canBeReported;
+            this.defaultDisableNotification = defaultDisableNotification;
             this.unreadCount = unreadCount;
             this.lastReadInboxMessageId = lastReadInboxMessageId;
             this.lastReadOutboxMessageId = lastReadOutboxMessageId;
@@ -1811,14 +1903,14 @@ public class TdApi {
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = -1599984597;
+        public static final int CONSTRUCTOR = -4728182;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return -1599984597;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1850,7 +1942,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 380122167;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1875,7 +1967,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 216553362;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1913,7 +2005,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1234185270;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1938,7 +2030,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -808850058;
+            return CONSTRUCTOR;
         }
     }
 
@@ -1976,7 +2068,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -613643666;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2014,7 +2106,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 654240583;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2052,7 +2144,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 167884362;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2077,7 +2169,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2017893596;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2102,7 +2194,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1222507496;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2127,7 +2219,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -865884164;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2152,7 +2244,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 16523393;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2190,7 +2282,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1172364918;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2215,7 +2307,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1160523958;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2271,7 +2363,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -609912404;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2322,7 +2414,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -430967304;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2360,7 +2452,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -892974601;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2398,7 +2490,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 438742298;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2423,7 +2515,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2002594849;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2448,7 +2540,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -235468508;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2473,7 +2565,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -948420593;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2517,7 +2609,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2093688706;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2567,7 +2659,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1887176186;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2617,7 +2709,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 584946294;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2661,7 +2753,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1134103250;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2705,7 +2797,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 39112478;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2749,7 +2841,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1728558443;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2793,7 +2885,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -811572541;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2831,7 +2923,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 568706937;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2869,7 +2961,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1313265634;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2913,7 +3005,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1243130481;
+            return CONSTRUCTOR;
         }
     }
 
@@ -2951,7 +3043,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1599063019;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3043,7 +3135,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 941939684;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3081,7 +3173,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -585329664;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3119,7 +3211,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -882072492;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3193,7 +3285,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -323394424;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3255,7 +3347,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -806137076;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3300,7 +3392,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1756320508;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3386,7 +3478,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 45106688;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3411,7 +3503,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 844723285;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3479,7 +3571,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2068116214;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3504,7 +3596,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -5815259;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3542,7 +3634,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1653518666;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3586,7 +3678,207 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -497558622;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * This class is an abstract base class.
+     * Specifies the kind of chat members to return in searchChatMembers.
+     */
+    public abstract static class ChatMembersFilter extends Object {
+    }
+
+    /**
+     * Returns the creator and administrators.
+     */
+    public static class ChatMembersFilterAdministrators extends ChatMembersFilter {
+
+        /**
+         * Default constructor.
+         */
+        public ChatMembersFilterAdministrators() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1266893796;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns all chat members, including restricted chat members.
+     */
+    public static class ChatMembersFilterMembers extends ChatMembersFilter {
+
+        /**
+         * Default constructor.
+         */
+        public ChatMembersFilterMembers() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 670504342;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns users under certain restrictions in the chat; can be used only by administrators in a supergroup.
+     */
+    public static class ChatMembersFilterRestricted extends ChatMembersFilter {
+
+        /**
+         * Default constructor.
+         */
+        public ChatMembersFilterRestricted() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1256282813;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns users banned from the chat; can be used only by administrators in a supergroup or in a channel.
+     */
+    public static class ChatMembersFilterBanned extends ChatMembersFilter {
+
+        /**
+         * Default constructor.
+         */
+        public ChatMembersFilterBanned() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1863102648;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns bot members of the chat.
+     */
+    public static class ChatMembersFilterBots extends ChatMembersFilter {
+
+        /**
+         * Default constructor.
+         */
+        public ChatMembersFilterBots() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1422567288;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains information about notification settings for a chat.
+     */
+    public static class ChatNotificationSettings extends Object {
+        /**
+         * If true, muteFor is ignored and the value for the relevant type of chat is used instead.
+         */
+        public boolean useDefaultMuteFor;
+        /**
+         * Time left before notifications will be unmuted, in seconds.
+         */
+        public int muteFor;
+        /**
+         * If true, sound is ignored and the value for the relevant type of chat is used instead.
+         */
+        public boolean useDefaultSound;
+        /**
+         * The name of an audio file to be used for notification sounds; only applies to iOS applications.
+         */
+        public String sound;
+        /**
+         * If true, showPreview is ignored and the value for the relevant type of chat is used instead.
+         */
+        public boolean useDefaultShowPreview;
+        /**
+         * True, if message content should be displayed in notifications.
+         */
+        public boolean showPreview;
+
+        /**
+         * Default constructor.
+         */
+        public ChatNotificationSettings() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param useDefaultMuteFor If true, muteFor is ignored and the value for the relevant type of chat is used instead.
+         * @param muteFor Time left before notifications will be unmuted, in seconds.
+         * @param useDefaultSound If true, sound is ignored and the value for the relevant type of chat is used instead.
+         * @param sound The name of an audio file to be used for notification sounds; only applies to iOS applications.
+         * @param useDefaultShowPreview If true, showPreview is ignored and the value for the relevant type of chat is used instead.
+         * @param showPreview True, if message content should be displayed in notifications.
+         */
+        public ChatNotificationSettings(boolean useDefaultMuteFor, int muteFor, boolean useDefaultSound, String sound, boolean useDefaultShowPreview, boolean showPreview) {
+            this.useDefaultMuteFor = useDefaultMuteFor;
+            this.muteFor = muteFor;
+            this.useDefaultSound = useDefaultSound;
+            this.sound = sound;
+            this.useDefaultShowPreview = useDefaultShowPreview;
+            this.showPreview = showPreview;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1949924445;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -3630,7 +3922,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -217062456;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3662,7 +3954,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -510848863;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3687,7 +3979,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1330235395;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3712,7 +4004,32 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 722614385;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The chat contains copyrighted content.
+     */
+    public static class ChatReportReasonCopyright extends ChatReportReason {
+
+        /**
+         * Default constructor.
+         */
+        public ChatReportReasonCopyright() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 986898080;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -3750,7 +4067,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 544575454;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3788,7 +4105,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1919240972;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3833,7 +4150,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1700720838;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3871,7 +4188,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 21815278;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3915,7 +4232,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 955152366;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3959,7 +4276,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 136722563;
+            return CONSTRUCTOR;
         }
     }
 
@@ -3997,7 +4314,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1687756019;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4029,7 +4346,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1498956964;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4054,7 +4371,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -636979370;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4079,7 +4396,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1320892201;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4104,7 +4421,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 858247741;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4129,7 +4446,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -51833641;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4215,7 +4532,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1538986855;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4253,7 +4570,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1727949694;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4285,7 +4602,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1695405912;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4310,7 +4627,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -93187239;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4335,7 +4652,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1298400670;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4360,7 +4677,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -188104009;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4385,7 +4702,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 48608492;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4406,6 +4723,10 @@ public class TdApi {
          */
         public String lastName;
         /**
+         * Additional data about the user in a form of vCard; 0-2048 bytes in length.
+         */
+        public String vcard;
+        /**
          * Identifier of the user, if known; otherwise 0.
          */
         public int userId;
@@ -4422,26 +4743,28 @@ public class TdApi {
          * @param phoneNumber Phone number of the user.
          * @param firstName First name of the user; 1-255 characters in length.
          * @param lastName Last name of the user.
+         * @param vcard Additional data about the user in a form of vCard; 0-2048 bytes in length.
          * @param userId Identifier of the user, if known; otherwise 0.
          */
-        public Contact(String phoneNumber, String firstName, String lastName, int userId) {
+        public Contact(String phoneNumber, String firstName, String lastName, String vcard, int userId) {
             this.phoneNumber = phoneNumber;
             this.firstName = firstName;
             this.lastName = lastName;
+            this.vcard = vcard;
             this.userId = userId;
         }
 
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = -2035981269;
+        public static final int CONSTRUCTOR = -1483002540;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return -2035981269;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4479,7 +4802,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1295577348;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4517,7 +4840,145 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2009960452;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Represents a date according to the Gregorian calendar.
+     */
+    public static class Date extends Object {
+        /**
+         * Day of the month, 1-31.
+         */
+        public int day;
+        /**
+         * Month, 1-12.
+         */
+        public int month;
+        /**
+         * Year, 1-9999.
+         */
+        public int year;
+
+        /**
+         * Default constructor.
+         */
+        public Date() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param day Day of the month, 1-31.
+         * @param month Month, 1-12.
+         * @param year Year, 1-9999.
+         */
+        public Date(int day, int month, int year) {
+            this.day = day;
+            this.month = month;
+            this.year = year;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -277956960;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * File with the date it was uploaded.
+     */
+    public static class DatedFile extends Object {
+        /**
+         * The file.
+         */
+        public File file;
+        /**
+         * Point in time (Unix timestamp) when the file was uploaded.
+         */
+        public int date;
+
+        /**
+         * Default constructor.
+         */
+        public DatedFile() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param file The file.
+         * @param date Point in time (Unix timestamp) when the file was uploaded.
+         */
+        public DatedFile(File file, int date) {
+            this.file = file;
+            this.date = date;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1840795491;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains information about a tg:// deep link.
+     */
+    public static class DeepLinkInfo extends Object {
+        /**
+         * Text to be shown to the user.
+         */
+        public FormattedText text;
+        /**
+         * True, if user should be asked to update the application.
+         */
+        public boolean needUpdateApplication;
+
+        /**
+         * Default constructor.
+         */
+        public DeepLinkInfo() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param text Text to be shown to the user.
+         * @param needUpdateApplication True, if user should be asked to update the application.
+         */
+        public DeepLinkInfo(FormattedText text, boolean needUpdateApplication) {
+            this.text = text;
+            this.needUpdateApplication = needUpdateApplication;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1864081662;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -4533,7 +4994,7 @@ public class TdApi {
      */
     public static class DeviceTokenGoogleCloudMessaging extends DeviceToken {
         /**
-         * Device registration token, may be empty to de-register a device.
+         * Device registration token; may be empty to de-register a device.
          */
         public String token;
 
@@ -4546,7 +5007,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param token Device registration token, may be empty to de-register a device.
+         * @param token Device registration token; may be empty to de-register a device.
          */
         public DeviceTokenGoogleCloudMessaging(String token) {
             this.token = token;
@@ -4562,7 +5023,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1092220225;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4571,7 +5032,7 @@ public class TdApi {
      */
     public static class DeviceTokenApplePush extends DeviceToken {
         /**
-         * Device token, may be empty to de-register a device.
+         * Device token; may be empty to de-register a device.
          */
         public String deviceToken;
         /**
@@ -4588,7 +5049,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param deviceToken Device token, may be empty to de-register a device.
+         * @param deviceToken Device token; may be empty to de-register a device.
          * @param isAppSandbox True, if App Sandbox is enabled.
          */
         public DeviceTokenApplePush(String deviceToken, boolean isAppSandbox) {
@@ -4606,7 +5067,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 387541955;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4615,7 +5076,7 @@ public class TdApi {
      */
     public static class DeviceTokenApplePushVoIP extends DeviceToken {
         /**
-         * Device token, may be empty to de-register a device.
+         * Device token; may be empty to de-register a device.
          */
         public String deviceToken;
         /**
@@ -4632,7 +5093,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param deviceToken Device token, may be empty to de-register a device.
+         * @param deviceToken Device token; may be empty to de-register a device.
          * @param isAppSandbox True, if App Sandbox is enabled.
          */
         public DeviceTokenApplePushVoIP(String deviceToken, boolean isAppSandbox) {
@@ -4650,7 +5111,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -327676505;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4659,7 +5120,7 @@ public class TdApi {
      */
     public static class DeviceTokenWindowsPush extends DeviceToken {
         /**
-         * The access token that will be used to send notifications, may be empty to de-register a device.
+         * The access token that will be used to send notifications; may be empty to de-register a device.
          */
         public String accessToken;
 
@@ -4672,7 +5133,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param accessToken The access token that will be used to send notifications, may be empty to de-register a device.
+         * @param accessToken The access token that will be used to send notifications; may be empty to de-register a device.
          */
         public DeviceTokenWindowsPush(String accessToken) {
             this.accessToken = accessToken;
@@ -4688,7 +5149,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1410514289;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4697,7 +5158,7 @@ public class TdApi {
      */
     public static class DeviceTokenMicrosoftPush extends DeviceToken {
         /**
-         * Push notification channel URI, may be empty to de-register a device.
+         * Push notification channel URI; may be empty to de-register a device.
          */
         public String channelUri;
 
@@ -4710,7 +5171,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param channelUri Push notification channel URI, may be empty to de-register a device.
+         * @param channelUri Push notification channel URI; may be empty to de-register a device.
          */
         public DeviceTokenMicrosoftPush(String channelUri) {
             this.channelUri = channelUri;
@@ -4726,7 +5187,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1224269900;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4735,7 +5196,7 @@ public class TdApi {
      */
     public static class DeviceTokenMicrosoftPushVoIP extends DeviceToken {
         /**
-         * Push notification channel URI, may be empty to de-register a device.
+         * Push notification channel URI; may be empty to de-register a device.
          */
         public String channelUri;
 
@@ -4748,7 +5209,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param channelUri Push notification channel URI, may be empty to de-register a device.
+         * @param channelUri Push notification channel URI; may be empty to de-register a device.
          */
         public DeviceTokenMicrosoftPushVoIP(String channelUri) {
             this.channelUri = channelUri;
@@ -4764,7 +5225,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -785603759;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4773,7 +5234,7 @@ public class TdApi {
      */
     public static class DeviceTokenWebPush extends DeviceToken {
         /**
-         * Absolute URL exposed by the push service where the application server can send push messages, may be empty to de-register a device.
+         * Absolute URL exposed by the push service where the application server can send push messages; may be empty to de-register a device.
          */
         public String endpoint;
         /**
@@ -4794,7 +5255,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param endpoint Absolute URL exposed by the push service where the application server can send push messages, may be empty to de-register a device.
+         * @param endpoint Absolute URL exposed by the push service where the application server can send push messages; may be empty to de-register a device.
          * @param p256dhBase64url Base64url-encoded P-256 elliptic curve Diffie-Hellman public key.
          * @param authBase64url Base64url-encoded authentication secret.
          */
@@ -4814,7 +5275,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1694507273;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4823,7 +5284,7 @@ public class TdApi {
      */
     public static class DeviceTokenSimplePush extends DeviceToken {
         /**
-         * Absolute URL exposed by the push service where the application server can send push messages, may be empty to de-register a device.
+         * Absolute URL exposed by the push service where the application server can send push messages; may be empty to de-register a device.
          */
         public String endpoint;
 
@@ -4836,7 +5297,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param endpoint Absolute URL exposed by the push service where the application server can send push messages, may be empty to de-register a device.
+         * @param endpoint Absolute URL exposed by the push service where the application server can send push messages; may be empty to de-register a device.
          */
         public DeviceTokenSimplePush(String endpoint) {
             this.endpoint = endpoint;
@@ -4852,7 +5313,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 49584736;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4861,7 +5322,7 @@ public class TdApi {
      */
     public static class DeviceTokenUbuntuPush extends DeviceToken {
         /**
-         * Token, may be empty to de-register a device.
+         * Token; may be empty to de-register a device.
          */
         public String token;
 
@@ -4874,7 +5335,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param token Token, may be empty to de-register a device.
+         * @param token Token; may be empty to de-register a device.
          */
         public DeviceTokenUbuntuPush(String token) {
             this.token = token;
@@ -4890,7 +5351,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1782320422;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4899,7 +5360,7 @@ public class TdApi {
      */
     public static class DeviceTokenBlackBerryPush extends DeviceToken {
         /**
-         * Token, may be empty to de-register a device.
+         * Token; may be empty to de-register a device.
          */
         public String token;
 
@@ -4912,7 +5373,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param token Token, may be empty to de-register a device.
+         * @param token Token; may be empty to de-register a device.
          */
         public DeviceTokenBlackBerryPush(String token) {
             this.token = token;
@@ -4928,7 +5389,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1559167234;
+            return CONSTRUCTOR;
         }
     }
 
@@ -4937,7 +5398,7 @@ public class TdApi {
      */
     public static class DeviceTokenTizenPush extends DeviceToken {
         /**
-         * Push service registration identifier, may be empty to de-register a device.
+         * Push service registration identifier; may be empty to de-register a device.
          */
         public String regId;
 
@@ -4950,7 +5411,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param regId Push service registration identifier, may be empty to de-register a device.
+         * @param regId Push service registration identifier; may be empty to de-register a device.
          */
         public DeviceTokenTizenPush(String regId) {
             this.regId = regId;
@@ -4966,7 +5427,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1359947213;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5022,7 +5483,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -736037786;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5066,7 +5527,187 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1902914742;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Information about the email address authentication code that was sent.
+     */
+    public static class EmailAddressAuthenticationCodeInfo extends Object {
+        /**
+         * Pattern of the email address to which an authentication code was sent.
+         */
+        public String emailAddressPattern;
+        /**
+         * Length of the code; 0 if unknown.
+         */
+        public int length;
+
+        /**
+         * Default constructor.
+         */
+        public EmailAddressAuthenticationCodeInfo() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param emailAddressPattern Pattern of the email address to which an authentication code was sent.
+         * @param length Length of the code; 0 if unknown.
+         */
+        public EmailAddressAuthenticationCodeInfo(String emailAddressPattern, int length) {
+            this.emailAddressPattern = emailAddressPattern;
+            this.length = length;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1151066659;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains encrypted Telegram Passport data credentials.
+     */
+    public static class EncryptedCredentials extends Object {
+        /**
+         * The encrypted credentials.
+         */
+        public byte[] data;
+        /**
+         * The decrypted data hash.
+         */
+        public byte[] hash;
+        /**
+         * Secret for data decryption, encrypted with the service's public key.
+         */
+        public byte[] secret;
+
+        /**
+         * Default constructor.
+         */
+        public EncryptedCredentials() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param data The encrypted credentials.
+         * @param hash The decrypted data hash.
+         * @param secret Secret for data decryption, encrypted with the service's public key.
+         */
+        public EncryptedCredentials(byte[] data, byte[] hash, byte[] secret) {
+            this.data = data;
+            this.hash = hash;
+            this.secret = secret;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1331106766;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains information about an encrypted Telegram Passport element; for bots only.
+     */
+    public static class EncryptedPassportElement extends Object {
+        /**
+         * Type of Telegram Passport element.
+         */
+        public PassportElementType type;
+        /**
+         * Encrypted JSON-encoded data about the user.
+         */
+        public byte[] data;
+        /**
+         * The front side of an identity document.
+         */
+        public DatedFile frontSide;
+        /**
+         * The reverse side of an identity document; may be null.
+         */
+        public DatedFile reverseSide;
+        /**
+         * Selfie with the document; may be null.
+         */
+        public DatedFile selfie;
+        /**
+         * List of files containing a certified English translation of the document.
+         */
+        public DatedFile[] translation;
+        /**
+         * List of attached files.
+         */
+        public DatedFile[] files;
+        /**
+         * Unencrypted data, phone number or email address.
+         */
+        public String value;
+        /**
+         * Hash of the entire element.
+         */
+        public String hash;
+
+        /**
+         * Default constructor.
+         */
+        public EncryptedPassportElement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param type Type of Telegram Passport element.
+         * @param data Encrypted JSON-encoded data about the user.
+         * @param frontSide The front side of an identity document.
+         * @param reverseSide The reverse side of an identity document; may be null.
+         * @param selfie Selfie with the document; may be null.
+         * @param translation List of files containing a certified English translation of the document.
+         * @param files List of attached files.
+         * @param value Unencrypted data, phone number or email address.
+         * @param hash Hash of the entire element.
+         */
+        public EncryptedPassportElement(PassportElementType type, byte[] data, DatedFile frontSide, DatedFile reverseSide, DatedFile selfie, DatedFile[] translation, DatedFile[] files, String value, String hash) {
+            this.type = type;
+            this.data = data;
+            this.frontSide = frontSide;
+            this.reverseSide = reverseSide;
+            this.selfie = selfie;
+            this.translation = translation;
+            this.files = files;
+            this.value = value;
+            this.hash = hash;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 2002386193;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -5110,7 +5751,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1679978726;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5172,7 +5813,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 766337656;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5204,7 +5845,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2003009189;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5229,7 +5870,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -290816582;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5254,7 +5895,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -709112160;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5279,7 +5920,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -564722929;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5304,7 +5945,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1718914651;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5329,7 +5970,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1795089315;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5354,182 +5995,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1871899401;
-        }
-    }
-
-    /**
-     * The file is a sticker.
-     */
-    public static class FileTypeSticker extends FileType {
-
-        /**
-         * Default constructor.
-         */
-        public FileTypeSticker() {
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = 475233385;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return 475233385;
-        }
-    }
-
-    /**
-     * The file is a thumbnail of another file.
-     */
-    public static class FileTypeThumbnail extends FileType {
-
-        /**
-         * Default constructor.
-         */
-        public FileTypeThumbnail() {
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = -12443298;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return -12443298;
-        }
-    }
-
-    /**
-     * The file type is not yet known.
-     */
-    public static class FileTypeUnknown extends FileType {
-
-        /**
-         * Default constructor.
-         */
-        public FileTypeUnknown() {
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = -2011566768;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return -2011566768;
-        }
-    }
-
-    /**
-     * The file is a video.
-     */
-    public static class FileTypeVideo extends FileType {
-
-        /**
-         * Default constructor.
-         */
-        public FileTypeVideo() {
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = 1430816539;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return 1430816539;
-        }
-    }
-
-    /**
-     * The file is a video note.
-     */
-    public static class FileTypeVideoNote extends FileType {
-
-        /**
-         * Default constructor.
-         */
-        public FileTypeVideoNote() {
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = -518412385;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return -518412385;
-        }
-    }
-
-    /**
-     * The file is a voice note.
-     */
-    public static class FileTypeVoiceNote extends FileType {
-
-        /**
-         * Default constructor.
-         */
-        public FileTypeVoiceNote() {
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = -588681661;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return -588681661;
-        }
-    }
-
-    /**
-     * The file is a wallpaper.
-     */
-    public static class FileTypeWallpaper extends FileType {
-
-        /**
-         * Default constructor.
-         */
-        public FileTypeWallpaper() {
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = 1854930076;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return 1854930076;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5554,7 +6020,207 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1401326026;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file is a file from Secure storage used for storing Telegram Passport files.
+     */
+    public static class FileTypeSecure extends FileType {
+
+        /**
+         * Default constructor.
+         */
+        public FileTypeSecure() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1419133146;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file is a sticker.
+     */
+    public static class FileTypeSticker extends FileType {
+
+        /**
+         * Default constructor.
+         */
+        public FileTypeSticker() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 475233385;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file is a thumbnail of another file.
+     */
+    public static class FileTypeThumbnail extends FileType {
+
+        /**
+         * Default constructor.
+         */
+        public FileTypeThumbnail() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -12443298;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file type is not yet known.
+     */
+    public static class FileTypeUnknown extends FileType {
+
+        /**
+         * Default constructor.
+         */
+        public FileTypeUnknown() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -2011566768;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file is a video.
+     */
+    public static class FileTypeVideo extends FileType {
+
+        /**
+         * Default constructor.
+         */
+        public FileTypeVideo() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1430816539;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file is a video note.
+     */
+    public static class FileTypeVideoNote extends FileType {
+
+        /**
+         * Default constructor.
+         */
+        public FileTypeVideoNote() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -518412385;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file is a voice note.
+     */
+    public static class FileTypeVoiceNote extends FileType {
+
+        /**
+         * Default constructor.
+         */
+        public FileTypeVoiceNote() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -588681661;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file is a wallpaper.
+     */
+    public static class FileTypeWallpaper extends FileType {
+
+        /**
+         * Default constructor.
+         */
+        public FileTypeWallpaper() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1854930076;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -5598,7 +6264,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -252624564;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5642,7 +6308,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2135623881;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5716,7 +6382,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1565597752;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5766,7 +6432,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -30778358;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5804,7 +6470,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -725770727;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5842,7 +6508,75 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 676798885;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * An identity document.
+     */
+    public static class IdentityDocument extends Object {
+        /**
+         * Document number; 1-24 characters.
+         */
+        public String number;
+        /**
+         * Document expiry date; may be null.
+         */
+        public Date expiryDate;
+        /**
+         * Front side of the document.
+         */
+        public DatedFile frontSide;
+        /**
+         * Reverse side of the document; only for driver license and identity card.
+         */
+        public DatedFile reverseSide;
+        /**
+         * Selfie with the document; may be null.
+         */
+        public DatedFile selfie;
+        /**
+         * List of files containing a certified English translation of the document.
+         */
+        public DatedFile[] translation;
+
+        /**
+         * Default constructor.
+         */
+        public IdentityDocument() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param number Document number; 1-24 characters.
+         * @param expiryDate Document expiry date; may be null.
+         * @param frontSide Front side of the document.
+         * @param reverseSide Reverse side of the document; only for driver license and identity card.
+         * @param selfie Selfie with the document; may be null.
+         * @param translation List of files containing a certified English translation of the document.
+         */
+        public IdentityDocument(String number, Date expiryDate, DatedFile frontSide, DatedFile reverseSide, DatedFile selfie, DatedFile[] translation) {
+            this.number = number;
+            this.expiryDate = expiryDate;
+            this.frontSide = frontSide;
+            this.reverseSide = reverseSide;
+            this.selfie = selfie;
+            this.translation = translation;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 445952972;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -5886,7 +6620,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -741685354;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5930,7 +6664,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -372105704;
+            return CONSTRUCTOR;
         }
     }
 
@@ -5946,7 +6680,7 @@ public class TdApi {
      */
     public static class InlineKeyboardButtonTypeUrl extends InlineKeyboardButtonType {
         /**
-         * URL to open.
+         * HTTP or tg:// URL to open.
          */
         public String url;
 
@@ -5959,7 +6693,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param url URL to open.
+         * @param url HTTP or tg:// URL to open.
          */
         public InlineKeyboardButtonTypeUrl(String url) {
             this.url = url;
@@ -5975,7 +6709,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1130741420;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6013,7 +6747,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1127515139;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6038,7 +6772,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -383429528;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6082,7 +6816,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2035563307;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6107,7 +6841,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1360739440;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6182,7 +6916,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -518366710;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6232,7 +6966,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 410081985;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6288,7 +7022,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -158305341;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6338,7 +7072,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1592932211;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6382,7 +7116,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1706916987;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6432,7 +7166,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2009984267;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6476,7 +7210,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 842650360;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6532,7 +7266,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1491268539;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6588,7 +7322,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1848319440;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6632,7 +7366,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1848224245;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6688,7 +7422,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1373158683;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6738,7 +7472,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1897393105;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6800,7 +7534,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1000709656;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6845,7 +7579,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2034385364;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6889,7 +7623,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -829689558;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6927,7 +7661,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1979566832;
+            return CONSTRUCTOR;
         }
     }
 
@@ -6965,7 +7699,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1246570799;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7010,7 +7744,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1788906253;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7048,7 +7782,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -107574466;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7086,7 +7820,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2056030919;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7095,7 +7829,7 @@ public class TdApi {
      */
     public static class InputFileGenerated extends InputFile {
         /**
-         * Local path to a file from which the file is generated, may be empty if there is no such file.
+         * Local path to a file from which the file is generated; may be empty if there is no such file.
          */
         public String originalPath;
         /**
@@ -7116,7 +7850,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param originalPath Local path to a file from which the file is generated, may be empty if there is no such file.
+         * @param originalPath Local path to a file from which the file is generated; may be empty if there is no such file.
          * @param conversion String specifying the conversion applied to the original file; should be persistent across application restarts.
          * @param expectedSize Expected size of the generated file; 0 if unknown.
          */
@@ -7136,7 +7870,75 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1781351885;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * An identity document to be saved to Telegram Passport.
+     */
+    public static class InputIdentityDocument extends Object {
+        /**
+         * Document number; 1-24 characters.
+         */
+        public String number;
+        /**
+         * Document expiry date, if available.
+         */
+        public Date expiryDate;
+        /**
+         * Front side of the document.
+         */
+        public InputFile frontSide;
+        /**
+         * Reverse side of the document; only for driver license and identity card.
+         */
+        public InputFile reverseSide;
+        /**
+         * Selfie with the document, if available.
+         */
+        public InputFile selfie;
+        /**
+         * List of files containing a certified English translation of the document.
+         */
+        public InputFile[] translation;
+
+        /**
+         * Default constructor.
+         */
+        public InputIdentityDocument() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param number Document number; 1-24 characters.
+         * @param expiryDate Document expiry date, if available.
+         * @param frontSide Front side of the document.
+         * @param reverseSide Reverse side of the document; only for driver license and identity card.
+         * @param selfie Selfie with the document, if available.
+         * @param translation List of files containing a certified English translation of the document.
+         */
+        public InputIdentityDocument(String number, Date expiryDate, InputFile frontSide, InputFile reverseSide, InputFile selfie, InputFile[] translation) {
+            this.number = number;
+            this.expiryDate = expiryDate;
+            this.frontSide = frontSide;
+            this.reverseSide = reverseSide;
+            this.selfie = selfie;
+            this.translation = translation;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -381776063;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -7229,7 +8031,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -891474894;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7315,7 +8117,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1629529888;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7407,7 +8209,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1973670156;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7481,7 +8283,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1260139988;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7555,7 +8357,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1846064594;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7647,7 +8449,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 578801869;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7697,7 +8499,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 966074327;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7783,7 +8585,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1887650218;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7869,7 +8671,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1123338721;
+            return CONSTRUCTOR;
         }
     }
 
@@ -7943,7 +8745,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 274007129;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8017,7 +8819,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 541704509;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8115,7 +8917,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1724073191;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8183,7 +8985,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1790072503;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8199,7 +9001,7 @@ public class TdApi {
      */
     public static class InputMessageText extends InputMessageContent {
         /**
-         * Formatted text to be sent. Only Bold, Italic, Code, Pre, PreCode and TextUrl entities are allowed to be specified manually.
+         * Formatted text to be sent; 1-GetOption(&quot;messageTextLengthMax&quot;) characters. Only Bold, Italic, Code, Pre, PreCode and TextUrl entities are allowed to be specified manually.
          */
         public FormattedText text;
         /**
@@ -8220,7 +9022,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param text Formatted text to be sent. Only Bold, Italic, Code, Pre, PreCode and TextUrl entities are allowed to be specified manually.
+         * @param text Formatted text to be sent; 1-GetOption(&quot;messageTextLengthMax&quot;) characters. Only Bold, Italic, Code, Pre, PreCode and TextUrl entities are allowed to be specified manually.
          * @param disableWebPagePreview True, if rich web page previews for URLs in the message text should be disabled.
          * @param clearDraft True, if a chat message draft should be deleted.
          */
@@ -8240,7 +9042,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 247050392;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8269,7 +9071,7 @@ public class TdApi {
          */
         public int height;
         /**
-         * Animation caption; 0-200 characters.
+         * Animation caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public FormattedText caption;
 
@@ -8287,7 +9089,7 @@ public class TdApi {
          * @param duration Duration of the animation, in seconds.
          * @param width Width of the animation; may be replaced by the server.
          * @param height Height of the animation; may be replaced by the server.
-         * @param caption Animation caption; 0-200 characters.
+         * @param caption Animation caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public InputMessageAnimation(InputFile animation, InputThumbnail thumbnail, int duration, int width, int height, FormattedText caption) {
             this.animation = animation;
@@ -8308,7 +9110,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 926542724;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8337,7 +9139,7 @@ public class TdApi {
          */
         public String performer;
         /**
-         * Audio caption; 0-200 characters.
+         * Audio caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public FormattedText caption;
 
@@ -8355,7 +9157,7 @@ public class TdApi {
          * @param duration Duration of the audio, in seconds; may be replaced by the server.
          * @param title Title of the audio; 0-64 characters; may be replaced by the server.
          * @param performer Performer of the audio; 0-64 characters, may be replaced by the server.
-         * @param caption Audio caption; 0-200 characters.
+         * @param caption Audio caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public InputMessageAudio(InputFile audio, InputThumbnail albumCoverThumbnail, int duration, String title, String performer, FormattedText caption) {
             this.audio = audio;
@@ -8376,7 +9178,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -626786126;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8393,7 +9195,7 @@ public class TdApi {
          */
         public InputThumbnail thumbnail;
         /**
-         * Document caption; 0-200 characters.
+         * Document caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public FormattedText caption;
 
@@ -8408,7 +9210,7 @@ public class TdApi {
          *
          * @param document Document to be sent.
          * @param thumbnail Document thumbnail, if available.
-         * @param caption Document caption; 0-200 characters.
+         * @param caption Document caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public InputMessageDocument(InputFile document, InputThumbnail thumbnail, FormattedText caption) {
             this.document = document;
@@ -8426,7 +9228,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 937970604;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8455,7 +9257,7 @@ public class TdApi {
          */
         public int height;
         /**
-         * Photo caption; 0-200 characters.
+         * Photo caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public FormattedText caption;
         /**
@@ -8477,7 +9279,7 @@ public class TdApi {
          * @param addedStickerFileIds File identifiers of the stickers added to the photo, if applicable.
          * @param width Photo width.
          * @param height Photo height.
-         * @param caption Photo caption; 0-200 characters.
+         * @param caption Photo caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          * @param ttl Photo TTL (Time To Live), in seconds (0-60). A non-zero TTL can be specified only in private chats.
          */
         public InputMessagePhoto(InputFile photo, InputThumbnail thumbnail, int[] addedStickerFileIds, int width, int height, FormattedText caption, int ttl) {
@@ -8500,7 +9302,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1648801584;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8556,7 +9358,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 740776325;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8593,7 +9395,7 @@ public class TdApi {
          */
         public boolean supportsStreaming;
         /**
-         * Video caption; 0-200 characters.
+         * Video caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public FormattedText caption;
         /**
@@ -8617,7 +9419,7 @@ public class TdApi {
          * @param width Video width.
          * @param height Video height.
          * @param supportsStreaming True, if the video should be tried to be streamed.
-         * @param caption Video caption; 0-200 characters.
+         * @param caption Video caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          * @param ttl Video TTL (Time To Live), in seconds (0-60). A non-zero TTL can be specified only in private chats.
          */
         public InputMessageVideo(InputFile video, InputThumbnail thumbnail, int[] addedStickerFileIds, int duration, int width, int height, boolean supportsStreaming, FormattedText caption, int ttl) {
@@ -8642,7 +9444,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2108486755;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8698,7 +9500,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 279108859;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8719,7 +9521,7 @@ public class TdApi {
          */
         public byte[] waveform;
         /**
-         * Voice note caption; 0-200 characters.
+         * Voice note caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public FormattedText caption;
 
@@ -8735,7 +9537,7 @@ public class TdApi {
          * @param voiceNote Voice note to be sent.
          * @param duration Duration of the voice note, in seconds.
          * @param waveform Waveform representation of the voice note, in 5-bit format.
-         * @param caption Voice note caption; 0-200 characters.
+         * @param caption Voice note caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public InputMessageVoiceNote(InputFile voiceNote, int duration, byte[] waveform, FormattedText caption) {
             this.voiceNote = voiceNote;
@@ -8754,7 +9556,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2136519657;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8798,7 +9600,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1624179655;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8836,7 +9638,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1447926269;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8874,7 +9676,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -982446849;
+            return CONSTRUCTOR;
         }
     }
 
@@ -8918,7 +9720,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1728000914;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9016,7 +9818,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1038812175;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9066,7 +9868,957 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1561363198;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * This class is an abstract base class.
+     * Contains information about a Telegram Passport element to be saved.
+     */
+    public abstract static class InputPassportElement extends Object {
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's personal details.
+     */
+    public static class InputPassportElementPersonalDetails extends InputPassportElement {
+        /**
+         * Personal details of the user.
+         */
+        public PersonalDetails personalDetails;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementPersonalDetails() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param personalDetails Personal details of the user.
+         */
+        public InputPassportElementPersonalDetails(PersonalDetails personalDetails) {
+            this.personalDetails = personalDetails;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 164791359;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's passport.
+     */
+    public static class InputPassportElementPassport extends InputPassportElement {
+        /**
+         * The passport to be saved.
+         */
+        public InputIdentityDocument passport;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementPassport() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param passport The passport to be saved.
+         */
+        public InputPassportElementPassport(InputIdentityDocument passport) {
+            this.passport = passport;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -497011356;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's driver license.
+     */
+    public static class InputPassportElementDriverLicense extends InputPassportElement {
+        /**
+         * The driver license to be saved.
+         */
+        public InputIdentityDocument driverLicense;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementDriverLicense() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param driverLicense The driver license to be saved.
+         */
+        public InputPassportElementDriverLicense(InputIdentityDocument driverLicense) {
+            this.driverLicense = driverLicense;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 304813264;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's identity card.
+     */
+    public static class InputPassportElementIdentityCard extends InputPassportElement {
+        /**
+         * The identity card to be saved.
+         */
+        public InputIdentityDocument identityCard;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementIdentityCard() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param identityCard The identity card to be saved.
+         */
+        public InputPassportElementIdentityCard(InputIdentityDocument identityCard) {
+            this.identityCard = identityCard;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -9963390;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's internal passport.
+     */
+    public static class InputPassportElementInternalPassport extends InputPassportElement {
+        /**
+         * The internal passport to be saved.
+         */
+        public InputIdentityDocument internalPassport;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementInternalPassport() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param internalPassport The internal passport to be saved.
+         */
+        public InputPassportElementInternalPassport(InputIdentityDocument internalPassport) {
+            this.internalPassport = internalPassport;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 715360043;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's address.
+     */
+    public static class InputPassportElementAddress extends InputPassportElement {
+        /**
+         * The address to be saved.
+         */
+        public Address address;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementAddress() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param address The address to be saved.
+         */
+        public InputPassportElementAddress(Address address) {
+            this.address = address;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 461630480;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's utility bill.
+     */
+    public static class InputPassportElementUtilityBill extends InputPassportElement {
+        /**
+         * The utility bill to be saved.
+         */
+        public InputPersonalDocument utilityBill;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementUtilityBill() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param utilityBill The utility bill to be saved.
+         */
+        public InputPassportElementUtilityBill(InputPersonalDocument utilityBill) {
+            this.utilityBill = utilityBill;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1389203841;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's bank statement.
+     */
+    public static class InputPassportElementBankStatement extends InputPassportElement {
+        /**
+         * The bank statement to be saved.
+         */
+        public InputPersonalDocument bankStatement;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementBankStatement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param bankStatement The bank statement to be saved.
+         */
+        public InputPassportElementBankStatement(InputPersonalDocument bankStatement) {
+            this.bankStatement = bankStatement;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -26585208;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's rental agreement.
+     */
+    public static class InputPassportElementRentalAgreement extends InputPassportElement {
+        /**
+         * The rental agreement to be saved.
+         */
+        public InputPersonalDocument rentalAgreement;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementRentalAgreement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param rentalAgreement The rental agreement to be saved.
+         */
+        public InputPassportElementRentalAgreement(InputPersonalDocument rentalAgreement) {
+            this.rentalAgreement = rentalAgreement;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1736154155;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's passport registration.
+     */
+    public static class InputPassportElementPassportRegistration extends InputPassportElement {
+        /**
+         * The passport registration page to be saved.
+         */
+        public InputPersonalDocument passportRegistration;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementPassportRegistration() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param passportRegistration The passport registration page to be saved.
+         */
+        public InputPassportElementPassportRegistration(InputPersonalDocument passportRegistration) {
+            this.passportRegistration = passportRegistration;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1314562128;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's temporary registration.
+     */
+    public static class InputPassportElementTemporaryRegistration extends InputPassportElement {
+        /**
+         * The temporary registration document to be saved.
+         */
+        public InputPersonalDocument temporaryRegistration;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementTemporaryRegistration() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param temporaryRegistration The temporary registration document to be saved.
+         */
+        public InputPassportElementTemporaryRegistration(InputPersonalDocument temporaryRegistration) {
+            this.temporaryRegistration = temporaryRegistration;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1913238047;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's phone number.
+     */
+    public static class InputPassportElementPhoneNumber extends InputPassportElement {
+        /**
+         * The phone number to be saved.
+         */
+        public String phoneNumber;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementPhoneNumber() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param phoneNumber The phone number to be saved.
+         */
+        public InputPassportElementPhoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1319357497;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element to be saved containing the user's email address.
+     */
+    public static class InputPassportElementEmailAddress extends InputPassportElement {
+        /**
+         * The email address to be saved.
+         */
+        public String emailAddress;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementEmailAddress() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param emailAddress The email address to be saved.
+         */
+        public InputPassportElementEmailAddress(String emailAddress) {
+            this.emailAddress = emailAddress;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -248605659;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains the description of an error in a Telegram Passport element; for bots only.
+     */
+    public static class InputPassportElementError extends Object {
+        /**
+         * Type of Telegram Passport element that has the error.
+         */
+        public PassportElementType type;
+        /**
+         * Error message.
+         */
+        public String message;
+        /**
+         * Error source.
+         */
+        public InputPassportElementErrorSource source;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementError() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param type Type of Telegram Passport element that has the error.
+         * @param message Error message.
+         * @param source Error source.
+         */
+        public InputPassportElementError(PassportElementType type, String message, InputPassportElementErrorSource source) {
+            this.type = type;
+            this.message = message;
+            this.source = source;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 285756898;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * This class is an abstract base class.
+     * Contains the description of an error in a Telegram Passport element; for bots only.
+     */
+    public abstract static class InputPassportElementErrorSource extends Object {
+    }
+
+    /**
+     * The element contains an error in an unspecified place. The error will be considered resolved when new data is added.
+     */
+    public static class InputPassportElementErrorSourceUnspecified extends InputPassportElementErrorSource {
+        /**
+         * Current hash of the entire element.
+         */
+        public byte[] elementHash;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementErrorSourceUnspecified() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param elementHash Current hash of the entire element.
+         */
+        public InputPassportElementErrorSourceUnspecified(byte[] elementHash) {
+            this.elementHash = elementHash;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 267230319;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A data field contains an error. The error is considered resolved when the field's value changes.
+     */
+    public static class InputPassportElementErrorSourceDataField extends InputPassportElementErrorSource {
+        /**
+         * Field name.
+         */
+        public String fieldName;
+        /**
+         * Current data hash.
+         */
+        public byte[] dataHash;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementErrorSourceDataField() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fieldName Field name.
+         * @param dataHash Current data hash.
+         */
+        public InputPassportElementErrorSourceDataField(String fieldName, byte[] dataHash) {
+            this.fieldName = fieldName;
+            this.dataHash = dataHash;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -426795002;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The front side of the document contains an error. The error is considered resolved when the file with the front side of the document changes.
+     */
+    public static class InputPassportElementErrorSourceFrontSide extends InputPassportElementErrorSource {
+        /**
+         * Current hash of the file containing the front side.
+         */
+        public byte[] fileHash;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementErrorSourceFrontSide() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fileHash Current hash of the file containing the front side.
+         */
+        public InputPassportElementErrorSourceFrontSide(byte[] fileHash) {
+            this.fileHash = fileHash;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 588023741;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The reverse side of the document contains an error. The error is considered resolved when the file with the reverse side of the document changes.
+     */
+    public static class InputPassportElementErrorSourceReverseSide extends InputPassportElementErrorSource {
+        /**
+         * Current hash of the file containing the reverse side.
+         */
+        public byte[] fileHash;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementErrorSourceReverseSide() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fileHash Current hash of the file containing the reverse side.
+         */
+        public InputPassportElementErrorSourceReverseSide(byte[] fileHash) {
+            this.fileHash = fileHash;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 413072891;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The selfie contains an error. The error is considered resolved when the file with the selfie changes.
+     */
+    public static class InputPassportElementErrorSourceSelfie extends InputPassportElementErrorSource {
+        /**
+         * Current hash of the file containing the selfie.
+         */
+        public byte[] fileHash;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementErrorSourceSelfie() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fileHash Current hash of the file containing the selfie.
+         */
+        public InputPassportElementErrorSourceSelfie(byte[] fileHash) {
+            this.fileHash = fileHash;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -773575528;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * One of the files containing the translation of the document contains an error. The error is considered resolved when the file with the translation changes.
+     */
+    public static class InputPassportElementErrorSourceTranslationFile extends InputPassportElementErrorSource {
+        /**
+         * Current hash of the file containing the translation.
+         */
+        public byte[] fileHash;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementErrorSourceTranslationFile() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fileHash Current hash of the file containing the translation.
+         */
+        public InputPassportElementErrorSourceTranslationFile(byte[] fileHash) {
+            this.fileHash = fileHash;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 505842299;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The translation of the document contains an error. The error is considered resolved when the list of files changes.
+     */
+    public static class InputPassportElementErrorSourceTranslationFiles extends InputPassportElementErrorSource {
+        /**
+         * Current hashes of all files with the translation.
+         */
+        public byte[][] fileHashes;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementErrorSourceTranslationFiles() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fileHashes Current hashes of all files with the translation.
+         */
+        public InputPassportElementErrorSourceTranslationFiles(byte[][] fileHashes) {
+            this.fileHashes = fileHashes;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -527254048;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file contains an error. The error is considered resolved when the file changes.
+     */
+    public static class InputPassportElementErrorSourceFile extends InputPassportElementErrorSource {
+        /**
+         * Current hash of the file which has the error.
+         */
+        public byte[] fileHash;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementErrorSourceFile() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fileHash Current hash of the file which has the error.
+         */
+        public InputPassportElementErrorSourceFile(byte[] fileHash) {
+            this.fileHash = fileHash;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -298492469;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The list of attached files contains an error. The error is considered resolved when the file list changes.
+     */
+    public static class InputPassportElementErrorSourceFiles extends InputPassportElementErrorSource {
+        /**
+         * Current hashes of all attached files.
+         */
+        public byte[][] fileHashes;
+
+        /**
+         * Default constructor.
+         */
+        public InputPassportElementErrorSourceFiles() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fileHashes Current hashes of all attached files.
+         */
+        public InputPassportElementErrorSourceFiles(byte[][] fileHashes) {
+            this.fileHashes = fileHashes;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -2008541640;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A personal document to be saved to Telegram Passport.
+     */
+    public static class InputPersonalDocument extends Object {
+        /**
+         * List of files containing the pages of the document.
+         */
+        public InputFile[] files;
+        /**
+         * List of files containing a certified English translation of the document.
+         */
+        public InputFile[] translation;
+
+        /**
+         * Default constructor.
+         */
+        public InputPersonalDocument() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param files List of files containing the pages of the document.
+         * @param translation List of files containing a certified English translation of the document.
+         */
+        public InputPersonalDocument(InputFile[] files, InputFile[] translation) {
+            this.files = files;
+            this.translation = translation;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1676966826;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -9116,7 +10868,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1998602205;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9166,7 +10918,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1582387236;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9258,7 +11010,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -368451690;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9302,7 +11054,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2069836172;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9334,7 +11086,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1773037256;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9359,7 +11111,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1529235527;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9384,7 +11136,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -125661955;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9428,7 +11180,283 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 552789798;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains information about a language pack.
+     */
+    public static class LanguagePackInfo extends Object {
+        /**
+         * Unique language pack identifier.
+         */
+        public String id;
+        /**
+         * Language name.
+         */
+        public String name;
+        /**
+         * Name of the language in that language.
+         */
+        public String nativeName;
+        /**
+         * Total number of non-deleted strings from the language pack available locally.
+         */
+        public int localStringCount;
+
+        /**
+         * Default constructor.
+         */
+        public LanguagePackInfo() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param id Unique language pack identifier.
+         * @param name Language name.
+         * @param nativeName Name of the language in that language.
+         * @param localStringCount Total number of non-deleted strings from the language pack available locally.
+         */
+        public LanguagePackInfo(String id, String name, String nativeName, int localStringCount) {
+            this.id = id;
+            this.name = name;
+            this.nativeName = nativeName;
+            this.localStringCount = localStringCount;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1716484242;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Represents one language pack string.
+     */
+    public static class LanguagePackString extends Object {
+        /**
+         * String key.
+         */
+        public String key;
+        /**
+         * String value.
+         */
+        public LanguagePackStringValue value;
+
+        /**
+         * Default constructor.
+         */
+        public LanguagePackString() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param key String key.
+         * @param value String value.
+         */
+        public LanguagePackString(String key, LanguagePackStringValue value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1307632736;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * This class is an abstract base class.
+     * Represents the value of a string in a language pack.
+     */
+    public abstract static class LanguagePackStringValue extends Object {
+    }
+
+    /**
+     * An ordinary language pack string.
+     */
+    public static class LanguagePackStringValueOrdinary extends LanguagePackStringValue {
+        /**
+         * String value.
+         */
+        public String value;
+
+        /**
+         * Default constructor.
+         */
+        public LanguagePackStringValueOrdinary() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param value String value.
+         */
+        public LanguagePackStringValueOrdinary(String value) {
+            this.value = value;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -249256352;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A language pack string which has different forms based on the number of some object it mentions.
+     */
+    public static class LanguagePackStringValuePluralized extends LanguagePackStringValue {
+        /**
+         * Value for zero objects.
+         */
+        public String zeroValue;
+        /**
+         * Value for one object.
+         */
+        public String oneValue;
+        /**
+         * Value for two objects.
+         */
+        public String twoValue;
+        /**
+         * Value for few objects.
+         */
+        public String fewValue;
+        /**
+         * Value for many objects.
+         */
+        public String manyValue;
+        /**
+         * Default value.
+         */
+        public String otherValue;
+
+        /**
+         * Default constructor.
+         */
+        public LanguagePackStringValuePluralized() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param zeroValue Value for zero objects.
+         * @param oneValue Value for one object.
+         * @param twoValue Value for two objects.
+         * @param fewValue Value for few objects.
+         * @param manyValue Value for many objects.
+         * @param otherValue Default value.
+         */
+        public LanguagePackStringValuePluralized(String zeroValue, String oneValue, String twoValue, String fewValue, String manyValue, String otherValue) {
+            this.zeroValue = zeroValue;
+            this.oneValue = oneValue;
+            this.twoValue = twoValue;
+            this.fewValue = fewValue;
+            this.manyValue = manyValue;
+            this.otherValue = otherValue;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1906840261;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A deleted language pack string, the value should be taken from the built-in english language pack.
+     */
+    public static class LanguagePackStringValueDeleted extends LanguagePackStringValue {
+
+        /**
+         * Default constructor.
+         */
+        public LanguagePackStringValueDeleted() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1834792698;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains a list of language pack strings.
+     */
+    public static class LanguagePackStrings extends Object {
+        /**
+         * A list of language pack strings.
+         */
+        public LanguagePackString[] strings;
+
+        /**
+         * Default constructor.
+         */
+        public LanguagePackStrings() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param strings A list of language pack strings.
+         */
+        public LanguagePackStrings(LanguagePackString[] strings) {
+            this.strings = strings;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1172082922;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -9460,7 +11488,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 951430287;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9485,7 +11513,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 380898199;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9510,7 +11538,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1000499465;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9584,7 +11612,45 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 847939462;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains information about the current localization target.
+     */
+    public static class LocalizationTargetInfo extends Object {
+        /**
+         * List of available language packs for this application.
+         */
+        public LanguagePackInfo[] languagePacks;
+
+        /**
+         * Default constructor.
+         */
+        public LocalizationTargetInfo() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param languagePacks List of available language packs for this application.
+         */
+        public LocalizationTargetInfo(LanguagePackInfo[] languagePacks) {
+            this.languagePacks = languagePacks;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -2048670809;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -9628,7 +11694,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 749028016;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9660,7 +11726,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1027512005;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9685,7 +11751,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1748310861;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9710,7 +11776,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 411773406;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9735,7 +11801,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 534995335;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9791,7 +11857,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2097433026;
+            return CONSTRUCTOR;
         }
     }
 
@@ -9800,7 +11866,7 @@ public class TdApi {
      */
     public static class Message extends Object {
         /**
-         * Unique message identifier.
+         * Message identifier, unique for the chat to which the message belongs.
          */
         public long id;
         /**
@@ -9901,7 +11967,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param id Unique message identifier.
+         * @param id Message identifier, unique for the chat to which the message belongs.
          * @param senderUserId Identifier of the user who sent the message; 0 if unknown. It is unknown for channel posts.
          * @param chatId Chat identifier.
          * @param sendingState Information about the sending state of the message; may be null.
@@ -9961,7 +12027,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -675737627;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10012,7 +12078,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1989037971;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10062,7 +12128,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1306939396;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10106,7 +12172,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 276722716;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10150,7 +12216,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 596945783;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10200,7 +12266,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1851395174;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10225,7 +12291,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1404641801;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10263,7 +12329,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1779022878;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10313,7 +12379,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2021281344;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10338,7 +12404,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1212209981;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10388,7 +12454,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 963323014;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10438,7 +12504,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 527777781;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10488,7 +12554,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1301887786;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10526,7 +12592,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2146492043;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10564,7 +12630,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -512684966;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10602,7 +12668,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -69441162;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10688,7 +12754,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1916671476;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10732,7 +12798,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 366512596;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10776,7 +12842,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1575377646;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10814,7 +12880,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -434325733;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10852,7 +12918,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 748272449;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10890,7 +12956,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 319630249;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10915,7 +12981,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -184374809;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10953,7 +13019,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 401228326;
+            return CONSTRUCTOR;
         }
     }
 
@@ -10978,7 +13044,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1846493311;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11016,7 +13082,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1164414043;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11054,7 +13120,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1957816681;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11098,7 +13164,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1642272558;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11136,7 +13202,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 953503801;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11161,7 +13227,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1564971605;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11199,7 +13265,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1810060209;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11237,7 +13303,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1435879282;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11287,7 +13353,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1344904575;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11337,7 +13403,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -595962993;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11362,7 +13428,7 @@ public class TdApi {
          */
         public byte[] invoicePayload;
         /**
-         * Identifier of the shipping option chosen by the user, may be empty if not applicable.
+         * Identifier of the shipping option chosen by the user; may be empty if not applicable.
          */
         public String shippingOptionId;
         /**
@@ -11391,7 +13457,7 @@ public class TdApi {
          * @param currency Currency for price of the product.
          * @param totalAmount Total price for the product, in the minimal quantity of the currency.
          * @param invoicePayload Invoice payload.
-         * @param shippingOptionId Identifier of the shipping option chosen by the user, may be empty if not applicable.
+         * @param shippingOptionId Identifier of the shipping option chosen by the user; may be empty if not applicable.
          * @param orderInfo Information about the order; may be null.
          * @param telegramPaymentChargeId Telegram payment identifier.
          * @param providerPaymentChargeId Provider payment identifier.
@@ -11417,7 +13483,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -412310696;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11442,7 +13508,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1502020353;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11480,7 +13546,89 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1074551800;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Telegram Passport data has been sent.
+     */
+    public static class MessagePassportDataSent extends MessageContent {
+        /**
+         * List of Telegram Passport element types sent.
+         */
+        public PassportElementType[] types;
+
+        /**
+         * Default constructor.
+         */
+        public MessagePassportDataSent() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param types List of Telegram Passport element types sent.
+         */
+        public MessagePassportDataSent(PassportElementType[] types) {
+            this.types = types;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1017405171;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Telegram Passport data has been received; for bots only.
+     */
+    public static class MessagePassportDataReceived extends MessageContent {
+        /**
+         * List of received Telegram Passport elements.
+         */
+        public EncryptedPassportElement[] elements;
+        /**
+         * Encrypted data credentials.
+         */
+        public EncryptedCredentials credentials;
+
+        /**
+         * Default constructor.
+         */
+        public MessagePassportDataReceived() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param elements List of received Telegram Passport elements.
+         * @param credentials Encrypted data credentials.
+         */
+        public MessagePassportDataReceived(EncryptedPassportElement[] elements, EncryptedCredentials credentials) {
+            this.elements = elements;
+            this.credentials = credentials;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1367863624;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -11505,7 +13653,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1816726139;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11568,7 +13716,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1004332765;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11636,7 +13784,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -244050875;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11668,7 +13816,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1381803582;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11693,7 +13841,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -546610323;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11737,7 +13885,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -16498159;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11781,7 +13929,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1615554212;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11844,7 +13992,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 188452706;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11900,7 +14048,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 737000365;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11932,7 +14080,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1971691759;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11957,7 +14105,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 819228239;
+            return CONSTRUCTOR;
         }
     }
 
@@ -11982,7 +14130,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1435199760;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12007,7 +14155,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -633872070;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12032,107 +14180,19 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1942128539;
-        }
-    }
-
-    /**
-     * Contains information about notification settings for a chat or several chats.
-     */
-    public static class NotificationSettings extends Object {
-        /**
-         * Time left before notifications will be unmuted, in seconds.
-         */
-        public int muteFor;
-        /**
-         * An audio file name for notification sounds; only applies to iOS applications.
-         */
-        public String sound;
-        /**
-         * True, if message content should be displayed in notifications.
-         */
-        public boolean showPreview;
-
-        /**
-         * Default constructor.
-         */
-        public NotificationSettings() {
-        }
-
-        /**
-         * Constructor for initialization of all fields.
-         *
-         * @param muteFor Time left before notifications will be unmuted, in seconds.
-         * @param sound An audio file name for notification sounds; only applies to iOS applications.
-         * @param showPreview True, if message content should be displayed in notifications.
-         */
-        public NotificationSettings(int muteFor, String sound, boolean showPreview) {
-            this.muteFor = muteFor;
-            this.sound = sound;
-            this.showPreview = showPreview;
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = 1737538681;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return 1737538681;
+            return CONSTRUCTOR;
         }
     }
 
     /**
      * This class is an abstract base class.
-     * Describes the types of chats for which notification settings are applied.
+     * Describes the types of chats to which notification settings are applied.
      */
     public abstract static class NotificationSettingsScope extends Object {
     }
 
     /**
-     * Notification settings applied to a particular chat.
-     */
-    public static class NotificationSettingsScopeChat extends NotificationSettingsScope {
-        /**
-         * Chat identifier.
-         */
-        public long chatId;
-
-        /**
-         * Default constructor.
-         */
-        public NotificationSettingsScopeChat() {
-        }
-
-        /**
-         * Constructor for initialization of all fields.
-         *
-         * @param chatId Chat identifier.
-         */
-        public NotificationSettingsScopeChat(long chatId) {
-            this.chatId = chatId;
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = 1855845499;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return 1855845499;
-        }
-    }
-
-    /**
-     * Notification settings applied to all private chats.
+     * Notification settings applied to all private and secret chats when the corresponding chat setting has a default value.
      */
     public static class NotificationSettingsScopePrivateChats extends NotificationSettingsScope {
 
@@ -12152,57 +14212,32 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 937446759;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Notification settings applied to all basic groups and channels. (Supergroups have no common settings.)
+     * Notification settings applied to all basic groups, supergroups and channels when the corresponding chat setting has a default value.
      */
-    public static class NotificationSettingsScopeBasicGroupChats extends NotificationSettingsScope {
+    public static class NotificationSettingsScopeGroupChats extends NotificationSettingsScope {
 
         /**
          * Default constructor.
          */
-        public NotificationSettingsScopeBasicGroupChats() {
+        public NotificationSettingsScopeGroupChats() {
         }
 
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = -1358646601;
+        public static final int CONSTRUCTOR = 1212142067;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return -1358646601;
-        }
-    }
-
-    /**
-     * Notification settings applied to all chats.
-     */
-    public static class NotificationSettingsScopeAllChats extends NotificationSettingsScope {
-
-        /**
-         * Default constructor.
-         */
-        public NotificationSettingsScopeAllChats() {
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = -1345889922;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return -1345889922;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12227,7 +14262,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -722616727;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12272,7 +14307,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 63135518;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12297,7 +14332,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 918955155;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12335,7 +14370,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1400911104;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12373,7 +14408,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 756248212;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12396,7 +14431,7 @@ public class TdApi {
         /**
          * Shipping address for this order; may be null.
          */
-        public ShippingAddress shippingAddress;
+        public Address shippingAddress;
 
         /**
          * Default constructor.
@@ -12412,7 +14447,7 @@ public class TdApi {
          * @param emailAddress Email address of the user.
          * @param shippingAddress Shipping address for this order; may be null.
          */
-        public OrderInfo(String name, String phoneNumber, String emailAddress, ShippingAddress shippingAddress) {
+        public OrderInfo(String name, String phoneNumber, String emailAddress, Address shippingAddress) {
             this.name = name;
             this.phoneNumber = phoneNumber;
             this.emailAddress = emailAddress;
@@ -12422,14 +14457,14 @@ public class TdApi {
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = -1830611784;
+        public static final int CONSTRUCTOR = 783997294;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return -1830611784;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12474,7 +14509,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1629664784;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12512,7 +14547,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 264524263;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12556,7 +14591,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1300231184;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12594,7 +14629,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1402854811;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12632,7 +14667,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1263956774;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12670,7 +14705,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1182402406;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12714,7 +14749,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1066346178;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12752,7 +14787,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 886429480;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12777,7 +14812,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -618614392;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12815,7 +14850,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -837994576;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12859,7 +14894,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1752631674;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12903,7 +14938,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -37421406;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12947,7 +14982,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1799498665;
+            return CONSTRUCTOR;
         }
     }
 
@@ -12997,7 +15032,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1639478661;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13041,7 +15076,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1898245855;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13085,7 +15120,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -637181825;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13141,7 +15176,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1610373002;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13179,7 +15214,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 972174080;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13259,7 +15294,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -211257334;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13327,7 +15362,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1049948772;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13371,7 +15406,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 911142202;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13415,7 +15450,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 178557514;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13465,45 +15500,1329 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 214606645;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Contains information available to the user after requesting password recovery.
+     * Contains information about a Telegram Passport authorization form that was requested.
      */
-    public static class PasswordRecoveryInfo extends Object {
+    public static class PassportAuthorizationForm extends Object {
         /**
-         * Pattern of the email address to which a recovery email was sent.
+         * Unique identifier of the authorization form.
          */
-        public String recoveryEmailAddressPattern;
+        public int id;
+        /**
+         * Information about the Telegram Passport elements that need to be provided to complete the form.
+         */
+        public PassportRequiredElement[] requiredElements;
+        /**
+         * Already available Telegram Passport elements.
+         */
+        public PassportElement[] elements;
+        /**
+         * Errors in the elements that are already available.
+         */
+        public PassportElementError[] errors;
+        /**
+         * URL for the privacy policy of the service; can be empty.
+         */
+        public String privacyPolicyUrl;
 
         /**
          * Default constructor.
          */
-        public PasswordRecoveryInfo() {
+        public PassportAuthorizationForm() {
         }
 
         /**
          * Constructor for initialization of all fields.
          *
-         * @param recoveryEmailAddressPattern Pattern of the email address to which a recovery email was sent.
+         * @param id Unique identifier of the authorization form.
+         * @param requiredElements Information about the Telegram Passport elements that need to be provided to complete the form.
+         * @param elements Already available Telegram Passport elements.
+         * @param errors Errors in the elements that are already available.
+         * @param privacyPolicyUrl URL for the privacy policy of the service; can be empty.
          */
-        public PasswordRecoveryInfo(String recoveryEmailAddressPattern) {
-            this.recoveryEmailAddressPattern = recoveryEmailAddressPattern;
+        public PassportAuthorizationForm(int id, PassportRequiredElement[] requiredElements, PassportElement[] elements, PassportElementError[] errors, String privacyPolicyUrl) {
+            this.id = id;
+            this.requiredElements = requiredElements;
+            this.elements = elements;
+            this.errors = errors;
+            this.privacyPolicyUrl = privacyPolicyUrl;
         }
 
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = 1483233330;
+        public static final int CONSTRUCTOR = -1780995944;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return 1483233330;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * This class is an abstract base class.
+     * Contains information about a Telegram Passport element.
+     */
+    public abstract static class PassportElement extends Object {
+    }
+
+    /**
+     * A Telegram Passport element containing the user's personal details.
+     */
+    public static class PassportElementPersonalDetails extends PassportElement {
+        /**
+         * Personal details of the user.
+         */
+        public PersonalDetails personalDetails;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementPersonalDetails() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param personalDetails Personal details of the user.
+         */
+        public PassportElementPersonalDetails(PersonalDetails personalDetails) {
+            this.personalDetails = personalDetails;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1217724035;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's passport.
+     */
+    public static class PassportElementPassport extends PassportElement {
+        /**
+         * Passport.
+         */
+        public IdentityDocument passport;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementPassport() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param passport Passport.
+         */
+        public PassportElementPassport(IdentityDocument passport) {
+            this.passport = passport;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -263985373;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's driver license.
+     */
+    public static class PassportElementDriverLicense extends PassportElement {
+        /**
+         * Driver license.
+         */
+        public IdentityDocument driverLicense;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementDriverLicense() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param driverLicense Driver license.
+         */
+        public PassportElementDriverLicense(IdentityDocument driverLicense) {
+            this.driverLicense = driverLicense;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1643580589;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's identity card.
+     */
+    public static class PassportElementIdentityCard extends PassportElement {
+        /**
+         * Identity card.
+         */
+        public IdentityDocument identityCard;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementIdentityCard() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param identityCard Identity card.
+         */
+        public PassportElementIdentityCard(IdentityDocument identityCard) {
+            this.identityCard = identityCard;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 2083775797;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's internal passport.
+     */
+    public static class PassportElementInternalPassport extends PassportElement {
+        /**
+         * Internal passport.
+         */
+        public IdentityDocument internalPassport;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementInternalPassport() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param internalPassport Internal passport.
+         */
+        public PassportElementInternalPassport(IdentityDocument internalPassport) {
+            this.internalPassport = internalPassport;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 36220295;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's address.
+     */
+    public static class PassportElementAddress extends PassportElement {
+        /**
+         * Address.
+         */
+        public Address address;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementAddress() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param address Address.
+         */
+        public PassportElementAddress(Address address) {
+            this.address = address;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -782625232;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's utility bill.
+     */
+    public static class PassportElementUtilityBill extends PassportElement {
+        /**
+         * Utility bill.
+         */
+        public PersonalDocument utilityBill;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementUtilityBill() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param utilityBill Utility bill.
+         */
+        public PassportElementUtilityBill(PersonalDocument utilityBill) {
+            this.utilityBill = utilityBill;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -234611246;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's bank statement.
+     */
+    public static class PassportElementBankStatement extends PassportElement {
+        /**
+         * Bank statement.
+         */
+        public PersonalDocument bankStatement;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementBankStatement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param bankStatement Bank statement.
+         */
+        public PassportElementBankStatement(PersonalDocument bankStatement) {
+            this.bankStatement = bankStatement;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -366464408;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's rental agreement.
+     */
+    public static class PassportElementRentalAgreement extends PassportElement {
+        /**
+         * Rental agreement.
+         */
+        public PersonalDocument rentalAgreement;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementRentalAgreement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param rentalAgreement Rental agreement.
+         */
+        public PassportElementRentalAgreement(PersonalDocument rentalAgreement) {
+            this.rentalAgreement = rentalAgreement;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -290141400;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's passport registration pages.
+     */
+    public static class PassportElementPassportRegistration extends PassportElement {
+        /**
+         * Passport registration pages.
+         */
+        public PersonalDocument passportRegistration;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementPassportRegistration() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param passportRegistration Passport registration pages.
+         */
+        public PassportElementPassportRegistration(PersonalDocument passportRegistration) {
+            this.passportRegistration = passportRegistration;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 618323071;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's temporary registration.
+     */
+    public static class PassportElementTemporaryRegistration extends PassportElement {
+        /**
+         * Temporary registration.
+         */
+        public PersonalDocument temporaryRegistration;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTemporaryRegistration() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param temporaryRegistration Temporary registration.
+         */
+        public PassportElementTemporaryRegistration(PersonalDocument temporaryRegistration) {
+            this.temporaryRegistration = temporaryRegistration;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1237626864;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's phone number.
+     */
+    public static class PassportElementPhoneNumber extends PassportElement {
+        /**
+         * Phone number.
+         */
+        public String phoneNumber;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementPhoneNumber() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param phoneNumber Phone number.
+         */
+        public PassportElementPhoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1320118375;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's email address.
+     */
+    public static class PassportElementEmailAddress extends PassportElement {
+        /**
+         * Email address.
+         */
+        public String emailAddress;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementEmailAddress() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param emailAddress Email address.
+         */
+        public PassportElementEmailAddress(String emailAddress) {
+            this.emailAddress = emailAddress;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1528129531;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains the description of an error in a Telegram Passport element.
+     */
+    public static class PassportElementError extends Object {
+        /**
+         * Type of the Telegram Passport element which has the error.
+         */
+        public PassportElementType type;
+        /**
+         * Error message.
+         */
+        public String message;
+        /**
+         * Error source.
+         */
+        public PassportElementErrorSource source;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementError() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param type Type of the Telegram Passport element which has the error.
+         * @param message Error message.
+         * @param source Error source.
+         */
+        public PassportElementError(PassportElementType type, String message, PassportElementErrorSource source) {
+            this.type = type;
+            this.message = message;
+            this.source = source;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1861902395;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * This class is an abstract base class.
+     * Contains the description of an error in a Telegram Passport element.
+     */
+    public abstract static class PassportElementErrorSource extends Object {
+    }
+
+    /**
+     * The element contains an error in an unspecified place. The error will be considered resolved when new data is added.
+     */
+    public static class PassportElementErrorSourceUnspecified extends PassportElementErrorSource {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementErrorSourceUnspecified() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -378320830;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * One of the data fields contains an error. The error will be considered resolved when the value of the field changes.
+     */
+    public static class PassportElementErrorSourceDataField extends PassportElementErrorSource {
+        /**
+         * Field name.
+         */
+        public String fieldName;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementErrorSourceDataField() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fieldName Field name.
+         */
+        public PassportElementErrorSourceDataField(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -308650776;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The front side of the document contains an error. The error will be considered resolved when the file with the front side changes.
+     */
+    public static class PassportElementErrorSourceFrontSide extends PassportElementErrorSource {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementErrorSourceFrontSide() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1895658292;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The reverse side of the document contains an error. The error will be considered resolved when the file with the reverse side changes.
+     */
+    public static class PassportElementErrorSourceReverseSide extends PassportElementErrorSource {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementErrorSourceReverseSide() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1918630391;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The selfie with the document contains an error. The error will be considered resolved when the file with the selfie changes.
+     */
+    public static class PassportElementErrorSourceSelfie extends PassportElementErrorSource {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementErrorSourceSelfie() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -797043672;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * One of files with the translation of the document contains an error. The error will be considered resolved when the file changes.
+     */
+    public static class PassportElementErrorSourceTranslationFile extends PassportElementErrorSource {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementErrorSourceTranslationFile() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -643919323;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The translation of the document contains an error. The error will be considered resolved when the list of translation files changes.
+     */
+    public static class PassportElementErrorSourceTranslationFiles extends PassportElementErrorSource {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementErrorSourceTranslationFiles() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 581280796;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The file contains an error. The error will be considered resolved when the file changes.
+     */
+    public static class PassportElementErrorSourceFile extends PassportElementErrorSource {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementErrorSourceFile() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -226596202;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The list of attached files contains an error. The error will be considered resolved when the list of files changes.
+     */
+    public static class PassportElementErrorSourceFiles extends PassportElementErrorSource {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementErrorSourceFiles() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1894164178;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * This class is an abstract base class.
+     * Contains the type of a Telegram Passport element.
+     */
+    public abstract static class PassportElementType extends Object {
+    }
+
+    /**
+     * A Telegram Passport element containing the user's personal details.
+     */
+    public static class PassportElementTypePersonalDetails extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypePersonalDetails() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1032136365;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's passport.
+     */
+    public static class PassportElementTypePassport extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypePassport() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -436360376;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's driver license.
+     */
+    public static class PassportElementTypeDriverLicense extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypeDriverLicense() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1827298379;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's identity card.
+     */
+    public static class PassportElementTypeIdentityCard extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypeIdentityCard() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -502356132;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's internal passport.
+     */
+    public static class PassportElementTypeInternalPassport extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypeInternalPassport() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -793781959;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's address.
+     */
+    public static class PassportElementTypeAddress extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypeAddress() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 496327874;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's utility bill.
+     */
+    public static class PassportElementTypeUtilityBill extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypeUtilityBill() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 627084906;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's bank statement.
+     */
+    public static class PassportElementTypeBankStatement extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypeBankStatement() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 574095667;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's rental agreement.
+     */
+    public static class PassportElementTypeRentalAgreement extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypeRentalAgreement() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -2060583280;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the registration page of the user's passport.
+     */
+    public static class PassportElementTypePassportRegistration extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypePassportRegistration() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -159478209;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's temporary registration.
+     */
+    public static class PassportElementTypeTemporaryRegistration extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypeTemporaryRegistration() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1092498527;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's phone number.
+     */
+    public static class PassportElementTypePhoneNumber extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypePhoneNumber() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -995361172;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A Telegram Passport element containing the user's email address.
+     */
+    public static class PassportElementTypeEmailAddress extends PassportElementType {
+
+        /**
+         * Default constructor.
+         */
+        public PassportElementTypeEmailAddress() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -79321405;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains information about saved Telegram Passport elements.
+     */
+    public static class PassportElements extends Object {
+        /**
+         * Telegram Passport elements.
+         */
+        public PassportElement[] elements;
+
+        /**
+         * Default constructor.
+         */
+        public PassportElements() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param elements Telegram Passport elements.
+         */
+        public PassportElements(PassportElement[] elements) {
+            this.elements = elements;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1264617556;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains a description of the required Telegram Passport element that was requested by a service.
+     */
+    public static class PassportRequiredElement extends Object {
+        /**
+         * List of Telegram Passport elements any of which is enough to provide.
+         */
+        public PassportSuitableElement[] suitableElements;
+
+        /**
+         * Default constructor.
+         */
+        public PassportRequiredElement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param suitableElements List of Telegram Passport elements any of which is enough to provide.
+         */
+        public PassportRequiredElement(PassportSuitableElement[] suitableElements) {
+            this.suitableElements = suitableElements;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1983641651;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains information about a Telegram Passport element that was requested by a service.
+     */
+    public static class PassportSuitableElement extends Object {
+        /**
+         * Type of the element.
+         */
+        public PassportElementType type;
+        /**
+         * True, if a selfie is required with the identity document.
+         */
+        public boolean isSelfieRequired;
+        /**
+         * True, if a certified English translation is required with the document.
+         */
+        public boolean isTranslationRequired;
+        /**
+         * True, if personal details must include the user's name in the language of their country of residence.
+         */
+        public boolean isNativeNameRequired;
+
+        /**
+         * Default constructor.
+         */
+        public PassportSuitableElement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param type Type of the element.
+         * @param isSelfieRequired True, if a selfie is required with the identity document.
+         * @param isTranslationRequired True, if a certified English translation is required with the document.
+         * @param isNativeNameRequired True, if personal details must include the user's name in the language of their country of residence.
+         */
+        public PassportSuitableElement(PassportElementType type, boolean isSelfieRequired, boolean isTranslationRequired, boolean isNativeNameRequired) {
+            this.type = type;
+            this.isSelfieRequired = isSelfieRequired;
+            this.isTranslationRequired = isTranslationRequired;
+            this.isNativeNameRequired = isNativeNameRequired;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -789019876;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -13512,7 +16831,7 @@ public class TdApi {
      */
     public static class PasswordState extends Object {
         /**
-         * True if a 2-step verification password has been set up.
+         * True if a 2-step verification password is set.
          */
         public boolean hasPassword;
         /**
@@ -13520,11 +16839,15 @@ public class TdApi {
          */
         public String passwordHint;
         /**
-         * True if a recovery email has been set up.
+         * True if a recovery email is set.
          */
         public boolean hasRecoveryEmailAddress;
         /**
-         * Pattern of the email address to which a confirmation email was sent.
+         * True if some Telegram Passport elements were saved.
+         */
+        public boolean hasPassportData;
+        /**
+         * Pattern of the email address to which the confirmation email was sent.
          */
         public String unconfirmedRecoveryEmailAddressPattern;
 
@@ -13537,29 +16860,31 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param hasPassword True if a 2-step verification password has been set up.
+         * @param hasPassword True if a 2-step verification password is set.
          * @param passwordHint Hint for the password; can be empty.
-         * @param hasRecoveryEmailAddress True if a recovery email has been set up.
-         * @param unconfirmedRecoveryEmailAddressPattern Pattern of the email address to which a confirmation email was sent.
+         * @param hasRecoveryEmailAddress True if a recovery email is set.
+         * @param hasPassportData True if some Telegram Passport elements were saved.
+         * @param unconfirmedRecoveryEmailAddressPattern Pattern of the email address to which the confirmation email was sent.
          */
-        public PasswordState(boolean hasPassword, String passwordHint, boolean hasRecoveryEmailAddress, String unconfirmedRecoveryEmailAddressPattern) {
+        public PasswordState(boolean hasPassword, String passwordHint, boolean hasRecoveryEmailAddress, boolean hasPassportData, String unconfirmedRecoveryEmailAddressPattern) {
             this.hasPassword = hasPassword;
             this.passwordHint = passwordHint;
             this.hasRecoveryEmailAddress = hasRecoveryEmailAddress;
+            this.hasPassportData = hasPassportData;
             this.unconfirmedRecoveryEmailAddressPattern = unconfirmedRecoveryEmailAddressPattern;
         }
 
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = 1383061922;
+        public static final int CONSTRUCTOR = -1209872059;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return 1383061922;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13633,7 +16958,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -200418230;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13701,7 +17026,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1171223545;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13745,7 +17070,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -804263843;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13801,7 +17126,143 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1090791032;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains the user's personal details.
+     */
+    public static class PersonalDetails extends Object {
+        /**
+         * First name of the user written in English; 1-255 characters.
+         */
+        public String firstName;
+        /**
+         * Middle name of the user written in English; 0-255 characters.
+         */
+        public String middleName;
+        /**
+         * Last name of the user written in English; 1-255 characters.
+         */
+        public String lastName;
+        /**
+         * Native first name of the user; 1-255 characters.
+         */
+        public String nativeFirstName;
+        /**
+         * Native middle name of the user; 0-255 characters.
+         */
+        public String nativeMiddleName;
+        /**
+         * Native last name of the user; 1-255 characters.
+         */
+        public String nativeLastName;
+        /**
+         * Birthdate of the user.
+         */
+        public Date birthdate;
+        /**
+         * Gender of the user, &quot;male&quot; or &quot;female&quot;.
+         */
+        public String gender;
+        /**
+         * A two-letter ISO 3166-1 alpha-2 country code of the user's country.
+         */
+        public String countryCode;
+        /**
+         * A two-letter ISO 3166-1 alpha-2 country code of the user's residence country.
+         */
+        public String residenceCountryCode;
+
+        /**
+         * Default constructor.
+         */
+        public PersonalDetails() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param firstName First name of the user written in English; 1-255 characters.
+         * @param middleName Middle name of the user written in English; 0-255 characters.
+         * @param lastName Last name of the user written in English; 1-255 characters.
+         * @param nativeFirstName Native first name of the user; 1-255 characters.
+         * @param nativeMiddleName Native middle name of the user; 0-255 characters.
+         * @param nativeLastName Native last name of the user; 1-255 characters.
+         * @param birthdate Birthdate of the user.
+         * @param gender Gender of the user, &quot;male&quot; or &quot;female&quot;.
+         * @param countryCode A two-letter ISO 3166-1 alpha-2 country code of the user's country.
+         * @param residenceCountryCode A two-letter ISO 3166-1 alpha-2 country code of the user's residence country.
+         */
+        public PersonalDetails(String firstName, String middleName, String lastName, String nativeFirstName, String nativeMiddleName, String nativeLastName, Date birthdate, String gender, String countryCode, String residenceCountryCode) {
+            this.firstName = firstName;
+            this.middleName = middleName;
+            this.lastName = lastName;
+            this.nativeFirstName = nativeFirstName;
+            this.nativeMiddleName = nativeMiddleName;
+            this.nativeLastName = nativeLastName;
+            this.birthdate = birthdate;
+            this.gender = gender;
+            this.countryCode = countryCode;
+            this.residenceCountryCode = residenceCountryCode;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1061656137;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A personal document, containing some information about a user.
+     */
+    public static class PersonalDocument extends Object {
+        /**
+         * List of files containing the pages of the document.
+         */
+        public DatedFile[] files;
+        /**
+         * List of files containing a certified English translation of the document.
+         */
+        public DatedFile[] translation;
+
+        /**
+         * Default constructor.
+         */
+        public PersonalDocument() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param files List of files containing the pages of the document.
+         * @param translation List of files containing a certified English translation of the document.
+         */
+        public PersonalDocument(DatedFile[] files, DatedFile[] translation) {
+            this.files = files;
+            this.translation = translation;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1011634661;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -13851,7 +17312,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1949521787;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13907,7 +17368,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 421980227;
+            return CONSTRUCTOR;
         }
     }
 
@@ -13957,46 +17418,56 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 978085937;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * This class is an abstract base class.
-     * Contains information about a proxy server.
+     * Represents a list of proxy servers.
      */
-    public abstract static class Proxy extends Object {
-    }
-
-    /**
-     * An empty proxy server.
-     */
-    public static class ProxyEmpty extends Proxy {
+    public static class Proxies extends Object {
+        /**
+         * List of proxy servers.
+         */
+        public Proxy[] proxies;
 
         /**
          * Default constructor.
          */
-        public ProxyEmpty() {
+        public Proxies() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param proxies List of proxy servers.
+         */
+        public Proxies(Proxy[] proxies) {
+            this.proxies = proxies;
         }
 
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = 748440246;
+        public static final int CONSTRUCTOR = 1200447205;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return 748440246;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * A SOCKS5 proxy server.
+     * Contains information about a proxy server.
      */
-    public static class ProxySocks5 extends Proxy {
+    public static class Proxy extends Object {
+        /**
+         * Unique identifier of the proxy.
+         */
+        public int id;
         /**
          * Proxy server IP address.
          */
@@ -14006,31 +17477,90 @@ public class TdApi {
          */
         public int port;
         /**
-         * Username for logging in.
+         * Point in time (Unix timestamp) when the proxy was last used; 0 if never.
+         */
+        public int lastUsedDate;
+        /**
+         * True, if the proxy is enabled now.
+         */
+        public boolean isEnabled;
+        /**
+         * Type of the proxy.
+         */
+        public ProxyType type;
+
+        /**
+         * Default constructor.
+         */
+        public Proxy() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param id Unique identifier of the proxy.
+         * @param server Proxy server IP address.
+         * @param port Proxy server port.
+         * @param lastUsedDate Point in time (Unix timestamp) when the proxy was last used; 0 if never.
+         * @param isEnabled True, if the proxy is enabled now.
+         * @param type Type of the proxy.
+         */
+        public Proxy(int id, String server, int port, int lastUsedDate, boolean isEnabled, ProxyType type) {
+            this.id = id;
+            this.server = server;
+            this.port = port;
+            this.lastUsedDate = lastUsedDate;
+            this.isEnabled = isEnabled;
+            this.type = type;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 196049779;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * This class is an abstract base class.
+     * Describes the type of the proxy server.
+     */
+    public abstract static class ProxyType extends Object {
+    }
+
+    /**
+     * A SOCKS5 proxy server.
+     */
+    public static class ProxyTypeSocks5 extends ProxyType {
+        /**
+         * Username for logging in; may be empty.
          */
         public String username;
         /**
-         * Password for logging in.
+         * Password for logging in; may be empty.
          */
         public String password;
 
         /**
          * Default constructor.
          */
-        public ProxySocks5() {
+        public ProxyTypeSocks5() {
         }
 
         /**
          * Constructor for initialization of all fields.
          *
-         * @param server Proxy server IP address.
-         * @param port Proxy server port.
-         * @param username Username for logging in.
-         * @param password Password for logging in.
+         * @param username Username for logging in; may be empty.
+         * @param password Password for logging in; may be empty.
          */
-        public ProxySocks5(String server, int port, String username, String password) {
-            this.server = server;
-            this.port = port;
+        public ProxyTypeSocks5(String username, String password) {
             this.username = username;
             this.password = password;
         }
@@ -14038,14 +17568,102 @@ public class TdApi {
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = 1456461592;
+        public static final int CONSTRUCTOR = -890027341;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return 1456461592;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A HTTP transparent proxy server.
+     */
+    public static class ProxyTypeHttp extends ProxyType {
+        /**
+         * Username for logging in; may be empty.
+         */
+        public String username;
+        /**
+         * Password for logging in; may be empty.
+         */
+        public String password;
+        /**
+         * Pass true, if the proxy supports only HTTP requests and doesn't support transparent TCP connections via HTTP CONNECT method.
+         */
+        public boolean httpOnly;
+
+        /**
+         * Default constructor.
+         */
+        public ProxyTypeHttp() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param username Username for logging in; may be empty.
+         * @param password Password for logging in; may be empty.
+         * @param httpOnly Pass true, if the proxy supports only HTTP requests and doesn't support transparent TCP connections via HTTP CONNECT method.
+         */
+        public ProxyTypeHttp(String username, String password, boolean httpOnly) {
+            this.username = username;
+            this.password = password;
+            this.httpOnly = httpOnly;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1547188361;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * An MTProto proxy server.
+     */
+    public static class ProxyTypeMtproto extends ProxyType {
+        /**
+         * The proxy's secret in hexadecimal encoding.
+         */
+        public String secret;
+
+        /**
+         * Default constructor.
+         */
+        public ProxyTypeMtproto() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param secret The proxy's secret in hexadecimal encoding.
+         */
+        public ProxyTypeMtproto(String secret) {
+            this.secret = secret;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1964826627;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -14089,7 +17707,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -679603433;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14127,7 +17745,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1290526187;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14136,7 +17754,7 @@ public class TdApi {
      */
     public static class RemoteFile extends Object {
         /**
-         * Remote file identifier, may be empty. Can be used across application restarts or even from other devices for the current user. If the ID starts with &quot;http://&quot; or &quot;https://&quot;, it represents the HTTP URL of the file. TDLib is currently unable to download files if only their URL is known. If downloadFile is called on such a file or if it is sent to a secret chat, TDLib starts a file generation process by sending updateFileGenerationStart to the client with the HTTP URL in the originalPath and &quot;#url#&quot; as the conversion string. Clients should generate the file by downloading it to the specified location.
+         * Remote file identifier; may be empty. Can be used across application restarts or even from other devices for the current user. If the ID starts with &quot;http://&quot; or &quot;https://&quot;, it represents the HTTP URL of the file. TDLib is currently unable to download files if only their URL is known. If downloadFile is called on such a file or if it is sent to a secret chat, TDLib starts a file generation process by sending updateFileGenerationStart to the client with the HTTP URL in the originalPath and &quot;#url#&quot; as the conversion string. Clients should generate the file by downloading it to the specified location.
          */
         public String id;
         /**
@@ -14161,7 +17779,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param id Remote file identifier, may be empty. Can be used across application restarts or even from other devices for the current user. If the ID starts with &quot;http://&quot; or &quot;https://&quot;, it represents the HTTP URL of the file. TDLib is currently unable to download files if only their URL is known. If downloadFile is called on such a file or if it is sent to a secret chat, TDLib starts a file generation process by sending updateFileGenerationStart to the client with the HTTP URL in the originalPath and &quot;#url#&quot; as the conversion string. Clients should generate the file by downloading it to the specified location.
+         * @param id Remote file identifier; may be empty. Can be used across application restarts or even from other devices for the current user. If the ID starts with &quot;http://&quot; or &quot;https://&quot;, it represents the HTTP URL of the file. TDLib is currently unable to download files if only their URL is known. If downloadFile is called on such a file or if it is sent to a secret chat, TDLib starts a file generation process by sending updateFileGenerationStart to the client with the HTTP URL in the originalPath and &quot;#url#&quot; as the conversion string. Clients should generate the file by downloading it to the specified location.
          * @param isUploadingActive True, if the file is currently being uploaded (or a remote copy is being generated by some other means).
          * @param isUploadingCompleted True, if a remote copy is fully available.
          * @param uploadedSize Size of the remote available part of the file; 0 if unknown.
@@ -14183,7 +17801,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1761289748;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14228,7 +17846,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -691252879;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14266,7 +17884,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1039104593;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14322,7 +17940,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -992627133;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14360,7 +17978,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -619317658;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14405,7 +18023,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 482617702;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14443,7 +18061,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1670844268;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14481,7 +18099,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1853354047;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14519,7 +18137,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -536019572;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14557,7 +18175,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 723413585;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14595,7 +18213,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1271496249;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14639,7 +18257,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1967248447;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14683,7 +18301,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 40018679;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14721,7 +18339,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1647457821;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14765,7 +18383,57 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -370273060;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains information about notification settings for several chats.
+     */
+    public static class ScopeNotificationSettings extends Object {
+        /**
+         * Time left before notifications will be unmuted, in seconds.
+         */
+        public int muteFor;
+        /**
+         * The name of an audio file to be used for notification sounds; only applies to iOS applications.
+         */
+        public String sound;
+        /**
+         * True, if message content should be displayed in notifications.
+         */
+        public boolean showPreview;
+
+        /**
+         * Default constructor.
+         */
+        public ScopeNotificationSettings() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param muteFor Time left before notifications will be unmuted, in seconds.
+         * @param sound The name of an audio file to be used for notification sounds; only applies to iOS applications.
+         * @param showPreview True, if message content should be displayed in notifications.
+         */
+        public ScopeNotificationSettings(int muteFor, String sound, boolean showPreview) {
+            this.muteFor = muteFor;
+            this.sound = sound;
+            this.showPreview = showPreview;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 607439283;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -14797,7 +18465,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -869395657;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14822,7 +18490,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -155713339;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14847,7 +18515,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 867505275;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14872,7 +18540,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1526331215;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14897,7 +18565,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 925932293;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14922,7 +18590,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 115538222;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14947,7 +18615,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1841439357;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14972,7 +18640,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1352130963;
+            return CONSTRUCTOR;
         }
     }
 
@@ -14997,7 +18665,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1828724341;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15022,7 +18690,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1247751329;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15047,7 +18715,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1305231012;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15072,7 +18740,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 970663098;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15097,7 +18765,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 564323321;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15122,7 +18790,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 664174819;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15147,7 +18815,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2001258652;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15172,7 +18840,45 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -95769149;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains a value representing a number of seconds.
+     */
+    public static class Seconds extends Object {
+        /**
+         * Number of seconds.
+         */
+        public double seconds;
+
+        /**
+         * Default constructor.
+         */
+        public Seconds() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param seconds Number of seconds.
+         */
+        public Seconds(double seconds) {
+            this.seconds = seconds;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 959899022;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -15246,7 +18952,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1279231629;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15278,7 +18984,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1637050756;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15303,7 +19009,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1611352087;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15328,7 +19034,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1945106707;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15444,7 +19150,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1715359000;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15482,75 +19188,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -463118121;
-        }
-    }
-
-    /**
-     * Describes a shipping address.
-     */
-    public static class ShippingAddress extends Object {
-        /**
-         * Two-letter ISO 3166-1 alpha-2 country code.
-         */
-        public String countryCode;
-        /**
-         * State, if applicable.
-         */
-        public String state;
-        /**
-         * City.
-         */
-        public String city;
-        /**
-         * First line of the address.
-         */
-        public String streetLine1;
-        /**
-         * Second line of the address.
-         */
-        public String streetLine2;
-        /**
-         * Address postal code.
-         */
-        public String postalCode;
-
-        /**
-         * Default constructor.
-         */
-        public ShippingAddress() {
-        }
-
-        /**
-         * Constructor for initialization of all fields.
-         *
-         * @param countryCode Two-letter ISO 3166-1 alpha-2 country code.
-         * @param state State, if applicable.
-         * @param city City.
-         * @param streetLine1 First line of the address.
-         * @param streetLine2 Second line of the address.
-         * @param postalCode Address postal code.
-         */
-        public ShippingAddress(String countryCode, String state, String city, String streetLine1, String streetLine2, String postalCode) {
-            this.countryCode = countryCode;
-            this.state = state;
-            this.city = city;
-            this.streetLine1 = streetLine1;
-            this.streetLine2 = streetLine2;
-            this.postalCode = postalCode;
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = 565574826;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return 565574826;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15600,7 +19238,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1425690001;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15680,7 +19318,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -876442962;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15718,7 +19356,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1781588570;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15810,7 +19448,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 72047469;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15902,7 +19540,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1469837113;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15946,7 +19584,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1883828812;
+            return CONSTRUCTOR;
         }
     }
 
@@ -15984,7 +19622,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1974859260;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16034,7 +19672,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 217237013;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16090,7 +19728,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 635434531;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16140,7 +19778,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 714012840;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16190,7 +19828,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2005401007;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16282,7 +19920,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1737513476;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16398,7 +20036,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1482349223;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16430,7 +20068,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1178199509;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16455,7 +20093,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2097380265;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16493,7 +20131,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1696358469;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16531,7 +20169,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1107800034;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16569,7 +20207,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1210621683;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16594,7 +20232,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 492138918;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16638,7 +20276,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1140786622;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16683,7 +20321,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1198700130;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16721,7 +20359,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1353369944;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16759,7 +20397,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 313907785;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16797,7 +20435,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1602473196;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16835,7 +20473,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1130595098;
+            return CONSTRUCTOR;
         }
     }
 
@@ -16957,7 +20595,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -761520773;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17001,7 +20639,57 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 939837410;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Contains Telegram terms of service.
+     */
+    public static class TermsOfService extends Object {
+        /**
+         * Text of the terms of service.
+         */
+        public FormattedText text;
+        /**
+         * Mininum age of a user to be able to accept the terms; 0 if any.
+         */
+        public int minUserAge;
+        /**
+         * True, if a blocking popup with terms of service must be shown to the user.
+         */
+        public boolean showPopup;
+
+        /**
+         * Default constructor.
+         */
+        public TermsOfService() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param text Text of the terms of service.
+         * @param minUserAge Mininum age of a user to be able to accept the terms; 0 if any.
+         * @param showPopup True, if a blocking popup with terms of service must be shown to the user.
+         */
+        public TermsOfService(FormattedText text, int minUserAge, boolean showPopup) {
+            this.text = text;
+            this.minUserAge = minUserAge;
+            this.showPopup = showPopup;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 739422597;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -17039,7 +20727,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1541225250;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17077,7 +20765,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -574804983;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17115,7 +20803,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -27891572;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17153,7 +20841,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 593682027;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17191,7 +20879,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 125891546;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17229,7 +20917,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 79339995;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17267,7 +20955,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 80780537;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17305,7 +20993,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 578181272;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17343,7 +21031,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -933199172;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17393,7 +21081,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1951688280;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17425,7 +21113,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 934535013;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17450,7 +21138,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1023958307;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17475,7 +21163,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1222915915;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17500,7 +21188,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1150997581;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17525,7 +21213,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1312762756;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17550,7 +21238,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1425545249;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17575,7 +21263,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1128210000;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17600,7 +21288,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -118253987;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17625,7 +21313,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -974534326;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17650,7 +21338,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1648958606;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17688,7 +21376,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -945325397;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17697,7 +21385,7 @@ public class TdApi {
      */
     public static class TextEntityTypeTextUrl extends TextEntityType {
         /**
-         * URL to be opened when the link is clicked.
+         * HTTP or tg:// URL to be opened when the link is clicked.
          */
         public String url;
 
@@ -17710,7 +21398,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param url URL to be opened when the link is clicked.
+         * @param url HTTP or tg:// URL to be opened when the link is clicked.
          */
         public TextEntityTypeTextUrl(String url) {
             this.url = url;
@@ -17726,7 +21414,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 445719651;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17764,7 +21452,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -791517091;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17789,7 +21477,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1160140246;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17821,7 +21509,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 969225580;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17846,7 +21534,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1660208627;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17878,7 +21566,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1026706816;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17903,7 +21591,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1577129195;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17928,7 +21616,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1530056846;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17953,7 +21641,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -500825885;
+            return CONSTRUCTOR;
         }
     }
 
@@ -17978,7 +21666,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 377023356;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18003,7 +21691,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 356208861;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18048,7 +21736,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1622347490;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18098,7 +21786,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 238944219;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18142,7 +21830,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1302843961;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18186,7 +21874,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1815715197;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18242,7 +21930,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1032335779;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18292,7 +21980,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 506903332;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18348,7 +22036,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -559545626;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18398,7 +22086,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1854131125;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18442,7 +22130,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1520523131;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18492,7 +22180,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -252228282;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18530,7 +22218,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2075757773;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18574,7 +22262,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -175405660;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18618,7 +22306,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -209353966;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18668,7 +22356,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 580348828;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18712,7 +22400,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1601888026;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18762,7 +22450,145 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 488876260;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A chat was marked as unread or was read.
+     */
+    public static class UpdateChatIsMarkedAsUnread extends Update {
+        /**
+         * Chat identifier.
+         */
+        public long chatId;
+        /**
+         * New value of isMarkedAsUnread.
+         */
+        public boolean isMarkedAsUnread;
+
+        /**
+         * Default constructor.
+         */
+        public UpdateChatIsMarkedAsUnread() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Chat identifier.
+         * @param isMarkedAsUnread New value of isMarkedAsUnread.
+         */
+        public UpdateChatIsMarkedAsUnread(long chatId, boolean isMarkedAsUnread) {
+            this.chatId = chatId;
+            this.isMarkedAsUnread = isMarkedAsUnread;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1468347188;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * A chat's isSponsored field has changed.
+     */
+    public static class UpdateChatIsSponsored extends Update {
+        /**
+         * Chat identifier.
+         */
+        public long chatId;
+        /**
+         * New value of isSponsored.
+         */
+        public boolean isSponsored;
+        /**
+         * New value of chat order.
+         */
+        public long order;
+
+        /**
+         * Default constructor.
+         */
+        public UpdateChatIsSponsored() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Chat identifier.
+         * @param isSponsored New value of isSponsored.
+         * @param order New value of chat order.
+         */
+        public UpdateChatIsSponsored(long chatId, boolean isSponsored, long order) {
+            this.chatId = chatId;
+            this.isSponsored = isSponsored;
+            this.order = order;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1196180070;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * The value of the default disableNotification parameter, used when a message is sent to the chat, was changed.
+     */
+    public static class UpdateChatDefaultDisableNotification extends Update {
+        /**
+         * Chat identifier.
+         */
+        public long chatId;
+        /**
+         * The new defaultDisableNotification value.
+         */
+        public boolean defaultDisableNotification;
+
+        /**
+         * Default constructor.
+         */
+        public UpdateChatDefaultDisableNotification() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Chat identifier.
+         * @param defaultDisableNotification The new defaultDisableNotification value.
+         */
+        public UpdateChatDefaultDisableNotification(long chatId, boolean defaultDisableNotification) {
+            this.chatId = chatId;
+            this.defaultDisableNotification = defaultDisableNotification;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 464087707;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -18812,7 +22638,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -797952281;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18856,7 +22682,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 708334213;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18900,14 +22726,58 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2131461348;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Notification settings for some chats were updated.
+     * Notification settings for a chat were changed.
      */
-    public static class UpdateNotificationSettings extends Update {
+    public static class UpdateChatNotificationSettings extends Update {
+        /**
+         * Chat identifier.
+         */
+        public long chatId;
+        /**
+         * The new notification settings.
+         */
+        public ChatNotificationSettings notificationSettings;
+
+        /**
+         * Default constructor.
+         */
+        public UpdateChatNotificationSettings() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Chat identifier.
+         * @param notificationSettings The new notification settings.
+         */
+        public UpdateChatNotificationSettings(long chatId, ChatNotificationSettings notificationSettings) {
+            this.chatId = chatId;
+            this.notificationSettings = notificationSettings;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -803163050;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Notification settings for some type of chats were updated.
+     */
+    public static class UpdateScopeNotificationSettings extends Update {
         /**
          * Types of chats for which notification settings were updated.
          */
@@ -18915,12 +22785,12 @@ public class TdApi {
         /**
          * The new notification settings.
          */
-        public NotificationSettings notificationSettings;
+        public ScopeNotificationSettings notificationSettings;
 
         /**
          * Default constructor.
          */
-        public UpdateNotificationSettings() {
+        public UpdateScopeNotificationSettings() {
         }
 
         /**
@@ -18929,7 +22799,7 @@ public class TdApi {
          * @param scope Types of chats for which notification settings were updated.
          * @param notificationSettings The new notification settings.
          */
-        public UpdateNotificationSettings(NotificationSettingsScope scope, NotificationSettings notificationSettings) {
+        public UpdateScopeNotificationSettings(NotificationSettingsScope scope, ScopeNotificationSettings notificationSettings) {
             this.scope = scope;
             this.notificationSettings = notificationSettings;
         }
@@ -18937,14 +22807,14 @@ public class TdApi {
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = -1767306883;
+        public static final int CONSTRUCTOR = -1203975309;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return -1767306883;
+            return CONSTRUCTOR;
         }
     }
 
@@ -18988,12 +22858,12 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1309386144;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * A draft has changed. Be aware that the update may come in the currently opened chat but with old content of the draft. If the user has changed the content of the draft, this update shouldn't be applied.
+     * A chat draft has changed. Be aware that the update may come in the currently opened chat but with old content of the draft. If the user has changed the content of the draft, this update shouldn't be applied.
      */
     public static class UpdateChatDraftMessage extends Update {
         /**
@@ -19038,7 +22908,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1436617498;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19094,7 +22964,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1669252686;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19144,7 +23014,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1444133514;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19188,7 +23058,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1443545195;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19226,7 +23096,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1183394041;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19264,7 +23134,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1003239581;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19302,7 +23172,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -76782300;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19340,7 +23210,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1666903253;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19384,7 +23254,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 222103874;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19428,7 +23298,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 924030531;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19472,7 +23342,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1288828758;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19481,7 +23351,7 @@ public class TdApi {
      */
     public static class UpdateServiceNotification extends Update {
         /**
-         * Notification type.
+         * Notification type. If type begins with &quot;AUTHKEYDROP_&quot;, then two buttons &quot;Cancel&quot; and &quot;Log out&quot; should be shown under notification; if user presses the second, all local data should be destroyed using Destroy method.
          */
         public String type;
         /**
@@ -19498,7 +23368,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param type Notification type.
+         * @param type Notification type. If type begins with &quot;AUTHKEYDROP_&quot;, then two buttons &quot;Cancel&quot; and &quot;Log out&quot; should be shown under notification; if user presses the second, all local data should be destroyed using Destroy method.
          * @param content Notification content.
          */
         public UpdateServiceNotification(String type, MessageContent content) {
@@ -19516,7 +23386,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1318622637;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19554,7 +23424,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 114132831;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19567,7 +23437,7 @@ public class TdApi {
          */
         public long generationId;
         /**
-         * The path to a file from which a new file is generated, may be empty.
+         * The path to a file from which a new file is generated; may be empty.
          */
         public String originalPath;
         /**
@@ -19575,7 +23445,7 @@ public class TdApi {
          */
         public String destinationPath;
         /**
-         * String specifying the conversion applied to the original file. If conversion is &quot;#url#&quot; than originalPath contains a HTTP/HTTPS URL of a file, which should be downloaded by the client.
+         * String specifying the conversion applied to the original file. If conversion is &quot;#url#&quot; than originalPath contains an HTTP/HTTPS URL of a file, which should be downloaded by the client.
          */
         public String conversion;
 
@@ -19589,9 +23459,9 @@ public class TdApi {
          * Constructor for initialization of all fields.
          *
          * @param generationId Unique identifier for the generation process.
-         * @param originalPath The path to a file from which a new file is generated, may be empty.
+         * @param originalPath The path to a file from which a new file is generated; may be empty.
          * @param destinationPath The path to a file that should be created and where the new file should be generated.
-         * @param conversion String specifying the conversion applied to the original file. If conversion is &quot;#url#&quot; than originalPath contains a HTTP/HTTPS URL of a file, which should be downloaded by the client.
+         * @param conversion String specifying the conversion applied to the original file. If conversion is &quot;#url#&quot; than originalPath contains an HTTP/HTTPS URL of a file, which should be downloaded by the client.
          */
         public UpdateFileGenerationStart(long generationId, String originalPath, String destinationPath, String conversion) {
             this.generationId = generationId;
@@ -19610,7 +23480,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 216817388;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19648,7 +23518,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1894449685;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19686,7 +23556,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1337184477;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19730,7 +23600,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -912960778;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19774,7 +23644,63 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -824420376;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Number of unread chats, i.e. with unread messages or marked as unread, has changed. This update is sent only if a message database is used.
+     */
+    public static class UpdateUnreadChatCount extends Update {
+        /**
+         * Total number of unread chats.
+         */
+        public int unreadCount;
+        /**
+         * Total number of unread unmuted chats.
+         */
+        public int unreadUnmutedCount;
+        /**
+         * Total number of chats marked as unread.
+         */
+        public int markedAsUnreadCount;
+        /**
+         * Total number of unmuted chats marked as unread.
+         */
+        public int markedAsUnreadUnmutedCount;
+
+        /**
+         * Default constructor.
+         */
+        public UpdateUnreadChatCount() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param unreadCount Total number of unread chats.
+         * @param unreadUnmutedCount Total number of unread unmuted chats.
+         * @param markedAsUnreadCount Total number of chats marked as unread.
+         * @param markedAsUnreadUnmutedCount Total number of unmuted chats marked as unread.
+         */
+        public UpdateUnreadChatCount(int unreadCount, int unreadUnmutedCount, int markedAsUnreadCount, int markedAsUnreadUnmutedCount) {
+            this.unreadCount = unreadCount;
+            this.unreadUnmutedCount = unreadUnmutedCount;
+            this.markedAsUnreadCount = markedAsUnreadCount;
+            this.markedAsUnreadUnmutedCount = markedAsUnreadUnmutedCount;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 891150304;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -19818,7 +23744,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 900822020;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19862,7 +23788,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1125575977;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19900,7 +23826,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 450714593;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19944,7 +23870,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1906403540;
+            return CONSTRUCTOR;
         }
     }
 
@@ -19982,7 +23908,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1662240999;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20020,7 +23946,57 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 65563814;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Some language pack strings have been updated.
+     */
+    public static class UpdateLanguagePackStrings extends Update {
+        /**
+         * Localization target to which the language pack belongs.
+         */
+        public String localizationTarget;
+        /**
+         * Identifier of the updated language pack.
+         */
+        public String languagePackId;
+        /**
+         * List of changed language pack strings.
+         */
+        public LanguagePackString[] strings;
+
+        /**
+         * Default constructor.
+         */
+        public UpdateLanguagePackStrings() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param localizationTarget Localization target to which the language pack belongs.
+         * @param languagePackId Identifier of the updated language pack.
+         * @param strings List of changed language pack strings.
+         */
+        public UpdateLanguagePackStrings(String localizationTarget, String languagePackId, LanguagePackString[] strings) {
+            this.localizationTarget = localizationTarget;
+            this.languagePackId = languagePackId;
+            this.strings = strings;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1056319886;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -20058,7 +24034,51 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1469292078;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * New terms of service must be accepted by the user. If the terms of service are declined, then the deleteAccount method should be called with the reason &quot;Decline ToS update&quot;.
+     */
+    public static class UpdateTermsOfService extends Update {
+        /**
+         * Identifier of the terms of service.
+         */
+        public String termsOfServiceId;
+        /**
+         * The new terms of service.
+         */
+        public TermsOfService termsOfService;
+
+        /**
+         * Default constructor.
+         */
+        public UpdateTermsOfService() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param termsOfServiceId Identifier of the terms of service.
+         * @param termsOfService The new terms of service.
+         */
+        public UpdateTermsOfService(String termsOfServiceId, TermsOfService termsOfService) {
+            this.termsOfServiceId = termsOfServiceId;
+            this.termsOfService = termsOfService;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1304640162;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -20120,7 +24140,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2064730634;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20182,7 +24202,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 527526965;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20250,7 +24270,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2044226370;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20312,7 +24332,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1879154829;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20335,7 +24355,7 @@ public class TdApi {
         /**
          * User shipping address.
          */
-        public ShippingAddress shippingAddress;
+        public Address shippingAddress;
 
         /**
          * Default constructor.
@@ -20351,7 +24371,7 @@ public class TdApi {
          * @param invoicePayload Invoice payload.
          * @param shippingAddress User shipping address.
          */
-        public UpdateNewShippingQuery(long id, int senderUserId, String invoicePayload, ShippingAddress shippingAddress) {
+        public UpdateNewShippingQuery(long id, int senderUserId, String invoicePayload, Address shippingAddress) {
             this.id = id;
             this.senderUserId = senderUserId;
             this.invoicePayload = invoicePayload;
@@ -20361,14 +24381,14 @@ public class TdApi {
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = 1877838488;
+        public static final int CONSTRUCTOR = -817474682;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return 1877838488;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20442,7 +24462,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 87964006;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20480,7 +24500,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1994222092;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20530,7 +24550,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -687670874;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20646,7 +24666,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -732086407;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20720,7 +24740,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1076948004;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20752,7 +24772,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1862829310;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20777,7 +24797,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1271668007;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20802,7 +24822,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -906967291;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20834,7 +24854,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1967186881;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20859,7 +24879,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1892733680;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20897,7 +24917,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 427601278;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20922,7 +24942,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1406495408;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20947,7 +24967,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1008389378;
+            return CONSTRUCTOR;
         }
     }
 
@@ -20985,7 +25005,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2119951802;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21023,7 +25043,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 322477541;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21067,7 +25087,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1388892074;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21099,7 +25119,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 164646985;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21137,7 +25157,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1529460876;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21175,7 +25195,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -759984891;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21200,7 +25220,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -496024847;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21225,7 +25245,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 129960444;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21250,7 +25270,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2011940674;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21282,7 +25302,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -598644325;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21307,7 +25327,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1807729372;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21369,7 +25389,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1262387765;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21394,7 +25414,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -724541123;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21438,7 +25458,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 273760088;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21482,7 +25502,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1511451484;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21510,6 +25530,10 @@ public class TdApi {
          * Identifier of the venue in the provider database; as defined by the sender.
          */
         public String id;
+        /**
+         * Type of the venue in the provider database; as defined by the sender.
+         */
+        public String type;
 
         /**
          * Default constructor.
@@ -21525,26 +25549,28 @@ public class TdApi {
          * @param address Venue address; as defined by the sender.
          * @param provider Provider of the venue database; as defined by the sender. Currently only &quot;foursquare&quot; needs to be supported.
          * @param id Identifier of the venue in the provider database; as defined by the sender.
+         * @param type Type of the venue in the provider database; as defined by the sender.
          */
-        public Venue(Location location, String title, String address, String provider, String id) {
+        public Venue(Location location, String title, String address, String provider, String id, String type) {
             this.location = location;
             this.title = title;
             this.address = address;
             this.provider = provider;
             this.id = id;
+            this.type = type;
         }
 
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = -674687867;
+        public static final int CONSTRUCTOR = 1070406393;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return -674687867;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21630,7 +25656,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -437410347;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21686,7 +25712,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1177396120;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21742,7 +25768,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2066012058;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21792,7 +25818,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 282771691;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21830,7 +25856,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 877926640;
+            return CONSTRUCTOR;
         }
     }
 
@@ -21988,7 +26014,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1465949075;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22032,7 +26058,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1804324850;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22078,7 +26104,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -646618416;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Accepts Telegram terms of services.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class AcceptTermsOfService extends Function {
+        /**
+         * Terms of service identifier.
+         */
+        public String termsOfServiceId;
+
+        /**
+         * Default constructor.
+         */
+        public AcceptTermsOfService() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param termsOfServiceId Terms of service identifier.
+         */
+        public AcceptTermsOfService(String termsOfServiceId) {
+            this.termsOfServiceId = termsOfServiceId;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 2130576356;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -22130,7 +26196,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1182817962;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22176,7 +26242,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1234094617;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22216,7 +26282,71 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 324504799;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Adds a local message to a chat. The message is persistent across application restarts only if the message database is used. Returns the added message.
+     *
+     * <p> Returns {@link Message Message} </p>
+     */
+    public static class AddLocalMessage extends Function {
+        /**
+         * Target chat.
+         */
+        public long chatId;
+        /**
+         * Identifier of the user who will be shown as the sender of the message; may be 0 for channel posts.
+         */
+        public int senderUserId;
+        /**
+         * Identifier of the message to reply to or 0.
+         */
+        public long replyToMessageId;
+        /**
+         * Pass true to disable notification for the message.
+         */
+        public boolean disableNotification;
+        /**
+         * The content of the message to be added.
+         */
+        public InputMessageContent inputMessageContent;
+
+        /**
+         * Default constructor.
+         */
+        public AddLocalMessage() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Target chat.
+         * @param senderUserId Identifier of the user who will be shown as the sender of the message; may be 0 for channel posts.
+         * @param replyToMessageId Identifier of the message to reply to or 0.
+         * @param disableNotification Pass true to disable notification for the message.
+         * @param inputMessageContent The content of the message to be added.
+         */
+        public AddLocalMessage(long chatId, int senderUserId, long replyToMessageId, boolean disableNotification, InputMessageContent inputMessageContent) {
+            this.chatId = chatId;
+            this.senderUserId = senderUserId;
+            this.replyToMessageId = replyToMessageId;
+            this.disableNotification = disableNotification;
+            this.inputMessageContent = inputMessageContent;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -348943149;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -22256,7 +26386,65 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1264825305;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Adds a proxy server for network requests. Can be called before authorization.
+     *
+     * <p> Returns {@link Proxy Proxy} </p>
+     */
+    public static class AddProxy extends Function {
+        /**
+         * Proxy server IP address.
+         */
+        public String server;
+        /**
+         * Proxy server port.
+         */
+        public int port;
+        /**
+         * True, if the proxy should be enabled.
+         */
+        public boolean enable;
+        /**
+         * Proxy type.
+         */
+        public ProxyType type;
+
+        /**
+         * Default constructor.
+         */
+        public AddProxy() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param server Proxy server IP address.
+         * @param port Proxy server port.
+         * @param enable True, if the proxy should be enabled.
+         * @param type Proxy type.
+         */
+        public AddProxy(String server, int port, boolean enable, ProxyType type) {
+            this.server = server;
+            this.port = port;
+            this.enable = enable;
+            this.type = type;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 331529432;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -22302,7 +26490,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1478109026;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22342,7 +26530,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1746396787;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22382,7 +26570,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1538525088;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22434,7 +26622,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1422402800;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22498,7 +26686,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1153028490;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22544,7 +26732,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1293603521;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22620,7 +26808,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 485879477;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22666,7 +26854,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1486789653;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22718,7 +26906,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -434601324;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22758,7 +26946,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1239315139;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22804,7 +26992,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1954524450;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22844,7 +27032,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1623539600;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22890,7 +27078,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1768597097;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22901,7 +27089,7 @@ public class TdApi {
      */
     public static class ChangeImportedContacts extends Function {
         /**
-         * The new list of contacts.
+         * The new list of contacts, contact's vCard are ignored and are not imported.
          */
         public Contact[] contacts;
 
@@ -22914,7 +27102,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param contacts The new list of contacts.
+         * @param contacts The new list of contacts, contact's vCard are ignored and are not imported.
          */
         public ChangeImportedContacts(Contact[] contacts) {
             this.contacts = contacts;
@@ -22930,7 +27118,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1968207955;
+            return CONSTRUCTOR;
         }
     }
 
@@ -22982,7 +27170,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1510625218;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23034,7 +27222,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 449357293;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23074,7 +27262,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 639321206;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23126,7 +27314,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -707293555;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23166,7 +27354,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2025698400;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23206,7 +27394,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1720278429;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23246,7 +27434,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -496940997;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23292,7 +27480,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2003506154;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23332,12 +27520,212 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1018769307;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Clears all imported contacts.
+     * Checks the email address verification code for Telegram Passport.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class CheckEmailAddressVerificationCode extends Function {
+        /**
+         * Verification code.
+         */
+        public String code;
+
+        /**
+         * Default constructor.
+         */
+        public CheckEmailAddressVerificationCode() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param code Verification code.
+         */
+        public CheckEmailAddressVerificationCode(String code) {
+            this.code = code;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -426386685;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Checks phone number confirmation code.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class CheckPhoneNumberConfirmationCode extends Function {
+        /**
+         * The phone number confirmation code.
+         */
+        public String code;
+
+        /**
+         * Default constructor.
+         */
+        public CheckPhoneNumberConfirmationCode() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param code The phone number confirmation code.
+         */
+        public CheckPhoneNumberConfirmationCode(String code) {
+            this.code = code;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1348060966;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Checks the phone number verification code for Telegram Passport.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class CheckPhoneNumberVerificationCode extends Function {
+        /**
+         * Verification code.
+         */
+        public String code;
+
+        /**
+         * Default constructor.
+         */
+        public CheckPhoneNumberVerificationCode() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param code Verification code.
+         */
+        public CheckPhoneNumberVerificationCode(String code) {
+            this.code = code;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1497462718;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Removes potentially dangerous characters from the name of a file. The encoding of the file name is supposed to be UTF-8. Returns an empty string on failure. This is an offline method. Can be called before authorization. Can be called synchronously.
+     *
+     * <p> Returns {@link Text Text} </p>
+     */
+    public static class CleanFileName extends Function {
+        /**
+         * File name or path to the file.
+         */
+        public String fileName;
+
+        /**
+         * Default constructor.
+         */
+        public CleanFileName() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param fileName File name or path to the file.
+         */
+        public CleanFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 967964667;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Clears draft messages in all chats.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class ClearAllDraftMessages extends Function {
+        /**
+         * If true, local draft messages in secret chats will not be cleared.
+         */
+        public boolean excludeSecretChats;
+
+        /**
+         * Default constructor.
+         */
+        public ClearAllDraftMessages() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param excludeSecretChats If true, local draft messages in secret chats will not be cleared.
+         */
+        public ClearAllDraftMessages(boolean excludeSecretChats) {
+            this.excludeSecretChats = excludeSecretChats;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -46369573;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Clears all imported contacts, contacts list remains unchanged.
      *
      * <p> Returns {@link Ok Ok} </p>
      */
@@ -23359,7 +27747,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 869503298;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23399,7 +27787,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -321242684;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23426,7 +27814,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -285582542;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23453,7 +27841,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1187782273;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23493,7 +27881,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 39749353;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23533,7 +27921,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -471006133;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23579,7 +27967,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 642492777;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23625,7 +28013,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1742408159;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23671,7 +28059,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1874532069;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23711,7 +28099,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1689344881;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23775,7 +28163,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 205093058;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23827,7 +28215,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1284982268;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23873,7 +28261,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1807530364;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23913,7 +28301,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1930285615;
+            return CONSTRUCTOR;
         }
     }
 
@@ -23959,7 +28347,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 352742758;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24005,12 +28393,12 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1626509434;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Deletes the account of the current user, deleting all information associated with the user from the server. The phone number of the account can be used to create a new account.
+     * Deletes the account of the current user, deleting all information associated with the user from the server. The phone number of the account can be used to create a new account. Can be called before authorization when the current authorization state is authorizationStateWaitPassword.
      *
      * <p> Returns {@link Ok Ok} </p>
      */
@@ -24045,7 +28433,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1203056508;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24091,7 +28479,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1384632722;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24137,7 +28525,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1599689199;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24183,7 +28571,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 100637531;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24223,7 +28611,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1807653676;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Deletes all information about a language pack in the current localization target. The language pack that is currently in use can't be deleted.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class DeleteLanguagePack extends Function {
+        /**
+         * Identifier of the language pack to delete.
+         */
+        public String languagePackId;
+
+        /**
+         * Default constructor.
+         */
+        public DeleteLanguagePack() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param languagePackId Identifier of the language pack to delete.
+         */
+        public DeleteLanguagePack(String languagePackId) {
+            this.languagePackId = languagePackId;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -2108761026;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -24275,7 +28703,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1130090173;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Deletes a Telegram Passport element.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class DeletePassportElement extends Function {
+        /**
+         * Element type.
+         */
+        public PassportElementType type;
+
+        /**
+         * Default constructor.
+         */
+        public DeletePassportElement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param type Element type.
+         */
+        public DeletePassportElement(PassportElementType type) {
+            this.type = type;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1719555468;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -24315,7 +28783,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1319794625;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24342,7 +28810,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 826300114;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24369,7 +28837,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1629058164;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24409,7 +28877,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1999855965;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24436,7 +28904,34 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 685331274;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Disables the currently enabled proxy. Can be called before authorization.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class DisableProxy extends Function {
+
+        /**
+         * Default constructor.
+         */
+        public DisableProxy() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -2100095102;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -24494,7 +28989,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -923187372;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24521,7 +29016,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1082985981;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24561,7 +29056,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -778767395;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24607,7 +29102,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1531851978;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Edits information about a custom language pack in the current localization target.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class EditCustomLanguagePackInfo extends Function {
+        /**
+         * New information about the custom language pack.
+         */
+        public LanguagePackInfo info;
+
+        /**
+         * Default constructor.
+         */
+        public EditCustomLanguagePackInfo() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param info New information about the custom language pack.
+         */
+        public EditCustomLanguagePackInfo(LanguagePackInfo info) {
+            this.info = info;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1320751257;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -24622,11 +29157,11 @@ public class TdApi {
          */
         public String inlineMessageId;
         /**
-         * New message reply markup.
+         * The new message reply markup.
          */
         public ReplyMarkup replyMarkup;
         /**
-         * New message content caption; 0-200 characters.
+         * New message content caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public FormattedText caption;
 
@@ -24640,8 +29175,8 @@ public class TdApi {
          * Constructor for initialization of all fields.
          *
          * @param inlineMessageId Inline message identifier.
-         * @param replyMarkup New message reply markup.
-         * @param caption New message content caption; 0-200 characters.
+         * @param replyMarkup The new message reply markup.
+         * @param caption New message content caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public EditInlineMessageCaption(String inlineMessageId, ReplyMarkup replyMarkup, FormattedText caption) {
             this.inlineMessageId = inlineMessageId;
@@ -24659,7 +29194,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -760985929;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24674,7 +29209,7 @@ public class TdApi {
          */
         public String inlineMessageId;
         /**
-         * New message reply markup.
+         * The new message reply markup.
          */
         public ReplyMarkup replyMarkup;
         /**
@@ -24692,7 +29227,7 @@ public class TdApi {
          * Constructor for initialization of all fields.
          *
          * @param inlineMessageId Inline message identifier.
-         * @param replyMarkup New message reply markup.
+         * @param replyMarkup The new message reply markup.
          * @param location New location content of the message; may be null. Pass null to stop sharing the live location.
          */
         public EditInlineMessageLiveLocation(String inlineMessageId, ReplyMarkup replyMarkup, Location location) {
@@ -24711,7 +29246,59 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 655046316;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Edits the content of a message with an animation, an audio, a document, a photo or a video in an inline message sent via a bot; for bots only.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class EditInlineMessageMedia extends Function {
+        /**
+         * Inline message identifier.
+         */
+        public String inlineMessageId;
+        /**
+         * The new message reply markup; for bots only.
+         */
+        public ReplyMarkup replyMarkup;
+        /**
+         * New content of the message. Must be one of the following types: InputMessageAnimation, InputMessageAudio, InputMessageDocument, InputMessagePhoto or InputMessageVideo.
+         */
+        public InputMessageContent inputMessageContent;
+
+        /**
+         * Default constructor.
+         */
+        public EditInlineMessageMedia() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param inlineMessageId Inline message identifier.
+         * @param replyMarkup The new message reply markup; for bots only.
+         * @param inputMessageContent New content of the message. Must be one of the following types: InputMessageAnimation, InputMessageAudio, InputMessageDocument, InputMessagePhoto or InputMessageVideo.
+         */
+        public EditInlineMessageMedia(String inlineMessageId, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
+            this.inlineMessageId = inlineMessageId;
+            this.replyMarkup = replyMarkup;
+            this.inputMessageContent = inputMessageContent;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 23553921;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -24726,7 +29313,7 @@ public class TdApi {
          */
         public String inlineMessageId;
         /**
-         * New message reply markup.
+         * The new message reply markup.
          */
         public ReplyMarkup replyMarkup;
 
@@ -24740,7 +29327,7 @@ public class TdApi {
          * Constructor for initialization of all fields.
          *
          * @param inlineMessageId Inline message identifier.
-         * @param replyMarkup New message reply markup.
+         * @param replyMarkup The new message reply markup.
          */
         public EditInlineMessageReplyMarkup(String inlineMessageId, ReplyMarkup replyMarkup) {
             this.inlineMessageId = inlineMessageId;
@@ -24757,7 +29344,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -67565858;
+            return CONSTRUCTOR;
         }
     }
 
@@ -24772,7 +29359,7 @@ public class TdApi {
          */
         public String inlineMessageId;
         /**
-         * New message reply markup.
+         * The new message reply markup.
          */
         public ReplyMarkup replyMarkup;
         /**
@@ -24790,7 +29377,7 @@ public class TdApi {
          * Constructor for initialization of all fields.
          *
          * @param inlineMessageId Inline message identifier.
-         * @param replyMarkup New message reply markup.
+         * @param replyMarkup The new message reply markup.
          * @param inputMessageContent New text content of the message. Should be of type InputMessageText.
          */
         public EditInlineMessageText(String inlineMessageId, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
@@ -24809,12 +29396,12 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -855457307;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Edits the message content caption. Non-bots can edit messages for a limited period of time. Returns the edited message after the edit is completed server-side.
+     * Edits the message content caption. Returns the edited message after the edit is completed on the server side.
      *
      * <p> Returns {@link Message Message} </p>
      */
@@ -24832,7 +29419,7 @@ public class TdApi {
          */
         public ReplyMarkup replyMarkup;
         /**
-         * New message content caption; 0-200 characters.
+         * New message content caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public FormattedText caption;
 
@@ -24848,7 +29435,7 @@ public class TdApi {
          * @param chatId The chat the message belongs to.
          * @param messageId Identifier of the message.
          * @param replyMarkup The new message reply markup; for bots only.
-         * @param caption New message content caption; 0-200 characters.
+         * @param caption New message content caption; 0-GetOption(&quot;messageCaptionLengthMax&quot;) characters.
          */
         public EditMessageCaption(long chatId, long messageId, ReplyMarkup replyMarkup, FormattedText caption) {
             this.chatId = chatId;
@@ -24867,12 +29454,12 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1154677038;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Edits the message content of a live location. Messages can be edited for a limited period of time specified in the live location. Returns the edited message after the edit is completed server-side.
+     * Edits the message content of a live location. Messages can be edited for a limited period of time specified in the live location. Returns the edited message after the edit is completed on the server side.
      *
      * <p> Returns {@link Message Message} </p>
      */
@@ -24886,7 +29473,7 @@ public class TdApi {
          */
         public long messageId;
         /**
-         * Tew message reply markup; for bots only.
+         * The new message reply markup; for bots only.
          */
         public ReplyMarkup replyMarkup;
         /**
@@ -24905,7 +29492,7 @@ public class TdApi {
          *
          * @param chatId The chat the message belongs to.
          * @param messageId Identifier of the message.
-         * @param replyMarkup Tew message reply markup; for bots only.
+         * @param replyMarkup The new message reply markup; for bots only.
          * @param location New location content of the message; may be null. Pass null to stop sharing the live location.
          */
         public EditMessageLiveLocation(long chatId, long messageId, ReplyMarkup replyMarkup, Location location) {
@@ -24925,12 +29512,70 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1146772745;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Edits the message reply markup; for bots only. Returns the edited message after the edit is completed server-side.
+     * Edits the content of a message with an animation, an audio, a document, a photo or a video. The media in the message can't be replaced if the message was set to self-destruct. Media can't be replaced by self-destructing media. Media in an album can be edited only to contain a photo or a video. Returns the edited message after the edit is completed on the server side.
+     *
+     * <p> Returns {@link Message Message} </p>
+     */
+    public static class EditMessageMedia extends Function {
+        /**
+         * The chat the message belongs to.
+         */
+        public long chatId;
+        /**
+         * Identifier of the message.
+         */
+        public long messageId;
+        /**
+         * The new message reply markup; for bots only.
+         */
+        public ReplyMarkup replyMarkup;
+        /**
+         * New content of the message. Must be one of the following types: InputMessageAnimation, InputMessageAudio, InputMessageDocument, InputMessagePhoto or InputMessageVideo.
+         */
+        public InputMessageContent inputMessageContent;
+
+        /**
+         * Default constructor.
+         */
+        public EditMessageMedia() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId The chat the message belongs to.
+         * @param messageId Identifier of the message.
+         * @param replyMarkup The new message reply markup; for bots only.
+         * @param inputMessageContent New content of the message. Must be one of the following types: InputMessageAnimation, InputMessageAudio, InputMessageDocument, InputMessagePhoto or InputMessageVideo.
+         */
+        public EditMessageMedia(long chatId, long messageId, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
+            this.chatId = chatId;
+            this.messageId = messageId;
+            this.replyMarkup = replyMarkup;
+            this.inputMessageContent = inputMessageContent;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1152678125;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Edits the message reply markup; for bots only. Returns the edited message after the edit is completed on the server side.
      *
      * <p> Returns {@link Message Message} </p>
      */
@@ -24944,7 +29589,7 @@ public class TdApi {
          */
         public long messageId;
         /**
-         * New message reply markup.
+         * The new message reply markup.
          */
         public ReplyMarkup replyMarkup;
 
@@ -24959,7 +29604,7 @@ public class TdApi {
          *
          * @param chatId The chat the message belongs to.
          * @param messageId Identifier of the message.
-         * @param replyMarkup New message reply markup.
+         * @param replyMarkup The new message reply markup.
          */
         public EditMessageReplyMarkup(long chatId, long messageId, ReplyMarkup replyMarkup) {
             this.chatId = chatId;
@@ -24977,12 +29622,12 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 332127881;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Edits the text of a message (or a text of a game message). Non-bot users can edit messages for a limited period of time. Returns the edited message after the edit is completed on the server side.
+     * Edits the text of a message (or a text of a game message). Returns the edited message after the edit is completed on the server side.
      *
      * <p> Returns {@link Message Message} </p>
      */
@@ -25035,7 +29680,111 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 196272567;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Edits an existing proxy server for network requests. Can be called before authorization.
+     *
+     * <p> Returns {@link Proxy Proxy} </p>
+     */
+    public static class EditProxy extends Function {
+        /**
+         * Proxy identifier.
+         */
+        public int proxyId;
+        /**
+         * Proxy server IP address.
+         */
+        public String server;
+        /**
+         * Proxy server port.
+         */
+        public int port;
+        /**
+         * True, if the proxy should be enabled.
+         */
+        public boolean enable;
+        /**
+         * Proxy type.
+         */
+        public ProxyType type;
+
+        /**
+         * Default constructor.
+         */
+        public EditProxy() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param proxyId Proxy identifier.
+         * @param server Proxy server IP address.
+         * @param port Proxy server port.
+         * @param enable True, if the proxy should be enabled.
+         * @param type Proxy type.
+         */
+        public EditProxy(int proxyId, String server, int port, boolean enable, ProxyType type) {
+            this.proxyId = proxyId;
+            this.server = server;
+            this.port = port;
+            this.enable = enable;
+            this.type = type;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1605883821;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Enables a proxy. Only one proxy can be enabled at a time. Can be called before authorization.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class EnableProxy extends Function {
+        /**
+         * Proxy identifier.
+         */
+        public int proxyId;
+
+        /**
+         * Default constructor.
+         */
+        public EnableProxy() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param proxyId Proxy identifier.
+         */
+        public EnableProxy(int proxyId) {
+            this.proxyId = proxyId;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1494450838;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -25081,7 +29830,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1055060835;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25151,7 +29900,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -537573308;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25191,7 +29940,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1945532500;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25218,7 +29967,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -443905161;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25245,7 +29994,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1425459567;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25272,7 +30021,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1119710526;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns all available Telegram Passport elements.
+     *
+     * <p> Returns {@link PassportElements PassportElements} </p>
+     */
+    public static class GetAllPassportElements extends Function {
+        /**
+         * Password of the current user.
+         */
+        public String password;
+
+        /**
+         * Default constructor.
+         */
+        public GetAllPassportElements() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param password Password of the current user.
+         */
+        public GetAllPassportElements(String password) {
+            this.password = password;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -2038945045;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -25324,7 +30113,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1996943238;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25364,7 +30153,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1302172429;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25391,7 +30180,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1949154877;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25431,7 +30220,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 561775568;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25471,7 +30260,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1770517905;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25517,7 +30306,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -742912777;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25569,7 +30358,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 116357727;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25609,7 +30398,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1866601536;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25649,7 +30438,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 508231041;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25719,7 +30508,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 206900967;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25734,7 +30523,7 @@ public class TdApi {
          */
         public long chatId;
         /**
-         * Identifier of the message starting from which history must be fetched; use 0 to get results from the beginning (i.e., from oldest to newest).
+         * Identifier of the message starting from which history must be fetched; use 0 to get results from the last message.
          */
         public long fromMessageId;
         /**
@@ -25760,7 +30549,7 @@ public class TdApi {
          * Constructor for initialization of all fields.
          *
          * @param chatId Chat identifier.
-         * @param fromMessageId Identifier of the message starting from which history must be fetched; use 0 to get results from the beginning (i.e., from oldest to newest).
+         * @param fromMessageId Identifier of the message starting from which history must be fetched; use 0 to get results from the last message.
          * @param offset Specify 0 to get results from exactly the fromMessageId or a negative offset to get the specified message and some newer messages.
          * @param limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than -offset. Fewer messages may be returned than specified by the limit, even if the end of the message history has not been reached.
          * @param onlyLocal If true, returns only messages that are available locally without sending network requests.
@@ -25783,7 +30572,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -799960451;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25829,7 +30618,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 677085892;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25875,7 +30664,59 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1062564150;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns approximate number of messages of the specified type in the chat.
+     *
+     * <p> Returns {@link Count Count} </p>
+     */
+    public static class GetChatMessageCount extends Function {
+        /**
+         * Identifier of the chat in which to count messages.
+         */
+        public long chatId;
+        /**
+         * Filter for message content; searchMessagesFilterEmpty is unsupported in this function.
+         */
+        public SearchMessagesFilter filter;
+        /**
+         * If true, returns count that is available locally without sending network requests, returning -1 if the number of messages is unknown.
+         */
+        public boolean returnLocal;
+
+        /**
+         * Default constructor.
+         */
+        public GetChatMessageCount() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Identifier of the chat in which to count messages.
+         * @param filter Filter for message content; searchMessagesFilterEmpty is unsupported in this function.
+         * @param returnLocal If true, returns count that is available locally without sending network requests, returning -1 if the number of messages is unknown.
+         */
+        public GetChatMessageCount(long chatId, SearchMessagesFilter filter, boolean returnLocal) {
+            this.chatId = chatId;
+            this.filter = filter;
+            this.returnLocal = returnLocal;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 205435308;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -25915,7 +30756,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 359865008;
+            return CONSTRUCTOR;
         }
     }
 
@@ -25955,7 +30796,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -748866856;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26007,7 +30848,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2121381601;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26034,7 +30875,34 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -170536110;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns all user contacts.
+     *
+     * <p> Returns {@link Users Users} </p>
+     */
+    public static class GetContacts extends Function {
+
+        /**
+         * Default constructor.
+         */
+        public GetContacts() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1417722768;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -26061,7 +30929,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1540593906;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26088,7 +30956,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1609082914;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns information about a tg:// deep link. Use &quot;tg://needUpdateForSomeFeature&quot; or &quot;tg:someUnsupportedFeature&quot; for testing. Returns a 404 error for unknown links. Can be called before authorization.
+     *
+     * <p> Returns {@link DeepLinkInfo DeepLinkInfo} </p>
+     */
+    public static class GetDeepLinkInfo extends Function {
+        /**
+         * The link.
+         */
+        public String link;
+
+        /**
+         * Default constructor.
+         */
+        public GetDeepLinkInfo() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param link The link.
+         */
+        public GetDeepLinkInfo(String link) {
+            this.link = link;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 680673150;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -26115,7 +31023,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -338964672;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26155,7 +31063,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1553923406;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26195,7 +31103,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -106055372;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26235,7 +31143,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2073879671;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26287,7 +31195,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1920923753;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26339,7 +31247,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -23238689;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26366,7 +31274,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -656336346;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26412,7 +31320,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1833445800;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26476,7 +31384,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1182511172;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26516,7 +31424,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1214523749;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26543,7 +31451,221 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 794573512;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns a string stored in the local database from the specified localization target and language pack by its key. Returns a 404 error if the string is not found. This is an offline method. Can be called before authorization. Can be called synchronously.
+     *
+     * <p> Returns {@link LanguagePackStringValue LanguagePackStringValue} </p>
+     */
+    public static class GetLanguagePackString extends Function {
+        /**
+         * Path to the language pack database in which strings are stored.
+         */
+        public String languagePackDatabasePath;
+        /**
+         * Localization target to which the language pack belongs.
+         */
+        public String localizationTarget;
+        /**
+         * Language pack identifier.
+         */
+        public String languagePackId;
+        /**
+         * Language pack key of the string to be returned.
+         */
+        public String key;
+
+        /**
+         * Default constructor.
+         */
+        public GetLanguagePackString() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param languagePackDatabasePath Path to the language pack database in which strings are stored.
+         * @param localizationTarget Localization target to which the language pack belongs.
+         * @param languagePackId Language pack identifier.
+         * @param key Language pack key of the string to be returned.
+         */
+        public GetLanguagePackString(String languagePackDatabasePath, String localizationTarget, String languagePackId, String key) {
+            this.languagePackDatabasePath = languagePackDatabasePath;
+            this.localizationTarget = localizationTarget;
+            this.languagePackId = languagePackId;
+            this.key = key;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 150789747;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns strings from a language pack in the current localization target by their keys.
+     *
+     * <p> Returns {@link LanguagePackStrings LanguagePackStrings} </p>
+     */
+    public static class GetLanguagePackStrings extends Function {
+        /**
+         * Language pack identifier of the strings to be returned.
+         */
+        public String languagePackId;
+        /**
+         * Language pack keys of the strings to be returned; leave empty to request all available strings.
+         */
+        public String[] keys;
+
+        /**
+         * Default constructor.
+         */
+        public GetLanguagePackStrings() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param languagePackId Language pack identifier of the strings to be returned.
+         * @param keys Language pack keys of the strings to be returned; leave empty to request all available strings.
+         */
+        public GetLanguagePackStrings(String languagePackId, String[] keys) {
+            this.languagePackId = languagePackId;
+            this.keys = keys;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1246259088;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns information about the current localization target. This is an offline request if onlyLocal is true.
+     *
+     * <p> Returns {@link LocalizationTargetInfo LocalizationTargetInfo} </p>
+     */
+    public static class GetLocalizationTargetInfo extends Function {
+        /**
+         * If true, returns only locally available information without sending network requests.
+         */
+        public boolean onlyLocal;
+
+        /**
+         * Default constructor.
+         */
+        public GetLocalizationTargetInfo() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param onlyLocal If true, returns only locally available information without sending network requests.
+         */
+        public GetLocalizationTargetInfo(boolean onlyLocal) {
+            this.onlyLocal = onlyLocal;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1849499526;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns information about a file with a map thumbnail in PNG format. Only map thumbnail files with size less than 1MB can be downloaded.
+     *
+     * <p> Returns {@link File File} </p>
+     */
+    public static class GetMapThumbnailFile extends Function {
+        /**
+         * Location of the map center.
+         */
+        public Location location;
+        /**
+         * Map zoom level; 13-20.
+         */
+        public int zoom;
+        /**
+         * Map width in pixels before applying scale; 16-1024.
+         */
+        public int width;
+        /**
+         * Map height in pixels before applying scale; 16-1024.
+         */
+        public int height;
+        /**
+         * Map scale; 1-3.
+         */
+        public int scale;
+        /**
+         * Identifier of a chat, in which the thumbnail will be shown. Use 0 if unknown.
+         */
+        public long chatId;
+
+        /**
+         * Default constructor.
+         */
+        public GetMapThumbnailFile() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param location Location of the map center.
+         * @param zoom Map zoom level; 13-20.
+         * @param width Map width in pixels before applying scale; 16-1024.
+         * @param height Map height in pixels before applying scale; 16-1024.
+         * @param scale Map scale; 1-3.
+         * @param chatId Identifier of a chat, in which the thumbnail will be shown. Use 0 if unknown.
+         */
+        public GetMapThumbnailFile(Location location, int zoom, int width, int height, int scale, long chatId) {
+            this.location = location;
+            this.zoom = zoom;
+            this.width = width;
+            this.height = height;
+            this.scale = scale;
+            this.chatId = chatId;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -152660070;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -26570,7 +31692,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -191516033;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26616,7 +31738,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1821196160;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26662,7 +31784,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 425299338;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26702,47 +31824,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -986228706;
-        }
-    }
-
-    /**
-     * Returns the notification settings for a given scope.
-     *
-     * <p> Returns {@link NotificationSettings NotificationSettings} </p>
-     */
-    public static class GetNotificationSettings extends Function {
-        /**
-         * Scope for which to return the notification settings information.
-         */
-        public NotificationSettingsScope scope;
-
-        /**
-         * Default constructor.
-         */
-        public GetNotificationSettings() {
-        }
-
-        /**
-         * Constructor for initialization of all fields.
-         *
-         * @param scope Scope for which to return the notification settings information.
-         */
-        public GetNotificationSettings(NotificationSettingsScope scope) {
-            this.scope = scope;
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = 907144391;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return 907144391;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26782,7 +31864,117 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1572495746;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns a Telegram Passport authorization form for sharing data with a service.
+     *
+     * <p> Returns {@link PassportAuthorizationForm PassportAuthorizationForm} </p>
+     */
+    public static class GetPassportAuthorizationForm extends Function {
+        /**
+         * User identifier of the service's bot.
+         */
+        public int botUserId;
+        /**
+         * Telegram Passport element types requested by the service.
+         */
+        public String scope;
+        /**
+         * Service's publicKey.
+         */
+        public String publicKey;
+        /**
+         * Authorization form nonce provided by the service.
+         */
+        public String nonce;
+        /**
+         * Password of the current user.
+         */
+        public String password;
+
+        /**
+         * Default constructor.
+         */
+        public GetPassportAuthorizationForm() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param botUserId User identifier of the service's bot.
+         * @param scope Telegram Passport element types requested by the service.
+         * @param publicKey Service's publicKey.
+         * @param nonce Authorization form nonce provided by the service.
+         * @param password Password of the current user.
+         */
+        public GetPassportAuthorizationForm(int botUserId, String scope, String publicKey, String nonce, String password) {
+            this.botUserId = botUserId;
+            this.scope = scope;
+            this.publicKey = publicKey;
+            this.nonce = nonce;
+            this.password = password;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1998294216;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns one of the available Telegram Passport elements.
+     *
+     * <p> Returns {@link PassportElement PassportElement} </p>
+     */
+    public static class GetPassportElement extends Function {
+        /**
+         * Telegram Passport element type.
+         */
+        public PassportElementType type;
+        /**
+         * Password of the current user.
+         */
+        public String password;
+
+        /**
+         * Default constructor.
+         */
+        public GetPassportElement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param type Telegram Passport element type.
+         * @param password Password of the current user.
+         */
+        public GetPassportElement(PassportElementType type, String password) {
+            this.type = type;
+            this.password = password;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1882398342;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -26809,7 +32001,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -174752904;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26855,7 +32047,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2146950882;
+            return CONSTRUCTOR;
         }
     }
 
@@ -26901,34 +32093,114 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1013758294;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Returns the proxy that is currently set up. Can be called before authorization.
+     * Returns an IETF language tag of the language preferred in the country, which should be used to fill native fields in Telegram Passport personal details. Returns a 404 error if unknown.
      *
-     * <p> Returns {@link Proxy Proxy} </p>
+     * <p> Returns {@link Text Text} </p>
      */
-    public static class GetProxy extends Function {
+    public static class GetPreferredCountryLanguage extends Function {
+        /**
+         * A two-letter ISO 3166-1 alpha-2 country code.
+         */
+        public String countryCode;
 
         /**
          * Default constructor.
          */
-        public GetProxy() {
+        public GetPreferredCountryLanguage() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param countryCode A two-letter ISO 3166-1 alpha-2 country code.
+         */
+        public GetPreferredCountryLanguage(String countryCode) {
+            this.countryCode = countryCode;
         }
 
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = 1389343170;
+        public static final int CONSTRUCTOR = -933049386;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return 1389343170;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns list of proxies that are currently set up. Can be called before authorization.
+     *
+     * <p> Returns {@link Proxies Proxies} </p>
+     */
+    public static class GetProxies extends Function {
+
+        /**
+         * Default constructor.
+         */
+        public GetProxies() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -95026381;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns an HTTPS link, which can be used to add a proxy. Available only for SOCKS5 and MTProto proxies. Can be called before authorization.
+     *
+     * <p> Returns {@link Text Text} </p>
+     */
+    public static class GetProxyLink extends Function {
+        /**
+         * Proxy identifier.
+         */
+        public int proxyId;
+
+        /**
+         * Default constructor.
+         */
+        public GetProxyLink() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param proxyId Proxy identifier.
+         */
+        public GetProxyLink(int proxyId) {
+            this.proxyId = proxyId;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1285597664;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -26980,7 +32252,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -374642839;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27007,7 +32279,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1437823548;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27047,7 +32319,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -579622241;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27087,7 +32359,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 806754961;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27127,7 +32399,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1594770947;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27173,7 +32445,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2137204530;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27219,7 +32491,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -641918531;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27246,7 +32518,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 7051032;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27273,7 +32545,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1152016675;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Returns the notification settings for chats of a given type.
+     *
+     * <p> Returns {@link ScopeNotificationSettings ScopeNotificationSettings} </p>
+     */
+    public static class GetScopeNotificationSettings extends Function {
+        /**
+         * Types of chats for which to return the notification settings information.
+         */
+        public NotificationSettingsScope scope;
+
+        /**
+         * Default constructor.
+         */
+        public GetScopeNotificationSettings() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param scope Types of chats for which to return the notification settings information.
+         */
+        public GetScopeNotificationSettings(NotificationSettingsScope scope) {
+            this.scope = scope;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -995613361;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -27313,7 +32625,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 40599169;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27353,7 +32665,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 95352475;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27393,7 +32705,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1052318659;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27439,7 +32751,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1594919556;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27479,7 +32791,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -853193929;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27506,7 +32818,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 61368066;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27546,7 +32858,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2063063706;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27586,7 +32898,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1150331262;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27644,7 +32956,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1427643098;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27671,7 +32983,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1733497700;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27698,34 +33010,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -12670830;
-        }
-    }
-
-    /**
-     * Returns the terms of service. Can be called before authorization.
-     *
-     * <p> Returns {@link Text Text} </p>
-     */
-    public static class GetTermsOfService extends Function {
-
-        /**
-         * Default constructor.
-         */
-        public GetTermsOfService() {
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = 1835034646;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return 1835034646;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27765,7 +33050,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -341490693;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27811,7 +33096,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -388410847;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27838,7 +33123,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1729129957;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27878,7 +33163,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -47586017;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27918,7 +33203,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -655443263;
+            return CONSTRUCTOR;
         }
     }
 
@@ -27958,7 +33243,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2077223311;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28010,7 +33295,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2062927433;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28037,7 +33322,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2097518555;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28083,7 +33368,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1962649975;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28123,7 +33408,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 573441580;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28134,7 +33419,7 @@ public class TdApi {
      */
     public static class ImportContacts extends Function {
         /**
-         * The list of contacts to import or edit.
+         * The list of contacts to import or edit, contact's vCard are ignored and are not imported.
          */
         public Contact[] contacts;
 
@@ -28147,7 +33432,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param contacts The list of contacts to import or edit.
+         * @param contacts The list of contacts to import or edit, contact's vCard are ignored and are not imported.
          */
         public ImportContacts(Contact[] contacts) {
             this.contacts = contacts;
@@ -28163,7 +33448,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -215132767;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Adds current user as a new member to a chat. Private and secret chats can't be joined using this method.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class JoinChat extends Function {
+        /**
+         * Chat identifier.
+         */
+        public long chatId;
+
+        /**
+         * Default constructor.
+         */
+        public JoinChat() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Chat identifier.
+         */
+        public JoinChat(long chatId) {
+            this.chatId = chatId;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 326769313;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -28203,7 +33528,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1049973882;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Removes current user from chat members. Private and secret chats can't be left using this method.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class LeaveChat extends Function {
+        /**
+         * Chat identifier.
+         */
+        public long chatId;
+
+        /**
+         * Default constructor.
+         */
+        public LeaveChat() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Chat identifier.
+         */
+        public LeaveChat(long chatId) {
+            this.chatId = chatId;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1825080735;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -28230,7 +33595,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1581923301;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28270,7 +33635,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -323371509;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28316,7 +33681,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -739088005;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28398,7 +33763,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 980397489;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28444,7 +33809,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1709194593;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28496,7 +33861,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1141187557;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Computes time needed to receive a response from a Telegram server through a proxy. Can be called before authorization.
+     *
+     * <p> Returns {@link Seconds Seconds} </p>
+     */
+    public static class PingProxy extends Function {
+        /**
+         * Proxy identifier. Use 0 to ping a Telegram server without a proxy.
+         */
+        public int proxyId;
+
+        /**
+         * Default constructor.
+         */
+        public PingProxy() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param proxyId Proxy identifier. Use 0 to ping a Telegram server without a proxy.
+         */
+        public PingProxy(int proxyId) {
+            this.proxyId = proxyId;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -979681103;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -28542,7 +33947,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1806562997;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28582,7 +33987,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1357558453;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28622,7 +34027,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 787436412;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28662,7 +34067,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1660185903;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28708,7 +34113,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -413637293;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28748,7 +34153,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -615510759;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28788,7 +34193,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1152945264;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Removes a proxy server. Can be called before authorization.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class RemoveProxy extends Function {
+        /**
+         * Proxy identifier.
+         */
+        public int proxyId;
+
+        /**
+         * Default constructor.
+         */
+        public RemoveProxy() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param proxyId Proxy identifier.
+         */
+        public RemoveProxy(int proxyId) {
+            this.proxyId = proxyId;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1369219847;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -28828,7 +34273,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1013735260;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28874,7 +34319,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1246577677;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28914,7 +34359,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 717340444;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28954,7 +34399,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -495605479;
+            return CONSTRUCTOR;
         }
     }
 
@@ -28994,7 +34439,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1642196644;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29040,7 +34485,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1907876267;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29086,7 +34531,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1114537563;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29138,12 +34583,12 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -312579772;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Reports some messages from a user in a supergroup as spam.
+     * Reports some messages from a user in a supergroup as spam; requires administrator rights in the supergroup.
      *
      * <p> Returns {@link Ok Ok} </p>
      */
@@ -29190,7 +34635,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2125451498;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29217,14 +34662,14 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1393896118;
+            return CONSTRUCTOR;
         }
     }
 
     /**
      * Requests to send a password recovery code to an email address that was previously set up.
      *
-     * <p> Returns {@link PasswordRecoveryInfo PasswordRecoveryInfo} </p>
+     * <p> Returns {@link EmailAddressAuthenticationCodeInfo EmailAddressAuthenticationCodeInfo} </p>
      */
     public static class RequestPasswordRecovery extends Function {
 
@@ -29237,14 +34682,14 @@ public class TdApi {
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = 1989252384;
+        public static final int CONSTRUCTOR = -13777582;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return 1989252384;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29271,7 +34716,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -814377191;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29298,12 +34743,93 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -786772060;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Resets all notification settings to their default values. By default, the only muted chats are supergroups, the sound is set to &quot;default&quot; and message previews are shown.
+     * Re-sends the code to verify an email address to be added to a user's Telegram Passport.
+     *
+     * <p> Returns {@link EmailAddressAuthenticationCodeInfo EmailAddressAuthenticationCodeInfo} </p>
+     */
+    public static class ResendEmailAddressVerificationCode extends Function {
+
+        /**
+         * Default constructor.
+         */
+        public ResendEmailAddressVerificationCode() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -1872416732;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Resends phone number confirmation code.
+     *
+     * <p> Returns {@link AuthenticationCodeInfo AuthenticationCodeInfo} </p>
+     */
+    public static class ResendPhoneNumberConfirmationCode extends Function {
+
+        /**
+         * Default constructor.
+         */
+        public ResendPhoneNumberConfirmationCode() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 2069068522;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Re-sends the code to verify a phone number to be added to a user's Telegram Passport.
+     *
+     * <p> Returns {@link AuthenticationCodeInfo AuthenticationCodeInfo} </p>
+     */
+    public static class ResendPhoneNumberVerificationCode extends Function {
+
+        /**
+         * Default constructor.
+         */
+        public ResendPhoneNumberVerificationCode() {
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1367629820;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Resets all notification settings to their default values. By default, all chats are unmuted, the sound is set to &quot;default&quot; and message previews are shown.
      *
      * <p> Returns {@link Ok Ok} </p>
      */
@@ -29325,7 +34851,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -174020359;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29352,7 +34878,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1646452102;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29363,7 +34889,7 @@ public class TdApi {
      */
     public static class SearchCallMessages extends Function {
         /**
-         * Identifier of the message from which to search; use 0 to get results from the beginning.
+         * Identifier of the message from which to search; use 0 to get results from the last message.
          */
         public long fromMessageId;
         /**
@@ -29384,7 +34910,7 @@ public class TdApi {
         /**
          * Constructor for initialization of all fields.
          *
-         * @param fromMessageId Identifier of the message from which to search; use 0 to get results from the beginning.
+         * @param fromMessageId Identifier of the message from which to search; use 0 to get results from the last message.
          * @param limit The maximum number of messages to be returned; up to 100. Fewer messages may be returned than specified by the limit, even if the end of the message history has not been reached.
          * @param onlyMissed If true, returns only messages with missed calls.
          */
@@ -29404,7 +34930,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1077230820;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29426,6 +34952,10 @@ public class TdApi {
          * The maximum number of users to be returned.
          */
         public int limit;
+        /**
+         * The type of users to return. By default, chatMembersFilterMembers.
+         */
+        public ChatMembersFilter filter;
 
         /**
          * Default constructor.
@@ -29439,24 +34969,26 @@ public class TdApi {
          * @param chatId Chat identifier.
          * @param query Query to search for.
          * @param limit The maximum number of users to be returned.
+         * @param filter The type of users to return. By default, chatMembersFilterMembers.
          */
-        public SearchChatMembers(long chatId, String query, int limit) {
+        public SearchChatMembers(long chatId, String query, int limit, ChatMembersFilter filter) {
             this.chatId = chatId;
             this.query = query;
             this.limit = limit;
+            this.filter = filter;
         }
 
         /**
          * Identifier uniquely determining type of the object.
          */
-        public static final int CONSTRUCTOR = -1538035890;
+        public static final int CONSTRUCTOR = -445823291;
 
         /**
          * @return this.CONSTRUCTOR
          */
         @Override
         public int getConstructor() {
-            return -1538035890;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29479,7 +35011,7 @@ public class TdApi {
          */
         public int senderUserId;
         /**
-         * Identifier of the message starting from which history must be fetched; use 0 to get results from the beginning.
+         * Identifier of the message starting from which history must be fetched; use 0 to get results from the last message.
          */
         public long fromMessageId;
         /**
@@ -29507,7 +35039,7 @@ public class TdApi {
          * @param chatId Identifier of the chat in which to search messages.
          * @param query Query to search for.
          * @param senderUserId If not 0, only messages sent by the specified user will be returned. Not supported in secret chats.
-         * @param fromMessageId Identifier of the message starting from which history must be fetched; use 0 to get results from the beginning.
+         * @param fromMessageId Identifier of the message starting from which history must be fetched; use 0 to get results from the last message.
          * @param offset Specify 0 to get results from exactly the fromMessageId or a negative offset to get the specified message and some newer messages.
          * @param limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than -offset. Fewer messages may be returned than specified by the limit, even if the end of the message history has not been reached.
          * @param filter Filter for message content in the search results.
@@ -29532,7 +35064,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1528846671;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29578,7 +35110,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 950238950;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29624,7 +35156,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1879787060;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29670,7 +35202,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1158402188;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29716,7 +35248,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1794690715;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29762,7 +35294,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1043637617;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29814,7 +35346,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 681171344;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29829,7 +35361,7 @@ public class TdApi {
          */
         public String query;
         /**
-         * The date of the message starting from which the results should be fetched. Use 0 or any date in the future to get results from the beginning.
+         * The date of the message starting from which the results should be fetched. Use 0 or any date in the future to get results from the last message.
          */
         public int offsetDate;
         /**
@@ -29855,7 +35387,7 @@ public class TdApi {
          * Constructor for initialization of all fields.
          *
          * @param query Query to search for.
-         * @param offsetDate The date of the message starting from which the results should be fetched. Use 0 or any date in the future to get results from the beginning.
+         * @param offsetDate The date of the message starting from which the results should be fetched. Use 0 or any date in the future to get results from the last message.
          * @param offsetChatId The chat identifier of the last found message, or 0 for the first request.
          * @param offsetMessageId The message identifier of the last found message, or 0 for the first request.
          * @param limit The maximum number of messages to be returned, up to 100. Fewer messages may be returned than specified by the limit, even if the end of the message history has not been reached.
@@ -29878,7 +35410,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1579305146;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29918,7 +35450,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 857135533;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29958,7 +35490,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 970385337;
+            return CONSTRUCTOR;
         }
     }
 
@@ -29977,7 +35509,7 @@ public class TdApi {
          */
         public String query;
         /**
-         * The identifier from the result of a previous request, use 0 to get results from the beginning.
+         * The identifier from the result of a previous request, use 0 to get results from the last message.
          */
         public long fromSearchId;
         /**
@@ -30000,7 +35532,7 @@ public class TdApi {
          *
          * @param chatId Identifier of the chat in which to search. Specify 0 to search in all secret chats.
          * @param query Query to search for. If empty, searchChatMessages should be used instead.
-         * @param fromSearchId The identifier from the result of a previous request, use 0 to get results from the beginning.
+         * @param fromSearchId The identifier from the result of a previous request, use 0 to get results from the last message.
          * @param limit Maximum number of messages to be returned; up to 100. Fewer messages may be returned than specified by the limit, even if the end of the message history has not been reached.
          * @param filter A filter for the content of messages in the search results.
          */
@@ -30022,7 +35554,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1670627915;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30062,7 +35594,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1157930222;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30102,7 +35634,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1082314629;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30148,7 +35680,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1555771203;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30200,7 +35732,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1112181339;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30246,7 +35778,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2019243839;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30298,7 +35830,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 243075146;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30344,7 +35876,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -841357536;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30384,7 +35916,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 448399457;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30430,7 +35962,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1432535564;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30476,7 +36008,47 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 285045153;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Sends a code to verify an email address to be added to a user's Telegram Passport.
+     *
+     * <p> Returns {@link EmailAddressAuthenticationCodeInfo EmailAddressAuthenticationCodeInfo} </p>
+     */
+    public static class SendEmailAddressVerificationCode extends Function {
+        /**
+         * Email address.
+         */
+        public String emailAddress;
+
+        /**
+         * Default constructor.
+         */
+        public SendEmailAddressVerificationCode() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param emailAddress Email address.
+         */
+        public SendEmailAddressVerificationCode(String emailAddress) {
+            this.emailAddress = emailAddress;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -221621379;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -30546,7 +36118,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -643910868;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30616,7 +36188,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1694632114;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30680,7 +36252,53 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -291823014;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Sends a Telegram Passport authorization form, effectively sharing data with the service.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class SendPassportAuthorizationForm extends Function {
+        /**
+         * Authorization form identifier.
+         */
+        public int autorizationFormId;
+        /**
+         * Types of Telegram Passport elements chosen by user to complete the authorization form.
+         */
+        public PassportElementType[] types;
+
+        /**
+         * Default constructor.
+         */
+        public SendPassportAuthorizationForm() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param autorizationFormId Authorization form identifier.
+         * @param types Types of Telegram Passport elements chosen by user to complete the authorization form.
+         */
+        public SendPassportAuthorizationForm(int autorizationFormId, PassportElementType[] types) {
+            this.autorizationFormId = autorizationFormId;
+            this.types = types;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -602402218;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -30744,7 +36362,117 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 591581572;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Sends phone number confirmation code. Should be called when user presses &quot;https://t.me/confirmphone?phone=*******&amp;hash=**********&quot; or &quot;tg://confirmphone?phone=*******&amp;hash=**********&quot; link.
+     *
+     * <p> Returns {@link AuthenticationCodeInfo AuthenticationCodeInfo} </p>
+     */
+    public static class SendPhoneNumberConfirmationCode extends Function {
+        /**
+         * Value of the &quot;hash&quot; parameter from the link.
+         */
+        public String hash;
+        /**
+         * Value of the &quot;phone&quot; parameter from the link.
+         */
+        public String phoneNumber;
+        /**
+         * Pass true if the authentication code may be sent via flash call to the specified phone number.
+         */
+        public boolean allowFlashCall;
+        /**
+         * Pass true if the phone number is used on the current device. Ignored if allowFlashCall is false.
+         */
+        public boolean isCurrentPhoneNumber;
+
+        /**
+         * Default constructor.
+         */
+        public SendPhoneNumberConfirmationCode() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param hash Value of the &quot;hash&quot; parameter from the link.
+         * @param phoneNumber Value of the &quot;phone&quot; parameter from the link.
+         * @param allowFlashCall Pass true if the authentication code may be sent via flash call to the specified phone number.
+         * @param isCurrentPhoneNumber Pass true if the phone number is used on the current device. Ignored if allowFlashCall is false.
+         */
+        public SendPhoneNumberConfirmationCode(String hash, String phoneNumber, boolean allowFlashCall, boolean isCurrentPhoneNumber) {
+            this.hash = hash;
+            this.phoneNumber = phoneNumber;
+            this.allowFlashCall = allowFlashCall;
+            this.isCurrentPhoneNumber = isCurrentPhoneNumber;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1975492794;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Sends a code to verify a phone number to be added to a user's Telegram Passport.
+     *
+     * <p> Returns {@link AuthenticationCodeInfo AuthenticationCodeInfo} </p>
+     */
+    public static class SendPhoneNumberVerificationCode extends Function {
+        /**
+         * The phone number of the user, in international format.
+         */
+        public String phoneNumber;
+        /**
+         * Pass true if the authentication code may be sent via flash call to the specified phone number.
+         */
+        public boolean allowFlashCall;
+        /**
+         * Pass true if the phone number is used on the current device. Ignored if allowFlashCall is false.
+         */
+        public boolean isCurrentPhoneNumber;
+
+        /**
+         * Default constructor.
+         */
+        public SendPhoneNumberVerificationCode() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param phoneNumber The phone number of the user, in international format.
+         * @param allowFlashCall Pass true if the authentication code may be sent via flash call to the specified phone number.
+         * @param isCurrentPhoneNumber Pass true if the phone number is used on the current device. Ignored if allowFlashCall is false.
+         */
+        public SendPhoneNumberVerificationCode(String phoneNumber, boolean allowFlashCall, boolean isCurrentPhoneNumber) {
+            this.phoneNumber = phoneNumber;
+            this.allowFlashCall = allowFlashCall;
+            this.isCurrentPhoneNumber = isCurrentPhoneNumber;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -280632685;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -30784,12 +36512,12 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 701389032;
+            return CONSTRUCTOR;
         }
     }
 
     /**
-     * Succeeds after a specified amount of time has passed. Can be called before authorization.
+     * Succeeds after a specified amount of time has passed. Can be called before authorization. Can be called before initialization.
      *
      * <p> Returns {@link Ok Ok} </p>
      */
@@ -30824,7 +36552,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -873497067;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30876,7 +36604,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -856055465;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30916,7 +36644,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1619582124;
+            return CONSTRUCTOR;
         }
     }
 
@@ -30962,7 +36690,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1154926191;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31008,7 +36736,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -827119811;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31054,7 +36782,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -588175579;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31106,7 +36834,53 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1754439241;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Changes the notification settings of a chat.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class SetChatNotificationSettings extends Function {
+        /**
+         * Chat identifier.
+         */
+        public long chatId;
+        /**
+         * New notification settings for the chat.
+         */
+        public ChatNotificationSettings notificationSettings;
+
+        /**
+         * Default constructor.
+         */
+        public SetChatNotificationSettings() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Chat identifier.
+         * @param notificationSettings New notification settings for the chat.
+         */
+        public SetChatNotificationSettings(long chatId, ChatNotificationSettings notificationSettings) {
+            this.chatId = chatId;
+            this.notificationSettings = notificationSettings;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 777199614;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -31152,7 +36926,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 132244217;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31198,7 +36972,99 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 164282047;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Adds or changes a custom language pack to the current localization target.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class SetCustomLanguagePack extends Function {
+        /**
+         * Information about the language pack. Language pack ID must start with 'X', consist only of English letters, digits and hyphens, and must not exceed 64 characters.
+         */
+        public LanguagePackInfo info;
+        /**
+         * Strings of the new language pack.
+         */
+        public LanguagePackString[] strings;
+
+        /**
+         * Default constructor.
+         */
+        public SetCustomLanguagePack() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param info Information about the language pack. Language pack ID must start with 'X', consist only of English letters, digits and hyphens, and must not exceed 64 characters.
+         * @param strings Strings of the new language pack.
+         */
+        public SetCustomLanguagePack(LanguagePackInfo info, LanguagePackString[] strings) {
+            this.info = info;
+            this.strings = strings;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -296742819;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Adds, edits or deletes a string in a custom language pack.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class SetCustomLanguagePackString extends Function {
+        /**
+         * Identifier of a previously added custom language pack in the current localization target.
+         */
+        public String languagePackId;
+        /**
+         * New language pack string.
+         */
+        public LanguagePackString newString;
+
+        /**
+         * Default constructor.
+         */
+        public SetCustomLanguagePackString() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param languagePackId Identifier of a previously added custom language pack in the current localization target.
+         * @param newString New language pack string.
+         */
+        public SetCustomLanguagePackString(String languagePackId, LanguagePackString newString) {
+            this.languagePackId = languagePackId;
+            this.newString = newString;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1316365592;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -31238,7 +37104,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1204599371;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31290,7 +37156,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -540459953;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31360,7 +37226,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1768307069;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31424,7 +37290,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 758435487;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31470,7 +37336,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1711693584;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31510,53 +37376,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -701635234;
-        }
-    }
-
-    /**
-     * Changes notification settings for a given scope.
-     *
-     * <p> Returns {@link Ok Ok} </p>
-     */
-    public static class SetNotificationSettings extends Function {
-        /**
-         * Scope for which to change the notification settings.
-         */
-        public NotificationSettingsScope scope;
-        /**
-         * The new notification settings for the given scope.
-         */
-        public NotificationSettings notificationSettings;
-
-        /**
-         * Default constructor.
-         */
-        public SetNotificationSettings() {
-        }
-
-        /**
-         * Constructor for initialization of all fields.
-         *
-         * @param scope Scope for which to change the notification settings.
-         * @param notificationSettings The new notification settings for the given scope.
-         */
-        public SetNotificationSettings(NotificationSettingsScope scope, NotificationSettings notificationSettings) {
-            this.scope = scope;
-            this.notificationSettings = notificationSettings;
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = -134430483;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return -134430483;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31602,7 +37422,99 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2114670322;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Adds an element to the user's Telegram Passport. May return an error with a message &quot;PHONEVERIFICATIONNEEDED&quot; or &quot;EMAILVERIFICATIONNEEDED&quot; if the chosen phone number or the chosen email address must be verified first.
+     *
+     * <p> Returns {@link PassportElement PassportElement} </p>
+     */
+    public static class SetPassportElement extends Function {
+        /**
+         * Input Telegram Passport element.
+         */
+        public InputPassportElement element;
+        /**
+         * Password of the current user.
+         */
+        public String password;
+
+        /**
+         * Default constructor.
+         */
+        public SetPassportElement() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param element Input Telegram Passport element.
+         * @param password Password of the current user.
+         */
+        public SetPassportElement(InputPassportElement element, String password) {
+            this.element = element;
+            this.password = password;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 2068173212;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Informs the user that some of the elements in their Telegram Passport contain errors; for bots only. The user will not be able to resend the elements, until the errors are fixed.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class SetPassportElementErrors extends Function {
+        /**
+         * User identifier.
+         */
+        public int userId;
+        /**
+         * The errors.
+         */
+        public InputPassportElementError[] errors;
+
+        /**
+         * Default constructor.
+         */
+        public SetPassportElementErrors() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param userId User identifier.
+         * @param errors The errors.
+         */
+        public SetPassportElementErrors(int userId, InputPassportElementError[] errors) {
+            this.userId = userId;
+            this.errors = errors;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 1455869875;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -31666,7 +37578,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1193589027;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31706,7 +37618,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1369665719;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31746,47 +37658,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1594734550;
-        }
-    }
-
-    /**
-     * Sets the proxy server for network requests. Can be called before authorization.
-     *
-     * <p> Returns {@link Ok Ok} </p>
-     */
-    public static class SetProxy extends Function {
-        /**
-         * Proxy server to use. Specify null to remove the proxy server.
-         */
-        public Proxy proxy;
-
-        /**
-         * Default constructor.
-         */
-        public SetProxy() {
-        }
-
-        /**
-         * Constructor for initialization of all fields.
-         *
-         * @param proxy Proxy server to use. Specify null to remove the proxy server.
-         */
-        public SetProxy(Proxy proxy) {
-            this.proxy = proxy;
-        }
-
-        /**
-         * Identifier uniquely determining type of the object.
-         */
-        public static final int CONSTRUCTOR = -656782179;
-
-        /**
-         * @return this.CONSTRUCTOR
-         */
-        @Override
-        public int getConstructor() {
-            return -656782179;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31832,7 +37704,53 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1981836385;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Changes notification settings for chats of a given type.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class SetScopeNotificationSettings extends Function {
+        /**
+         * Types of chats for which to change the notification settings.
+         */
+        public NotificationSettingsScope scope;
+        /**
+         * The new notification settings for the given scope.
+         */
+        public ScopeNotificationSettings notificationSettings;
+
+        /**
+         * Default constructor.
+         */
+        public SetScopeNotificationSettings() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param scope Types of chats for which to change the notification settings.
+         * @param notificationSettings The new notification settings for the given scope.
+         */
+        public SetScopeNotificationSettings(NotificationSettingsScope scope, ScopeNotificationSettings notificationSettings) {
+            this.scope = scope;
+            this.notificationSettings = notificationSettings;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -2049984966;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -31878,7 +37796,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 2075281185;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31924,7 +37842,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 227623488;
+            return CONSTRUCTOR;
         }
     }
 
@@ -31970,7 +37888,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -295782298;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32016,7 +37934,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1428333122;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32056,7 +37974,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1912557997;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32102,7 +38020,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -473812741;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32142,7 +38060,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 439901214;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32169,7 +38087,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1874485523;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32209,7 +38127,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -407385812;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32249,7 +38167,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -736011607;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32276,7 +38194,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -627291626;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32316,7 +38234,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1732818385;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32356,7 +38274,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -2137277793;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32396,7 +38314,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1825428218;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32436,7 +38354,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -408600900;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32476,7 +38394,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1527666429;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32503,7 +38421,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1747084069;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32530,7 +38448,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1343998901;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32570,7 +38488,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -60135024;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32597,7 +38515,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 528842186;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32624,7 +38542,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 717094686;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32670,7 +38588,99 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -591395611;
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Changes the value of the default disableNotification parameter, used when a message is sent to a chat.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class ToggleChatDefaultDisableNotification extends Function {
+        /**
+         * Chat identifier.
+         */
+        public long chatId;
+        /**
+         * New value of defaultDisableNotification.
+         */
+        public boolean defaultDisableNotification;
+
+        /**
+         * Default constructor.
+         */
+        public ToggleChatDefaultDisableNotification() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Chat identifier.
+         * @param defaultDisableNotification New value of defaultDisableNotification.
+         */
+        public ToggleChatDefaultDisableNotification(long chatId, boolean defaultDisableNotification) {
+            this.chatId = chatId;
+            this.defaultDisableNotification = defaultDisableNotification;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = 314794002;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    /**
+     * Changes the marked as unread state of a chat.
+     *
+     * <p> Returns {@link Ok Ok} </p>
+     */
+    public static class ToggleChatIsMarkedAsUnread extends Function {
+        /**
+         * Chat identifier.
+         */
+        public long chatId;
+        /**
+         * New value of isMarkedAsUnread.
+         */
+        public boolean isMarkedAsUnread;
+
+        /**
+         * Default constructor.
+         */
+        public ToggleChatIsMarkedAsUnread() {
+        }
+
+        /**
+         * Constructor for initialization of all fields.
+         *
+         * @param chatId Chat identifier.
+         * @param isMarkedAsUnread New value of isMarkedAsUnread.
+         */
+        public ToggleChatIsMarkedAsUnread(long chatId, boolean isMarkedAsUnread) {
+            this.chatId = chatId;
+            this.isMarkedAsUnread = isMarkedAsUnread;
+        }
+
+        /**
+         * Identifier uniquely determining type of the object.
+         */
+        public static final int CONSTRUCTOR = -986129697;
+
+        /**
+         * @return this.CONSTRUCTOR
+         */
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
         }
     }
 
@@ -32716,7 +38726,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1166802621;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32762,7 +38772,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -797384141;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32808,7 +38818,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1701526555;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32854,7 +38864,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -558196581;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32894,7 +38904,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -307286367;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32934,7 +38944,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1987029530;
+            return CONSTRUCTOR;
         }
     }
 
@@ -32974,7 +38984,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 300488122;
+            return CONSTRUCTOR;
         }
     }
 
@@ -33026,7 +39036,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -745597786;
+            return CONSTRUCTOR;
         }
     }
 
@@ -33072,7 +39082,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 1134087551;
+            return CONSTRUCTOR;
         }
     }
 
@@ -33130,7 +39140,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return 9480644;
+            return CONSTRUCTOR;
         }
     }
 
@@ -33182,7 +39192,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -1925784915;
+            return CONSTRUCTOR;
         }
     }
 
@@ -33222,7 +39232,7 @@ public class TdApi {
          */
         @Override
         public int getConstructor() {
-            return -952416520;
+            return CONSTRUCTOR;
         }
     }
 
