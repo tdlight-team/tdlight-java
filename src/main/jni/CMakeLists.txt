@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(JTDLib VERSION 1.0 LANGUAGES CXX)
+set(CMAKE_BUILD_TYPE Release)
+set(TD_ENABLE_JNI ON)
 
 if (NOT JNI_FOUND)
   find_package(JNI REQUIRED)
@@ -7,7 +9,7 @@ endif()
 
 add_subdirectory(td)
 
-add_library(tdjni SHARED
+add_library(tdjni STATIC
   td_jni.cpp
 )
 
