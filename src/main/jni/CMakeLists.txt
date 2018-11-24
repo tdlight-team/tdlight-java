@@ -9,7 +9,7 @@ endif()
 
 add_subdirectory(td)
 
-add_library(tdjni STATIC
+add_library(tdjni SHARED
   td_jni.cpp
 )
 
