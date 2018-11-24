@@ -19,6 +19,7 @@ target_compile_definitions(tdjni PRIVATE PACKAGE_NAME="${TD_API_JAVA_PACKAGE}")
 set_property(TARGET tdjni PROPERTY CXX_STANDARD 14)
 
 install(TARGETS tdjni
+  ARCHIVE DESTINATION bin
   LIBRARY DESTINATION bin
   RUNTIME DESTINATION bin
 )
