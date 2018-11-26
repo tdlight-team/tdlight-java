@@ -19,6 +19,7 @@ package it.ernytech.tdlib.utils;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.ByteOrder;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -99,9 +100,31 @@ public class LoadLibrary {
                 return Arch.amd64;
             }
 
-            case "x86" : {
-                return Arch.i686;
+            case "x86_64" : {
+                return Arch.amd64;
             }
+
+            case "i386" : {
+                return Arch.i386;
+            }
+
+            case "x86" : {
+                return Arch.i386;
+            }
+            
+            case "arm" : {
+                return Arch.armhf;
+            }
+
+            case "aarch64" : {
+                return Arch.aarch64;
+            }
+
+            case "ppc64" : {
+		if (!ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) { // Java always returns ppc64 for all 64-bit powerpc but 
+                    return Arch.ppc64el;                                     // powerpc64le (our target) is very different, it uses  
+		}                                                            // little-endian unlike powerpc64, so we just check 
+            }                                                                // this condition to accurately identify the architecture
 
             default : {
                 return Arch.unknown;

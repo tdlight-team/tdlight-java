@@ -22,6 +22,9 @@ package it.ernytech.tdlib.utils;
  */
 public enum Arch {
     amd64,
-    i686,
+    i386,
+    armhf,
+    aarch64,
+    ppc64el
     unknown
 }
