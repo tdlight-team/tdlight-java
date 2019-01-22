@@ -126,13 +126,13 @@ static jint register_native(JavaVM *vm) {
                                     reinterpret_cast<void *>(function_ptr));
   };
 
-  auto client_class = td::jni::get_jclass(env, PACKAGE_NAME "/Client");
-  log_class = td::jni::get_jclass(env, PACKAGE_NAME "/Log");
-  auto object_class = td::jni::get_jclass(env, PACKAGE_NAME "/TdApi$Object");
-  auto function_class = td::jni::get_jclass(env, PACKAGE_NAME "/TdApi$Function");
+  auto client_class = td::jni::get_jclass(env, PACKAGE_NAME "it/ernytech/tdlib/Client");
+  log_class = td::jni::get_jclass(env, PACKAGE_NAME "it/ernytech/tdlib/Log");
+  auto object_class = td::jni::get_jclass(env, PACKAGE_NAME "it/ernytech/tdlib/TdApi$Object");
+  auto function_class = td::jni::get_jclass(env, PACKAGE_NAME "it/ernytech/tdlib/TdApi$Function");
 
-#define TD_OBJECT "L" PACKAGE_NAME "/TdApi$Object;"
-#define TD_FUNCTION "L" PACKAGE_NAME "/TdApi$Function;"
+#define TD_OBJECT "L" PACKAGE_NAME "it/ernytech/tdlib/TdApi$Object;"
+#define TD_FUNCTION "L" PACKAGE_NAME "it/ernytech/tdlib/TdApi$Function;"
   register_method(client_class, "createNativeClient", "()J", Client_createNativeClient);
   register_method(client_class, "nativeClientSend", "(JJ" TD_FUNCTION ")V", Client_nativeClientSend);
   register_method(client_class, "nativeClientReceive", "(J[J[" TD_OBJECT "D)I", Client_nativeClientReceive);
