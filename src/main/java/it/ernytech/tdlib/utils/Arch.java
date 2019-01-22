@@ -25,6 +25,6 @@ public enum Arch {
     i386,
     armhf,
     aarch64,
-    ppc64el
+    ppc64el,
     unknown
 }
