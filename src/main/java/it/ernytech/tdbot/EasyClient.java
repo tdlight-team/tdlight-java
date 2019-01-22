@@ -304,11 +304,21 @@ public class EasyClient {
             }
 
             case TdApi.AuthorizationStateWaitCode.CONSTRUCTOR: {
-                var scanner = new Scanner(System.in);
-                System.out.print("Insert your code: ");
-                sendRaw(new TdApi.CheckAuthenticationCode(scanner.nextLine(), "", ""));
-                System.out.println();
-                break;
+				var scanner = new Scanner(System.in);
+				System.out.print("Insert your code: ");
+				TdApi.AuthorizationStateWaitCode authorizationStateWaitCode = (TdApi.AuthorizationStateWaitCode) authorizationState;
+				TdApi.CheckAuthenticationCode authCodeReply = new TdApi.CheckAuthenticationCode();
+				System.out.print("Insert your code: ");
+				authCodeReply.code = scanner.nextLine();
+				if (!authorizationStateWaitCode.isRegistered) {
+					System.out.print("Insert your first name: ");
+					authCodeReply.firstName = scanner.nextLine();
+					System.out.print("Insert your last name: ");
+					authCodeReply.lastName = scanner.nextLine();
+				}
+				sendRaw(authCodeReply);
+				System.out.println();
+				break;
             }
 
             case TdApi.AuthorizationStateWaitPassword.CONSTRUCTOR: {
