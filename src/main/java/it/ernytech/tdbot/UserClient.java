@@ -22,7 +22,7 @@ import it.ernytech.tdlib.TdApi;
 /**
  * Interface for easy interaction with TDLib for user.
  */
-public class UserClient extends EasyClient {
+public class UserClient extends EasyClient<UserClient> {
 
     /**
      * Creates a new UserClient.
@@ -30,5 +30,16 @@ public class UserClient extends EasyClient {
      */
     public UserClient(long phoneNumber) {
         super(easyClient -> easyClient.sendRaw(new TdApi.SetAuthenticationPhoneNumber(String.valueOf(phoneNumber), false, false)));
+    }
+
+    public UserClient(long phoneNumber, String firstName) {
+        super(easyClient -> easyClient.sendRaw(new TdApi.SetAuthenticationPhoneNumber(String.valueOf(phoneNumber), false, false)));
+        this.firstName = firstName;
+    }
+
+    public UserClient(long phoneNumber, String firstName, String lastName) {
+        super(easyClient -> easyClient.sendRaw(new TdApi.SetAuthenticationPhoneNumber(String.valueOf(phoneNumber), false, false)));
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 }

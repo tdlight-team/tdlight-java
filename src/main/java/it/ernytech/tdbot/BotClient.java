@@ -22,7 +22,7 @@ import it.ernytech.tdlib.TdApi;
 /**
  * Interface for easy interaction with TDLib for bot.
  */
-public class BotClient extends EasyClient {
+public class BotClient extends EasyClient<BotClient> {
 
     /**
      * Creates a new BotClient
@@ -32,3 +32,4 @@ public class BotClient extends EasyClient {
         super(easyClient -> easyClient.sendRaw(new TdApi.CheckAuthenticationBotToken(botToken)));
     }
 }
+

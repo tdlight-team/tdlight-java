@@ -33,14 +33,38 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Interface for easy interaction with TDLib for bot, used to implement other clients such as BotClient and UserClient.
  */
-public class EasyClient {
+public class EasyClient<T extends EasyClient> {
     private AuthorizationHandler authorizationHandler;
     private ClientActor clientActor;
     private ConcurrentHashMap<Long, TdCallback> handlers = new ConcurrentHashMap<>();
     private AtomicLong requestId = new AtomicLong(1);
     private ExecutorService executors = Executors.newFixedThreadPool(10);
     protected volatile boolean haveAuthorization = false;
+    protected String firstName;
+    protected String lastName;
     private volatile boolean haveClosed = false;
+
+    @SuppressWarnings("unchecked")
+    private final T thisAsT = (T) this;
+
+    // tdlib parameters
+    private TdApi.TdlibParameters parameters;
+    private boolean useTestDc = false;
+    private String databaseDirectory = "jtdlib-database";
+    private String filesDirectory = "jtdlib-files";
+    private boolean useFileDatabase = true;
+    private boolean useChatInfoDatabase = true;
+    private boolean useMessageDatabase = true;
+    private static boolean useSecretChats = false; // JTDLib NEVER can use secret chats, so this parameter can't be edited by user
+    private int apiId = 376588;
+    private String apiHash = "2143fdfc2bbba3ec723228d2f81336c9";
+    private String systemLanguageCode = "en";
+    private String deviceModel = "JTDLib";
+    private String systemVersion = "JTDLib";
+    private String applicationVersion = "1.0";
+    private boolean enableStorageOptimizer = false;
+    private boolean ignoreFileNames = false;
+
 
     /**
      * Creates a new EasyClient.
@@ -49,17 +73,116 @@ public class EasyClient {
     public EasyClient(AuthorizationHandler authorizationHandler) {
         this.authorizationHandler = authorizationHandler;
         this.handlers.put(0L, new TdCallback(response -> {}, error -> {}, () -> {}));
-        open();
     }
 
     public EasyClient(AuthorizationHandler authorizationHandler, boolean logoutAtShutdown) {
         this.authorizationHandler = authorizationHandler;
         this.handlers.put(0L, new TdCallback(response -> {}, error -> {}, () -> {}));
-        open();
 
         if (logoutAtShutdown) {
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         }
+    }
+
+    public T useTestDc(boolean useTestDc) {
+        this.useTestDc = useTestDc;
+        return thisAsT;
+    }
+
+    public T databaseDirectory(String databaseDirectory) {
+        this.databaseDirectory = databaseDirectory;
+        return thisAsT;
+    }
+
+    public T filesDirectory(String filesDirectory) {
+        this.filesDirectory = filesDirectory;
+        return thisAsT;
+    }
+
+    public T useChatInfoDatabase(boolean useChatInfoDatabase) {
+        this.useChatInfoDatabase = useChatInfoDatabase;
+        return thisAsT;
+    }
+
+    public T useMessageDatabase (boolean useMessageDatabase ) {
+        this.useMessageDatabase  = useMessageDatabase ;
+        return thisAsT;
+    }
+
+    public EasyClient apiId (int apiId) {
+        this.apiId = apiId;
+        return thisAsT;
+    }
+
+    public T apiHash (String apiHash) {
+        this.apiHash = apiHash;
+        return thisAsT;
+    }
+
+    public T systemLanguageCode (String systemLanguageCode) {
+        this.systemLanguageCode = systemLanguageCode;
+        return thisAsT;
+    }
+
+    public T deviceModel (String deviceModel) {
+        this.deviceModel = deviceModel;
+        return thisAsT;
+    }
+
+    public T systemVersion (String systemVersion) {
+        this.systemVersion = systemVersion;
+        return thisAsT;
+    }
+
+    public T applicationVersion (String applicationVersion) {
+        this.applicationVersion = applicationVersion;
+        return thisAsT;
+    }
+
+    public T enableStorageOptimizer (boolean enableStorageOptimizer) {
+        this.enableStorageOptimizer = enableStorageOptimizer;
+        return thisAsT;
+    }
+
+    public T ignoreFileNames (boolean ignoreFileNames) {
+        this.ignoreFileNames = ignoreFileNames;
+        return thisAsT;
+    }
+
+    public T parameters (TdApi.TdlibParameters parameters) {
+        this.parameters = parameters;
+        return thisAsT;
+    }
+
+    public T create() {
+        if (this.parameters == null) {
+            this.parameters = new TdApi.TdlibParameters();
+            this.parameters.useTestDc = this.useTestDc;
+            this.parameters.databaseDirectory = this.databaseDirectory;
+            this.parameters.filesDirectory = this.filesDirectory;
+            this.parameters.useFileDatabase = this.useFileDatabase;
+            this.parameters.useChatInfoDatabase = this.useChatInfoDatabase;
+            this.parameters.useMessageDatabase = this.useMessageDatabase;
+            this.parameters.useSecretChats = this.useSecretChats;
+            this.parameters.apiId = this.apiId;
+            this.parameters.apiHash = this.apiHash;
+            this.parameters.systemLanguageCode = this.systemLanguageCode;
+            this.parameters.deviceModel = this.deviceModel;
+            this.parameters.systemVersion = this.systemVersion;
+            this.parameters.applicationVersion = this.applicationVersion;
+            this.parameters.enableStorageOptimizer = this.enableStorageOptimizer;
+            this.parameters.ignoreFileNames = this.ignoreFileNames;
+        }
+
+        Log.setVerbosityLevel(1);
+        inizializeClient();
+        return thisAsT;
+    }
+
+    public void close() {
+        send(new TdApi.LogOut());
+        this.executors.shutdown();
+        this.haveClosed = true;
     }
 
     /**
@@ -185,17 +308,6 @@ public class EasyClient {
         this.handlers.put(0L, new TdCallback(receiveCallback, errorCallback, closeCallback));
     }
 
-    public void close() {
-        send(new TdApi.LogOut());
-        this.executors.shutdown();
-        this.haveClosed = true;
-    }
-
-    public void open() {
-        Log.setVerbosityLevel(1);
-        inizializeClient();
-    }
-
     /**
      * Destroys the client and TDLib instance.
      */
@@ -278,18 +390,7 @@ public class EasyClient {
     protected void authorizationHandler(TdApi.AuthorizationState authorizationState) {
         switch (authorizationState.getConstructor()) {
             case TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR : {
-                var parameters = new TdApi.TdlibParameters();
-                parameters.databaseDirectory = "tdlib";
-                parameters.useMessageDatabase = false;
-                parameters.useSecretChats = false;
-                parameters.apiId = 94575;
-                parameters.apiHash = "a3406de8d171bb422bb6ddf3bbd800e2";
-                parameters.systemLanguageCode = "en";
-                parameters.deviceModel = "TDBOT";
-                parameters.systemVersion = "TDBOT";
-                parameters.applicationVersion = "1.0";
-                parameters.enableStorageOptimizer = true;
-                sendRaw(new TdApi.SetTdlibParameters(parameters));
+                sendRaw(new TdApi.SetTdlibParameters(this.parameters));
                 break;
             }
 
@@ -304,21 +405,22 @@ public class EasyClient {
             }
 
             case TdApi.AuthorizationStateWaitCode.CONSTRUCTOR: {
-				var scanner = new Scanner(System.in);
-				System.out.print("Insert your code: ");
-				TdApi.AuthorizationStateWaitCode authorizationStateWaitCode = (TdApi.AuthorizationStateWaitCode) authorizationState;
-				TdApi.CheckAuthenticationCode authCodeReply = new TdApi.CheckAuthenticationCode();
-				System.out.print("Insert your code: ");
-				authCodeReply.code = scanner.nextLine();
-				if (!authorizationStateWaitCode.isRegistered) {
-					System.out.print("Insert your first name: ");
-					authCodeReply.firstName = scanner.nextLine();
-					System.out.print("Insert your last name: ");
-					authCodeReply.lastName = scanner.nextLine();
-				}
-				sendRaw(authCodeReply);
-				System.out.println();
-				break;
+                var scanner = new Scanner(System.in);
+		TdApi.AuthorizationStateWaitCode authorizationStateWaitCode = (TdApi.AuthorizationStateWaitCode) authorizationState;
+		TdApi.CheckAuthenticationCode authCodeReply = new TdApi.CheckAuthenticationCode();
+		System.out.print("Insert your code: ");
+		authCodeReply.code = scanner.nextLine();
+
+		if (!authorizationStateWaitCode.isRegistered) {
+		    authCodeReply.firstName = this.firstName;
+		    if (this.lastName != null) {
+                        authCodeReply.lastName = this.lastName;
+                    }
+                }
+
+                sendRaw(authCodeReply);
+                System.out.println();
+                break;
             }
 
             case TdApi.AuthorizationStateWaitPassword.CONSTRUCTOR: {
@@ -359,3 +461,4 @@ public class EasyClient {
         }
     }
 }
+
