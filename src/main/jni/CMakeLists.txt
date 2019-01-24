@@ -13,6 +13,7 @@ add_library(tdjni SHARED
   td_jni.cpp
 )
 
+set(TD_API_JAVA_PACKAGE "it/ernytech/tdlib")
 target_include_directories(tdjni PRIVATE ${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
 target_link_libraries(tdjni PRIVATE Td::TdStatic ${JAVA_JVM_LIBRARY})
 target_compile_definitions(tdjni PRIVATE PACKAGE_NAME="${TD_API_JAVA_PACKAGE}")
