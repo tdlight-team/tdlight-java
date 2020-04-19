@@ -1,3 +1,4 @@
+package it.ernytech.tdlib;
 /*
  * Copyright (c) 2018. Ernesto Castellotti <erny.castell@gmail.com>
  * This file is part of JTdlib.
@@ -15,7 +16,7 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib;
+
 
 import it.ernytech.tdlib.utils.Init;
 
@@ -63,7 +64,7 @@ public class Client {
 
     /**
      * Receives incoming updates and request responses from TDLib. May be called from any thread, but shouldn't be called simultaneously from two different threads.
-     * @param timeout Maximum number of seconds allowed for this function to wait for new data.
+     * @param timeout Maximum number of seconds allowed for this function to wait for new records.
      * @param eventSize Maximum number of events allowed in list.
      * @return An incoming update or request response list. The object returned in the response may be an empty list if the timeout expires.
      */
@@ -93,7 +94,7 @@ public class Client {
 
     /**
      * Receives incoming updates and request responses from TDLib. May be called from any thread, but shouldn't be called simultaneously from two different threads.
-     * @param timeout Maximum number of seconds allowed for this function to wait for new data.
+     * @param timeout Maximum number of seconds allowed for this function to wait for new records.
      * @return An incoming update or request response. The object returned in the response may be a nullptr if the timeout expires.
      */
     public Response receive(double timeout) {
@@ -131,4 +132,8 @@ public class Client {
         this.executionLock.lock();
         destroyNativeClient(this.clientId);
     }
+
+	public boolean isDestroyed() {
+    	return this.executionLock.isLocked();
+	}
 }

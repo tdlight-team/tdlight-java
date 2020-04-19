@@ -23,20 +23,27 @@ import it.ernytech.tdbot.ConstructorDetector;
  * Init class to successfully initialize Tdlib
  */
 public class Init {
+
+    private static boolean started = false;
+
     /**
      * Initialize Tdlib
+     *
      * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
      */
-    public static void start() throws Throwable {
-        var os = LoadLibrary.getOs();
+    public synchronized static void start() throws Throwable {
+        if (!started) {
+            var os = LoadLibrary.getOs();
 
-        if (os == Os.win) {
-            LoadLibrary.load("libeay32");
-            LoadLibrary.load("ssleay32");
-            LoadLibrary.load("zlib1");
+            if (os == Os.win) {
+                LoadLibrary.load("libeay32");
+                LoadLibrary.load("ssleay32");
+                LoadLibrary.load("zlib1");
+            }
+
+            LoadLibrary.load("tdjni");
+            ConstructorDetector.init();
+            started = true;
         }
-
-        LoadLibrary.load("tdjni");
-        ConstructorDetector.init();
     }
 }

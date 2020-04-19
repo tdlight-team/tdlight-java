@@ -25,109 +25,122 @@ import it.ernytech.tdlib.utils.ReceiveCallback;
  * Interface of callback for interaction with TDLib.
  */
 public class TdCallback {
-    private ReceiveCallback receiveCallback;
-    private ErrorCallback errorCallback;
-    private CloseCallback closeCallback;
+	private ReceiveCallback receiveCallback;
+	private ErrorCallback errorCallback;
+	private CloseCallback closeCallback;
 
-    /**
-     * Creates a new TdCallback.
-     * @param receiveCallback Interface of callback for receive incoming update or request response.
-     * @param errorCallback Interface of callback for receive incoming error response.
-     * @param closeCallback Interface of callback for receive notification of closing Tdlib.
-     */
-    public TdCallback(ReceiveCallback receiveCallback, ErrorCallback errorCallback, CloseCallback closeCallback) {
-        this.receiveCallback = receiveCallback;
-        this.errorCallback = errorCallback;
-        this.closeCallback = closeCallback;
-    }
+	/**
+	 * Creates a new TdCallback.
+	 *
+	 * @param receiveCallback Interface of callback for receive incoming update or request response.
+	 * @param errorCallback   Interface of callback for receive incoming error response.
+	 * @param closeCallback   Interface of callback for receive notification of closing Tdlib.
+	 */
+	public TdCallback(ReceiveCallback receiveCallback, ErrorCallback errorCallback, CloseCallback closeCallback) {
+		this.receiveCallback = receiveCallback;
+		this.errorCallback = errorCallback;
+		this.closeCallback = closeCallback;
+	}
 
-    /**
-     * Creates a new TdCallback.
-     * @param receiveCallback Interface of callback for receive incoming update or request response.
-     */
-    public TdCallback(ReceiveCallback receiveCallback) {
-        this.receiveCallback = receiveCallback;
-    }
+	/**
+	 * Creates a new TdCallback.
+	 *
+	 * @param receiveCallback Interface of callback for receive incoming update or request response.
+	 */
+	public TdCallback(ReceiveCallback receiveCallback) {
+		this.receiveCallback = receiveCallback;
+	}
 
-    /**
-     * Creates a new TdCallback.
-     * @param errorCallback Interface of callback for receive incoming error response.
-     */
-    public TdCallback(ErrorCallback errorCallback) {
-        this.errorCallback = errorCallback;
-    }
+	/**
+	 * Creates a new TdCallback.
+	 *
+	 * @param errorCallback Interface of callback for receive incoming error response.
+	 */
+	public TdCallback(ErrorCallback errorCallback) {
+		this.errorCallback = errorCallback;
+	}
 
-    /**
-     * Creates a new TdCallback.
-     * @param closeCallback Interface of callback for receive notification of closing Tdlib.
-     */
-    public TdCallback(CloseCallback closeCallback) {
-        this.closeCallback = closeCallback;
-    }
+	/**
+	 * Creates a new TdCallback.
+	 *
+	 * @param closeCallback Interface of callback for receive notification of closing Tdlib.
+	 */
+	public TdCallback(CloseCallback closeCallback) {
+		this.closeCallback = closeCallback;
+	}
 
-    /**
-     * Creates a new TdCallback.
-     * @param receiveCallback Interface of callback for receive incoming update or request response.
-     * @param errorCallback Interface of callback for receive incoming error response.
-     */
-    public TdCallback(ReceiveCallback receiveCallback, ErrorCallback errorCallback) {
-        this.receiveCallback = receiveCallback;
-        this.errorCallback = errorCallback;
-    }
+	/**
+	 * Creates a new TdCallback.
+	 *
+	 * @param receiveCallback Interface of callback for receive incoming update or request response.
+	 * @param errorCallback   Interface of callback for receive incoming error response.
+	 */
+	public TdCallback(ReceiveCallback receiveCallback, ErrorCallback errorCallback) {
+		this.receiveCallback = receiveCallback;
+		this.errorCallback = errorCallback;
+	}
 
-    /**
-     * Creates a new TdCallback.
-     * @param errorCallback Interface of callback for receive incoming error response.
-     * @param closeCallback Interface of callback for receive notification of closing Tdlib.
-     */
-    public TdCallback(ErrorCallback errorCallback, CloseCallback closeCallback) {
-        this.errorCallback = errorCallback;
-        this.closeCallback = closeCallback;
-    }
+	/**
+	 * Creates a new TdCallback.
+	 *
+	 * @param errorCallback Interface of callback for receive incoming error response.
+	 * @param closeCallback Interface of callback for receive notification of closing Tdlib.
+	 */
+	public TdCallback(ErrorCallback errorCallback, CloseCallback closeCallback) {
+		this.errorCallback = errorCallback;
+		this.closeCallback = closeCallback;
+	}
 
-    /**
-     * Creates a new TdCallback.
-     * @param receiveCallback Interface of callback for receive incoming update or request response.
-     * @param closeCallback Interface of callback for receive notification of closing Tdlib.
-     */
-    public TdCallback(ReceiveCallback receiveCallback, CloseCallback closeCallback) {
-        this.receiveCallback = receiveCallback;
-        this.closeCallback = closeCallback;
-    }
+	/**
+	 * Creates a new TdCallback.
+	 *
+	 * @param receiveCallback Interface of callback for receive incoming update or request response.
+	 * @param closeCallback   Interface of callback for receive notification of closing Tdlib.
+	 */
+	public TdCallback(ReceiveCallback receiveCallback, CloseCallback closeCallback) {
+		this.receiveCallback = receiveCallback;
+		this.closeCallback = closeCallback;
+	}
 
-    /**
-     * Get ReceiveCallback.
-     * @return This method return ReceiveCallback or "null callback" (a callback that receives data from tdlib but does not perform any operation) if is null.
-            */
-    public ReceiveCallback getReceiveCallback() {
-        if (this.receiveCallback == null) {
-            return response -> {};
-        }
+	/**
+	 * Get ReceiveCallback.
+	 *
+	 * @return This method return ReceiveCallback or "null callback" (a callback that receives records from tdlib but does not perform any operation) if is null.
+	 */
+	public ReceiveCallback getReceiveCallback() {
+		if (this.receiveCallback == null) {
+			return response -> {
+			};
+		}
 
-        return this.receiveCallback;
-    }
+		return this.receiveCallback;
+	}
 
-    /**
-     * Get ErrorCallback.
-     * @return This method return ErrorCallback or "null callback" (a callback that receives data from tdlib but does not perform any operation) if is null.
-     */
-    public ErrorCallback getErrorCallback() {
-        if (this.errorCallback == null) {
-            return error -> {};
-        }
+	/**
+	 * Get ErrorCallback.
+	 *
+	 * @return This method return ErrorCallback or "null callback" (a callback that receives records from tdlib but does not perform any operation) if is null.
+	 */
+	public ErrorCallback getErrorCallback() {
+		if (this.errorCallback == null) {
+			return error -> {
+			};
+		}
 
-        return this.errorCallback;
-    }
+		return this.errorCallback;
+	}
 
-    /**
-     * Get CloseCallback.
-     * @return This method return CloseCallback or "null callback" (a callback that receives data from tdlib but does not perform any operation) if is null.
-     */
-    public CloseCallback getCloseCallback() {
-        if (this.closeCallback == null) {
-            return () -> {};
-        }
+	/**
+	 * Get CloseCallback.
+	 *
+	 * @return This method return CloseCallback or "null callback" (a callback that receives records from tdlib but does not perform any operation) if is null.
+	 */
+	public CloseCallback getCloseCallback() {
+		if (this.closeCallback == null) {
+			return () -> {
+			};
+		}
 
-        return this.closeCallback;
-    }
+		return this.closeCallback;
+	}
 }

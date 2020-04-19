@@ -1,0 +1,14 @@
+../../../java/it/ernytech/tdlib/Client.java
+../../../java/it/ernytech/tdlib/utils/Init.java
+../../../java/it/ernytech/tdlib/utils/LoadLibrary.java
+../../../java/it/ernytech/tdlib/utils/Os.java
+../../../java/it/ernytech/tdlib/Log.java
+../../../java/it/ernytech/tdlib/Request.java
+../../../java/it/ernytech/tdlib/Response.java
+../../../java/it/ernytech/tdlib/utils/Arch.java
+../../../java/it/ernytech/tdlib/utils/CantLoadLibrary.java
+../../../java/it/ernytech/tdlib/FatalErrorCallbackPtr.java
+../../../java/it/ernytech/tdbot/ConstructorDetector.java
+../../../java/it/ernytech/tdlib/TdApi.java
+../../../../../target/generated-sources/java-templates/it/ernytech/tdlib/utils/LibraryVersion.java 
+

@@ -17,14 +17,15 @@
 
 package it.ernytech.tdlib.utils;
 
+import it.ernytech.tdlib.Response;
+
 /**
- * Enumeration with all architectures recognized by this library.
+ * Interface of callback for receive incoming error response.
  */
-public enum Arch {
-    amd64,
-    i386,
-    armhf,
-    aarch64,
-	ppc64le,
-    unknown
+public interface NativeErrorCallback {
+    /**
+     * This method is called when the library receives error responses
+     * @param error The incoming error response.
+     */
+    void onNativeError(Response error);
 }

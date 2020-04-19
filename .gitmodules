@@ -1,3 +1,3 @@
 [submodule "src/main/jni/td"]
 	path = src/main/jni/td
-	url = https://github.com/tdlib/td.git
+	url = git@ssh.git.ignuranza.net:andreacavalli/tdlib-fork.git

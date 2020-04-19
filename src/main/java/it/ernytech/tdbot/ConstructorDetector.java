@@ -71,4 +71,12 @@ public class ConstructorDetector {
             constructorHashMap.put(CONSTRUCTOR, apiClass);
         }
     }
+
+	public static ConcurrentHashMap<Integer, Class> getTDConstructorsUnsafe() {
+    	return constructorHashMap;
+	}
+
+	public static void registerExternalClass(int constructor, Class<?> clazz) {
+    	constructorHashMap.put(constructor, clazz);
+	}
 }

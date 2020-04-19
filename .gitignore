@@ -48,3 +48,14 @@ gradle-app.setting
 
 # Ignore Idea Projects directory
 .idea
+/target/
+.project
+.classpath
+/.settings/
+
+docs/
+tdlib.iml
+
+src/main/jni/jnibuild/
+
+src/main/jni/bin/
