@@ -5394,11 +5394,18 @@ public class TdApi {
     }
 
     public static class InputMessageDice extends InputMessageContent {
+        public String emoji;
+        public boolean clearDraft;
 
         public InputMessageDice() {
         }
 
-        public static final int CONSTRUCTOR = -68931100;
+        public InputMessageDice(String emoji, boolean clearDraft) {
+            this.emoji = emoji;
+            this.clearDraft = clearDraft;
+        }
+
+        public static final int CONSTRUCTOR = 841574313;
 
         @Override
         public int getConstructor() {
@@ -5469,20 +5476,24 @@ public class TdApi {
         public String[] options;
         public boolean isAnonymous;
         public PollType type;
+        public int openPeriod;
+        public int closeDate;
         public boolean isClosed;
 
         public InputMessagePoll() {
         }
 
-        public InputMessagePoll(String question, String[] options, boolean isAnonymous, PollType type, boolean isClosed) {
+        public InputMessagePoll(String question, String[] options, boolean isAnonymous, PollType type, int openPeriod, int closeDate, boolean isClosed) {
             this.question = question;
             this.options = options;
             this.isAnonymous = isAnonymous;
             this.type = type;
+            this.openPeriod = openPeriod;
+            this.closeDate = closeDate;
             this.isClosed = isClosed;
         }
 
-        public static final int CONSTRUCTOR = 743307780;
+        public static final int CONSTRUCTOR = 2054629900;
 
         @Override
         public int getConstructor() {
@@ -7058,16 +7069,24 @@ public class TdApi {
     }
 
     public static class MessageDice extends MessageContent {
+        public Sticker initialStateSticker;
+        public Sticker finalStateSticker;
+        public String emoji;
         public int value;
+        public int successAnimationFrameNumber;
 
         public MessageDice() {
         }
 
-        public MessageDice(int value) {
+        public MessageDice(Sticker initialStateSticker, Sticker finalStateSticker, String emoji, int value, int successAnimationFrameNumber) {
+            this.initialStateSticker = initialStateSticker;
+            this.finalStateSticker = finalStateSticker;
+            this.emoji = emoji;
             this.value = value;
+            this.successAnimationFrameNumber = successAnimationFrameNumber;
         }
 
-        public static final int CONSTRUCTOR = -1321769491;
+        public static final int CONSTRUCTOR = -1350654849;
 
         @Override
         public int getConstructor() {
@@ -9966,12 +9985,14 @@ public class TdApi {
         public int[] recentVoterUserIds;
         public boolean isAnonymous;
         public PollType type;
+        public int openPeriod;
+        public int closeDate;
         public boolean isClosed;
 
         public Poll() {
         }
 
-        public Poll(long id, String question, PollOption[] options, int totalVoterCount, int[] recentVoterUserIds, boolean isAnonymous, PollType type, boolean isClosed) {
+        public Poll(long id, String question, PollOption[] options, int totalVoterCount, int[] recentVoterUserIds, boolean isAnonymous, PollType type, int openPeriod, int closeDate, boolean isClosed) {
             this.id = id;
             this.question = question;
             this.options = options;
@@ -9979,10 +10000,12 @@ public class TdApi {
             this.recentVoterUserIds = recentVoterUserIds;
             this.isAnonymous = isAnonymous;
             this.type = type;
+            this.openPeriod = openPeriod;
+            this.closeDate = closeDate;
             this.isClosed = isClosed;
         }
 
-        public static final int CONSTRUCTOR = -964385924;
+        public static final int CONSTRUCTOR = 163256789;
 
         @Override
         public int getConstructor() {
@@ -10039,15 +10062,17 @@ public class TdApi {
 
     public static class PollTypeQuiz extends PollType {
         public int correctOptionId;
+        public FormattedText explanation;
 
         public PollTypeQuiz() {
         }
 
-        public PollTypeQuiz(int correctOptionId) {
+        public PollTypeQuiz(int correctOptionId, FormattedText explanation) {
             this.correctOptionId = correctOptionId;
+            this.explanation = explanation;
         }
 
-        public static final int CONSTRUCTOR = -354461930;
+        public static final int CONSTRUCTOR = 657013913;
 
         @Override
         public int getConstructor() {
@@ -14112,6 +14137,24 @@ public class TdApi {
         }
     }
 
+    public static class UpdateStickerSet extends Update {
+        public StickerSet stickerSet;
+
+        public UpdateStickerSet() {
+        }
+
+        public UpdateStickerSet(StickerSet stickerSet) {
+            this.stickerSet = stickerSet;
+        }
+
+        public static final int CONSTRUCTOR = 1879268812;
+
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
     public static class UpdateInstalledStickerSets extends Update {
         public boolean isMasks;
         public long[] stickerSetIds;
@@ -14297,6 +14340,24 @@ public class TdApi {
         }
 
         public static final int CONSTRUCTOR = -1517109163;
+
+        @Override
+        public int getConstructor() {
+            return CONSTRUCTOR;
+        }
+    }
+
+    public static class UpdateDiceEmojis extends Update {
+        public String[] emojis;
+
+        public UpdateDiceEmojis() {
+        }
+
+        public UpdateDiceEmojis(String[] emojis) {
+            this.emojis = emojis;
+        }
+
+        public static final int CONSTRUCTOR = -1069066940;
 
         @Override
         public int getConstructor() {
@@ -19113,11 +19174,18 @@ public class TdApi {
     }
 
     public static class GetTrendingStickerSets extends Function {
+        public int offset;
+        public int limit;
 
         public GetTrendingStickerSets() {
         }
 
-        public static final int CONSTRUCTOR = -1729129957;
+        public GetTrendingStickerSets(int offset, int limit) {
+            this.offset = offset;
+            this.limit = limit;
+        }
+
+        public static final int CONSTRUCTOR = -1494581948;
 
         @Override
         public int getConstructor() {
@@ -20312,18 +20380,18 @@ public class TdApi {
     public static class SearchEmojis extends Function {
         public String text;
         public boolean exactMatch;
-        public String inputLanguageCode;
+        public String[] inputLanguageCodes;
 
         public SearchEmojis() {
         }
 
-        public SearchEmojis(String text, boolean exactMatch, String inputLanguageCode) {
+        public SearchEmojis(String text, boolean exactMatch, String[] inputLanguageCodes) {
             this.text = text;
             this.exactMatch = exactMatch;
-            this.inputLanguageCode = inputLanguageCode;
+            this.inputLanguageCodes = inputLanguageCodes;
         }
 
-        public static final int CONSTRUCTOR = 453292808;
+        public static final int CONSTRUCTOR = 398837927;
 
         @Override
         public int getConstructor() {
