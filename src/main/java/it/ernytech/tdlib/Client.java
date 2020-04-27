@@ -23,14 +23,16 @@ import it.ernytech.tdlib.utils.Init;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.StampedLock;
 
 /**
  * Interface for interaction with TDLib.
  */
 public class Client {
-    private final long clientId;
+    private long clientId;
     private final ReentrantLock receiveLock = new ReentrantLock();
-    private final ReentrantLock executionLock = new ReentrantLock();
+    private final StampedLock executionLock = new StampedLock();
+    private volatile Long stampedLockValue = 1L;
     private static native long createNativeClient();
     private static native void nativeClientSend(long nativeClientId, long eventId, TdApi.Function function);
     private static native int nativeClientReceive(long nativeClientId, long[] eventIds, TdApi.Object[] events, double timeout);
@@ -55,7 +57,7 @@ public class Client {
      * @param request Request to TDLib.
      */
     public void send(Request request) {
-        if (this.executionLock.isLocked()) {
+        if (this.executionLock.isWriteLocked()) {
             throw new IllegalStateException("ClientActor is destroyed");
         }
 
@@ -69,7 +71,7 @@ public class Client {
      * @return An incoming update or request response list. The object returned in the response may be an empty list if the timeout expires.
      */
     public List<Response> receive(double timeout, int eventSize) {
-        if (this.executionLock.isLocked()) {
+        if (this.executionLock.isWriteLocked()) {
             throw new IllegalStateException("ClientActor is destroyed");
         }
 
@@ -98,7 +100,7 @@ public class Client {
      * @return An incoming update or request response. The object returned in the response may be a nullptr if the timeout expires.
      */
     public Response receive(double timeout) {
-        if (this.executionLock.isLocked()) {
+        if (this.executionLock.isWriteLocked()) {
             throw new IllegalStateException("ClientActor is destroyed");
         }
 
@@ -117,7 +119,7 @@ public class Client {
      * @return The request response.
      */
     public Response execute(Request request) {
-        if (this.executionLock.isLocked()) {
+        if (this.executionLock.isWriteLocked()) {
             throw new IllegalStateException("ClientActor is destroyed");
         }
 
@@ -129,11 +131,20 @@ public class Client {
      * Destroys the client and TDLib instance.
      */
     public void destroyClient() {
-        this.executionLock.lock();
+        stampedLockValue = this.executionLock.writeLock();
         destroyNativeClient(this.clientId);
     }
 
+    /**
+     * Destroys the client and TDLib instance.
+     */
+    public void initializeClient() {
+        this.executionLock.tryUnlockWrite();
+        stampedLockValue = null;
+        this.clientId = createNativeClient();
+    }
+
 	public boolean isDestroyed() {
-    	return this.executionLock.isLocked();
+    	return this.executionLock.isWriteLocked();
 	}
 }
