@@ -1,12 +1,11 @@
 package it.ernytech.tdlib.utils;
 
-import java.util.concurrent.locks.ReentrantLock;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 
-public class BoundedExecutor extends ThreadPoolExecutor {
+class BoundedExecutorServiceImpl extends ThreadPoolExecutor implements BoundedExecutorService {
 
 	private final Semaphore semaphore;
 	private final @Nullable BiConsumer<Boolean, Integer> queueSizeStatus;
@@ -22,7 +21,7 @@ public class BoundedExecutor extends ThreadPoolExecutor {
 	 * @param unit
 	 * @param queueSizeStatus Status. The boolean indicates if the queue is full, the integer indicates the current queue size
 	 */
-	public BoundedExecutor(int maxQueueSize,
+	public BoundedExecutorServiceImpl(int maxQueueSize,
 	                       int corePoolSize,
 	                       int maxPoolSize,
 	                       long keepAliveTime,
@@ -41,6 +40,7 @@ public class BoundedExecutor extends ThreadPoolExecutor {
 	 * Submits task to execution pool, but blocks while number of running threads
 	 * has reached the bound limit
 	 */
+	@Override
 	public <T> Future<T> submitButBlockIfFull(final Callable<T> task) throws InterruptedException {
 		blockIfFull();
 		return submit(task);
@@ -50,6 +50,7 @@ public class BoundedExecutor extends ThreadPoolExecutor {
 	 * Submits task to execution pool, but blocks while number of running threads
 	 * has reached the bound limit
 	 */
+	@Override
 	public void executeButBlockIfFull(final Runnable task) throws InterruptedException {
 		blockIfFull();
 		execute(task);
@@ -69,7 +70,7 @@ public class BoundedExecutor extends ThreadPoolExecutor {
 	}
 
 	@Override
-	protected void beforeExecute(Thread t, Runnable r) {
+	public void beforeExecute(Thread t, Runnable r) {
 		semaphore.release();
 
 		super.beforeExecute(t, r);

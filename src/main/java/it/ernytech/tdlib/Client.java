@@ -83,9 +83,13 @@ public class Client {
             throw new IllegalThreadStateException("Thread: " + Thread.currentThread().getName() + " trying receive incoming updates but shouldn't be called simultaneously from two different threads!");
         }
 
-        this.receiveLock.lock();
-        var resultSize = nativeClientReceive(this.clientId, eventIds, events, timeout);
-        this.receiveLock.unlock();
+        int resultSize;
+            this.receiveLock.lock();
+        try {
+            resultSize = nativeClientReceive(this.clientId, eventIds, events, timeout);
+        } finally {
+            this.receiveLock.unlock();
+        }
 
         for (int i = 0; i < resultSize; i++) {
             responseList.add(new Response(eventIds[i], events[i]));
