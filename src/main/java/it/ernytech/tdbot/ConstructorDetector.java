@@ -26,6 +26,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * Identify the class by using the Constructor.
  */
 public class ConstructorDetector {
+
+    static {
+        // Call this to load static methods and prevent errors during startup!
+        try {
+            it.ernytech.tdlib.utils.Init.start();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
+
     private static ConcurrentHashMap<Integer, Class> constructorHashMap;
 
     /**
