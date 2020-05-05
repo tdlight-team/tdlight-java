@@ -1,4 +1,5 @@
 ../../../java/it/ernytech/tdlib/Client.java
+../../../java/it/ernytech/tdlib/TelegramClient.java
 ../../../java/it/ernytech/tdlib/utils/Init.java
 ../../../java/it/ernytech/tdlib/utils/LoadLibrary.java
 ../../../java/it/ernytech/tdlib/utils/Os.java

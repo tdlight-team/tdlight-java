@@ -28,7 +28,7 @@ import java.util.concurrent.locks.StampedLock;
 /**
  * Interface for interaction with TDLib.
  */
-public class Client {
+public class Client implements TelegramClient {
     private long clientId;
     private final ReentrantLock receiveLock = new ReentrantLock();
     private final StampedLock executionLock = new StampedLock();
@@ -56,6 +56,7 @@ public class Client {
      * Sends request to TDLib. May be called from any thread.
      * @param request Request to TDLib.
      */
+    @Override
     public void send(Request request) {
         if (this.executionLock.isWriteLocked()) {
             throw new IllegalStateException("ClientActor is destroyed");
@@ -70,6 +71,7 @@ public class Client {
      * @param eventSize Maximum number of events allowed in list.
      * @return An incoming update or request response list. The object returned in the response may be an empty list if the timeout expires.
      */
+    @Override
     public List<Response> receive(double timeout, int eventSize) {
         if (this.executionLock.isWriteLocked()) {
             throw new IllegalStateException("ClientActor is destroyed");
@@ -103,6 +105,7 @@ public class Client {
      * @param timeout Maximum number of seconds allowed for this function to wait for new records.
      * @return An incoming update or request response. The object returned in the response may be a nullptr if the timeout expires.
      */
+    @Override
     public Response receive(double timeout) {
         if (this.executionLock.isWriteLocked()) {
             throw new IllegalStateException("ClientActor is destroyed");
@@ -122,6 +125,7 @@ public class Client {
      * @param request Request to the TDLib.
      * @return The request response.
      */
+    @Override
     public Response execute(Request request) {
         if (this.executionLock.isWriteLocked()) {
             throw new IllegalStateException("ClientActor is destroyed");
@@ -134,6 +138,7 @@ public class Client {
     /**
      * Destroys the client and TDLib instance.
      */
+    @Override
     public void destroyClient() {
         stampedLockValue = this.executionLock.writeLock();
         destroyNativeClient(this.clientId);
@@ -142,13 +147,15 @@ public class Client {
     /**
      * Destroys the client and TDLib instance.
      */
+    @Override
     public void initializeClient() {
         this.executionLock.tryUnlockWrite();
         stampedLockValue = null;
         this.clientId = createNativeClient();
     }
 
-	public boolean isDestroyed() {
+	@Override
+  public boolean isDestroyed() {
     	return this.executionLock.isWriteLocked();
 	}
 }

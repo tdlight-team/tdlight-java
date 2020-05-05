@@ -26,8 +26,9 @@ class BoundedExecutorServiceImpl extends ThreadPoolExecutor implements BoundedEx
 	                       int maxPoolSize,
 	                       long keepAliveTime,
 	                       TimeUnit unit,
+	                       ThreadFactory threadFactory,
 	                       @Nullable BiConsumer<Boolean, Integer> queueSizeStatus) {
-		super(corePoolSize, maxPoolSize, keepAliveTime, unit, new LinkedBlockingQueue<>());
+		super(corePoolSize, maxPoolSize, keepAliveTime, unit, new LinkedBlockingQueue<>(), threadFactory);
 		if (maxQueueSize < 0) {
 			throw new IllegalArgumentException();
 		}
