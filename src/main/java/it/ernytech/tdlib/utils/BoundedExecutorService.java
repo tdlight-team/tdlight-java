@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 public interface BoundedExecutorService extends ExecutorService {
 
+	@Deprecated
 	static BoundedExecutorService create(int maxQueueSize,
 			int corePoolSize,
 			int maxPoolSize,
