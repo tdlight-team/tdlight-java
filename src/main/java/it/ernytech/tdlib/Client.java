@@ -151,7 +151,7 @@ public class Client implements TelegramClient {
      */
     @Override
     public void destroyClient() {
-        stampedLockValue = this.executionLock.writeLock();
+        stampedLockValue = this.executionLock.tryWriteLock();
         destroyNativeClient(this.clientId);
     }
 
