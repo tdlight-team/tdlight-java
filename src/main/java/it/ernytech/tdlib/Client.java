@@ -21,6 +21,7 @@ package it.ernytech.tdlib;
 import it.ernytech.tdlib.utils.Init;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.StampedLock;
@@ -65,6 +66,9 @@ public class Client implements TelegramClient {
         nativeClientSend(this.clientId, request.getId(), request.getFunction());
     }
 
+    private long[] eventIds;
+    private TdApi.Object[] events;
+
     /**
      * Receives incoming updates and request responses from TDLib. May be called from any thread, but shouldn't be called simultaneously from two different threads.
      * @param timeout Maximum number of seconds allowed for this function to wait for new records.
@@ -78,8 +82,15 @@ public class Client implements TelegramClient {
         }
 
         var responseList = new ArrayList<Response>();
-        var eventIds = new long[eventSize];
-        var events = new TdApi.Object[eventSize];
+        if (eventIds == null) {
+            eventIds = new long[eventSize];
+            events = new TdApi.Object[eventSize];
+        } else if (eventIds.length != eventSize) {
+            throw new IllegalArgumentException("EventSize can't change! Previous value = " + eventIds.length + " New value = " + eventSize);
+        } else {
+            Arrays.fill(eventIds, 0);
+            Arrays.fill(events, null);
+        }
 
         if (this.receiveLock.isLocked()) {
             throw new IllegalThreadStateException("Thread: " + Thread.currentThread().getName() + " trying receive incoming updates but shouldn't be called simultaneously from two different threads!");
