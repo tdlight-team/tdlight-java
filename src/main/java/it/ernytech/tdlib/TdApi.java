@@ -1,35 +1,35 @@
 package it.ernytech.tdlib;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
 import java.io.DataOutputStream;
-import java.io.DataInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.lang.IllegalStateException;
 import java.io.IOException;
+import java.io.DataInput;
 
 
 public class TdApi {
-	public abstract static class Object {
-		public native String toString();
+		public abstract static class Object {
+				public native String toString();
 
-		public abstract int getConstructor();
+				public abstract int getConstructor();
 
-		public byte[] serialize() throws IOException {
-			try(var baos = new ByteArrayOutputStream()) {
-				try(var out = new DataOutputStream(baos)) {
-					serialize(out);
-					return baos.toByteArray();
+				public byte[] serialize() throws IOException {
+						try(var baos = new ByteArrayOutputStream()) {
+								try(var out = new DataOutputStream(baos)) {
+										serialize(out);
+										return baos.toByteArray();
+								}
+						}
 				}
-			}
+
+				public abstract void serialize(DataOutputStream out) throws IOException;
 		}
 
-		public abstract void serialize(DataOutputStream out) throws IOException;
-	}
-
-	public abstract static class Function extends Object {
-		public native String toString();
-	}
+		public abstract static class Function extends Object {
+				public native String toString();
+		}
 
 	public static class Deserializer {
 		public static Object deserialize(DataInput input) throws IOException {
