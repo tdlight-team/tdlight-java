@@ -57,5 +57,7 @@ docs/
 tdlib.iml
 
 src/main/jni/jnibuild/
+src/main/jni/jtdlib/jnibuild/
+src/main/jni/jtdlib/build/
 
 src/main/jni/bin/
