@@ -28,8 +28,8 @@ cd src/main/jni/jtdlib/build
 cmake -DCMAKE_BUILD_TYPE=Release -DTd_DIR=${TD_BIN_DIR}/lib/cmake/Td -DJAVA_SRC_DIR=${JAVA_SRC_DIR} -DCMAKE_INSTALL_PREFIX:PATH=.. ..
 cmake --build . --target install -- -j1
 cd ..
-rm -r jnibuild
-rm -r build
+#rm -r jnibuild
+#rm -r build
 rm -r td
 [ -e ../bin ] && rm -r ../bin
 mkdir ../bin

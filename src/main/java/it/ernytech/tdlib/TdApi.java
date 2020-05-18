@@ -316,6 +316,10 @@ public class TdApi {
 					return new ChatReportReasonUnrelatedLocation(input);
 				case ChatReportReasonCustom.CONSTRUCTOR:
 					return new ChatReportReasonCustom(input);
+				case ChatSourceMtprotoProxy.CONSTRUCTOR:
+					return new ChatSourceMtprotoProxy(input);
+				case ChatSourcePublicServiceAnnouncement.CONSTRUCTOR:
+					return new ChatSourcePublicServiceAnnouncement(input);
 				case ChatStatistics.CONSTRUCTOR:
 					return new ChatStatistics(input);
 				case ChatStatisticsMessageInteractionCounters.CONSTRUCTOR:
@@ -1210,6 +1214,8 @@ public class TdApi {
 					return new SearchMessagesFilterMention(input);
 				case SearchMessagesFilterUnreadMention.CONSTRUCTOR:
 					return new SearchMessagesFilterUnreadMention(input);
+				case SearchMessagesFilterFailedToSend.CONSTRUCTOR:
+					return new SearchMessagesFilterFailedToSend(input);
 				case Seconds.CONSTRUCTOR:
 					return new Seconds(input);
 				case SecretChat.CONSTRUCTOR:
@@ -1402,8 +1408,8 @@ public class TdApi {
 					return new UpdateChatIsPinned(input);
 				case UpdateChatIsMarkedAsUnread.CONSTRUCTOR:
 					return new UpdateChatIsMarkedAsUnread(input);
-				case UpdateChatIsSponsored.CONSTRUCTOR:
-					return new UpdateChatIsSponsored(input);
+				case UpdateChatSource.CONSTRUCTOR:
+					return new UpdateChatSource(input);
 				case UpdateChatHasScheduledMessages.CONSTRUCTOR:
 					return new UpdateChatHasScheduledMessages(input);
 				case UpdateChatDefaultDisableNotification.CONSTRUCTOR:
@@ -2379,6 +2385,8 @@ public class TdApi {
 	public abstract static class ChatMembersFilter extends Object {}
 
 	public abstract static class ChatReportReason extends Object {}
+
+	public abstract static class ChatSource extends Object {}
 
 	public abstract static class ChatType extends Object {}
 
@@ -5097,9 +5105,9 @@ public class TdApi {
 		public ChatPermissions permissions;
 		public Message lastMessage;
 		public long order;
+		public ChatSource source;
 		public boolean isPinned;
 		public boolean isMarkedAsUnread;
-		public boolean isSponsored;
 		public boolean hasScheduledMessages;
 		public boolean canBeDeletedOnlyForSelf;
 		public boolean canBeDeletedForAllUsers;
@@ -5116,11 +5124,11 @@ public class TdApi {
 		public DraftMessage draftMessage;
 		public String clientData;
 
-		public static final int CONSTRUCTOR = -861487386;
+		public static final int CONSTRUCTOR = 925912166;
 
 		public Chat() {}
 
-		public Chat(long id, ChatType type, ChatList chatList, String title, ChatPhoto photo, ChatPermissions permissions, Message lastMessage, long order, boolean isPinned, boolean isMarkedAsUnread, boolean isSponsored, boolean hasScheduledMessages, boolean canBeDeletedOnlyForSelf, boolean canBeDeletedForAllUsers, boolean canBeReported, boolean defaultDisableNotification, int unreadCount, long lastReadInboxMessageId, long lastReadOutboxMessageId, int unreadMentionCount, ChatNotificationSettings notificationSettings, ChatActionBar actionBar, long pinnedMessageId, long replyMarkupMessageId, DraftMessage draftMessage, String clientData) {
+		public Chat(long id, ChatType type, ChatList chatList, String title, ChatPhoto photo, ChatPermissions permissions, Message lastMessage, long order, ChatSource source, boolean isPinned, boolean isMarkedAsUnread, boolean hasScheduledMessages, boolean canBeDeletedOnlyForSelf, boolean canBeDeletedForAllUsers, boolean canBeReported, boolean defaultDisableNotification, int unreadCount, long lastReadInboxMessageId, long lastReadOutboxMessageId, int unreadMentionCount, ChatNotificationSettings notificationSettings, ChatActionBar actionBar, long pinnedMessageId, long replyMarkupMessageId, DraftMessage draftMessage, String clientData) {
 			this.id = id;
 			this.type = type;
 			this.chatList = chatList;
@@ -5129,9 +5137,9 @@ public class TdApi {
 			this.permissions = permissions;
 			this.lastMessage = lastMessage;
 			this.order = order;
+			this.source = source;
 			this.isPinned = isPinned;
 			this.isMarkedAsUnread = isMarkedAsUnread;
-			this.isSponsored = isSponsored;
 			this.hasScheduledMessages = hasScheduledMessages;
 			this.canBeDeletedOnlyForSelf = canBeDeletedOnlyForSelf;
 			this.canBeDeletedForAllUsers = canBeDeletedForAllUsers;
@@ -5205,9 +5213,20 @@ public class TdApi {
 				this.lastMessage = new Message(input);
 			}
 			this.order = input.readLong();
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case ChatSourceMtprotoProxy.CONSTRUCTOR:
+						this.source = new ChatSourceMtprotoProxy(input);
+						break;
+					case ChatSourcePublicServiceAnnouncement.CONSTRUCTOR:
+						this.source = new ChatSourcePublicServiceAnnouncement(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
 			this.isPinned = input.readBoolean();
 			this.isMarkedAsUnread = input.readBoolean();
-			this.isSponsored = input.readBoolean();
 			this.hasScheduledMessages = input.readBoolean();
 			this.canBeDeletedOnlyForSelf = input.readBoolean();
 			this.canBeDeletedForAllUsers = input.readBoolean();
@@ -5305,9 +5324,14 @@ public class TdApi {
 				this.lastMessage.serialize(output);
 			}
 			output.writeLong(this.order);
+			if (this.source == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.source.serialize(output);
+			}
 			output.writeBoolean(this.isPinned);
 			output.writeBoolean(this.isMarkedAsUnread);
-			output.writeBoolean(this.isSponsored);
 			output.writeBoolean(this.hasScheduledMessages);
 			output.writeBoolean(this.canBeDeletedOnlyForSelf);
 			output.writeBoolean(this.canBeDeletedForAllUsers);
@@ -7923,6 +7947,75 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
+			if (this.text == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(textTmp.length);
+				output.write(textTmp);
+			}
+		}
+	}
+
+	public static class ChatSourceMtprotoProxy extends ChatSource {
+		public static final int CONSTRUCTOR = 394074115;
+
+		public ChatSourceMtprotoProxy() {}
+
+
+		public ChatSourceMtprotoProxy(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class ChatSourcePublicServiceAnnouncement extends ChatSource {
+		public String type;
+		public String text;
+
+		public static final int CONSTRUCTOR = -328571244;
+
+		public ChatSourcePublicServiceAnnouncement() {}
+
+		public ChatSourcePublicServiceAnnouncement(String type, String text) {
+			this.type = type;
+			this.text = text;
+		}
+
+		public ChatSourcePublicServiceAnnouncement(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				var typeTmp = new byte[input.readInt()];
+				input.readFully(typeTmp);
+				this.type = new String(typeTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				var textTmp = new byte[input.readInt()];
+				input.readFully(textTmp);
+				this.text = new String(textTmp, StandardCharsets.UTF_8);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.type == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(typeTmp.length);
+				output.write(typeTmp);
+			}
 			if (this.text == null) {
 				output.writeBoolean(false);
 			} else {
@@ -21028,16 +21121,18 @@ public class TdApi {
 	public static class MessageForwardInfo extends Object {
 		public MessageForwardOrigin origin;
 		public int date;
+		public String publicServiceAnnouncementType;
 		public long fromChatId;
 		public long fromMessageId;
 
-		public static final int CONSTRUCTOR = -1622371186;
+		public static final int CONSTRUCTOR = -327300408;
 
 		public MessageForwardInfo() {}
 
-		public MessageForwardInfo(MessageForwardOrigin origin, int date, long fromChatId, long fromMessageId) {
+		public MessageForwardInfo(MessageForwardOrigin origin, int date, String publicServiceAnnouncementType, long fromChatId, long fromMessageId) {
 			this.origin = origin;
 			this.date = date;
+			this.publicServiceAnnouncementType = publicServiceAnnouncementType;
 			this.fromChatId = fromChatId;
 			this.fromMessageId = fromMessageId;
 		}
@@ -21059,6 +21154,11 @@ public class TdApi {
 				}
 			}
 			this.date = input.readInt();
+			if (input.readBoolean()) {
+				var publicServiceAnnouncementTypeTmp = new byte[input.readInt()];
+				input.readFully(publicServiceAnnouncementTypeTmp);
+				this.publicServiceAnnouncementType = new String(publicServiceAnnouncementTypeTmp, StandardCharsets.UTF_8);
+			}
 			this.fromChatId = input.readLong();
 			this.fromMessageId = input.readLong();
 		}
@@ -21076,6 +21176,14 @@ public class TdApi {
 				this.origin.serialize(output);
 			}
 			output.writeInt(this.date);
+			if (this.publicServiceAnnouncementType == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var publicServiceAnnouncementTypeTmp = this.publicServiceAnnouncementType.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(publicServiceAnnouncementTypeTmp.length);
+				output.write(publicServiceAnnouncementTypeTmp);
+			}
 			output.writeLong(this.fromChatId);
 			output.writeLong(this.fromMessageId);
 		}
@@ -31622,6 +31730,24 @@ public class TdApi {
 		}
 	}
 
+	public static class SearchMessagesFilterFailedToSend extends SearchMessagesFilter {
+		public static final int CONSTRUCTOR = -596322564;
+
+		public SearchMessagesFilterFailedToSend() {}
+
+
+		public SearchMessagesFilterFailedToSend(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
 	public static class Seconds extends Object {
 		public double seconds;
 
@@ -35681,24 +35807,35 @@ public class TdApi {
 		}
 	}
 
-	public static class UpdateChatIsSponsored extends Update {
+	public static class UpdateChatSource extends Update {
 		public long chatId;
-		public boolean isSponsored;
+		public ChatSource source;
 		public long order;
 
-		public static final int CONSTRUCTOR = -1196180070;
+		public static final int CONSTRUCTOR = 736995303;
 
-		public UpdateChatIsSponsored() {}
+		public UpdateChatSource() {}
 
-		public UpdateChatIsSponsored(long chatId, boolean isSponsored, long order) {
+		public UpdateChatSource(long chatId, ChatSource source, long order) {
 			this.chatId = chatId;
-			this.isSponsored = isSponsored;
+			this.source = source;
 			this.order = order;
 		}
 
-		public UpdateChatIsSponsored(DataInput input) throws IOException {
+		public UpdateChatSource(DataInput input) throws IOException {
 			this.chatId = input.readLong();
-			this.isSponsored = input.readBoolean();
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case ChatSourceMtprotoProxy.CONSTRUCTOR:
+						this.source = new ChatSourceMtprotoProxy(input);
+						break;
+					case ChatSourcePublicServiceAnnouncement.CONSTRUCTOR:
+						this.source = new ChatSourcePublicServiceAnnouncement(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
 			this.order = input.readLong();
 		}
 
@@ -35709,7 +35846,12 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
-			output.writeBoolean(this.isSponsored);
+			if (this.source == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.source.serialize(output);
+			}
 			output.writeLong(this.order);
 		}
 	}
@@ -38580,8 +38722,8 @@ public class TdApi {
 						case UpdateChatIsMarkedAsUnread.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatIsMarkedAsUnread(input);
 							break;
-						case UpdateChatIsSponsored.CONSTRUCTOR:
-							this.updates[i] = new UpdateChatIsSponsored(input);
+						case UpdateChatSource.CONSTRUCTOR:
+							this.updates[i] = new UpdateChatSource(input);
 							break;
 						case UpdateChatHasScheduledMessages.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatHasScheduledMessages(input);
@@ -45583,6 +45725,9 @@ public class TdApi {
 					case SearchMessagesFilterUnreadMention.CONSTRUCTOR:
 						this.filter = new SearchMessagesFilterUnreadMention(input);
 						break;
+					case SearchMessagesFilterFailedToSend.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterFailedToSend(input);
+						break;
 					default:
 						throw new UnsupportedOperationException();
 				}
@@ -50767,6 +50912,9 @@ public class TdApi {
 					case SearchMessagesFilterUnreadMention.CONSTRUCTOR:
 						this.filter = new SearchMessagesFilterUnreadMention(input);
 						break;
+					case SearchMessagesFilterFailedToSend.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterFailedToSend(input);
+						break;
 					default:
 						throw new UnsupportedOperationException();
 				}
@@ -51351,6 +51499,9 @@ public class TdApi {
 						break;
 					case SearchMessagesFilterUnreadMention.CONSTRUCTOR:
 						this.filter = new SearchMessagesFilterUnreadMention(input);
+						break;
+					case SearchMessagesFilterFailedToSend.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterFailedToSend(input);
 						break;
 					default:
 						throw new UnsupportedOperationException();
