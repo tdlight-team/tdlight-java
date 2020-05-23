@@ -31,6 +31,8 @@ class AnimationsManager : public Actor {
  public:
   AnimationsManager(Td *td, ActorShared<> parent);
 
+  void memory_cleanup();
+
   int32 get_animation_duration(FileId file_id) const;
 
   tl_object_ptr<td_api::animation> get_animation_object(FileId file_id, const char *source);

@@ -293,7 +293,9 @@ class GetChannelMessagesQuery : public Td::ResultHandler {
   void send(ChannelId channel_id, tl_object_ptr<telegram_api::InputChannel> &&input_channel,
             vector<tl_object_ptr<telegram_api::InputMessage>> &&message_ids) {
     channel_id_ = channel_id;
-    CHECK(input_channel != nullptr);
+    if (input_channel == nullptr) {
+        return;
+    }
     send_query(G()->net_query_creator().create(
         telegram_api::channels_getMessages(std::move(input_channel), std::move(message_ids))));
   }
@@ -433,7 +435,9 @@ class ExportChannelMessageLinkQuery : public Td::ResultHandler {
     for_group_ = for_group;
     ignore_result_ = ignore_result;
     auto input_channel = td->contacts_manager_->get_input_channel(channel_id);
-    CHECK(input_channel != nullptr);
+    if (input_channel == nullptr) {
+        return;
+    }
     send_query(G()->net_query_creator().create(telegram_api::channels_exportMessageLink(
         std::move(input_channel), message_id.get_server_message_id().get(), for_group)));
   }
@@ -572,7 +576,9 @@ class GetCommonDialogsQuery : public Td::ResultHandler {
     LOG(INFO) << "Get common dialogs with " << user_id << " from " << offset_chat_id << " with limit " << limit;
 
     auto input_user = td->contacts_manager_->get_input_user(user_id);
-    CHECK(input_user != nullptr);
+    if (input_user == nullptr) {
+        return;
+    }
 
     send_query(G()->net_query_creator().create(
         telegram_api::messages_getCommonChats(std::move(input_user), offset_chat_id, limit)));
@@ -696,7 +702,9 @@ class EditDialogPhotoQuery : public Td::ResultHandler {
   }
 
   void send(DialogId dialog_id, FileId file_id, tl_object_ptr<telegram_api::InputChatPhoto> &&input_chat_photo) {
-    CHECK(input_chat_photo != nullptr);
+    if (input_chat_photo == nullptr) {
+        return;
+    }
     file_id_ = file_id;
     was_uploaded_ = FileManager::extract_was_uploaded(input_chat_photo);
     file_reference_ = FileManager::extract_file_reference(input_chat_photo);
@@ -710,7 +718,9 @@ class EditDialogPhotoQuery : public Td::ResultHandler {
       case DialogType::Channel: {
         auto channel_id = dialog_id.get_channel_id();
         auto input_channel = td->contacts_manager_->get_input_channel(channel_id);
-        CHECK(input_channel != nullptr);
+        if (input_channel == nullptr) {
+            return;
+        }
         send_query(G()->net_query_creator().create(
             telegram_api::channels_editPhoto(std::move(input_channel), std::move(input_chat_photo))));
         break;
@@ -2714,7 +2724,9 @@ class GetGameHighScoresQuery : public Td::ResultHandler {
     random_id_ = random_id;
 
     auto input_peer = td->messages_manager_->get_input_peer(dialog_id, AccessRights::Read);
-    CHECK(input_peer != nullptr);
+    if (input_peer == nullptr) {
+        return;
+    }
 
     CHECK(input_user != nullptr);
     send_query(G()->net_query_creator().create(telegram_api::messages_getGameHighScores(
@@ -2898,7 +2910,9 @@ class SendScreenshotNotificationQuery : public Td::ResultHandler {
     dialog_id_ = dialog_id;
 
     auto input_peer = td->messages_manager_->get_input_peer(dialog_id, AccessRights::Write);
-    CHECK(input_peer != nullptr);
+    if (input_peer == nullptr) {
+        return;
+    }
 
     auto query = G()->net_query_creator().create(
         telegram_api::messages_sendScreenshotNotification(std::move(input_peer), 0, random_id));
@@ -3056,7 +3070,9 @@ class DeleteChannelMessagesQuery : public Td::ResultHandler {
 
       query_count_++;
       auto input_channel = td->contacts_manager_->get_input_channel(channel_id);
-      CHECK(input_channel != nullptr);
+      if (input_channel == nullptr) {
+          return;
+      }
       send_query(G()->net_query_creator().create(
           telegram_api::channels_deleteMessages(std::move(input_channel), std::move(slice))));
     }
@@ -7955,8 +7971,9 @@ void MessagesManager::on_get_history(DialogId dialog_id, MessageId from_message_
         CHECK(message_id > last_server_message_id);
         if (message_id.is_server()) {
           auto message = delete_message(d, message_id, true, &need_update_dialog_pos, "on_get_gistory 1");
-          CHECK(message != nullptr);
-          deleted_message_ids.push_back(message->message_id.get());
+          if (message != nullptr) {
+            deleted_message_ids.push_back(message->message_id.get());
+          }
         }
       }
       if (need_update_dialog_pos) {
@@ -7973,7 +7990,7 @@ void MessagesManager::on_get_history(DialogId dialog_id, MessageId from_message_
       // connect all messages with ID > last_server_message_id
       for (size_t i = 0; i + 1 < message_ids.size(); i++) {
         auto m = get_message(d, message_ids[i]);
-        CHECK(m != nullptr);
+        if (m == nullptr) { continue; }
         if (!m->have_next) {
           m->have_next = true;
           attach_message_to_next(d, message_ids[i], "on_get_history 3");
@@ -17868,8 +17885,8 @@ void MessagesManager::load_dialog_scheduled_messages(DialogId dialog_id, bool fr
 void MessagesManager::on_get_scheduled_messages_from_database(DialogId dialog_id, vector<BufferSlice> &&messages) {
   if (G()->close_flag()) {
     auto it = load_scheduled_messages_from_database_queries_.find(dialog_id);
-    CHECK(it != load_scheduled_messages_from_database_queries_.end());
-    CHECK(!it->second.empty());
+    if (it == load_scheduled_messages_from_database_queries_.end()) { return; }
+    if (it->second.empty()) { return; }
     auto promises = std::move(it->second);
     load_scheduled_messages_from_database_queries_.erase(it);
 
@@ -17879,7 +17896,7 @@ void MessagesManager::on_get_scheduled_messages_from_database(DialogId dialog_id
     return;
   }
   auto d = get_dialog(dialog_id);
-  CHECK(d != nullptr);
+  if (d == nullptr) { return; }
   d->has_loaded_scheduled_messages_from_database = true;
 
   LOG(INFO) << "Receive " << messages.size() << " scheduled messages from database in " << dialog_id;
@@ -27248,47 +27265,11 @@ void MessagesManager::delete_message_files(DialogId dialog_id, const Message *m)
 }
 
 bool MessagesManager::need_delete_file(FullMessageId full_message_id, FileId file_id) const {
-  if (being_readded_message_id_ == full_message_id) {
-    return false;
-  }
-
-  auto main_file_id = td_->file_manager_->get_file_view(file_id).file_id();
-  auto full_message_ids = td_->file_reference_manager_->get_some_message_file_sources(main_file_id);
-  LOG(INFO) << "Receive " << full_message_ids << " as sources for file " << main_file_id << "/" << file_id << " from "
-            << full_message_id;
-  for (auto other_full_messsage_id : full_message_ids) {
-    if (other_full_messsage_id != full_message_id) {
-      return false;
-    }
-  }
-
-  return true;
+  return false;
 }
 
 bool MessagesManager::need_delete_message_files(DialogId dialog_id, const Message *m) const {
-  if (m == nullptr) {
-    return false;
-  }
-
-  auto dialog_type = dialog_id.get_type();
-  if (!m->message_id.is_scheduled() && !m->message_id.is_server() && dialog_type != DialogType::SecretChat) {
-    return false;
-  }
-  if (being_readded_message_id_ == FullMessageId{dialog_id, m->message_id}) {
-    return false;
-  }
-
-  if (m->forward_info != nullptr && m->forward_info->from_dialog_id.is_valid() &&
-      m->forward_info->from_message_id.is_valid()) {
-    // this function must not try to load the message, because it can be called from
-    // do_delete_message or add_scheduled_message_to_dialog
-    const Message *old_m = get_message({m->forward_info->from_dialog_id, m->forward_info->from_message_id});
-    if (old_m != nullptr && get_message_file_ids(old_m) == get_message_file_ids(m)) {
-      return false;
-    }
-  }
-
-  return true;
+  return false;
 }
 
 void MessagesManager::delete_message_from_database(Dialog *d, MessageId message_id, const Message *m,

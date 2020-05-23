@@ -1329,9 +1329,17 @@ tl_object_ptr<td_api::sticker> StickersManager::get_sticker_object(FileId file_i
   }
 
   auto it = stickers_.find(file_id);
-  CHECK(it != stickers_.end());
+
+  if (it == stickers_.end() || it->second == nullptr) {
+    return nullptr;
+  }
+
   auto sticker = it->second.get();
-  CHECK(sticker != nullptr);
+
+  if (sticker == nullptr) {
+    return nullptr;
+  }
+
   sticker->is_changed = false;
 
   auto mask_position = sticker->point >= 0
@@ -1603,8 +1611,8 @@ std::pair<int64, FileId> StickersManager::on_get_sticker_document(
 
 StickersManager::Sticker *StickersManager::get_sticker(FileId file_id) {
   auto sticker = stickers_.find(file_id);
-  if (sticker == stickers_.end()) {
-    return nullptr;
+  if (sticker == stickers_.end() || sticker->second == nullptr) {
+    return make_unique<Sticker>().get();
   }
 
   CHECK(sticker->second->file_id == file_id);
@@ -1613,18 +1621,22 @@ StickersManager::Sticker *StickersManager::get_sticker(FileId file_id) {
 
 const StickersManager::Sticker *StickersManager::get_sticker(FileId file_id) const {
   auto sticker = stickers_.find(file_id);
-  if (sticker == stickers_.end()) {
-    return nullptr;
+
+  if (sticker == stickers_.end() ||
+      sticker->second == nullptr ||
+      sticker->second->file_id != file_id) {
+    return make_unique<Sticker>().get();
   }
 
-  CHECK(sticker->second->file_id == file_id);
   return sticker->second.get();
 }
 
 StickersManager::StickerSet *StickersManager::get_sticker_set(StickerSetId sticker_set_id) {
   auto sticker_set = sticker_sets_.find(sticker_set_id);
-  if (sticker_set == sticker_sets_.end()) {
-    return nullptr;
+
+  if (sticker_set == sticker_sets_.end() ||
+      sticker_set->second == nullptr) {
+    return make_unique<StickerSet>().get();
   }
 
   return sticker_set->second.get();
@@ -1633,7 +1645,7 @@ StickersManager::StickerSet *StickersManager::get_sticker_set(StickerSetId stick
 const StickersManager::StickerSet *StickersManager::get_sticker_set(StickerSetId sticker_set_id) const {
   auto sticker_set = sticker_sets_.find(sticker_set_id);
   if (sticker_set == sticker_sets_.end()) {
-    return nullptr;
+    return make_unique<StickerSet>().get();
   }
 
   return sticker_set->second.get();
@@ -1724,7 +1736,11 @@ void StickersManager::delete_sticker_thumbnail(FileId file_id) {
 vector<FileId> StickersManager::get_sticker_file_ids(FileId file_id) const {
   vector<FileId> result;
   auto sticker = get_sticker(file_id);
-  CHECK(sticker != nullptr);
+
+  if (sticker == nullptr) {
+    return result;
+  }
+
   result.push_back(file_id);
   if (sticker->s_thumbnail.file_id.is_valid()) {
     result.push_back(sticker->s_thumbnail.file_id);
@@ -1761,7 +1777,7 @@ bool StickersManager::merge_stickers(FileId new_id, FileId old_id, bool can_dele
   }
 
   auto new_it = stickers_.find(new_id);
-  if (new_it == stickers_.end()) {
+  if (new_it == stickers_.end() || new_it->second == nullptr) {
     auto &old = stickers_[old_id];
     old->is_changed = true;
     if (!can_delete_old) {
@@ -1947,7 +1963,11 @@ void StickersManager::create_sticker(FileId file_id, PhotoSize thumbnail, Dimens
 
 bool StickersManager::has_input_media(FileId sticker_file_id, bool is_secret) const {
   const Sticker *sticker = get_sticker(sticker_file_id);
-  CHECK(sticker != nullptr);
+
+  if (sticker == nullptr) {
+    return false;
+  }
+
   auto file_view = td_->file_manager_->get_file_view(sticker_file_id);
   if (is_secret) {
     if (file_view.is_encrypted_secret()) {
@@ -1976,7 +1996,11 @@ SecretInputMedia StickersManager::get_secret_input_media(FileId sticker_file_id,
                                                          tl_object_ptr<telegram_api::InputEncryptedFile> input_file,
                                                          BufferSlice thumbnail) const {
   const Sticker *sticker = get_sticker(sticker_file_id);
-  CHECK(sticker != nullptr);
+
+  if (sticker == nullptr) {
+    return {};
+  }
+
   auto file_view = td_->file_manager_->get_file_view(sticker_file_id);
   if (file_view.is_encrypted_secret()) {
     if (file_view.has_remote_location()) {
@@ -3508,8 +3532,8 @@ void StickersManager::unregister_dice(const string &emoji, int32 value, FullMess
   LOG(INFO) << "Unregister dice " << emoji << " with value " << value << " from " << full_message_id << " from "
             << source;
   auto &message_ids = dice_messages_[emoji];
-  auto is_deleted = message_ids.erase(full_message_id);
-  LOG_CHECK(is_deleted) << source << " " << emoji << " " << value << " " << full_message_id;
+  message_ids.erase(full_message_id);
+  LOG(INFO) << source << " " << emoji << " " << value << " " << full_message_id;
 
   if (message_ids.empty()) {
     dice_messages_.erase(emoji);
@@ -5054,7 +5078,9 @@ int32 StickersManager::get_recent_stickers_hash(const vector<FileId> &sticker_id
   numbers.reserve(sticker_ids.size() * 2);
   for (auto sticker_id : sticker_ids) {
     auto sticker = get_sticker(sticker_id);
-    CHECK(sticker != nullptr);
+    if (sticker == nullptr) {
+      continue;
+    }
     auto file_view = td_->file_manager_->get_file_view(sticker_id);
     CHECK(file_view.has_remote_location());
     if (!file_view.remote_location().is_document()) {
@@ -6235,6 +6261,35 @@ void StickersManager::get_current_state(vector<td_api::object_ptr<td_api::Update
   if (!dice_emojis_.empty()) {
     updates.push_back(get_update_dice_emojis_object());
   }
+}
+
+void StickersManager::memory_cleanup() {
+    stickers_.clear();
+    stickers_.rehash(0);
+    sticker_sets_.clear();
+    sticker_sets_.rehash(0);
+    short_name_to_sticker_set_id_.clear();
+    short_name_to_sticker_set_id_.rehash(0);
+    attached_sticker_sets_.clear();
+    attached_sticker_sets_.rehash(0);
+    found_stickers_.clear();
+    found_stickers_.rehash(0);
+    found_sticker_sets_.clear();
+    found_sticker_sets_.rehash(0);
+    special_sticker_sets_.clear();
+    special_sticker_sets_.rehash(0);
+    sticker_set_load_requests_.clear();
+    sticker_set_load_requests_.rehash(0);
+    emoji_language_codes_.clear();
+    emoji_language_codes_.rehash(0);
+    emoji_language_code_versions_.clear();
+    emoji_language_code_versions_.rehash(0);
+    emoji_language_code_last_difference_times_.clear();
+    emoji_language_code_last_difference_times_.rehash(0);
+    emoji_suggestions_urls_.clear();
+    emoji_suggestions_urls_.rehash(0);
+    dice_messages_.clear();
+    dice_messages_.rehash(0);
 }
 
 }  // namespace td

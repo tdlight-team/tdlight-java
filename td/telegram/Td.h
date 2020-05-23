@@ -30,6 +30,7 @@
 #include "td/utils/Slice.h"
 #include "td/utils/Status.h"
 
+#include <malloc.h>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>

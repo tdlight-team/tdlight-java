@@ -11,7 +11,6 @@ endif()
 
 set(SQLITE_SOURCE
   sqlite/sqlite3.c
-
   sqlite/sqlite3.h
   sqlite/sqlite3ext.h
   sqlite/sqlite3session.h
@@ -21,15 +20,14 @@ add_library(tdsqlite STATIC ${SQLITE_SOURCE})
 target_include_directories(tdsqlite PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_include_directories(tdsqlite SYSTEM PRIVATE ${OPENSSL_INCLUDE_DIR})
 target_link_libraries(tdsqlite PRIVATE ${OPENSSL_CRYPTO_LIBRARY} ${CMAKE_DL_LIBS} ${ZLIB_LIBRARIES})
+
 target_compile_definitions(tdsqlite PRIVATE
-  -DSQLITE_DEFAULT_MEMSTATUS=0
-  -DSQLITE_OMIT_LOAD_EXTENSION
-  -DSQLITE_OMIT_DECLTYPE
-  -DSQLITE_OMIT_PROGRESS_CALLBACK
-  #-DSQLITE_OMIT_DEPRECATED  # SQLCipher uses deprecated sqlite3_profile
-  #-DSQLITE_OMIT_SHARED_CACHE
+        -DSQLITE_MAX_MMAP_SIZE=50331648
+        -DSQLITE_MAX_MEMORY=50331648
+        -DSQLITE_ENABLE_SORTER_REFERENCES
+        -DSQLITE_DIRECT_OVERFLOW_READ
+        -DSQLITE_ENABLE_MEMORY_MANAGEMENT
 )
-target_compile_definitions(tdsqlite PRIVATE -DSQLITE_HAS_CODEC -DSQLITE_TEMP_STORE=2 -DSQLITE_ENABLE_FTS5 -DSQLITE_DISABLE_LFS)
 
 if (NOT WIN32)
   target_compile_definitions(tdsqlite PRIVATE -DHAVE_USLEEP -DNDEBUG=1)

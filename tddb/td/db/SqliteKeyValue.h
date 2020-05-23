@@ -20,17 +20,17 @@ namespace td {
 class SqliteKeyValue {
  public:
   static Status drop(SqliteDb &connection, Slice table_name) TD_WARN_UNUSED_RESULT {
-    return connection.exec(PSLICE() << "DROP TABLE IF EXISTS " << table_name);
+    return Status::OK();
   }
 
   static Status init(SqliteDb &connection, Slice table_name) TD_WARN_UNUSED_RESULT {
-    return connection.exec(PSLICE() << "CREATE TABLE IF NOT EXISTS " << table_name << " (k BLOB PRIMARY KEY, v BLOB)");
+    return Status::OK();
   }
 
   using SeqNo = uint64;
 
   bool empty() const {
-    return db_.empty();
+    return false;
   }
 
   Result<bool> init(string path) TD_WARN_UNUSED_RESULT;
@@ -54,10 +54,10 @@ class SqliteKeyValue {
   SeqNo erase(Slice key);
 
   Status begin_transaction() TD_WARN_UNUSED_RESULT {
-    return db_.begin_transaction();
+    return Status::OK();
   }
   Status commit_transaction() TD_WARN_UNUSED_RESULT {
-    return db_.commit_transaction();
+    return Status::OK();
   }
 
   void erase_by_prefix(Slice prefix);
@@ -107,14 +107,7 @@ class SqliteKeyValue {
 
  private:
   string path_;
-  string table_name_;
-  SqliteDb db_;
-  SqliteStatement get_stmt_;
-  SqliteStatement set_stmt_;
-  SqliteStatement erase_stmt_;
   SqliteStatement get_all_stmt_;
-  SqliteStatement erase_by_prefix_stmt_;
-  SqliteStatement erase_by_prefix_rare_stmt_;
   SqliteStatement get_by_prefix_stmt_;
   SqliteStatement get_by_prefix_rare_stmt_;
 

@@ -18,7 +18,9 @@ namespace td {
 template <class StorerT>
 void VoiceNotesManager::store_voice_note(FileId file_id, StorerT &storer) const {
   auto it = voice_notes_.find(file_id);
-  CHECK(it != voice_notes_.end());
+  if (it == voice_notes_.end() || it->second == nullptr) {
+      return;
+  }
   const VoiceNote *voice_note = it->second.get();
   store(voice_note->mime_type, storer);
   store(voice_note->duration, storer);

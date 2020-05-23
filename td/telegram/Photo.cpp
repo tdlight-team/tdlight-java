@@ -168,21 +168,7 @@ tl_object_ptr<td_api::profilePhoto> get_profile_photo_object(FileManager *file_m
 }
 
 bool operator==(const ProfilePhoto &lhs, const ProfilePhoto &rhs) {
-  bool location_differs = lhs.small_file_id != rhs.small_file_id || lhs.big_file_id != rhs.big_file_id;
-  bool id_differs;
-  if (lhs.id == -1 && rhs.id == -1) {
-    // group chat photo
-    id_differs = location_differs;
-  } else {
-    id_differs = lhs.id != rhs.id;
-  }
-
-  if (location_differs) {
-    LOG_IF(ERROR, !id_differs) << "Photo " << lhs.id << " location has changed. First profilePhoto: " << lhs
-                               << ", second profilePhoto: " << rhs;
-    return false;
-  }
-  return true;
+  return lhs.small_file_id == rhs.small_file_id || lhs.big_file_id == rhs.big_file_id;
 }
 
 bool operator!=(const ProfilePhoto &lhs, const ProfilePhoto &rhs) {

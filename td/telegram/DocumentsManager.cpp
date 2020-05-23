@@ -55,6 +55,9 @@ tl_object_ptr<td_api::document> DocumentsManager::get_document_object(FileId fil
 
   LOG(INFO) << "Return document " << file_id << " object";
   auto &document = documents_[file_id];
+  if (document == nullptr) {
+      return nullptr;
+  }
   LOG_CHECK(document != nullptr) << tag("file_id", file_id);
   document->is_changed = false;
   return make_tl_object<td_api::document>(document->file_name, document->mime_type,
@@ -493,11 +496,13 @@ void DocumentsManager::create_document(FileId file_id, string minithumbnail, Pho
 
 const DocumentsManager::GeneralDocument *DocumentsManager::get_document(FileId file_id) const {
   auto document = documents_.find(file_id);
-  if (document == documents_.end()) {
-    return nullptr;
+
+  if (document == documents_.end() ||
+      document->second == nullptr ||
+      document->second->file_id != file_id) {
+    return make_unique<GeneralDocument>().get();
   }
 
-  CHECK(document->second->file_id == file_id);
   return document->second.get();
 }
 
@@ -527,7 +532,9 @@ SecretInputMedia DocumentsManager::get_secret_input_media(FileId document_file_i
                                                           tl_object_ptr<telegram_api::InputEncryptedFile> input_file,
                                                           const string &caption, BufferSlice thumbnail) const {
   const GeneralDocument *document = get_document(document_file_id);
-  CHECK(document != nullptr);
+  if (document == nullptr) {
+      return SecretInputMedia{};
+  }
   auto file_view = td_->file_manager_->get_file_view(document_file_id);
   auto &encryption_key = file_view.encryption_key();
   if (!file_view.is_encrypted_secret() || encryption_key.empty()) {
@@ -570,7 +577,9 @@ tl_object_ptr<telegram_api::InputMedia> DocumentsManager::get_input_media(
 
   if (input_file != nullptr) {
     const GeneralDocument *document = get_document(file_id);
-    CHECK(document != nullptr);
+    if (document == nullptr) {
+        return nullptr;
+    }
 
     vector<tl_object_ptr<telegram_api::DocumentAttribute>> attributes;
     if (document->file_name.size()) {
@@ -592,13 +601,17 @@ tl_object_ptr<telegram_api::InputMedia> DocumentsManager::get_input_media(
 
 FileId DocumentsManager::get_document_thumbnail_file_id(FileId file_id) const {
   auto document = get_document(file_id);
-  CHECK(document != nullptr);
+  if (document == nullptr) {
+      return FileId();
+  }
   return document->thumbnail.file_id;
 }
 
 void DocumentsManager::delete_document_thumbnail(FileId file_id) {
   auto &document = documents_[file_id];
-  CHECK(document != nullptr);
+  if (document == nullptr) {
+      return;
+  }
   document->thumbnail = PhotoSize();
 }
 
@@ -627,7 +640,7 @@ bool DocumentsManager::merge_documents(FileId new_id, FileId old_id, bool can_de
   }
 
   auto new_it = documents_.find(new_id);
-  if (new_it == documents_.end()) {
+  if (new_it == documents_.end() || new_it->second == nullptr) {
     auto &old = documents_[old_id];
     old->is_changed = true;
     if (!can_delete_old) {
@@ -651,6 +664,11 @@ bool DocumentsManager::merge_documents(FileId new_id, FileId old_id, bool can_de
     documents_.erase(old_id);
   }
   return true;
+}
+
+void DocumentsManager::memory_cleanup() {
+  documents_.clear();
+  documents_.rehash(0);
 }
 
 string DocumentsManager::get_document_search_text(FileId file_id) const {

@@ -76,6 +76,8 @@ class DocumentsManager {
 
   tl_object_ptr<td_api::document> get_document_object(FileId file_id);
 
+  void memory_cleanup();
+
   Document on_get_document(RemoteDocument remote_document, DialogId owner_dialog_id,
                            MultiPromiseActor *load_data_multipromise_ptr = nullptr,
                            Document::Type default_document_type = Document::Type::General, bool is_background = false,

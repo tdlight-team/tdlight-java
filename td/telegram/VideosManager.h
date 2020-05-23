@@ -26,6 +26,8 @@ class VideosManager {
  public:
   explicit VideosManager(Td *td);
 
+  void memory_cleanup();
+
   int32 get_video_duration(FileId file_id) const;
 
   tl_object_ptr<td_api::video> get_video_object(FileId file_id);

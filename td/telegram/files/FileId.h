@@ -9,6 +9,7 @@
 #include "td/utils/common.h"
 #include "td/utils/StringBuilder.h"
 
+#include <ctime>
 #include <functional>
 #include <type_traits>
 
@@ -17,6 +18,7 @@ namespace td {
 class FileId {
   int32 id = 0;
   int32 remote_id = 0;
+  int64 time_ = INT64_MAX;
 
  public:
   FileId() = default;
@@ -34,8 +36,24 @@ class FileId {
     return id > 0;
   }
 
+  int32 fast_get() const {
+    return id;
+  }
+
   int32 get() const {
     return id;
+  }
+
+  void set_time() {
+    time_ = std::time(nullptr);
+  }
+
+  int64 get_time() const {
+    return time_;
+  }
+
+  void reset_time() {
+    time_ = INT64_MAX;
   }
 
   int32 get_remote() const {

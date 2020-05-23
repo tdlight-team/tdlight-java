@@ -4313,6 +4313,10 @@ void Td::init_file_manager() {
       send_closure(G()->storage_manager(), &StorageManager::on_new_file, size, real_size, cnt);
     }
 
+    void destroy_file_source(FileId file_id) final {
+      td_->file_reference_manager_->memory_cleanup(file_id);
+    }
+
     void on_file_updated(FileId file_id) final {
       send_closure(G()->td(), &Td::send_update,
                    make_tl_object<td_api::updateFile>(td_->file_manager_->get_file_object(file_id)));
@@ -5119,6 +5123,18 @@ void Td::on_request(uint64 id, td_api::getDatabaseStatistics &request) {
 }
 
 void Td::on_request(uint64 id, td_api::optimizeStorage &request) {
+  contacts_manager_->memory_cleanup();
+  web_pages_manager_->memory_cleanup();
+  stickers_manager_->memory_cleanup();
+  documents_manager_->memory_cleanup();
+  video_notes_manager_->memory_cleanup();
+  videos_manager_->memory_cleanup();
+  audios_manager_->memory_cleanup();
+  animations_manager_->memory_cleanup();
+  file_manager_->memory_cleanup();
+
+  malloc_trim(0);
+
   std::vector<FileType> file_types;
   for (auto &file_type : request.file_types_) {
     if (file_type == nullptr) {
@@ -6901,8 +6917,19 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
         return;
       }
       if (!is_bot && set_boolean_option("disable_top_chats")) {
-        return;
+	        return;
       }
+      // Start custom-patches
+      if (set_boolean_option("disable_document_filenames")) {
+	        return;
+      }
+      if (set_boolean_option("disable_minithumbnails")) {
+	        return;
+      }
+      if (set_boolean_option("disable_notifications")) {
+	        return;
+      }
+      // End custom-patches
       if (request.name_ == "drop_notification_ids") {
         G()->td_db()->get_binlog_pmc()->erase("notification_id_current");
         G()->td_db()->get_binlog_pmc()->erase("notification_group_id_current");

@@ -128,7 +128,9 @@ void PollManager::store_poll(PollId poll_id, StorerT &storer) const {
   td::store(poll_id.get(), storer);
   if (is_local_poll_id(poll_id)) {
     auto poll = get_poll(poll_id);
-    CHECK(poll != nullptr);
+    if (poll == nullptr) {
+        return;
+    }
     bool has_open_period = poll->open_period != 0;
     bool has_close_date = poll->close_date != 0;
     bool has_explanation = !poll->explanation.text.empty();

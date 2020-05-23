@@ -20,7 +20,9 @@ namespace td {
 template <class StorerT>
 void AnimationsManager::store_animation(FileId file_id, StorerT &storer) const {
   auto it = animations_.find(file_id);
-  CHECK(it != animations_.end());
+  if (it == animations_.end() || it->second == nullptr) {
+      return;
+  }
   const Animation *animation = it->second.get();
   store(animation->duration, storer);
   store(animation->dimensions, storer);

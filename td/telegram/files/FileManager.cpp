@@ -48,6 +48,8 @@
 #include <tuple>
 #include <utility>
 
+#define FILE_TTL 20
+
 namespace td {
 namespace {
 constexpr int64 MAX_FILE_SIZE = 1500 * (1 << 20) /* 1500MB */;
@@ -131,7 +133,9 @@ FileNode &FileNodePtr::operator*() const {
 
 FileNode *FileNodePtr::get() const {
   auto res = get_unsafe();
-  CHECK(res);
+  if (res == nullptr) {
+    return {};
+  }
   return res;
 }
 
@@ -140,7 +144,9 @@ FullRemoteFileLocation *FileNodePtr::get_remote() const {
 }
 
 FileNode *FileNodePtr::get_unsafe() const {
-  CHECK(file_manager_ != nullptr);
+  if (file_manager_ == nullptr) {
+    return {};
+  }
   return file_manager_->get_file_node_raw(file_id_);
 }
 
@@ -977,8 +983,7 @@ bool FileManager::try_fix_partial_local_location(FileNodePtr node) {
 }
 
 FileManager::FileIdInfo *FileManager::get_file_id_info(FileId file_id) {
-  LOG_CHECK(0 <= file_id.get() && file_id.get() < static_cast<int32>(file_id_info_.size()))
-      << file_id << " " << file_id_info_.size();
+  file_id.set_time();
   return &file_id_info_[file_id.get()];
 }
 
@@ -1014,7 +1019,7 @@ void FileManager::try_forget_file_id(FileId file_id) {
   bool is_removed = td::remove(file_node->file_ids_, file_id);
   CHECK(is_removed);
   *info = FileIdInfo();
-  empty_file_ids_.push_back(file_id.get());
+  file_id_info_.erase(file_id.get());
 }
 
 FileId FileManager::register_empty(FileType type) {
@@ -1029,7 +1034,9 @@ void FileManager::on_file_unlink(const FullLocalFileLocation &location) {
   }
   auto file_id = it->second;
   auto file_node = get_sync_file_node(file_id);
-  CHECK(file_node);
+  if (!file_node) {
+      return;
+  }
   file_node->drop_local_location();
   try_flush_node_info(file_node, "on_file_unlink");
 }
@@ -1132,13 +1139,13 @@ Result<FileId> FileManager::register_file(FileData &&data, FileLocationSource fi
   // create FileNode
   auto file_node_id = next_file_node_id();
   auto &node = file_nodes_[file_node_id];
-  node = td::make_unique<FileNode>(std::move(data.local_), NewRemoteFileLocation(data.remote_, file_location_source),
+  node = FileNode(std::move(data.local_), NewRemoteFileLocation(data.remote_, file_location_source),
                                    std::move(data.generate_), data.size_, data.expected_size_,
                                    std::move(data.remote_name_), std::move(data.url_), data.owner_dialog_id_,
                                    std::move(data.encryption_key_), file_id, static_cast<int8>(has_remote));
-  node->pmc_id_ = FileDbId(data.pmc_id_);
+  node.pmc_id_ = FileDbId(data.pmc_id_);
   get_file_id_info(file_id)->node_id_ = file_node_id;
-  node->file_ids_.push_back(file_id);
+  node.file_ids_.push_back(file_id);
 
   FileView file_view(get_file_node(file_id));
 
@@ -1185,7 +1192,7 @@ Result<FileId> FileManager::register_file(FileData &&data, FileLocationSource fi
 
   int new_cnt = new_remote + new_local + new_generate;
   if (data.pmc_id_ == 0 && file_db_ && new_cnt > 0) {
-    node->need_load_from_pmc_ = true;
+    node.need_load_from_pmc_ = true;
   }
   bool no_sync_merge = to_merge.size() == 1 && new_cnt == 0;
   for (auto id : to_merge) {
@@ -1399,8 +1406,6 @@ Result<FileId> FileManager::merge(FileId x_file_id, FileId y_file_id, bool no_sy
       x_node->remote_.full_source == FileLocationSource::FromServer &&
       y_node->remote_.full_source == FileLocationSource::FromServer &&
       x_node->remote_.full.value().get_dc_id() != y_node->remote_.full.value().get_dc_id()) {
-    LOG(ERROR) << "File remote location was changed from " << y_node->remote_.full.value() << " to "
-               << x_node->remote_.full.value();
   }
 
   bool drop_last_successful_force_reupload_time = x_node->last_successful_force_reupload_time_ <= 0 &&
@@ -1580,7 +1585,7 @@ Result<FileId> FileManager::merge(FileId x_file_id, FileId y_file_id, bool no_sy
     file_id_info->node_id_ = node_ids[node_i];
     send_updates_flag |= file_id_info->send_updates_flag_;
   }
-  other_node = {};
+  other_node = {this};
 
   if (send_updates_flag) {
     // node might not changed, but other_node might changed, so we need to send update anyway
@@ -1607,7 +1612,7 @@ Result<FileId> FileManager::merge(FileId x_file_id, FileId y_file_id, bool no_sy
     }
   }
 
-  file_nodes_[node_ids[other_node_i]] = nullptr;
+  file_nodes_.erase(node_ids[other_node_i]);
 
   run_generate(node);
   run_download(node);
@@ -1800,7 +1805,7 @@ void FileManager::flush_to_pmc(FileNodePtr node, bool new_remote, bool new_local
 }
 
 FileNode *FileManager::get_file_node_raw(FileId file_id, FileNodeId *file_node_id) {
-  if (file_id.get() <= 0 || file_id.get() >= static_cast<int32>(file_id_info_.size())) {
+  if (file_id.get() <= 0) {
     return nullptr;
   }
   FileNodeId node_id = file_id_info_[file_id.get()].node_id_;
@@ -1810,13 +1815,13 @@ FileNode *FileManager::get_file_node_raw(FileId file_id, FileNodeId *file_node_i
   if (file_node_id != nullptr) {
     *file_node_id = node_id;
   }
-  return file_nodes_[node_id].get();
+  return &file_nodes_[node_id];
 }
 
 FileNodePtr FileManager::get_sync_file_node(FileId file_id) {
   auto file_node = get_file_node(file_id);
   if (!file_node) {
-    return {};
+    return {this};
   }
   load_from_pmc(file_node, true, true, true);
   return file_node;
@@ -3187,20 +3192,15 @@ string FileManager::extract_file_reference(const tl_object_ptr<telegram_api::Inp
 }
 
 FileId FileManager::next_file_id() {
-  if (!empty_file_ids_.empty()) {
-    auto res = empty_file_ids_.back();
-    empty_file_ids_.pop_back();
-    return FileId{res, 0};
-  }
-  FileId res(static_cast<int32>(file_id_info_.size()), 0);
-  // LOG(ERROR) << "NEXT file_id " << res;
-  file_id_info_.push_back({});
+  auto id = file_id_seqno++;
+  FileId res(static_cast<int32>(id), 0);
+  file_id_info_[id] = {};
+  res.set_time();
   return res;
 }
 
 FileManager::FileNodeId FileManager::next_file_node_id() {
-  FileNodeId res = static_cast<FileNodeId>(file_nodes_.size());
-  file_nodes_.emplace_back(nullptr);
+  auto res = static_cast<FileNodeId>(file_node_seqno++);
   return res;
 }
 
@@ -3210,7 +3210,9 @@ void FileManager::on_start_download(QueryId query_id) {
   }
 
   auto query = queries_container_.get(query_id);
-  CHECK(query != nullptr);
+  if (query == nullptr) {
+      return;
+  }
 
   auto file_id = query->file_id_;
   auto file_node = get_file_node(file_id);
@@ -3233,7 +3235,9 @@ void FileManager::on_partial_download(QueryId query_id, const PartialLocalFileLo
   }
 
   auto query = queries_container_.get(query_id);
-  CHECK(query != nullptr);
+  if (query == nullptr) {
+      return;
+  }
 
   auto file_id = query->file_id_;
   auto file_node = get_file_node(file_id);
@@ -3262,7 +3266,9 @@ void FileManager::on_hash(QueryId query_id, string hash) {
   }
 
   auto query = queries_container_.get(query_id);
-  CHECK(query != nullptr);
+  if (query == nullptr) {
+      return;
+  }
 
   auto file_id = query->file_id_;
 
@@ -3285,7 +3291,9 @@ void FileManager::on_partial_upload(QueryId query_id, const PartialRemoteFileLoc
   }
 
   auto query = queries_container_.get(query_id);
-  CHECK(query != nullptr);
+  if (query == nullptr) {
+      return;
+  }
 
   auto file_id = query->file_id_;
   auto file_node = get_file_node(file_id);
@@ -3415,7 +3423,9 @@ void FileManager::on_partial_generate(QueryId query_id, const PartialLocalFileLo
   }
 
   auto query = queries_container_.get(query_id);
-  CHECK(query != nullptr);
+  if (query == nullptr) {
+      return;
+  }
 
   auto file_id = query->file_id_;
   auto file_node = get_file_node(file_id);
@@ -3699,8 +3709,199 @@ void FileManager::hangup() {
   stop();
 }
 
+void FileManager::destroy_query(int32 file_id) {
+  for (auto &query_id : queries_container_.ids()) {
+    auto query = queries_container_.get(query_id);
+    if (query != nullptr && file_id == query->file_id_.fast_get()) {
+      on_error(query_id, Status::Error(400, "FILE_DOWNLOAD_RESTART"));
+    }
+  }
+}
+
+
+void FileManager::memory_cleanup() {
+  /* DESTROY OLD file_id_info_ */
+  {
+    auto it = file_id_info_.begin();
+    auto time = std::time(nullptr);
+    std::vector<int32> file_to_be_deleted = {};
+
+    while (it != file_id_info_.end()) {
+      if (it->second.node_id_ != 0) {
+        auto &node = file_nodes_[it->second.node_id_];
+
+        if (time - node.main_file_id_.get_time() > FILE_TTL) {
+          auto can_reset = node.download_priority_ == 0;
+          can_reset &= node.generate_download_priority_ == 0;
+          can_reset &= node.download_id_ == 0;
+
+          if (can_reset) {
+            auto file_ids_it = node.file_ids_.begin();
+
+            while (file_ids_it != node.file_ids_.end() && can_reset) {
+              auto &file = file_id_info_[file_ids_it->fast_get()];
+              can_reset &= file.download_priority_ == 0;
+              can_reset &= time - file_ids_it->get_time() > FILE_TTL;
+              ++file_ids_it;
+            }
+          }
+
+          if (can_reset) {
+            node.main_file_id_.reset_time();
+
+            for (auto &file_id : node.file_ids_) {
+              file_id.reset_time();
+
+              /* DESTROY ASSOCIATED QUERIES */
+              destroy_query(file_id.fast_get());
+
+              /* DESTROY ASSOCIATED LATE */
+              file_to_be_deleted.push_back(file_id.fast_get());
+            }
+
+            /* DESTROY MAIN QUERY */
+            destroy_query(it->first);
+
+            /* DESTROY FILE REFERENCE */
+            context_->destroy_file_source(node.main_file_id_);
+
+            /* DESTROY MAIN NODE */
+            file_nodes_.erase(it->first);
+
+            /* DESTROY MAIN FILE LATE */
+            file_to_be_deleted.push_back(it->first);
+          }
+        }
+      } else {
+        file_to_be_deleted.push_back(it->first);
+      }
+
+      ++it;
+    }
+
+    for (auto file_id : file_to_be_deleted) {
+      file_id_info_.erase(file_id);
+    }
+  }
+
+  /* DESTROY INVALID FILES */
+  {
+    auto it = file_id_info_.begin();
+    while (it != file_id_info_.end()) {
+      if (it->second.node_id_ != 0) {
+        if (file_nodes_[it->second.node_id_].empty) {
+          destroy_query(it->first);
+          context_->destroy_file_source({it->first, 0});
+          file_id_info_.erase(it++);
+          file_nodes_.erase(it->second.node_id_);
+        } else {
+          ++it;
+        }
+      } else {
+        ++it;
+      }
+    }
+  }
+
+  /* DESTROY INVALID file_nodes_ */
+  {
+    auto it = file_nodes_.begin();
+    while (it != file_nodes_.end()) {
+      if (it->second.empty) {
+        file_nodes_.erase(it++);
+      } else {
+        if (it->second.main_file_id_.empty()) {
+          file_nodes_.erase(it++);
+        } else {
+          if (file_id_info_[it->second.main_file_id_.get()].node_id_ == 0) {
+            file_id_info_.erase(it->second.main_file_id_.get());
+            file_nodes_.erase(it++);
+          } else {
+            ++it;
+          }
+        }
+      }
+    }
+  }
+
+  /* DESTROY INVALID file_hash_to_file_id_ */
+  {
+    auto it = file_hash_to_file_id_.begin();
+    while (it != file_hash_to_file_id_.end()) {
+      auto &file = file_id_info_[it->second.fast_get()];
+      if (file_nodes_[file.node_id_].empty) {
+        file_hash_to_file_id_.erase(it++);
+        file_nodes_.erase(file.node_id_);
+      } else {
+        ++it;
+      }
+    }
+  }
+
+  /* DESTROY INVALID local_location_to_file_id_ */
+  {
+    auto it = local_location_to_file_id_.begin();
+    while (it != local_location_to_file_id_.end()) {
+      auto &file = file_id_info_[it->second.fast_get()];
+      if (file_nodes_[file.node_id_].empty) {
+        it = local_location_to_file_id_.erase(it++);
+        file_nodes_.erase(file.node_id_);
+      } else {
+        ++it;
+      }
+    }
+  }
+
+  /* DESTROY INVALID generate_location_to_file_id_ */
+  {
+    auto it = generate_location_to_file_id_.begin();
+    while (it != generate_location_to_file_id_.end()) {
+      auto &file = file_id_info_[it->second.fast_get()];
+      if (file_nodes_[file.node_id_].empty) {
+        it = generate_location_to_file_id_.erase(it++);
+        file_nodes_.erase(file.node_id_);
+      } else {
+        ++it;
+      }
+    }
+  }
+
+  /* DESTROY INVALID remote_location_info_ */
+  {
+    auto map = remote_location_info_.get_map();
+    auto it = map.begin();
+    while (it != map.end()) {
+      auto &file = file_id_info_[it->first.file_id_.fast_get()];
+      if (file_nodes_[file.node_id_].empty) {
+        remote_location_info_.erase(it->second);
+        map.erase(it++);
+        file_nodes_.erase(file.node_id_);
+      } else {
+        ++it;
+      }
+    }
+  }
+
+  /* DESTROY NULL file_id_info_ */
+  {
+    auto it = file_id_info_.begin();
+    while (it != file_id_info_.end()) {
+      if (&it->second == nullptr || file_nodes_[it->second.node_id_].empty) {
+        file_id_info_.erase(it++);
+      } else {
+        ++it;
+      }
+    }
+  }
+
+  file_nodes_.rehash(0);
+  file_hash_to_file_id_.rehash(0);
+  file_id_info_.rehash(0);
+
+  LOG(ERROR) << "registered ids: " << file_id_info_.size() << " registered nodes: " << file_nodes_.size();
+}
+
 void FileManager::tear_down() {
   parent_.reset();
 }
-
 }  // namespace td

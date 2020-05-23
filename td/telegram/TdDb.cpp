@@ -137,9 +137,13 @@ Status init_db(SqliteDb &db) {
   TRY_STATUS(db.exec("PRAGMA encoding=\"UTF-8\""));
   TRY_STATUS(db.exec("PRAGMA journal_mode=WAL"));
 
+  TRY_STATUS(db.exec("PRAGMA cache_size=4096"));
+  TRY_STATUS(db.exec("PRAGMA page_size=65536"));
   TRY_STATUS(db.exec("PRAGMA synchronous=NORMAL"));
-  TRY_STATUS(db.exec("PRAGMA temp_store=MEMORY"));
-  TRY_STATUS(db.exec("PRAGMA secure_delete=1"));
+  TRY_STATUS(db.exec("PRAGMA temp_store=FILE"));
+  TRY_STATUS(db.exec("PRAGMA wal_autocheckpoint=10000"));
+  TRY_STATUS(db.exec("PRAGMA shrink_memory"));
+  TRY_STATUS(db.exec("PRAGMA secure_delete=0"));
 
   return Status::OK();
 }
@@ -316,17 +320,16 @@ Status TdDb::init_sqlite(int32 scheduler_id, const TdParameters &parameters, DbK
 
   // init DialogDb
   bool dialog_db_was_created = false;
+
   if (use_dialog_db) {
     TRY_STATUS(init_dialog_db(db, user_version, dialog_db_was_created));
-  } else {
-    TRY_STATUS(drop_dialog_db(db, user_version));
   }
 
   // init MessagesDb
+  TRY_STATUS(drop_messages_db(db, user_version));
+
   if (use_message_db) {
     TRY_STATUS(init_messages_db(db, user_version));
-  } else {
-    TRY_STATUS(drop_messages_db(db, user_version));
   }
 
   // init filesDb
@@ -356,6 +359,7 @@ Status TdDb::init_sqlite(int32 scheduler_id, const TdParameters &parameters, DbK
   binlog_pmc.force_sync({});
 
   TRY_STATUS(db.exec("COMMIT TRANSACTION"));
+  TRY_STATUS(db.exec("VACUUM"));
 
   file_db_ = create_file_db(sql_connection_, scheduler_id);
 
@@ -512,8 +516,6 @@ Result<string> TdDb::get_stats() {
                               << mask << "'",
                      PSLICE() << table << ":" << mask);
   };
-  TRY_STATUS(run_query("SELECT 0, SUM(length(data)), COUNT(*) FROM messages WHERE 1", "messages"));
-  TRY_STATUS(run_query("SELECT 0, SUM(length(data)), COUNT(*) FROM dialogs WHERE 1", "dialogs"));
   TRY_STATUS(run_kv_query("%", "common"));
   TRY_STATUS(run_kv_query("%", "files"));
   TRY_STATUS(run_kv_query("wp%"));

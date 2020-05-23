@@ -25,7 +25,9 @@ VoiceNotesManager::VoiceNotesManager(Td *td) : td_(td) {
 
 int32 VoiceNotesManager::get_voice_note_duration(FileId file_id) const {
   auto it = voice_notes_.find(file_id);
-  CHECK(it != voice_notes_.end());
+  if (it == voice_notes_.end() || it->second == nullptr) {
+      return 0;
+  }
   return it->second->duration;
 }
 
@@ -68,11 +70,13 @@ FileId VoiceNotesManager::on_get_voice_note(unique_ptr<VoiceNote> new_voice_note
 
 const VoiceNotesManager::VoiceNote *VoiceNotesManager::get_voice_note(FileId file_id) const {
   auto voice_note = voice_notes_.find(file_id);
-  if (voice_note == voice_notes_.end()) {
-    return nullptr;
+
+  if (voice_note == voice_notes_.end() ||
+      voice_note->second == nullptr ||
+      voice_note->second->file_id != file_id) {
+    return make_unique<VoiceNote>().get();
   }
 
-  CHECK(voice_note->second->file_id == file_id);
   return voice_note->second.get();
 }
 
@@ -100,7 +104,7 @@ bool VoiceNotesManager::merge_voice_notes(FileId new_id, FileId old_id, bool can
   }
 
   auto new_it = voice_notes_.find(new_id);
-  if (new_it == voice_notes_.end()) {
+  if (new_it == voice_notes_.end() || new_it->second == nullptr) {
     auto &old = voice_notes_[old_id];
     old->is_changed = true;
     if (!can_delete_old) {

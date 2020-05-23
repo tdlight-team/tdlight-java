@@ -24,7 +24,9 @@ VideosManager::VideosManager(Td *td) : td_(td) {
 
 int32 VideosManager::get_video_duration(FileId file_id) const {
   auto it = videos_.find(file_id);
-  CHECK(it != videos_.end());
+  if (it == videos_.end() || it->second == nullptr) {
+      return 0;
+  }
   return it->second->duration;
 }
 
@@ -34,7 +36,9 @@ tl_object_ptr<td_api::video> VideosManager::get_video_object(FileId file_id) {
   }
 
   auto &video = videos_[file_id];
-  CHECK(video != nullptr);
+  if (video == nullptr) {
+      return nullptr;
+  }
   video->is_changed = false;
 
   return make_tl_object<td_api::video>(
@@ -98,23 +102,29 @@ FileId VideosManager::on_get_video(unique_ptr<Video> new_video, bool replace) {
 
 const VideosManager::Video *VideosManager::get_video(FileId file_id) const {
   auto video = videos_.find(file_id);
-  if (video == videos_.end()) {
-    return nullptr;
+
+  if (video == videos_.end() ||
+      video->second == nullptr ||
+      video->second->file_id != file_id) {
+    return make_unique<Video>().get();
   }
 
-  CHECK(video->second->file_id == file_id);
   return video->second.get();
 }
 
 FileId VideosManager::get_video_thumbnail_file_id(FileId file_id) const {
   auto video = get_video(file_id);
-  CHECK(video != nullptr);
+  if (video == nullptr) {
+      return FileId();
+  }
   return video->thumbnail.file_id;
 }
 
 void VideosManager::delete_video_thumbnail(FileId file_id) {
   auto &video = videos_[file_id];
-  CHECK(video != nullptr);
+  if (video == nullptr) {
+      return;
+  }
   video->thumbnail = PhotoSize();
 }
 
@@ -143,7 +153,7 @@ bool VideosManager::merge_videos(FileId new_id, FileId old_id, bool can_delete_o
   }
 
   auto new_it = videos_.find(new_id);
-  if (new_it == videos_.end()) {
+  if (new_it == videos_.end() || new_it->second == nullptr) {
     auto &old = videos_[old_id];
     old->is_changed = true;
     if (!can_delete_old) {
@@ -289,6 +299,10 @@ string VideosManager::get_video_search_text(FileId file_id) const {
   auto *video = get_video(file_id);
   CHECK(video != nullptr);
   return video->file_name;
+}
+void VideosManager::memory_cleanup() {
+  videos_.clear();
+  videos_.rehash(0);
 }
 
 }  // namespace td

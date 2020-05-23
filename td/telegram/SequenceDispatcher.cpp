@@ -255,13 +255,17 @@ void MultiSequenceDispatcher::send_with_callback(NetQueryPtr query, ActorShared<
 
 void MultiSequenceDispatcher::on_result() {
   auto it = dispatchers_.find(get_link_token());
-  CHECK(it != dispatchers_.end());
+  if (it == dispatchers_.end()) {
+      return;
+  }
   it->second.cnt_--;
 }
 
 void MultiSequenceDispatcher::ready_to_close() {
   auto it = dispatchers_.find(get_link_token());
-  CHECK(it != dispatchers_.end());
+  if (it == dispatchers_.end()) {
+      return;
+  }
   if (it->second.cnt_ == 0) {
     LOG(DEBUG) << "Close SequenceDispatcher " << get_link_token();
     dispatchers_.erase(it);

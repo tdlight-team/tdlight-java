@@ -116,13 +116,13 @@ class SaveAutoDownloadSettingsQuery : public Td::ResultHandler {
 AutoDownloadSettings get_auto_download_settings(const td_api::object_ptr<td_api::autoDownloadSettings> &settings) {
   CHECK(settings != nullptr);
   AutoDownloadSettings result;
-  result.max_photo_file_size = settings->max_photo_file_size_;
-  result.max_video_file_size = settings->max_video_file_size_;
-  result.max_other_file_size = settings->max_other_file_size_;
+  result.max_photo_file_size = -1;
+  result.max_video_file_size = -1;
+  result.max_other_file_size = -1;
   result.video_upload_bitrate = settings->video_upload_bitrate_;
-  result.is_enabled = settings->is_auto_download_enabled_;
-  result.preload_large_videos = settings->preload_large_videos_;
-  result.preload_next_audio = settings->preload_next_audio_;
+  result.is_enabled = false;
+  result.preload_large_videos = false;
+  result.preload_next_audio = false;
   result.use_less_data_for_calls = settings->use_less_data_for_calls_;
   return result;
 }

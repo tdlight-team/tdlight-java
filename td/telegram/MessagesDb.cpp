@@ -53,44 +53,44 @@ Status init_messages_db(SqliteDb &db, int32 version) {
   }
 
   auto add_media_indices = [&db](int begin, int end) {
-    for (int i = begin; i < end; i++) {
-      TRY_STATUS(db.exec(PSLICE() << "CREATE INDEX IF NOT EXISTS message_index_" << i
-                                  << " ON messages (dialog_id, message_id) WHERE (index_mask & " << (1 << i)
-                                  << ") != 0"));
-    }
+    // for (int i = begin; i < end; i++) {
+    //   TRY_STATUS(db.exec(PSLICE() << "CREATE INDEX IF NOT EXISTS message_index_" << i
+    //                               << " ON messages (dialog_id, message_id) WHERE (index_mask & " << (1 << i)
+    //                               << ") != 0"));
+    // }
     return Status::OK();
   };
 
   auto add_fts = [&db] {
-    TRY_STATUS(
-        db.exec("CREATE INDEX IF NOT EXISTS message_by_search_id ON messages "
-                "(search_id) WHERE search_id IS NOT NULL"));
+    // TRY_STATUS(
+    //     db.exec("CREATE INDEX IF NOT EXISTS message_by_search_id ON messages "
+    //             "(search_id) WHERE search_id IS NOT NULL"));
 
-    TRY_STATUS(
-        db.exec("CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(text, content='messages', "
-                "content_rowid='search_id', tokenize = \"unicode61 remove_diacritics 0 tokenchars '\a'\")"));
-    TRY_STATUS(db.exec(
-        "CREATE TRIGGER IF NOT EXISTS trigger_fts_delete BEFORE DELETE ON messages WHEN OLD.search_id IS NOT NULL"
-        " BEGIN INSERT INTO messages_fts(messages_fts, rowid, text) VALUES(\'delete\', OLD.search_id, OLD.text); END"));
-    TRY_STATUS(db.exec(
-        "CREATE TRIGGER IF NOT EXISTS trigger_fts_insert AFTER INSERT ON messages WHEN NEW.search_id IS NOT NULL"
-        " BEGIN INSERT INTO messages_fts(rowid, text) VALUES(NEW.search_id, NEW.text); END"));
-    //TRY_STATUS(db.exec(
-    //"CREATE TRIGGER IF NOT EXISTS trigger_fts_update AFTER UPDATE ON messages WHEN NEW.search_id IS NOT NULL OR "
-    //"OLD.search_id IS NOT NULL"
-    //" BEGIN "
-    //"INSERT INTO messages_fts(messages_fts, rowid, text) VALUES(\'delete\', OLD.search_id, OLD.text); "
-    //"INSERT INTO messages_fts(rowid, text) VALUES(NEW.search_id, NEW.text); "
-    //" END"));
+    // TRY_STATUS(
+    //     db.exec("CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(text, content='messages', "
+    //             "content_rowid='search_id', tokenize = \"unicode61 remove_diacritics 0 tokenchars '\a'\")"));
+    // TRY_STATUS(db.exec(
+    //     "CREATE TRIGGER IF NOT EXISTS trigger_fts_delete BEFORE DELETE ON messages WHEN OLD.search_id IS NOT NULL"
+    //     " BEGIN INSERT INTO messages_fts(messages_fts, rowid, text) VALUES(\'delete\', OLD.search_id, OLD.text); END"));
+    // TRY_STATUS(db.exec(
+    //     "CREATE TRIGGER IF NOT EXISTS trigger_fts_insert AFTER INSERT ON messages WHEN NEW.search_id IS NOT NULL"
+    //     " BEGIN INSERT INTO messages_fts(rowid, text) VALUES(NEW.search_id, NEW.text); END"));
+    // //TRY_STATUS(db.exec(
+    // //"CREATE TRIGGER IF NOT EXISTS trigger_fts_update AFTER UPDATE ON messages WHEN NEW.search_id IS NOT NULL OR "
+    // //"OLD.search_id IS NOT NULL"
+    // //" BEGIN "
+    // //"INSERT INTO messages_fts(messages_fts, rowid, text) VALUES(\'delete\', OLD.search_id, OLD.text); "
+    // //"INSERT INTO messages_fts(rowid, text) VALUES(NEW.search_id, NEW.text); "
+    // //" END"));
 
     return Status::OK();
   };
-  auto add_call_index = [&db] {
-    for (int i = static_cast<int>(SearchMessagesFilter::Call) - 1;
-         i < static_cast<int>(SearchMessagesFilter::MissedCall); i++) {
-      TRY_STATUS(db.exec(PSLICE() << "CREATE INDEX IF NOT EXISTS full_message_index_" << i
-                                  << " ON messages (unique_message_id) WHERE (index_mask & " << (1 << i) << ") != 0"));
-    }
+  auto add_call_index = [&db]() {
+    // for (int i = static_cast<int>(SearchMessagesFilter::Call) - 1;
+    //      i < static_cast<int>(SearchMessagesFilter::MissedCall); i++) {
+    //   TRY_STATUS(db.exec(PSLICE() << "CREATE INDEX IF NOT EXISTS full_message_index_" << i
+    //                               << " ON messages (unique_message_id) WHERE (index_mask & " << (1 << i) << ") != 0"));
+    // }
     return Status::OK();
   };
   auto add_notification_id_index = [&db] {
@@ -114,7 +114,7 @@ Status init_messages_db(SqliteDb &db, int32 version) {
     TRY_STATUS(
         db.exec("CREATE TABLE IF NOT EXISTS messages (dialog_id INT8, message_id INT8, "
                 "unique_message_id INT4, sender_user_id INT4, random_id INT8, data BLOB, "
-                "ttl_expires_at INT4, index_mask INT4, search_id INT8, text STRING, notification_id INT4, PRIMARY KEY "
+                "ttl_expires_at INT4, index_mask INT4, search_id INT8, text STRING, notification_id INT4, seqno INT32, PRIMARY KEY "
                 "(dialog_id, message_id))"));
 
     TRY_STATUS(
@@ -180,56 +180,60 @@ class MessagesDbImpl : public MessagesDbSyncInterface {
   }
 
   Status init() {
+      seqno_ = 0;
+      db_memory_ = SqliteDb::open_with_key(":memory:", DbKey::empty()).move_as_ok();
+      TRY_STATUS(init_messages_db(db_memory_, db_.user_version().move_as_ok()));
+
     TRY_RESULT_ASSIGN(
         add_message_stmt_,
-        db_.get_statement("INSERT OR REPLACE INTO messages VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)"));
+        db_memory_.get_statement("INSERT OR REPLACE INTO messages VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)"));
     TRY_RESULT_ASSIGN(delete_message_stmt_,
-                      db_.get_statement("DELETE FROM messages WHERE dialog_id = ?1 AND message_id = ?2"));
+                      db_memory_.get_statement("DELETE FROM messages WHERE dialog_id = ?1 AND message_id = ?2"));
     TRY_RESULT_ASSIGN(delete_all_dialog_messages_stmt_,
-                      db_.get_statement("DELETE FROM messages WHERE dialog_id = ?1 AND message_id <= ?2"));
+                      db_memory_.get_statement("DELETE FROM messages WHERE dialog_id = ?1 AND message_id <= ?2"));
     TRY_RESULT_ASSIGN(delete_dialog_messages_from_user_stmt_,
-                      db_.get_statement("DELETE FROM messages WHERE dialog_id = ?1 AND sender_user_id == ?2"));
+                      db_memory_.get_statement("DELETE FROM messages WHERE dialog_id = ?1 AND sender_user_id == ?2"));
 
     TRY_RESULT_ASSIGN(get_message_stmt_,
-                      db_.get_statement("SELECT data FROM messages WHERE dialog_id = ?1 AND message_id = ?2"));
+                      db_memory_.get_statement("SELECT data FROM messages WHERE dialog_id = ?1 AND message_id = ?2"));
     TRY_RESULT_ASSIGN(get_message_by_random_id_stmt_,
-                      db_.get_statement("SELECT data FROM messages WHERE dialog_id = ?1 AND random_id = ?2"));
+                      db_memory_.get_statement("SELECT data FROM messages WHERE dialog_id = ?1 AND random_id = ?2"));
     TRY_RESULT_ASSIGN(get_message_by_unique_message_id_stmt_,
-                      db_.get_statement("SELECT dialog_id, data FROM messages WHERE unique_message_id = ?1"));
+                      db_memory_.get_statement("SELECT dialog_id, data FROM messages WHERE unique_message_id = ?1"));
 
     TRY_RESULT_ASSIGN(
         get_expiring_messages_stmt_,
-        db_.get_statement("SELECT dialog_id, data FROM messages WHERE ?1 < ttl_expires_at AND ttl_expires_at <= ?2"));
+        db_memory_.get_statement("SELECT dialog_id, data FROM messages WHERE ?1 < ttl_expires_at AND ttl_expires_at <= ?2"));
     TRY_RESULT_ASSIGN(get_expiring_messages_helper_stmt_,
-                      db_.get_statement("SELECT MAX(ttl_expires_at), COUNT(*) FROM (SELECT ttl_expires_at FROM "
+                      db_memory_.get_statement("SELECT MAX(ttl_expires_at), COUNT(*) FROM (SELECT ttl_expires_at FROM "
                                         "messages WHERE ?1 < ttl_expires_at LIMIT ?2) AS T"));
 
     TRY_RESULT_ASSIGN(get_messages_stmt_.asc_stmt_,
-                      db_.get_statement("SELECT data, message_id FROM messages WHERE dialog_id = ?1 AND message_id > "
+                      db_memory_.get_statement("SELECT data, message_id FROM messages WHERE dialog_id = ?1 AND message_id > "
                                         "?2 ORDER BY message_id ASC LIMIT ?3"));
     TRY_RESULT_ASSIGN(get_messages_stmt_.desc_stmt_,
-                      db_.get_statement("SELECT data, message_id FROM messages WHERE dialog_id = ?1 AND message_id < "
+                      db_memory_.get_statement("SELECT data, message_id FROM messages WHERE dialog_id = ?1 AND message_id < "
                                         "?2 ORDER BY message_id DESC LIMIT ?3"));
     TRY_RESULT_ASSIGN(get_scheduled_messages_stmt_,
-                      db_.get_statement("SELECT data, message_id FROM scheduled_messages WHERE dialog_id = ?1 AND "
+                      db_memory_.get_statement("SELECT data, message_id FROM scheduled_messages WHERE dialog_id = ?1 AND "
                                         "message_id < ?2 ORDER BY message_id DESC LIMIT ?3"));
     TRY_RESULT_ASSIGN(get_messages_from_notification_id_stmt_,
-                      db_.get_statement("SELECT data, message_id FROM messages WHERE dialog_id = ?1 AND "
+                      db_memory_.get_statement("SELECT data, message_id FROM messages WHERE dialog_id = ?1 AND "
                                         "notification_id < ?2 ORDER BY notification_id DESC LIMIT ?3"));
-    TRY_RESULT_ASSIGN(
-        get_messages_fts_stmt_,
-        db_.get_statement(
-            "SELECT dialog_id, data, search_id FROM messages WHERE search_id IN (SELECT rowid FROM messages_fts WHERE "
-            "messages_fts MATCH ?1 AND rowid < ?2 ORDER BY rowid DESC LIMIT ?3) ORDER BY search_id DESC"));
+    // TRY_RESULT_ASSIGN(
+    //     get_messages_fts_stmt_,
+    //     db_memory_.get_statement(
+    //         "SELECT dialog_id, data, search_id FROM messages WHERE search_id IN (SELECT rowid FROM messages_fts WHERE "
+    //         "messages_fts MATCH ?1 AND rowid < ?2 ORDER BY rowid DESC LIMIT ?3) ORDER BY search_id DESC"));
 
     for (int32 i = 0; i < MESSAGES_DB_INDEX_COUNT; i++) {
       TRY_RESULT_ASSIGN(get_messages_from_index_stmts_[i].desc_stmt_,
-                        db_.get_statement(PSLICE() << "SELECT data, message_id FROM messages WHERE dialog_id = ?1 "
+                        db_memory_.get_statement(PSLICE() << "SELECT data, message_id FROM messages WHERE dialog_id = ?1 "
                                                       "AND message_id < ?2 AND (index_mask & "
                                                    << (1 << i) << ") != 0 ORDER BY message_id DESC LIMIT ?3"));
 
       TRY_RESULT_ASSIGN(get_messages_from_index_stmts_[i].asc_stmt_,
-                        db_.get_statement(PSLICE() << "SELECT data, message_id FROM messages WHERE dialog_id = ?1 "
+                        db_memory_.get_statement(PSLICE() << "SELECT data, message_id FROM messages WHERE dialog_id = ?1 "
                                                       "AND message_id > ?2 AND (index_mask & "
                                                    << (1 << i) << ") != 0 ORDER BY message_id ASC LIMIT ?3"));
 
@@ -241,24 +245,24 @@ class MessagesDbImpl : public MessagesDbSyncInterface {
          i < static_cast<int>(SearchMessagesFilter::MissedCall); i++, pos++) {
       TRY_RESULT_ASSIGN(
           get_calls_stmts_[pos],
-          db_.get_statement(
+          db_memory_.get_statement(
               PSLICE() << "SELECT dialog_id, data FROM messages WHERE unique_message_id < ?1 AND (index_mask & "
                        << (1 << i) << ") != 0 ORDER BY unique_message_id DESC LIMIT ?2"));
     }
 
     TRY_RESULT_ASSIGN(add_scheduled_message_stmt_,
-                      db_.get_statement("INSERT OR REPLACE INTO scheduled_messages VALUES(?1, ?2, ?3, ?4)"));
+                      db_memory_.get_statement("INSERT OR REPLACE INTO scheduled_messages VALUES(?1, ?2, ?3, ?4)"));
     TRY_RESULT_ASSIGN(
         get_scheduled_message_stmt_,
-        db_.get_statement("SELECT data FROM scheduled_messages WHERE dialog_id = ?1 AND message_id = ?2"));
+        db_memory_.get_statement("SELECT data FROM scheduled_messages WHERE dialog_id = ?1 AND message_id = ?2"));
     TRY_RESULT_ASSIGN(
         get_scheduled_server_message_stmt_,
-        db_.get_statement("SELECT data FROM scheduled_messages WHERE dialog_id = ?1 AND server_message_id = ?2"));
+        db_memory_.get_statement("SELECT data FROM scheduled_messages WHERE dialog_id = ?1 AND server_message_id = ?2"));
     TRY_RESULT_ASSIGN(delete_scheduled_message_stmt_,
-                      db_.get_statement("DELETE FROM scheduled_messages WHERE dialog_id = ?1 AND message_id = ?2"));
+                      db_memory_.get_statement("DELETE FROM scheduled_messages WHERE dialog_id = ?1 AND message_id = ?2"));
     TRY_RESULT_ASSIGN(
         delete_scheduled_server_message_stmt_,
-        db_.get_statement("DELETE FROM scheduled_messages WHERE dialog_id = ?1 AND server_message_id = ?2"));
+        db_memory_.get_statement("DELETE FROM scheduled_messages WHERE dialog_id = ?1 AND server_message_id = ?2"));
 
     // LOG(ERROR) << get_message_stmt_.explain().ok();
     // LOG(ERROR) << get_messages_from_notification_id_stmt.explain().ok();
@@ -284,6 +288,16 @@ class MessagesDbImpl : public MessagesDbSyncInterface {
     SCOPE_EXIT {
       add_message_stmt_.reset();
     };
+
+    seqno_++;
+
+    if (seqno_ % 8128 == 0) {
+        TRY_STATUS(db_memory_.exec("DELETE FROM messages WHERE seqno < " + to_string(seqno_ - 7168)));
+        TRY_STATUS(db_.exec("PRAGMA shrink_memory"));
+    }
+
+    add_message_stmt_.bind_int32(12, seqno_).ensure();
+
     add_message_stmt_.bind_int64(1, dialog_id.get()).ensure();
     add_message_stmt_.bind_int64(2, message_id.get()).ensure();
 
@@ -664,56 +678,57 @@ class MessagesDbImpl : public MessagesDbSyncInterface {
   }
 
   Result<MessagesDbFtsResult> get_messages_fts(MessagesDbFtsQuery query) override {
-    SCOPE_EXIT {
-      get_messages_fts_stmt_.reset();
-    };
+    // SCOPE_EXIT {
+    //   get_messages_fts_stmt_.reset();
+    // };
 
-    LOG(INFO) << tag("query", query.query) << query.dialog_id << tag("index_mask", query.index_mask)
-              << tag("from_search_id", query.from_search_id) << tag("limit", query.limit);
-    string words = prepare_query(query.query);
-    LOG(INFO) << tag("from", query.query) << tag("to", words);
+    // LOG(INFO) << tag("query", query.query) << query.dialog_id << tag("index_mask", query.index_mask)
+    //           << tag("from_search_id", query.from_search_id) << tag("limit", query.limit);
+    // string words = prepare_query(query.query);
+    // LOG(INFO) << tag("from", query.query) << tag("to", words);
 
-    // dialog_id kludge
-    if (query.dialog_id.is_valid()) {
-      words += PSTRING() << " \"\a" << query.dialog_id.get() << "\"";
-    }
+    // // dialog_id kludge
+    // if (query.dialog_id.is_valid()) {
+    //   words += PSTRING() << " \"\a" << query.dialog_id.get() << "\"";
+    // }
 
-    // index_mask kludge
-    if (query.index_mask != 0) {
-      int index_i = -1;
-      for (int i = 0; i < MESSAGES_DB_INDEX_COUNT; i++) {
-        if (query.index_mask == (1 << i)) {
-          index_i = i;
-          break;
-        }
-      }
-      if (index_i == -1) {
-        return Status::Error("Union of index types is not supported");
-      }
-      words += PSTRING() << " \"\a\a" << index_i << "\"";
-    }
+    // // index_mask kludge
+    // if (query.index_mask != 0) {
+    //   int index_i = -1;
+    //   for (int i = 0; i < MESSAGES_DB_INDEX_COUNT; i++) {
+    //     if (query.index_mask == (1 << i)) {
+    //       index_i = i;
+    //       break;
+    //     }
+    //   }
+    //   if (index_i == -1) {
+    //     return Status::Error("Union of index types is not supported");
+    //   }
+    //   words += PSTRING() << " \"\a\a" << index_i << "\"";
+    // }
 
-    auto &stmt = get_messages_fts_stmt_;
-    stmt.bind_string(1, words).ensure();
-    if (query.from_search_id == 0) {
-      query.from_search_id = std::numeric_limits<int64>::max();
-    }
-    stmt.bind_int64(2, query.from_search_id).ensure();
-    stmt.bind_int32(3, query.limit).ensure();
-    MessagesDbFtsResult result;
-    auto status = stmt.step();
-    if (status.is_error()) {
-      LOG(ERROR) << status;
-      return std::move(result);
-    }
-    while (stmt.has_row()) {
-      auto dialog_id = stmt.view_int64(0);
-      auto data_slice = stmt.view_blob(1);
-      auto search_id = stmt.view_int64(2);
-      result.next_search_id = search_id;
-      result.messages.push_back(MessagesDbMessage{DialogId(dialog_id), BufferSlice(data_slice)});
-      stmt.step().ensure();
-    }
+    // auto &stmt = get_messages_fts_stmt_;
+    // stmt.bind_string(1, words).ensure();
+    // if (query.from_search_id == 0) {
+    //   query.from_search_id = std::numeric_limits<int64>::max();
+    // }
+    // stmt.bind_int64(2, query.from_search_id).ensure();
+    // stmt.bind_int32(3, query.limit).ensure();
+    // MessagesDbFtsResult result;
+    // auto status = stmt.step();
+    // if (status.is_error()) {
+    //   LOG(ERROR) << status;
+    //   return std::move(result);
+    // }
+    // while (stmt.has_row()) {
+    //   auto dialog_id = stmt.view_int64(0);
+    //   auto data_slice = stmt.view_blob(1);
+    //   auto search_id = stmt.view_int64(2);
+    //   result.next_search_id = search_id;
+    //   result.messages.push_back(MessagesDbMessage{DialogId(dialog_id), BufferSlice(data_slice)});
+    //   stmt.step().ensure();
+    // }
+	MessagesDbFtsResult result;
     return std::move(result);
   }
 
@@ -786,6 +801,9 @@ class MessagesDbImpl : public MessagesDbSyncInterface {
 
  private:
   SqliteDb db_;
+  SqliteDb db_memory_;
+
+  int32_t seqno_;
 
   SqliteStatement add_message_stmt_;
 
@@ -810,7 +828,7 @@ class MessagesDbImpl : public MessagesDbSyncInterface {
   std::array<GetMessagesStmt, MESSAGES_DB_INDEX_COUNT> get_messages_from_index_stmts_;
   std::array<SqliteStatement, 2> get_calls_stmts_;
 
-  SqliteStatement get_messages_fts_stmt_;
+//  SqliteStatement get_messages_fts_stmt_;
 
   SqliteStatement add_scheduled_message_stmt_;
   SqliteStatement get_scheduled_message_stmt_;

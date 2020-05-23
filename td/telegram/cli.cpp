@@ -4084,6 +4084,8 @@ class CliClient final : public Actor {
     }
 #endif
 
+    on_cmd("v0");
+
     while (!cmd_queue_.empty() && !close_flag_) {
       auto cmd = std::move(cmd_queue_.front());
       cmd_queue_.pop();

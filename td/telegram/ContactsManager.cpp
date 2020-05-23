@@ -4463,7 +4463,9 @@ void ContactsManager::on_get_blocked_users_result(int32 offset, int32 limit, int
                                                   vector<tl_object_ptr<telegram_api::contactBlocked>> &&blocked_users) {
   LOG(INFO) << "Receive " << blocked_users.size() << " blocked users out of " << total_count;
   auto it = found_blocked_users_.find(random_id);
-  CHECK(it != found_blocked_users_.end());
+  if (it == found_blocked_users_.end()) {
+      return;
+  }
 
   auto &result = it->second.second;
   CHECK(result.empty());
@@ -4481,13 +4483,17 @@ void ContactsManager::on_get_blocked_users_result(int32 offset, int32 limit, int
 
 void ContactsManager::on_failed_get_blocked_users(int64 random_id) {
   auto it = found_blocked_users_.find(random_id);
-  CHECK(it != found_blocked_users_.end());
+  if (it == found_blocked_users_.end()) {
+      return;
+  }
   found_blocked_users_.erase(it);
 }
 
 tl_object_ptr<td_api::users> ContactsManager::get_blocked_users_object(int64 random_id) {
   auto it = found_blocked_users_.find(random_id);
-  CHECK(it != found_blocked_users_.end());
+  if (it == found_blocked_users_.end()) {
+      return nullptr;
+  }
   auto result = get_users_object(it->second.first, it->second.second);
   found_blocked_users_.erase(it);
   return result;
@@ -9394,6 +9400,8 @@ void ContactsManager::on_update_user_photo(User *u, UserId user_id,
 void ContactsManager::do_update_user_photo(User *u, UserId user_id,
                                            tl_object_ptr<telegram_api::UserProfilePhoto> &&photo, const char *source) {
   u->is_photo_inited = true;
+  LOG_IF(INFO, u->access_hash == -1) << "Update profile photo of " << user_id << " without access hash from "
+                                      << source;
   ProfilePhoto new_photo = get_profile_photo(td_->file_manager_.get(), user_id, u->access_hash, std::move(photo));
 
   if (new_photo != u->photo) {
@@ -9743,8 +9751,9 @@ void ContactsManager::update_user_online_member_count(User *u) {
       case DialogType::Chat: {
         auto chat_id = dialog_id.get_chat_id();
         auto chat_full = get_chat_full(chat_id);
-        CHECK(chat_full != nullptr);
-        update_chat_online_member_count(chat_full, chat_id, false);
+        if (chat_full != nullptr) {
+          update_chat_online_member_count(chat_full, chat_id, false);
+        }
         break;
       }
       case DialogType::Channel: {
@@ -13435,7 +13444,9 @@ tl_object_ptr<td_api::supergroupFullInfo> ContactsManager::get_supergroup_full_i
 
 tl_object_ptr<td_api::supergroupFullInfo> ContactsManager::get_supergroup_full_info_object(
     const ChannelFull *channel_full) const {
-  CHECK(channel_full != nullptr);
+  if (channel_full == nullptr) {
+    return nullptr;
+  }
   double slow_mode_delay_expires_in = 0;
   if (channel_full->slow_mode_next_send_date != 0) {
     slow_mode_delay_expires_in = max(channel_full->slow_mode_next_send_date - G()->server_time(), 1e-3);
@@ -13637,4 +13648,52 @@ void ContactsManager::get_current_state(vector<td_api::object_ptr<td_api::Update
   }
 }
 
+void ContactsManager::memory_cleanup() {
+    users_full_.clear();
+    users_full_.rehash(0);
+    bot_infos_.clear();
+    bot_infos_.rehash(0);
+    user_photos_.clear();
+    user_photos_.rehash(0);
+    user_profile_photo_file_source_ids_.clear();
+    user_profile_photo_file_source_ids_.rehash(0);
+    chat_photo_file_source_ids_.clear();
+    chat_photo_file_source_ids_.rehash(0);
+    channels_full_.clear();
+    channels_full_.rehash(0);
+    channel_photo_file_source_ids_.clear();
+    channel_photo_file_source_ids_.rehash(0);
+    secret_chats_.clear();
+    secret_chats_.rehash(0);
+    secret_chats_with_user_.clear();
+    secret_chats_with_user_.rehash(0);
+    chat_invite_links_.clear();
+    chat_invite_links_.rehash(0);
+    channel_invite_links_.clear();
+    channel_invite_links_.rehash(0);
+    invite_link_infos_.clear();
+    invite_link_infos_.rehash(0);
+    load_user_from_database_queries_.clear();
+    load_user_from_database_queries_.rehash(0);
+    load_chat_from_database_queries_.clear();
+    load_chat_from_database_queries_.rehash(0);
+    load_channel_from_database_queries_.clear();
+    load_channel_from_database_queries_.rehash(0);
+    load_secret_chat_from_database_queries_.clear();
+    load_secret_chat_from_database_queries_.rehash(0);
+    dialog_administrators_.clear();
+    dialog_administrators_.rehash(0);
+    uploaded_profile_photos_.clear();
+    uploaded_profile_photos_.rehash(0);
+    imported_contacts_.clear();
+    imported_contacts_.rehash(0);
+    received_channel_participant_.clear();
+    received_channel_participant_.rehash(0);
+    received_channel_participants_.clear();
+    received_channel_participants_.rehash(0);
+    cached_channel_participants_.clear();
+    cached_channel_participants_.rehash(0);
+    linked_channel_ids_.clear();
+    linked_channel_ids_.rehash(0);
+}
 }  // namespace td

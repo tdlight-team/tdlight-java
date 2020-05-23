@@ -164,7 +164,11 @@ void NotificationManager::on_flush_pending_updates_timeout_callback(void *notifi
 }
 
 bool NotificationManager::is_disabled() const {
-  return !td_->auth_manager_->is_authorized() || td_->auth_manager_->is_bot() || G()->close_flag();
+  if ( G()->shared_config().get_option_boolean("disable_notifications")) {
+    return true;
+  } else {
+    return !td_->auth_manager_->is_authorized() || td_->auth_manager_->is_bot() || G()->close_flag();
+  }
 }
 
 StringBuilder &operator<<(StringBuilder &string_builder, const NotificationManager::ActiveNotificationsUpdate &update) {

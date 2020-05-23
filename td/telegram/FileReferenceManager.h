@@ -38,6 +38,8 @@ class FileReferenceManager : public Actor {
   static bool is_file_reference_error(const Status &error);
   static size_t get_file_reference_error_pos(const Status &error);
 
+  void memory_cleanup(FileId file_id);
+
   FileSourceId create_message_file_source(FullMessageId full_message_id);
   FileSourceId create_user_photo_file_source(UserId user_id, int64 photo_id);
   FileSourceId create_chat_photo_file_source(ChatId chat_id);

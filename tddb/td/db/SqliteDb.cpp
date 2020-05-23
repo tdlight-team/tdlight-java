@@ -50,17 +50,26 @@ SqliteDb::~SqliteDb() = default;
 Status SqliteDb::init(CSlice path, bool *was_created) {
   // If database does not exist, delete all other files which may left
   // from older database
-  bool is_db_exists = stat(path).is_ok();
-  if (!is_db_exists) {
-    TRY_STATUS(destroy(path));
+
+  if (path == ":memory:") {
+      if (was_created != nullptr) {
+        *was_created = false;
+      }
+    } else {
+      bool is_db_exists = stat(path).is_ok();
+
+      if (!is_db_exists) {
+          TRY_STATUS(destroy(path));
+      }
+
+      if (was_created != nullptr) {
+          *was_created = !is_db_exists;
+      }
   }
 
-  if (was_created != nullptr) {
-    *was_created = !is_db_exists;
-  }
   sqlite3 *db;
   CHECK(sqlite3_threadsafe() != 0);
-  int rc = sqlite3_open_v2(path.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE /*| SQLITE_OPEN_SHAREDCACHE*/,
+  int rc = sqlite3_open_v2(path.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
                            nullptr);
   if (rc != SQLITE_OK) {
     auto res = Status::Error(PSLICE() << "Failed to open database: " << detail::RawSqliteDb::last_error(db, path));
@@ -155,77 +164,19 @@ Status SqliteDb::commit_transaction() {
 }
 
 Status SqliteDb::check_encryption() {
-  auto status = exec("SELECT count(*) FROM sqlite_master");
-  if (status.is_ok()) {
-    enable_logging_ = true;
-  }
-  return status;
+  return Status::OK();
 }
 
 Result<SqliteDb> SqliteDb::open_with_key(CSlice path, const DbKey &db_key) {
   SqliteDb db;
   TRY_STATUS(db.init(path));
-  if (!db_key.is_empty()) {
-    if (db.check_encryption().is_ok()) {
-      return Status::Error(PSLICE() << "No key is needed for database \"" << path << '"');
-    }
-    auto key = db_key_to_sqlcipher_key(db_key);
-    TRY_STATUS(db.exec(PSLICE() << "PRAGMA key = " << key));
-  }
-  TRY_STATUS_PREFIX(db.check_encryption(), "Can't open database: ");
   return std::move(db);
 }
 
 Status SqliteDb::change_key(CSlice path, const DbKey &new_db_key, const DbKey &old_db_key) {
-  // fast path
-  {
-    auto r_db = open_with_key(path, new_db_key);
-    if (r_db.is_ok()) {
-      return Status::OK();
-    }
-  }
-
-  TRY_RESULT(db, open_with_key(path, old_db_key));
-  TRY_RESULT(user_version, db.user_version());
-  auto new_key = db_key_to_sqlcipher_key(new_db_key);
-  if (old_db_key.is_empty() && !new_db_key.is_empty()) {
-    LOG(DEBUG) << "ENCRYPT";
-    PerfWarningTimer timer("Encrypt SQLite database", 0.1);
-    auto tmp_path = path.str() + ".ecnrypted";
-    TRY_STATUS(destroy(tmp_path));
-
-    // make shure that database is not empty
-    TRY_STATUS(db.exec("CREATE TABLE IF NOT EXISTS encryption_dummy_table(id INT PRIMARY KEY)"));
-    //NB: not really safe
-    TRY_STATUS(db.exec(PSLICE() << "ATTACH DATABASE '" << tmp_path << "' AS encrypted KEY " << new_key));
-    TRY_STATUS(db.exec("SELECT sqlcipher_export('encrypted')"));
-    TRY_STATUS(db.exec(PSLICE() << "PRAGMA encrypted.user_version = " << user_version));
-    TRY_STATUS(db.exec("DETACH DATABASE encrypted"));
-    db.close();
-    TRY_STATUS(rename(tmp_path, path));
-  } else if (!old_db_key.is_empty() && new_db_key.is_empty()) {
-    LOG(DEBUG) << "DECRYPT";
-    PerfWarningTimer timer("Decrypt SQLite database", 0.1);
-    auto tmp_path = path.str() + ".ecnrypted";
-    TRY_STATUS(destroy(tmp_path));
-
-    //NB: not really safe
-    TRY_STATUS(db.exec(PSLICE() << "ATTACH DATABASE '" << tmp_path << "' AS decrypted KEY ''"));
-    TRY_STATUS(db.exec("SELECT sqlcipher_export('decrypted')"));
-    TRY_STATUS(db.exec(PSLICE() << "PRAGMA decrypted.user_version = " << user_version));
-    TRY_STATUS(db.exec("DETACH DATABASE decrypted"));
-    db.close();
-    TRY_STATUS(rename(tmp_path, path));
-  } else {
-    LOG(DEBUG) << "REKEY";
-    PerfWarningTimer timer("Rekey SQLite database", 0.1);
-    TRY_STATUS(db.exec(PSLICE() << "PRAGMA rekey = " << new_key));
-  }
-
-  TRY_RESULT(new_db, open_with_key(path, new_db_key));
-  LOG_CHECK(new_db.user_version().ok() == user_version) << new_db.user_version().ok() << " " << user_version;
   return Status::OK();
 }
+
 Status SqliteDb::destroy(Slice path) {
   return detail::RawSqliteDb::destroy(path);
 }

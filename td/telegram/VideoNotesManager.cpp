@@ -25,7 +25,9 @@ VideoNotesManager::VideoNotesManager(Td *td) : td_(td) {
 
 int32 VideoNotesManager::get_video_note_duration(FileId file_id) const {
   auto it = video_notes_.find(file_id);
-  CHECK(it != video_notes_.end());
+  if (it == video_notes_.end() || it->second == nullptr) {
+      return 0;
+  }
   return it->second->duration;
 }
 
@@ -35,7 +37,9 @@ tl_object_ptr<td_api::videoNote> VideoNotesManager::get_video_note_object(FileId
   }
 
   auto &video_note = video_notes_[file_id];
-  CHECK(video_note != nullptr);
+  if (video_note == nullptr) {
+      return nullptr;
+  }
   video_note->is_changed = false;
 
   return make_tl_object<td_api::videoNote>(video_note->duration, video_note->dimensions.width,
@@ -79,29 +83,37 @@ FileId VideoNotesManager::on_get_video_note(unique_ptr<VideoNote> new_video_note
 
 const VideoNotesManager::VideoNote *VideoNotesManager::get_video_note(FileId file_id) const {
   auto video_note = video_notes_.find(file_id);
-  if (video_note == video_notes_.end()) {
-    return nullptr;
+
+  if (video_note == video_notes_.end() ||
+      video_note->second == nullptr ||
+      video_note->second->file_id != file_id) {
+    return make_unique<VideoNote>().get();
   }
 
-  CHECK(video_note->second->file_id == file_id);
   return video_note->second.get();
 }
 
 FileId VideoNotesManager::get_video_note_thumbnail_file_id(FileId file_id) const {
   auto video_note = get_video_note(file_id);
-  CHECK(video_note != nullptr);
+  if (video_note == nullptr) {
+      return FileId();
+  }
   return video_note->thumbnail.file_id;
 }
 
 void VideoNotesManager::delete_video_note_thumbnail(FileId file_id) {
   auto &video_note = video_notes_[file_id];
-  CHECK(video_note != nullptr);
+  if (video_note == nullptr) {
+      return;
+  }
   video_note->thumbnail = PhotoSize();
 }
 
 FileId VideoNotesManager::dup_video_note(FileId new_id, FileId old_id) {
   const VideoNote *old_video_note = get_video_note(old_id);
-  CHECK(old_video_note != nullptr);
+  if (old_video_note == nullptr) {
+      return FileId();
+  }
   auto &new_video_note = video_notes_[new_id];
   CHECK(!new_video_note);
   new_video_note = make_unique<VideoNote>(*old_video_note);
@@ -124,7 +136,7 @@ bool VideoNotesManager::merge_video_notes(FileId new_id, FileId old_id, bool can
   }
 
   auto new_it = video_notes_.find(new_id);
-  if (new_it == video_notes_.end()) {
+  if (new_it == video_notes_.end() || new_it->second == nullptr) {
     auto &old = video_notes_[old_id];
     old->is_changed = true;
     if (!can_delete_old) {
@@ -211,7 +223,9 @@ tl_object_ptr<telegram_api::InputMedia> VideoNotesManager::get_input_media(
 
   if (input_file != nullptr) {
     const VideoNote *video_note = get_video_note(file_id);
-    CHECK(video_note != nullptr);
+    if (video_note == nullptr) {
+        return nullptr;
+    }
 
     vector<tl_object_ptr<telegram_api::DocumentAttribute>> attributes;
     attributes.push_back(make_tl_object<telegram_api::documentAttributeVideo>(
@@ -230,6 +244,11 @@ tl_object_ptr<telegram_api::InputMedia> VideoNotesManager::get_input_media(
   }
 
   return nullptr;
+}
+
+void VideoNotesManager::memory_cleanup() {
+  video_notes_.clear();
+  video_notes_.rehash(0);
 }
 
 }  // namespace td

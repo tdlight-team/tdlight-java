@@ -262,10 +262,10 @@ class LogEventStorerImpl : public Storer {
   size_t store(uint8 *ptr) const override {
     LogEventStorerUnsafe storer(ptr);
     td::store(event_, storer);
-#ifdef TD_DEBUG
-    T check_result;
-    log_event_parse(check_result, Slice(ptr, storer.get_buf())).ensure();
-#endif
+//#ifdef TD_DEBUG
+//    T check_result;
+//    log_event_parse(check_result, Slice(ptr, storer.get_buf())).ensure();
+//#endif
     return static_cast<size_t>(storer.get_buf() - ptr);
   }
 
@@ -285,10 +285,10 @@ BufferSlice log_event_store(const T &data) {
   LogEventStorerUnsafe storer_unsafe(ptr);
   store(data, storer_unsafe);
 
-#ifdef TD_DEBUG
-  T check_result;
-  log_event_parse(check_result, value_buffer.as_slice()).ensure();
-#endif
+//#ifdef TD_DEBUG
+//  T check_result;
+//  log_event_parse(check_result, value_buffer.as_slice()).ensure();
+//#endif
   return value_buffer;
 }
 

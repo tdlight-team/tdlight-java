@@ -364,4 +364,11 @@ void FileReferenceManager::reload_photo(PhotoSizeSource source, Promise<Unit> pr
   }
 }
 
+void FileReferenceManager::memory_cleanup(FileId file_id) {
+  auto &node = nodes_[file_id];
+  node.query.reset();
+  node.file_source_ids.reset_position();
+  nodes_.erase(file_id);
+}
+
 }  // namespace td

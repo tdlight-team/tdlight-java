@@ -78,7 +78,9 @@ class SaveGifQuery : public Td::ResultHandler {
   }
 
   void send(FileId file_id, tl_object_ptr<telegram_api::inputDocument> &&input_document, bool unsave) {
-    CHECK(input_document != nullptr);
+    if (input_document == nullptr) {
+        return;
+    }
     CHECK(file_id.is_valid());
     file_id_ = file_id;
     file_reference_ = input_document->file_reference_.as_slice().str();
@@ -145,7 +147,9 @@ void AnimationsManager::tear_down() {
 
 int32 AnimationsManager::get_animation_duration(FileId file_id) const {
   auto it = animations_.find(file_id);
-  CHECK(it != animations_.end());
+  if (it == animations_.end() || it->second == nullptr) {
+      return 0;
+  }
   return it->second->duration;
 }
 
@@ -155,6 +159,9 @@ tl_object_ptr<td_api::animation> AnimationsManager::get_animation_object(FileId 
   }
 
   auto &animation = animations_[file_id];
+  if (animation == nullptr) {
+      return nullptr;
+  }
   LOG_CHECK(animation != nullptr) << source << " " << file_id << " "
                                   << static_cast<int32>(td_->file_manager_->get_file_view(file_id).get_type());
   // TODO can we make that function const?
@@ -217,8 +224,8 @@ FileId AnimationsManager::on_get_animation(unique_ptr<Animation> new_animation, 
 
 const AnimationsManager::Animation *AnimationsManager::get_animation(FileId file_id) const {
   auto animation = animations_.find(file_id);
-  if (animation == animations_.end()) {
-    return nullptr;
+  if (animation == animations_.end() || animation->second == nullptr) {
+    return make_unique<Animation>().get();
   }
 
   CHECK(animation->second->file_id == file_id);
@@ -227,13 +234,17 @@ const AnimationsManager::Animation *AnimationsManager::get_animation(FileId file
 
 FileId AnimationsManager::get_animation_thumbnail_file_id(FileId file_id) const {
   auto animation = get_animation(file_id);
-  CHECK(animation != nullptr);
+  if (animation == nullptr) {
+      return FileId();
+  }
   return animation->thumbnail.file_id;
 }
 
 void AnimationsManager::delete_animation_thumbnail(FileId file_id) {
   auto &animation = animations_[file_id];
-  CHECK(animation != nullptr);
+  if (animation == nullptr) {
+      return;
+  }
   animation->thumbnail = PhotoSize();
 }
 
@@ -263,7 +274,7 @@ bool AnimationsManager::merge_animations(FileId new_id, FileId old_id, bool can_
   }
 
   auto new_it = animations_.find(new_id);
-  if (new_it == animations_.end()) {
+  if (new_it == animations_.end() || new_it->second == nullptr) {
     auto &old = animations_[old_id];
     old->is_changed = true;
     if (!can_delete_old) {
@@ -317,7 +328,9 @@ tl_object_ptr<telegram_api::InputMedia> AnimationsManager::get_input_media(
 
   if (input_file != nullptr) {
     const Animation *animation = get_animation(file_id);
-    CHECK(animation != nullptr);
+    if (animation == nullptr) {
+        return nullptr;
+    }
 
     vector<tl_object_ptr<telegram_api::DocumentAttribute>> attributes;
     if (!animation->file_name.empty()) {
@@ -354,7 +367,9 @@ SecretInputMedia AnimationsManager::get_secret_input_media(FileId animation_file
                                                            const string &caption, BufferSlice thumbnail,
                                                            int32 layer) const {
   auto *animation = get_animation(animation_file_id);
-  CHECK(animation != nullptr);
+  if (animation == nullptr) {
+      return SecretInputMedia{};
+  }
   auto file_view = td_->file_manager_->get_file_view(animation_file_id);
   auto &encryption_key = file_view.encryption_key();
   if (!file_view.is_encrypted_secret() || encryption_key.empty()) {
@@ -605,7 +620,9 @@ int32 AnimationsManager::get_saved_animations_hash(const char *source) const {
   numbers.reserve(saved_animation_ids_.size() * 2);
   for (auto animation_id : saved_animation_ids_) {
     auto animation = get_animation(animation_id);
-    CHECK(animation != nullptr);
+    if (animation == nullptr) {
+        continue;
+    }
     auto file_view = td_->file_manager_->get_file_view(animation_id);
     CHECK(file_view.has_remote_location());
     if (!file_view.remote_location().is_document()) {
@@ -808,7 +825,9 @@ FileSourceId AnimationsManager::get_saved_animations_file_source_id() {
 
 string AnimationsManager::get_animation_search_text(FileId file_id) const {
   auto animation = get_animation(file_id);
-  CHECK(animation != nullptr);
+  if (animation == nullptr) {
+      return "";
+  }
   return animation->file_name;
 }
 
@@ -826,6 +845,10 @@ void AnimationsManager::get_current_state(vector<td_api::object_ptr<td_api::Upda
   if (are_saved_animations_loaded_) {
     updates.push_back(get_update_saved_animations_object());
   }
+}
+void AnimationsManager::memory_cleanup() {
+  animations_.clear();
+  animations_.rehash(0);
 }
 
 }  // namespace td

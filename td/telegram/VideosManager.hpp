@@ -20,7 +20,9 @@ namespace td {
 template <class StorerT>
 void VideosManager::store_video(FileId file_id, StorerT &storer) const {
   auto it = videos_.find(file_id);
-  CHECK(it != videos_.end());
+  if (it == videos_.end() || it->second == nullptr) {
+      return;
+  }
   const Video *video = it->second.get();
   BEGIN_STORE_FLAGS();
   STORE_FLAG(video->has_stickers);

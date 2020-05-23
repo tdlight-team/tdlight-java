@@ -137,7 +137,9 @@ class UploadBackgroundQuery : public Td::ResultHandler {
 
   void send(FileId file_id, tl_object_ptr<telegram_api::InputFile> &&input_file, const BackgroundType &type,
             bool for_dark_theme) {
-    CHECK(input_file != nullptr);
+    if (input_file == nullptr) {
+        return;
+    }
     file_id_ = file_id;
     type_ = type;
     for_dark_theme_ = for_dark_theme;
@@ -694,7 +696,9 @@ void BackgroundManager::on_upload_background_file(FileId file_id, tl_object_ptr<
   LOG(INFO) << "Background file " << file_id << " has been uploaded";
 
   auto it = being_uploaded_files_.find(file_id);
-  CHECK(it != being_uploaded_files_.end());
+  if (it == being_uploaded_files_.end()) {
+      return;
+  }
 
   auto type = it->second.type;
   auto for_dark_theme = it->second.for_dark_theme;
@@ -715,7 +719,9 @@ void BackgroundManager::on_upload_background_file_error(FileId file_id, Status s
   CHECK(status.is_error());
 
   auto it = being_uploaded_files_.find(file_id);
-  CHECK(it != being_uploaded_files_.end());
+  if (it == being_uploaded_files_.end()) {
+      return;
+  }
 
   auto promise = std::move(it->second.promise);
 
