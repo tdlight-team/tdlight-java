@@ -528,10 +528,8 @@ public class TdApi {
 					return new InputFileGenerated(input);
 				case InputIdentityDocument.CONSTRUCTOR:
 					return new InputIdentityDocument(input);
-				case InputInlineQueryResultAnimatedGif.CONSTRUCTOR:
-					return new InputInlineQueryResultAnimatedGif(input);
-				case InputInlineQueryResultAnimatedMpeg4.CONSTRUCTOR:
-					return new InputInlineQueryResultAnimatedMpeg4(input);
+				case InputInlineQueryResultAnimation.CONSTRUCTOR:
+					return new InputInlineQueryResultAnimation(input);
 				case InputInlineQueryResultArticle.CONSTRUCTOR:
 					return new InputInlineQueryResultArticle(input);
 				case InputInlineQueryResultAudio.CONSTRUCTOR:
@@ -12908,34 +12906,38 @@ public class TdApi {
 		}
 	}
 
-	public static class InputInlineQueryResultAnimatedGif extends InputInlineQueryResult {
+	public static class InputInlineQueryResultAnimation extends InputInlineQueryResult {
 		public String id;
 		public String title;
 		public String thumbnailUrl;
-		public String gifUrl;
-		public int gifDuration;
-		public int gifWidth;
-		public int gifHeight;
+		public String thumbnailMimeType;
+		public String videoUrl;
+		public String videoMimeType;
+		public int videoDuration;
+		public int videoWidth;
+		public int videoHeight;
 		public ReplyMarkup replyMarkup;
 		public InputMessageContent inputMessageContent;
 
-		public static final int CONSTRUCTOR = -891474894;
+		public static final int CONSTRUCTOR = -1489808874;
 
-		public InputInlineQueryResultAnimatedGif() {}
+		public InputInlineQueryResultAnimation() {}
 
-		public InputInlineQueryResultAnimatedGif(String id, String title, String thumbnailUrl, String gifUrl, int gifDuration, int gifWidth, int gifHeight, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
+		public InputInlineQueryResultAnimation(String id, String title, String thumbnailUrl, String thumbnailMimeType, String videoUrl, String videoMimeType, int videoDuration, int videoWidth, int videoHeight, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
 			this.id = id;
 			this.title = title;
 			this.thumbnailUrl = thumbnailUrl;
-			this.gifUrl = gifUrl;
-			this.gifDuration = gifDuration;
-			this.gifWidth = gifWidth;
-			this.gifHeight = gifHeight;
+			this.thumbnailMimeType = thumbnailMimeType;
+			this.videoUrl = videoUrl;
+			this.videoMimeType = videoMimeType;
+			this.videoDuration = videoDuration;
+			this.videoWidth = videoWidth;
+			this.videoHeight = videoHeight;
 			this.replyMarkup = replyMarkup;
 			this.inputMessageContent = inputMessageContent;
 		}
 
-		public InputInlineQueryResultAnimatedGif(DataInput input) throws IOException {
+		public InputInlineQueryResultAnimation(DataInput input) throws IOException {
 			if (input.readBoolean()) {
 				var idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
@@ -12952,13 +12954,23 @@ public class TdApi {
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var gifUrlTmp = new byte[input.readInt()];
-				input.readFully(gifUrlTmp);
-				this.gifUrl = new String(gifUrlTmp, StandardCharsets.UTF_8);
+				var thumbnailMimeTypeTmp = new byte[input.readInt()];
+				input.readFully(thumbnailMimeTypeTmp);
+				this.thumbnailMimeType = new String(thumbnailMimeTypeTmp, StandardCharsets.UTF_8);
 			}
-			this.gifDuration = input.readInt();
-			this.gifWidth = input.readInt();
-			this.gifHeight = input.readInt();
+			if (input.readBoolean()) {
+				var videoUrlTmp = new byte[input.readInt()];
+				input.readFully(videoUrlTmp);
+				this.videoUrl = new String(videoUrlTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				var videoMimeTypeTmp = new byte[input.readInt()];
+				input.readFully(videoMimeTypeTmp);
+				this.videoMimeType = new String(videoMimeTypeTmp, StandardCharsets.UTF_8);
+			}
+			this.videoDuration = input.readInt();
+			this.videoWidth = input.readInt();
+			this.videoHeight = input.readInt();
 			if (input.readBoolean()) {
 				switch(input.readInt()) {
 					case ReplyMarkupRemoveKeyboard.CONSTRUCTOR:
@@ -13066,201 +13078,33 @@ public class TdApi {
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
-			if (this.gifUrl == null) {
+			if (this.thumbnailMimeType == null) {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var gifUrlTmp = this.gifUrl.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(gifUrlTmp.length);
-				output.write(gifUrlTmp);
+				var thumbnailMimeTypeTmp = this.thumbnailMimeType.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(thumbnailMimeTypeTmp.length);
+				output.write(thumbnailMimeTypeTmp);
 			}
-			output.writeInt(this.gifDuration);
-			output.writeInt(this.gifWidth);
-			output.writeInt(this.gifHeight);
-			if (this.replyMarkup == null) {
+			if (this.videoUrl == null) {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				this.replyMarkup.serialize(output);
+				var videoUrlTmp = this.videoUrl.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(videoUrlTmp.length);
+				output.write(videoUrlTmp);
 			}
-			if (this.inputMessageContent == null) {
+			if (this.videoMimeType == null) {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				this.inputMessageContent.serialize(output);
+				var videoMimeTypeTmp = this.videoMimeType.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(videoMimeTypeTmp.length);
+				output.write(videoMimeTypeTmp);
 			}
-		}
-	}
-
-	public static class InputInlineQueryResultAnimatedMpeg4 extends InputInlineQueryResult {
-		public String id;
-		public String title;
-		public String thumbnailUrl;
-		public String mpeg4Url;
-		public int mpeg4Duration;
-		public int mpeg4Width;
-		public int mpeg4Height;
-		public ReplyMarkup replyMarkup;
-		public InputMessageContent inputMessageContent;
-
-		public static final int CONSTRUCTOR = -1629529888;
-
-		public InputInlineQueryResultAnimatedMpeg4() {}
-
-		public InputInlineQueryResultAnimatedMpeg4(String id, String title, String thumbnailUrl, String mpeg4Url, int mpeg4Duration, int mpeg4Width, int mpeg4Height, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
-			this.id = id;
-			this.title = title;
-			this.thumbnailUrl = thumbnailUrl;
-			this.mpeg4Url = mpeg4Url;
-			this.mpeg4Duration = mpeg4Duration;
-			this.mpeg4Width = mpeg4Width;
-			this.mpeg4Height = mpeg4Height;
-			this.replyMarkup = replyMarkup;
-			this.inputMessageContent = inputMessageContent;
-		}
-
-		public InputInlineQueryResultAnimatedMpeg4(DataInput input) throws IOException {
-			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
-				input.readFully(idTmp);
-				this.id = new String(idTmp, StandardCharsets.UTF_8);
-			}
-			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
-				input.readFully(titleTmp);
-				this.title = new String(titleTmp, StandardCharsets.UTF_8);
-			}
-			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
-				input.readFully(thumbnailUrlTmp);
-				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
-			}
-			if (input.readBoolean()) {
-				var mpeg4UrlTmp = new byte[input.readInt()];
-				input.readFully(mpeg4UrlTmp);
-				this.mpeg4Url = new String(mpeg4UrlTmp, StandardCharsets.UTF_8);
-			}
-			this.mpeg4Duration = input.readInt();
-			this.mpeg4Width = input.readInt();
-			this.mpeg4Height = input.readInt();
-			if (input.readBoolean()) {
-				switch(input.readInt()) {
-					case ReplyMarkupRemoveKeyboard.CONSTRUCTOR:
-						this.replyMarkup = new ReplyMarkupRemoveKeyboard(input);
-						break;
-					case ReplyMarkupForceReply.CONSTRUCTOR:
-						this.replyMarkup = new ReplyMarkupForceReply(input);
-						break;
-					case ReplyMarkupShowKeyboard.CONSTRUCTOR:
-						this.replyMarkup = new ReplyMarkupShowKeyboard(input);
-						break;
-					case ReplyMarkupInlineKeyboard.CONSTRUCTOR:
-						this.replyMarkup = new ReplyMarkupInlineKeyboard(input);
-						break;
-					default:
-						throw new UnsupportedOperationException();
-				}
-			}
-			if (input.readBoolean()) {
-				switch(input.readInt()) {
-					case InputMessageText.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageText(input);
-						break;
-					case InputMessageAnimation.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageAnimation(input);
-						break;
-					case InputMessageAudio.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageAudio(input);
-						break;
-					case InputMessageDocument.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageDocument(input);
-						break;
-					case InputMessagePhoto.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessagePhoto(input);
-						break;
-					case InputMessageSticker.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageSticker(input);
-						break;
-					case InputMessageVideo.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageVideo(input);
-						break;
-					case InputMessageVideoNote.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageVideoNote(input);
-						break;
-					case InputMessageVoiceNote.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageVoiceNote(input);
-						break;
-					case InputMessageLocation.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageLocation(input);
-						break;
-					case InputMessageVenue.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageVenue(input);
-						break;
-					case InputMessageContact.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageContact(input);
-						break;
-					case InputMessageDice.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageDice(input);
-						break;
-					case InputMessageGame.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageGame(input);
-						break;
-					case InputMessageInvoice.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageInvoice(input);
-						break;
-					case InputMessagePoll.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessagePoll(input);
-						break;
-					case InputMessageForwarded.CONSTRUCTOR:
-						this.inputMessageContent = new InputMessageForwarded(input);
-						break;
-					default:
-						throw new UnsupportedOperationException();
-				}
-			}
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			if (this.id == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(idTmp.length);
-				output.write(idTmp);
-			}
-			if (this.title == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(titleTmp.length);
-				output.write(titleTmp);
-			}
-			if (this.thumbnailUrl == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(thumbnailUrlTmp.length);
-				output.write(thumbnailUrlTmp);
-			}
-			if (this.mpeg4Url == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				var mpeg4UrlTmp = this.mpeg4Url.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(mpeg4UrlTmp.length);
-				output.write(mpeg4UrlTmp);
-			}
-			output.writeInt(this.mpeg4Duration);
-			output.writeInt(this.mpeg4Width);
-			output.writeInt(this.mpeg4Height);
+			output.writeInt(this.videoDuration);
+			output.writeInt(this.videoWidth);
+			output.writeInt(this.videoHeight);
 			if (this.replyMarkup == null) {
 				output.writeBoolean(false);
 			} else {
@@ -41696,11 +41540,8 @@ public class TdApi {
 				this.results = new InputInlineQueryResult[input.readInt()];
 				for (int i = 0; i < this.results.length; i++) {
 					switch(input.readInt()) {
-						case InputInlineQueryResultAnimatedGif.CONSTRUCTOR:
-							this.results[i] = new InputInlineQueryResultAnimatedGif(input);
-							break;
-						case InputInlineQueryResultAnimatedMpeg4.CONSTRUCTOR:
-							this.results[i] = new InputInlineQueryResultAnimatedMpeg4(input);
+						case InputInlineQueryResultAnimation.CONSTRUCTOR:
+							this.results[i] = new InputInlineQueryResultAnimation(input);
 							break;
 						case InputInlineQueryResultArticle.CONSTRUCTOR:
 							this.results[i] = new InputInlineQueryResultArticle(input);
