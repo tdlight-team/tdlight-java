@@ -3762,9 +3762,6 @@ void FileManager::memory_cleanup() {
             /* DESTROY MAIN QUERY */
             destroy_query(it->first);
 
-            /* DESTROY FILE REFERENCE */
-            context_->destroy_file_source(node.main_file_id_);
-
             /* DESTROY MAIN NODE */
             file_nodes_.erase(it->first);
 
@@ -3780,6 +3777,7 @@ void FileManager::memory_cleanup() {
     }
 
     for (auto file_id : file_to_be_deleted) {
+      context_->destroy_file_source({file_id, 0});
       file_id_info_.erase(file_id);
     }
   }
@@ -3814,6 +3812,10 @@ void FileManager::memory_cleanup() {
           file_nodes_.erase(it++);
         } else {
           if (file_id_info_[it->second.main_file_id_.get()].node_id_ == 0) {
+            for (auto &file_id : it->second.file_ids_) {
+              context_->destroy_file_source(file_id);
+              file_id_info_.erase(file_id.get());
+            }
             file_id_info_.erase(it->second.main_file_id_.get());
             file_nodes_.erase(it++);
           } else {
@@ -3886,8 +3888,9 @@ void FileManager::memory_cleanup() {
   {
     auto it = file_id_info_.begin();
     while (it != file_id_info_.end()) {
-      if (&it->second == nullptr || file_nodes_[it->second.node_id_].empty) {
+      if (file_nodes_[it->second.node_id_].empty) {
         file_id_info_.erase(it++);
+        context_->destroy_file_source({it->first, 0});
       } else {
         ++it;
       }
