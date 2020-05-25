@@ -4,7 +4,9 @@ TDLib and TDLight are interchangeable, so switching to TDLight or switching back
 
 ## Added features
 ### Memory cleanup
-TDLight can clean itself and release some ram to the OS if you want. Look at OptimizeStorage in "Modified features" to see how.
+TDLight can clean itself and release some ram to the OS if you want. Look at **TdApi.OptimizeStorage** in "Modified features" paragraph to see how.
+### Constant memory usage
+TDLight if used with care doesn't grow in memory usage with time. Look at **TdApi.OptimizeStorage** in "Modified features" paragraph to see how
 ### Custom options
 We added some options:
 * **disable_minithumbnails** (true/false) This setting removes minithumbnails everywhere. It reduces memory usage because tdlib keeps them in RAM.
