@@ -27,6 +27,11 @@ Removing cached values can cause problems if you don't take the following precau
       1. **NOT** use again the old file ids because they have been deleted! (Example: If you receive the file 12 after OptimizeStorage is not the same file 12 that you received before *TdApi.OptimizeStorage*, because the id 12 has been reused)
       2. Re-enable internet connection using *TdApi.DisableProxy*
 
+## Removed features
+### Local databases encryption
+Local databases are no longer encrypted and deleted data is no longer overwritten with zeroes. This reduces IOPS and helps TDLight preserving SSDs life.
+### Local text indicization
+TDLight removed completely local text indicization, so if you search for some text it will search it through telegram servers.
 
 ## Other reccomended options
 * Options:
