@@ -35,6 +35,8 @@ Removing cached values can cause problems if you don't take the following precau
     * ignore_platform_restrictions: true
     * ignore_sensitive_content_restrictions: true
 * Disable all the databases (messages_db, users_db, files_db)
+
+
 -----
 
 
