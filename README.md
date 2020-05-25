@@ -1,3 +1,35 @@
+# TDLight
+TDLight is a fork of tdlib focused on memory footprint and performance.
+TDLib and TDLight are interchangeable, so switching to TDLight or switching back to TDLib doesn't require changes in your code.
+
+## Added features
+### Memory cleanup
+TDLight can clean itself and release some ram to the OS if you want. Look at OptimizeStorage in "Modified features" to see how.
+### Custom options
+We added some options:
+* **disable_minithumbnails** (true/false) This setting removes minithumbnails everywhere. It reduces memory usage because tdlib keeps them in RAM.
+* **disable_document_filenames** (true/false) If you don't care about having the original filenames of every file stored in RAM, you can disable them using this option. It reduces memory usage.
+* **disable_notifications** (true/false) In TDLib pending notification updates are stored in ram until you "read" them. This option disables completely notifications and keeps the pending notifications queue empty, reducing memory usage.
+
+## Modified features
+### TdApi.OptimizeStorage
+This method was used to optimize the database originally.
+Now it also cleans the RAM, removing almost all cached values from it and releasing the memory back to the OS.
+
+Removing cached values can cause problems if you don't take the following precautions:
+  1. Before calling *TdApi.OptimizeStorage* you must:
+      1. Read all the pending updates to empty the pending updates queue.
+      2. Disable internet connection using *TdApi.AddProxy* and *TdApi.SetProxy* pointing to a random domain that doesn't exist.
+  2. Call *TdApi.OptimizeStorage*
+  3. After calling *TdApi.OptimizeStorage* you must:
+      1. **NOT** use again the old file ids because they have been deleted! (Example: If you receive the file 12 after OptimizeStorage is not the same file 12 that you received before *TdApi.OptimizeStorage*, because the id 12 has been reused)
+      2. Re-enable internet connection using *TdApi.DisableProxy*
+
+
+
+
+The following text is the classic tdlib readme:
+
 # TDLib
 
 TDLib (Telegram Database library) is a cross-platform library for building [Telegram](https://telegram.org) clients. It can be easily used from almost any programming language.
