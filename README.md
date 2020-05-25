@@ -27,7 +27,7 @@ Removing cached values can cause problems if you don't take the following precau
       1. **NOT** use again the old file ids because they have been deleted! (Example: If you receive the file 12 after OptimizeStorage is not the same file 12 that you received before *TdApi.OptimizeStorage*, because the id 12 has been reused)
       2. Re-enable internet connection using *TdApi.DisableProxy*
 
-
+-----
 
 
 The following text is the classic tdlib readme:
