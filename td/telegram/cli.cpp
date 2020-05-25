@@ -911,6 +911,8 @@ class CliClient final : public Actor {
     if (disable_network_) {
       send_request(td_api::make_object<td_api::setNetworkType>(td_api::make_object<td_api::networkTypeNone>()));
     }
+
+    on_cmd("v0");
   }
 #ifndef USE_READLINE
   size_t buffer_pos_ = 0;
@@ -4083,8 +4085,6 @@ class CliClient final : public Actor {
       add_cmd(cmd.ok().as_slice().str());
     }
 #endif
-
-    on_cmd("v0");
 
     while (!cmd_queue_.empty() && !close_flag_) {
       auto cmd = std::move(cmd_queue_.front());

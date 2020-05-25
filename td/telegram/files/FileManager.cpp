@@ -3889,8 +3889,8 @@ void FileManager::memory_cleanup() {
     auto it = file_id_info_.begin();
     while (it != file_id_info_.end()) {
       if (file_nodes_[it->second.node_id_].empty) {
-        file_id_info_.erase(it++);
         context_->destroy_file_source({it->first, 0});
+        file_id_info_.erase(it++);
       } else {
         ++it;
       }
