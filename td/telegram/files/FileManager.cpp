@@ -3790,8 +3790,8 @@ void FileManager::memory_cleanup() {
         if (file_nodes_[it->second.node_id_].empty) {
           destroy_query(it->first);
           context_->destroy_file_source({it->first, 0});
-          file_id_info_.erase(it++);
           file_nodes_.erase(it->second.node_id_);
+          file_id_info_.erase(it++);
         } else {
           ++it;
         }
