@@ -64,14 +64,16 @@ class BoundedExecutorServiceImpl extends ThreadPoolExecutor implements BoundedEx
 			}
 		}
 		semaphore.acquire();
-		var queueSize = getQueue().size();
-		synchronized (queueSizeStatusLock) {
-			if (queueSizeStatus != null) queueSizeStatus.accept(queueSize >= maxQueueSize, queueSize);
-		}
 	}
 
 	@Override
 	public void beforeExecute(Thread t, Runnable r) {
+
+		var queueSize = getQueue().size();
+		synchronized (queueSizeStatusLock) {
+			if (queueSizeStatus != null) queueSizeStatus.accept(queueSize >= maxQueueSize, queueSize);
+		}
+
 		semaphore.release();
 
 		super.beforeExecute(t, r);
