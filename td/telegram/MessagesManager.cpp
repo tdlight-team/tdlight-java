@@ -6179,11 +6179,13 @@ void MessagesManager::on_user_dialog_action(DialogId dialog_id, UserId user_id,
     }
   }
 
-  LOG(DEBUG) << "Send action of " << user_id << " in " << dialog_id << ": " << to_string(action);
-  send_closure(G()->td(), &Td::send_update,
-               make_tl_object<td_api::updateUserChatAction>(
-                   dialog_id.get(), td_->contacts_manager_->get_user_id_object(user_id, "on_user_dialog_action"),
-                   std::move(action)));
+  if (!G()->shared_config().get_option_boolean("ignore_update_user_chat_action")) {
+    LOG(DEBUG) << "Send action of " << user_id << " in " << dialog_id << ": " << to_string(action);
+    send_closure(G()->td(), &Td::send_update,
+                 make_tl_object<td_api::updateUserChatAction>(
+                     dialog_id.get(), td_->contacts_manager_->get_user_id_object(user_id, "on_user_dialog_action"),
+                     std::move(action)));
+  }
 }
 
 void MessagesManager::cancel_user_dialog_action(DialogId dialog_id, const Message *m) {
@@ -23021,14 +23023,16 @@ void MessagesManager::send_update_chat_last_message(Dialog *d, const char *sourc
 }
 
 void MessagesManager::send_update_chat_last_message_impl(const Dialog *d, const char *source) const {
-  CHECK(d != nullptr);
-  LOG_CHECK(d->is_update_new_chat_sent) << "Wrong " << d->dialog_id << " in send_update_chat_last_message from "
-                                        << source;
-  LOG(INFO) << "Send updateChatLastMessage in " << d->dialog_id << " to " << d->last_message_id << " from " << source;
-  auto update = make_tl_object<td_api::updateChatLastMessage>(
-      d->dialog_id.get(), get_message_object(d->dialog_id, get_message(d, d->last_message_id)),
-      get_dialog_order_object(d));
-  send_closure(G()->td(), &Td::send_update, std::move(update));
+  if (!G()->shared_config().get_option_boolean("ignore_update_chat_last_message")) {
+    CHECK(d != nullptr);
+    LOG_CHECK(d->is_update_new_chat_sent)
+        << "Wrong " << d->dialog_id << " in send_update_chat_last_message from " << source;
+    LOG(INFO) << "Send updateChatLastMessage in " << d->dialog_id << " to " << d->last_message_id << " from " << source;
+    auto update = make_tl_object<td_api::updateChatLastMessage>(
+        d->dialog_id.get(), get_message_object(d->dialog_id, get_message(d, d->last_message_id)),
+        get_dialog_order_object(d));
+    send_closure(G()->td(), &Td::send_update, std::move(update));
+  }
 }
 
 void MessagesManager::send_update_unread_message_count(FolderId folder_id, DialogId dialog_id, bool force,
@@ -23138,9 +23142,12 @@ void MessagesManager::send_update_chat_read_inbox(const Dialog *d, bool force, c
     postponed_chat_read_inbox_updates_.erase(d->dialog_id);
     LOG(INFO) << "Send updateChatReadInbox in " << d->dialog_id << "(" << get_dialog_title(d->dialog_id) << ") to "
               << d->server_unread_count << " + " << d->local_unread_count << " from " << source;
-    send_closure(G()->td(), &Td::send_update,
-                 make_tl_object<td_api::updateChatReadInbox>(d->dialog_id.get(), d->last_read_inbox_message_id.get(),
-                                                             d->server_unread_count + d->local_unread_count));
+
+    if (!G()->shared_config().get_option_boolean("ignore_update_chat_read_inbox")) {
+      send_closure(G()->td(), &Td::send_update,
+                   make_tl_object<td_api::updateChatReadInbox>(d->dialog_id.get(), d->last_read_inbox_message_id.get(),
+                                                               d->server_unread_count + d->local_unread_count));
+    }
   }
 }
 

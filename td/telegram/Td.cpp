@@ -6917,19 +6917,30 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
         return;
       }
       if (!is_bot && set_boolean_option("disable_top_chats")) {
-	        return;
+        return;
       }
+
       // Start custom-patches
       if (set_boolean_option("disable_document_filenames")) {
-	        return;
+        return;
       }
       if (set_boolean_option("disable_minithumbnails")) {
-	        return;
+        return;
       }
       if (set_boolean_option("disable_notifications")) {
-	        return;
+        return;
+      }
+      if (set_boolean_option("ignore_update_chat_last_message")) {
+        return;
+      }
+      if (set_boolean_option("ignore_update_chat_read_inbox")) {
+        return;
+      }
+      if (set_boolean_option("ignore_update_user_chat_action")) {
+        return;
       }
       // End custom-patches
+
       if (request.name_ == "drop_notification_ids") {
         G()->td_db()->get_binlog_pmc()->erase("notification_id_current");
         G()->td_db()->get_binlog_pmc()->erase("notification_group_id_current");
