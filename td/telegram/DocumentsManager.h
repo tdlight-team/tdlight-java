@@ -74,7 +74,7 @@ class DocumentsManager {
     }
   };
 
-  tl_object_ptr<td_api::document> get_document_object(FileId file_id);
+  tl_object_ptr<td_api::document> get_document_object(FileId file_id, PhotoFormat thumbnail_format);
 
   void memory_cleanup();
 

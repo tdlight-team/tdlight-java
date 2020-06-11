@@ -15,8 +15,6 @@
 
 namespace td {
 
-ListNode net_query_list_;
-
 int32 NetQuery::get_my_id() {
   return G()->get_my_id();
 }
@@ -64,25 +62,34 @@ void NetQuery::set_error(Status status, string source) {
   set_error_impl(std::move(status), std::move(source));
 }
 
+TsList<NetQueryDebug> &NetQuery::get_net_query_list() {
+  static TsList<NetQueryDebug> net_query_list;
+  return net_query_list;
+}
+
 void dump_pending_network_queries() {
   auto n = NetQueryCounter::get_count();
   LOG(WARNING) << tag("pending net queries", n);
 
   decltype(n) i = 0;
   bool was_gap = false;
-  for (auto end = &net_query_list_, cur = end->prev; cur != end; cur = cur->prev, i++) {
+  auto &net_query_list = NetQuery::get_net_query_list();
+  auto guard = net_query_list.lock();
+  for (auto end = net_query_list.end(), cur = net_query_list.begin(); cur != end; cur = cur->get_next(), i++) {
     if (i < 20 || i + 20 > n || i % (n / 20 + 1) == 0) {
       if (was_gap) {
         LOG(WARNING) << "...";
         was_gap = false;
       }
-      auto nq = &static_cast<NetQuery &>(*cur);
-      LOG(WARNING) << tag("id", nq->my_id_) << *nq << tag("total_flood", format::as_time(nq->total_timeout)) << " "
-                   << tag("since start", format::as_time(Time::now_cached() - nq->start_timestamp_))
-                   << tag("state", nq->debug_str_)
-                   << tag("since state", format::as_time(Time::now_cached() - nq->debug_timestamp_))
-                   << tag("resend_cnt", nq->debug_resend_cnt_) << tag("fail_cnt", nq->debug_send_failed_cnt_)
-                   << tag("ack", nq->debug_ack) << tag("unknown", nq->debug_unknown);
+      const NetQueryDebug &debug = cur->get_data_unsafe();
+      const NetQuery &nq = *static_cast<const NetQuery *>(cur);
+      LOG(WARNING) << tag("user", debug.my_id_) << nq << tag("total flood", format::as_time(nq.total_timeout_))
+                   << tag("since start", format::as_time(Time::now_cached() - debug.start_timestamp_))
+                   << tag("state", debug.state_)
+                   << tag("in this state", format::as_time(Time::now_cached() - debug.state_timestamp_))
+                   << tag("state changed", debug.state_change_count_) << tag("resend count", debug.resend_count_)
+                   << tag("fail count", debug.send_failed_count_) << tag("ack state", debug.ack_state_)
+                   << tag("unknown", debug.unknown_state_);
     } else {
       was_gap = true;
     }

@@ -24,7 +24,10 @@
 #include "td/telegram/ContactsManager.h"
 #include "td/telegram/DeviceTokenManager.h"
 #include "td/telegram/DialogAdministrator.h"
+#include "td/telegram/DialogFilter.h"
+#include "td/telegram/DialogFilterId.h"
 #include "td/telegram/DialogId.h"
+#include "td/telegram/DialogListId.h"
 #include "td/telegram/DialogLocation.h"
 #include "td/telegram/DialogParticipant.h"
 #include "td/telegram/DialogSource.h"
@@ -830,15 +833,34 @@ class GetChatRequest : public RequestActor<> {
   }
 };
 
+class GetChatFilterRequest : public RequestActor<> {
+  DialogFilterId dialog_filter_id_;
+
+  void do_run(Promise<Unit> &&promise) override {
+    td->messages_manager_->load_dialog_filter(dialog_filter_id_, get_tries() < 2, std::move(promise));
+  }
+
+  void do_send_result() override {
+    send_result(td->messages_manager_->get_chat_filter_object(dialog_filter_id_));
+  }
+
+ public:
+  GetChatFilterRequest(ActorShared<Td> td, uint64 request_id, int32 dialog_filter_id)
+      : RequestActor(std::move(td), request_id), dialog_filter_id_(dialog_filter_id) {
+    set_tries(3);
+  }
+};
+
 class GetChatsRequest : public RequestActor<> {
-  FolderId folder_id_;
+  DialogListId dialog_list_id_;
   DialogDate offset_;
   int32 limit_;
 
   vector<DialogId> dialog_ids_;
 
   void do_run(Promise<Unit> &&promise) override {
-    dialog_ids_ = td->messages_manager_->get_dialogs(folder_id_, offset_, limit_, get_tries() < 2, std::move(promise));
+    dialog_ids_ =
+        td->messages_manager_->get_dialogs(dialog_list_id_, offset_, limit_, get_tries() < 2, std::move(promise));
   }
 
   void do_send_result() override {
@@ -846,10 +868,10 @@ class GetChatsRequest : public RequestActor<> {
   }
 
  public:
-  GetChatsRequest(ActorShared<Td> td, uint64 request_id, FolderId folder_id, int64 offset_order, int64 offset_dialog_id,
-                  int32 limit)
+  GetChatsRequest(ActorShared<Td> td, uint64 request_id, DialogListId dialog_list_id, int64 offset_order,
+                  int64 offset_dialog_id, int32 limit)
       : RequestActor(std::move(td), request_id)
-      , folder_id_(folder_id)
+      , dialog_list_id_(dialog_list_id)
       , offset_(offset_order, DialogId(offset_dialog_id))
       , limit_(limit) {
     // 1 for database + 1 for server request + 1 for server request at the end + 1 for return + 1 just in case
@@ -3147,6 +3169,7 @@ void Td::on_get_promo_data(Result<telegram_api::object_ptr<telegram_api::help_Pr
 }
 
 void Td::schedule_get_promo_data(int32 expires_in) {
+  LOG(INFO) << "Schedule getPromoData in " << expires_in;
   if (expires_in < 0) {
     LOG(ERROR) << "Receive wrong expires_in: " << expires_in;
     expires_in = 0;
@@ -3208,6 +3231,7 @@ bool Td::is_synchronous_request(int32 id) {
     case td_api::getFileExtension::ID:
     case td_api::cleanFileName::ID:
     case td_api::getLanguagePackString::ID:
+    case td_api::getChatFilterDefaultIconName::ID:
     case td_api::getJsonValue::ID:
     case td_api::getJsonString::ID:
     case td_api::getPushReceiverId::ID:
@@ -3258,7 +3282,6 @@ bool Td::is_preauthentication_request(int32 id) {
     case td_api::setCustomLanguagePackString::ID:
     case td_api::deleteLanguagePack::ID:
     case td_api::processPushNotification::ID:
-    // case td_api::sendTonLiteServerRequest::ID:
     case td_api::getOption::ID:
     case td_api::setOption::ID:
     case td_api::getStorageStatistics::ID:
@@ -3431,6 +3454,7 @@ td_api::object_ptr<td_api::Object> Td::static_request(td_api::object_ptr<td_api:
       case td_api::getFileMimeType::ID:
       case td_api::getFileExtension::ID:
       case td_api::cleanFileName::ID:
+      case td_api::getChatFilterDefaultIconName::ID:
       case td_api::getJsonValue::ID:
       case td_api::getJsonString::ID:
       case td_api::testReturnError::ID:
@@ -3545,7 +3569,7 @@ void Td::on_result(NetQueryPtr query) {
 bool Td::is_internal_config_option(Slice name) {
   switch (name[0]) {
     case 'a':
-      return name == "auth";
+      return name == "animation_search_emojis" || name == "animation_search_provider" || name == "auth";
     case 'b':
       return name == "base_language_pack_version";
     case 'c':
@@ -3585,6 +3609,10 @@ void Td::on_config_option_updated(const string &name) {
     return on_authorization_lost();
   } else if (name == "saved_animations_limit") {
     return animations_manager_->on_update_saved_animations_limit(G()->shared_config().get_option_integer(name));
+  } else if (name == "animation_search_emojis") {
+    return animations_manager_->on_update_animation_search_emojis(G()->shared_config().get_option_string(name));
+  } else if (name == "animation_search_provider") {
+    return animations_manager_->on_update_animation_search_provider(G()->shared_config().get_option_string(name));
   } else if (name == "recent_stickers_limit") {
     return stickers_manager_->on_update_recent_stickers_limit(G()->shared_config().get_option_integer(name));
   } else if (name == "favorite_stickers_limit") {
@@ -4430,6 +4458,7 @@ void Td::send_get_nearest_dc_query(Promise<string> promise) {
 }
 
 void Td::send_update(tl_object_ptr<td_api::Update> &&object) {
+  CHECK(object != nullptr);
   auto object_id = object->get_id();
   if (close_flag_ >= 5 && object_id != td_api::updateAuthorizationState::ID) {
     // just in case
@@ -4456,7 +4485,8 @@ void Td::send_update(tl_object_ptr<td_api::Update> &&object) {
     case td_api::updateUnreadChatCount::ID / 2:
     case td_api::updateChatOnlineMemberCount::ID / 2:
     case td_api::updateUserChatAction::ID / 2:
-    case td_api::updateDiceEmojis::ID / 2:
+    case td_api::updateChatFilters::ID / 2:
+    case td_api::updateChatPosition::ID / 2:
       LOG(ERROR) << "Sending update: " << oneline(to_string(object));
       break;
     default:
@@ -5306,7 +5336,7 @@ void Td::on_request(uint64 id, const td_api::removeTopChat &request) {
 
 void Td::on_request(uint64 id, const td_api::getChats &request) {
   CHECK_IS_USER();
-  CREATE_REQUEST(GetChatsRequest, FolderId(request.chat_list_), request.offset_order_, request.offset_chat_id_,
+  CREATE_REQUEST(GetChatsRequest, DialogListId(request.chat_list_), request.offset_order_, request.offset_chat_id_,
                  request.limit_);
 }
 
@@ -5449,7 +5479,11 @@ void Td::on_request(uint64 id, td_api::searchSecretMessages &request) {
 void Td::on_request(uint64 id, td_api::searchMessages &request) {
   CHECK_IS_USER();
   CLEAN_INPUT_STRING(request.query_);
-  CREATE_REQUEST(SearchMessagesRequest, FolderId(request.chat_list_), request.chat_list_ == nullptr,
+  DialogListId dialog_list_id(request.chat_list_);
+  if (!dialog_list_id.is_folder()) {
+    return send_error_raw(id, 400, "Wrong chat list specified");
+  }
+  CREATE_REQUEST(SearchMessagesRequest, dialog_list_id.get_folder_id(), request.chat_list_ == nullptr,
                  std::move(request.query_), request.offset_date_, request.offset_chat_id_, request.offset_message_id_,
                  request.limit_);
 }
@@ -5859,10 +5893,66 @@ void Td::on_request(uint64 id, const td_api::upgradeBasicGroupChatToSupergroupCh
   CREATE_REQUEST(UpgradeGroupChatToSupergroupChatRequest, request.chat_id_);
 }
 
-void Td::on_request(uint64 id, const td_api::setChatChatList &request) {
+void Td::on_request(uint64 id, const td_api::getChatListsToAddChat &request) {
+  CHECK_IS_USER();
+  auto dialog_lists = messages_manager_->get_dialog_lists_to_add_dialog(DialogId(request.chat_id_));
+  auto chat_lists =
+      transform(dialog_lists, [](DialogListId dialog_list_id) { return dialog_list_id.get_chat_list_object(); });
+  send_closure(actor_id(this), &Td::send_result, id, td_api::make_object<td_api::chatLists>(std::move(chat_lists)));
+}
+
+void Td::on_request(uint64 id, const td_api::addChatToList &request) {
   CHECK_IS_USER();
   CREATE_OK_REQUEST_PROMISE();
-  messages_manager_->set_dialog_folder_id(DialogId(request.chat_id_), FolderId(request.chat_list_), std::move(promise));
+  messages_manager_->add_dialog_to_list(DialogId(request.chat_id_), DialogListId(request.chat_list_),
+                                        std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::getChatFilter &request) {
+  CHECK_IS_USER();
+  CREATE_REQUEST(GetChatFilterRequest, request.chat_filter_id_);
+}
+
+void Td::on_request(uint64 id, const td_api::getRecommendedChatFilters &request) {
+  CHECK_IS_USER();
+  CREATE_REQUEST_PROMISE();
+  messages_manager_->get_recommended_dialog_filters(std::move(promise));
+}
+
+void Td::on_request(uint64 id, td_api::createChatFilter &request) {
+  CHECK_IS_USER();
+  if (request.filter_ == nullptr) {
+    return send_error_raw(id, 400, "Chat filter must be non-empty");
+  }
+  CLEAN_INPUT_STRING(request.filter_->title_);
+  CLEAN_INPUT_STRING(request.filter_->icon_name_);
+  CREATE_REQUEST_PROMISE();
+  messages_manager_->create_dialog_filter(std::move(request.filter_), std::move(promise));
+}
+
+void Td::on_request(uint64 id, td_api::editChatFilter &request) {
+  CHECK_IS_USER();
+  if (request.filter_ == nullptr) {
+    return send_error_raw(id, 400, "Chat filter must be non-empty");
+  }
+  CLEAN_INPUT_STRING(request.filter_->title_);
+  CLEAN_INPUT_STRING(request.filter_->icon_name_);
+  CREATE_REQUEST_PROMISE();
+  messages_manager_->edit_dialog_filter(DialogFilterId(request.chat_filter_id_), std::move(request.filter_),
+                                        std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::deleteChatFilter &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  messages_manager_->delete_dialog_filter(DialogFilterId(request.chat_filter_id_), std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::reorderChatFilters &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  messages_manager_->reorder_dialog_filters(
+      transform(request.chat_filter_ids_, [](int32 id) { return DialogFilterId(id); }), std::move(promise));
 }
 
 void Td::on_request(uint64 id, td_api::setChatTitle &request) {
@@ -5889,7 +5979,8 @@ void Td::on_request(uint64 id, td_api::setChatDraftMessage &request) {
 
 void Td::on_request(uint64 id, const td_api::toggleChatIsPinned &request) {
   CHECK_IS_USER();
-  answer_ok_query(id, messages_manager_->toggle_dialog_is_pinned(DialogId(request.chat_id_), request.is_pinned_));
+  answer_ok_query(id, messages_manager_->toggle_dialog_is_pinned(DialogListId(request.chat_list_),
+                                                                 DialogId(request.chat_id_), request.is_pinned_));
 }
 
 void Td::on_request(uint64 id, const td_api::toggleChatIsMarkedAsUnread &request) {
@@ -5907,7 +5998,7 @@ void Td::on_request(uint64 id, const td_api::toggleChatDefaultDisableNotificatio
 void Td::on_request(uint64 id, const td_api::setPinnedChats &request) {
   CHECK_IS_USER();
   answer_ok_query(id, messages_manager_->set_pinned_dialogs(
-                          FolderId(request.chat_list_),
+                          DialogListId(request.chat_list_),
                           transform(request.chat_ids_, [](int64 chat_id) { return DialogId(chat_id); })));
 }
 
@@ -7255,18 +7346,6 @@ void Td::on_request(uint64 id, const td_api::deleteSavedCredentials &request) {
   delete_saved_credentials(std::move(promise));
 }
 
-// void Td::on_request(uint64 id, const td_api::sendTonLiteServerRequest &request) {
-//   CHECK_IS_USER();
-//   CREATE_REQUEST_PROMISE();
-//   send_ton_lite_server_request(request.request_, std::move(promise));
-// }
-
-// void Td::on_request(uint64 id, const td_api::getTonWalletPasswordSalt &request) {
-//   CHECK_IS_USER();
-//   CREATE_REQUEST_PROMISE();
-//   send_closure(password_manager_, &PasswordManager::get_ton_wallet_password_salt, std::move(promise));
-// }
-
 void Td::on_request(uint64 id, td_api::getPassportElement &request) {
   CHECK_IS_USER();
   CLEAN_INPUT_STRING(request.password_);
@@ -7689,6 +7768,10 @@ void Td::on_request(uint64 id, const td_api::getPushReceiverId &request) {
   UNREACHABLE();
 }
 
+void Td::on_request(uint64 id, const td_api::getChatFilterDefaultIconName &request) {
+  UNREACHABLE();
+}
+
 void Td::on_request(uint64 id, const td_api::getJsonValue &request) {
   UNREACHABLE();
 }
@@ -7838,6 +7921,19 @@ td_api::object_ptr<td_api::Object> Td::do_static_request(const td_api::getPushRe
     return make_error(r_push_receiver_id.error().code(), r_push_receiver_id.error().message());
   }
   return td_api::make_object<td_api::pushReceiverId>(r_push_receiver_id.ok());
+}
+
+td_api::object_ptr<td_api::Object> Td::do_static_request(const td_api::getChatFilterDefaultIconName &request) {
+  if (request.filter_ == nullptr) {
+    return make_error(400, "Chat filter must be non-empty");
+  }
+  if (!check_utf8(request.filter_->title_)) {
+    return make_error(400, "Chat filter title must be encoded in UTF-8");
+  }
+  if (!check_utf8(request.filter_->icon_name_)) {
+    return make_error(400, "Chat filter icon name must be encoded in UTF-8");
+  }
+  return td_api::make_object<td_api::text>(DialogFilter::get_default_icon_name(request.filter_.get()));
 }
 
 td_api::object_ptr<td_api::Object> Td::do_static_request(td_api::getJsonValue &request) {

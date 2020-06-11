@@ -1857,6 +1857,18 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDialogUnreadMar
       DialogId(update->peer_), (update->flags_ & telegram_api::updateDialogUnreadMark::UNREAD_MASK) != 0);
 }
 
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDialogFilter> update, bool /*force_apply*/) {
+  td_->messages_manager_->on_update_dialog_filters();
+}
+
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDialogFilters> update, bool /*force_apply*/) {
+  td_->messages_manager_->on_update_dialog_filters();
+}
+
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDialogFilterOrder> update, bool /*force_apply*/) {
+  td_->messages_manager_->on_update_dialog_filters();
+}
+
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDcOptions> update, bool /*force_apply*/) {
   send_closure(G()->config_manager(), &ConfigManager::on_dc_options_update, DcOptions(update->dc_options_));
 }
@@ -1982,6 +1994,11 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updatePhoneCall> upda
   send_closure(G()->call_manager(), &CallManager::update_call, std::move(update));
 }
 
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updatePhoneCallSignalingData> update, bool /*force_apply*/) {
+  send_closure(G()->call_manager(), &CallManager::update_call_signaling_data, update->phone_call_id_,
+               update->data_.as_slice().str());
+}
+
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateContactsReset> update, bool /*force_apply*/) {
   td_->contacts_manager_->on_update_contacts_reset();
 }
@@ -2030,15 +2047,6 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateLoginToken> upd
 // unsupported updates
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateTheme> update, bool /*force_apply*/) {
-}
-
-void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDialogFilter> update, bool /*force_apply*/) {
-}
-
-void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDialogFilterOrder> update, bool /*force_apply*/) {
-}
-
-void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDialogFilters> update, bool /*force_apply*/) {
 }
 
 }  // namespace td

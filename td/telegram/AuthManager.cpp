@@ -15,6 +15,7 @@
 #include "td/telegram/ContactsManager.h"
 #include "td/telegram/Global.h"
 #include "td/telegram/logevent/LogEvent.h"
+#include "td/telegram/MessagesManager.h"
 #include "td/telegram/misc.h"
 #include "td/telegram/net/DcId.h"
 #include "td/telegram/net/NetQueryDispatcher.h"
@@ -143,11 +144,11 @@ void AuthManager::check_bot_token(uint64 query_id, string bot_token) {
   }
   if (state_ != State::WaitPhoneNumber && state_ != State::Ok) {
     // TODO do not allow State::Ok
-    return on_query_error(query_id, Status::Error(8, "Call to checkAuthenticationBotToken unexpected"));
+    return on_query_error(query_id, Status::Error(400, "Call to checkAuthenticationBotToken unexpected"));
   }
   if (!send_code_helper_.phone_number().empty() || was_qr_code_request_) {
     return on_query_error(
-        query_id, Status::Error(8, "Cannot set bot token after authentication beginning. You need to log out first"));
+        query_id, Status::Error(400, "Cannot set bot token after authentication beginning. You need to log out first"));
   }
   if (was_check_bot_token_ && bot_token_ != bot_token) {
     return on_query_error(query_id, Status::Error(8, "Cannot change bot token. You need to log out first"));
@@ -719,6 +720,7 @@ void AuthManager::on_get_authorization(tl_object_ptr<telegram_api::auth_Authoriz
   if ((auth->flags_ & telegram_api::auth_authorization::TMP_SESSIONS_MASK) != 0) {
     G()->shared_config().set_option_integer("session_count", auth->tmp_sessions_);
   }
+  td->messages_manager_->on_authorization_success();
   td->notification_manager_->init();
   td->stickers_manager_->init();
   send_closure(td->top_dialog_manager_, &TopDialogManager::do_start_up);

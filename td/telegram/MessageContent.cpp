@@ -1473,8 +1473,10 @@ static Result<InputMessageContent> create_input_message_content(
     case td_api::inputMessageAnimation::ID: {
       auto input_animation = static_cast<td_api::inputMessageAnimation *>(input_message_content.get());
 
+      bool has_stickers = !sticker_file_ids.empty();
       td->animations_manager_->create_animation(
-          file_id, string(), thumbnail, std::move(file_name), std::move(mime_type), input_animation->duration_,
+          file_id, string(), thumbnail, PhotoSize(), has_stickers, std::move(sticker_file_ids), std::move(file_name),
+          std::move(mime_type), input_animation->duration_,
           get_dimensions(input_animation->width_, input_animation->height_), false);
 
       content = make_unique<MessageAnimation>(file_id, std::move(caption));
@@ -1562,9 +1564,8 @@ static Result<InputMessageContent> create_input_message_content(
     }
     case td_api::inputMessageSticker::ID: {
       auto input_sticker = static_cast<td_api::inputMessageSticker *>(input_message_content.get());
-      td->stickers_manager_->create_sticker(file_id, thumbnail,
-                                            get_dimensions(input_sticker->width_, input_sticker->height_), nullptr,
-                                            mime_type == "application/x-tgsticker", nullptr);
+      td->stickers_manager_->create_sticker(
+          file_id, thumbnail, get_dimensions(input_sticker->width_, input_sticker->height_), nullptr, false, nullptr);
 
       content = make_unique<MessageSticker>(file_id);
       break;
@@ -1575,10 +1576,10 @@ static Result<InputMessageContent> create_input_message_content(
       ttl = input_video->ttl_;
 
       bool has_stickers = !sticker_file_ids.empty();
-      td->videos_manager_->create_video(file_id, string(), thumbnail, has_stickers, std::move(sticker_file_ids),
-                                        std::move(file_name), std::move(mime_type), input_video->duration_,
-                                        get_dimensions(input_video->width_, input_video->height_),
-                                        input_video->supports_streaming_, false);
+      td->videos_manager_->create_video(
+          file_id, string(), thumbnail, PhotoSize(), has_stickers, std::move(sticker_file_ids), std::move(file_name),
+          std::move(mime_type), input_video->duration_, get_dimensions(input_video->width_, input_video->height_),
+          input_video->supports_streaming_, false);
 
       content = make_unique<MessageVideo>(file_id, std::move(caption));
       break;
@@ -1840,6 +1841,9 @@ Result<InputMessageContent> get_input_message_content(
       r_file_id = td->file_manager_->get_input_file_id(FileType::Animation, input_message->animation_, dialog_id, false,
                                                        is_secret, true);
       input_thumbnail = std::move(input_message->thumbnail_);
+      if (!input_message->added_sticker_file_ids_.empty()) {
+        sticker_file_ids = td->stickers_manager_->get_attached_sticker_file_ids(input_message->added_sticker_file_ids_);
+      }
       break;
     }
     case td_api::inputMessageAudio::ID: {
@@ -3507,7 +3511,7 @@ static auto secret_to_telegram_document(secret_api::decryptedMessageMediaExterna
   thumbnails.push_back(secret_to_telegram<telegram_api::PhotoSize>(*from.thumb_));
   return make_tl_object<telegram_api::document>(
       telegram_api::document::THUMBS_MASK, from.id_, from.access_hash_, BufferSlice(), from.date_, from.mime_type_,
-      from.size_, std::move(thumbnails), from.dc_id_, secret_to_telegram(from.attributes_));
+      from.size_, std::move(thumbnails), Auto(), from.dc_id_, secret_to_telegram(from.attributes_));
 }
 
 template <class ToT, class FromT>
@@ -4362,8 +4366,9 @@ tl_object_ptr<td_api::MessageContent> get_message_content_object(const MessageCo
     }
     case MessageContentType::Document: {
       const MessageDocument *m = static_cast<const MessageDocument *>(content);
-      return make_tl_object<td_api::messageDocument>(td->documents_manager_->get_document_object(m->file_id),
-                                                     get_formatted_text_object(m->caption));
+      return make_tl_object<td_api::messageDocument>(
+          td->documents_manager_->get_document_object(m->file_id, PhotoFormat::Jpeg),
+          get_formatted_text_object(m->caption));
     }
     case MessageContentType::Game: {
       const MessageGame *m = static_cast<const MessageGame *>(content);
@@ -4700,6 +4705,20 @@ FileId get_message_content_thumbnail_file_id(const MessageContent *content, cons
   return FileId();
 }
 
+FileId get_message_content_animated_thumbnail_file_id(const MessageContent *content, const Td *td) {
+  switch (content->get_type()) {
+    case MessageContentType::Animation:
+      return td->animations_manager_->get_animation_animated_thumbnail_file_id(
+          static_cast<const MessageAnimation *>(content)->file_id);
+    case MessageContentType::Video:
+      return td->videos_manager_->get_video_animated_thumbnail_file_id(
+          static_cast<const MessageVideo *>(content)->file_id);
+    default:
+      break;
+  }
+  return FileId();
+}
+
 vector<FileId> get_message_content_file_ids(const MessageContent *content, const Td *td) {
   switch (content->get_type()) {
     case MessageContentType::Photo:
@@ -4719,6 +4738,10 @@ vector<FileId> get_message_content_file_ids(const MessageContent *content, const
       FileId thumbnail_file_id = get_message_content_thumbnail_file_id(content, td);
       if (thumbnail_file_id.is_valid()) {
         result.push_back(thumbnail_file_id);
+      }
+      FileId animated_thumbnail_file_id = get_message_content_animated_thumbnail_file_id(content, td);
+      if (animated_thumbnail_file_id.is_valid()) {
+        result.push_back(animated_thumbnail_file_id);
       }
       return result;
     }

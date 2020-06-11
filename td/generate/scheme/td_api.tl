@@ -185,6 +185,31 @@ photoSize type:string photo:file width:int32 height:int32 = PhotoSize;
 minithumbnail width:int32 height:int32 data:bytes = Minithumbnail;
 
 
+//@class ThumbnailFormat @description Describes format of the thumbnail
+
+//@description The thumbnail is in JPEG format
+thumbnailFormatJpeg = ThumbnailFormat;
+
+//@description The thumbnail is in PNG format. It will be used only for background patterns
+thumbnailFormatPng = ThumbnailFormat;
+
+//@description The thumbnail is in WEBP format. It will be used only for some stickers
+thumbnailFormatWebp = ThumbnailFormat;
+
+//@description The thumbnail is in static GIF format. It will be used only for some bot inline results
+thumbnailFormatGif = ThumbnailFormat;
+
+//@description The thumbnail is in TGS format. It will be used only for animated sticker sets
+thumbnailFormatTgs = ThumbnailFormat;
+
+//@description The thumbnail is in MPEG4 format. It will be used only for some animations and videos
+thumbnailFormatMpeg4 = ThumbnailFormat;
+
+
+//@description Represents a thumbnail @format Thumbnail format @width Thumbnail width @height Thumbnail height @file The thumbnail
+thumbnail format:ThumbnailFormat width:int32 height:int32 file:file = Thumbnail;
+
+
 //@class MaskPoint @description Part of the face, relative to which a mask should be placed
 
 //@description A mask should be placed relatively to the forehead
@@ -224,31 +249,39 @@ pollTypeQuiz correct_option_id:int32 explanation:formattedText = PollType;
 
 //@description Describes an animation file. The animation must be encoded in GIF or MPEG4 format @duration Duration of the animation, in seconds; as defined by the sender @width Width of the animation @height Height of the animation
 //@file_name Original name of the file; as defined by the sender @mime_type MIME type of the file, usually "image/gif" or "video/mp4"
-//@minithumbnail Animation minithumbnail; may be null @thumbnail Animation thumbnail; may be null @animation File containing the animation
-animation duration:int32 width:int32 height:int32 file_name:string mime_type:string minithumbnail:minithumbnail thumbnail:photoSize animation:file = Animation;
+//@has_stickers True, if stickers were added to the animation. The list of corresponding sticker set can be received using getAttachedStickerSets
+//@minithumbnail Animation minithumbnail; may be null @thumbnail Animation thumbnail in JPEG or MPEG4 format; may be null @animation File containing the animation
+animation duration:int32 width:int32 height:int32 file_name:string mime_type:string has_stickers:Bool minithumbnail:minithumbnail thumbnail:thumbnail animation:file = Animation;
 
 //@description Describes an audio file. Audio is usually in MP3 or M4A format @duration Duration of the audio, in seconds; as defined by the sender @title Title of the audio; as defined by the sender @performer Performer of the audio; as defined by the sender
-//@file_name Original name of the file; as defined by the sender @mime_type The MIME type of the file; as defined by the sender @album_cover_minithumbnail The minithumbnail of the album cover; may be null @album_cover_thumbnail The thumbnail of the album cover; as defined by the sender. The full size thumbnail should be extracted from the downloaded file; may be null @audio File containing the audio
-audio duration:int32 title:string performer:string file_name:string mime_type:string album_cover_minithumbnail:minithumbnail album_cover_thumbnail:photoSize audio:file = Audio;
+//@file_name Original name of the file; as defined by the sender @mime_type The MIME type of the file; as defined by the sender @album_cover_minithumbnail The minithumbnail of the album cover; may be null
+//@album_cover_thumbnail The thumbnail of the album cover in JPEG format; as defined by the sender. The full size thumbnail should be extracted from the downloaded file; may be null @audio File containing the audio
+audio duration:int32 title:string performer:string file_name:string mime_type:string album_cover_minithumbnail:minithumbnail album_cover_thumbnail:thumbnail audio:file = Audio;
 
 //@description Describes a document of any type @file_name Original name of the file; as defined by the sender @mime_type MIME type of the file; as defined by the sender
 //@minithumbnail Document minithumbnail; may be null @thumbnail Document thumbnail in JPEG or PNG format (PNG will be used only for background patterns); as defined by the sender; may be null @document File containing the document
-document file_name:string mime_type:string minithumbnail:minithumbnail thumbnail:photoSize document:file = Document;
+document file_name:string mime_type:string minithumbnail:minithumbnail thumbnail:thumbnail document:file = Document;
 
-//@description Describes a photo @has_stickers True, if stickers were added to the photo @minithumbnail Photo minithumbnail; may be null @sizes Available variants of the photo, in different sizes
+//@description Describes a photo @has_stickers True, if stickers were added to the photo. The list of corresponding sticker sets can be received using getAttachedStickerSets
+//@minithumbnail Photo minithumbnail; may be null @sizes Available variants of the photo, in different sizes
 photo has_stickers:Bool minithumbnail:minithumbnail sizes:vector<photoSize> = Photo;
 
 //@description Describes a sticker @set_id The identifier of the sticker set to which the sticker belongs; 0 if none @width Sticker width; as defined by the sender @height Sticker height; as defined by the sender
-//@emoji Emoji corresponding to the sticker @is_animated True, if the sticker is an animated sticker in TGS format @is_mask True, if the sticker is a mask @mask_position Position where the mask should be placed; may be null @thumbnail Sticker thumbnail in WEBP or JPEG format; may be null @sticker File containing the sticker
-sticker set_id:int64 width:int32 height:int32 emoji:string is_animated:Bool is_mask:Bool mask_position:maskPosition thumbnail:photoSize sticker:file = Sticker;
+//@emoji Emoji corresponding to the sticker @is_animated True, if the sticker is an animated sticker in TGS format @is_mask True, if the sticker is a mask @mask_position Position where the mask should be placed; may be null
+//@thumbnail Sticker thumbnail in WEBP or JPEG format; may be null @sticker File containing the sticker
+sticker set_id:int64 width:int32 height:int32 emoji:string is_animated:Bool is_mask:Bool mask_position:maskPosition thumbnail:thumbnail sticker:file = Sticker;
 
 //@description Describes a video file @duration Duration of the video, in seconds; as defined by the sender @width Video width; as defined by the sender @height Video height; as defined by the sender
-//@file_name Original name of the file; as defined by the sender @mime_type MIME type of the file; as defined by the sender @has_stickers True, if stickers were added to the video
-//@supports_streaming True, if the video should be tried to be streamed @minithumbnail Video minithumbnail; may be null @thumbnail Video thumbnail; as defined by the sender; may be null @video File containing the video
-video duration:int32 width:int32 height:int32 file_name:string mime_type:string has_stickers:Bool supports_streaming:Bool minithumbnail:minithumbnail thumbnail:photoSize video:file = Video;
+//@file_name Original name of the file; as defined by the sender @mime_type MIME type of the file; as defined by the sender
+//@has_stickers True, if stickers were added to the video. The list of corresponding sticker sets can be received using getAttachedStickerSets
+//@supports_streaming True, if the video should be tried to be streamed @minithumbnail Video minithumbnail; may be null
+//@thumbnail Video thumbnail in JPEG or MPEG4 format; as defined by the sender; may be null @video File containing the video
+video duration:int32 width:int32 height:int32 file_name:string mime_type:string has_stickers:Bool supports_streaming:Bool minithumbnail:minithumbnail thumbnail:thumbnail video:file = Video;
 
-//@description Describes a video note. The video must be equal in width and height, cropped to a circle, and stored in MPEG4 format @duration Duration of the video, in seconds; as defined by the sender @length Video width and height; as defined by the sender @minithumbnail Video minithumbnail; may be null @thumbnail Video thumbnail; as defined by the sender; may be null @video File containing the video
-videoNote duration:int32 length:int32 minithumbnail:minithumbnail thumbnail:photoSize video:file = VideoNote;
+//@description Describes a video note. The video must be equal in width and height, cropped to a circle, and stored in MPEG4 format @duration Duration of the video, in seconds; as defined by the sender
+//@length Video width and height; as defined by the sender @minithumbnail Video minithumbnail; may be null
+//@thumbnail Video thumbnail in JPEG format; as defined by the sender; may be null @video File containing the video
+videoNote duration:int32 length:int32 minithumbnail:minithumbnail thumbnail:thumbnail video:file = VideoNote;
 
 //@description Describes a voice note. The voice note must be encoded with the Opus codec, and stored inside an OGG container. Voice notes can have only a single audio channel @duration Duration of the voice note, in seconds; as defined by the sender
 //@waveform A waveform representation of the voice note in 5-bit format @mime_type MIME type of the file; as defined by the sender @voice File containing the voice note
@@ -463,7 +496,7 @@ basicGroupFullInfo description:string creator_user_id:int32 members:vector<chatM
 //@username Username of the supergroup or channel; empty for private supergroups or channels
 //@date Point in time (Unix timestamp) when the current user joined, or the point in time when the supergroup or channel was created, in case the user is not a member
 //@status Status of the current user in the supergroup or channel; custom title will be always empty
-//@member_count Number of members in the supergroup or channel; 0 if unknown. Currently it is guaranteed to be known only if the supergroup or channel was found through SearchPublicChats
+//@member_count Number of members in the supergroup or channel; 0 if unknown. Currently it is guaranteed to be known only if the supergroup or channel was received through searchPublicChats, searchChatsNearby, getInactiveSupergroupChats, getSuitableDiscussionChats, getGroupsInCommon, or getUserPrivacySettingRules
 //@has_linked_chat True, if the channel has a discussion group, or the supergroup is the designated discussion group for a channel
 //@has_location True, if the supergroup is connected to a location, i.e. the supergroup is a location-based supergroup
 //@sign_messages True, if messages sent to the channel should contain information about the sender. This field is only applicable to channels
@@ -641,6 +674,36 @@ chatTypeSupergroup supergroup_id:int32 is_channel:Bool = ChatType;
 chatTypeSecret secret_chat_id:int32 user_id:int32 = ChatType;
 
 
+//@description Represents a filter of user chats
+//@title The title of the filter; 1-12 characters without line feeds
+//@icon_name The icon name for short filter representation. If non-empty, must be one of "All", "Unread", "Unmuted", "Bots", "Channels", "Groups", "Private", "Custom", "Setup", "Cat", "Crown", "Favorite", "Flower", "Game", "Home", "Love", "Mask", "Party", "Sport", "Study", "Trade", "Travel", "Work".
+//-If empty, use getChatFilterDefaultIconName to get default icon name for the filter
+//@pinned_chat_ids The chat identifiers of pinned chats in the filtered chat list
+//@included_chat_ids The chat identifiers of always included chats in the filtered chat list
+//@excluded_chat_ids The chat identifiers of always excluded chats in the filtered chat list
+//@exclude_muted True, if the muted chats need to be excluded
+//@exclude_read True, if read chats need to be excluded
+//@exclude_archived True, if archived chats need to be excluded
+//@include_contacts True, if contacts need to be included
+//@include_non_contacts True, if non-contact users need to be included
+//@include_bots True, if bots need to be included
+//@include_groups True, if basic groups and supergroups need to be included
+//@include_channels True, if channels need to be included
+chatFilter title:string icon_name:string pinned_chat_ids:vector<int53> included_chat_ids:vector<int53> excluded_chat_ids:vector<int53> exclude_muted:Bool exclude_read:Bool exclude_archived:Bool include_contacts:Bool include_non_contacts:Bool include_bots:Bool include_groups:Bool include_channels:Bool = ChatFilter;
+
+//@description Contains basic information about a chat filter
+//@id Unique chat filter identifier
+//@title The title of the filter; 1-12 characters without line feeds
+//@icon_name The icon name for short filter representation. One of "All", "Unread", "Unmuted", "Bots", "Channels", "Groups", "Private", "Custom", "Setup", "Cat", "Crown", "Favorite", "Flower", "Game", "Home", "Love", "Mask", "Party", "Sport", "Study", "Trade", "Travel", "Work"
+chatFilterInfo id:int32 title:string icon_name:string = ChatFilterInfo;
+
+//@description Describes a recommended chat filter @filter The chat filter @param_description Chat filter description
+recommendedChatFilter filter:chatFilter description:string = RecommendedChatFilter;
+
+//@description Contains a list of recommended chat filters @chat_filters List of recommended chat filters
+recommendedChatFilters chat_filters:vector<recommendedChatFilter> = RecommendedChatFilters;
+
+
 //@class ChatList @description Describes a list of chats
 
 //@description A main list of chats
@@ -649,8 +712,14 @@ chatListMain = ChatList;
 //@description A list of chats usually located at the top of the main chat list. Unmuted chats are automatically moved from the Archive to the Main chat list when a new message arrives
 chatListArchive = ChatList;
 
+//@description A list of chats belonging to a chat filter @chat_filter_id Chat filter identifier
+chatListFilter chat_filter_id:int32 = ChatList;
 
-//@class ChatSource @description Describes a reason why the chat is shown in a chat list
+//@description Contains a list of chat lists @chat_lists List of chat lists
+chatLists chat_lists:vector<ChatList> = ChatLists;
+
+
+//@class ChatSource @description Describes a reason why an external chat is shown in a chat list
 
 //@description The chat is sponsored by the user's MTProxy server
 chatSourceMtprotoProxy = ChatSource;
@@ -659,17 +728,22 @@ chatSourceMtprotoProxy = ChatSource;
 chatSourcePublicServiceAnnouncement type:string text:string = ChatSource;
 
 
+//@description Describes a position of a chat in a chat list
+//@list The chat list
+//@order A parameter used to determine order of the chat in the chat list. Chats must be sorted by the pair (order, chat.id) in descending order
+//@is_pinned True, if the chat is pinned in the chat list
+//@source Source of the chat in the chat list; may be null
+chatPosition list:ChatList order:int64 is_pinned:Bool source:ChatSource = ChatPosition;
+
+
 //@description A chat. (Can be a private chat, basic group, supergroup, or secret chat)
 //@id Chat unique identifier
 //@type Type of the chat
-//@chat_list A chat list to which the chat belongs; may be null
 //@title Chat title
 //@photo Chat photo; may be null
 //@permissions Actions that non-administrator chat members are allowed to take in the chat
 //@last_message Last message in the chat; may be null
-//@order Descending parameter by which chats are sorted in the main chat list. If the order number of two chats is the same, they must be sorted in descending order by ID. If 0, the position of the chat in the list is undetermined
-//@source Source of the chat in a chat list; may be null
-//@is_pinned True, if the chat is pinned
+//@positions Positions of the chat in chat lists
 //@is_marked_as_unread True, if the chat is marked as unread
 //@has_scheduled_messages True, if the chat has scheduled messages
 //@can_be_deleted_only_for_self True, if the chat messages can be deleted only for the current user while other users will continue to see the messages
@@ -685,8 +759,8 @@ chatSourcePublicServiceAnnouncement type:string text:string = ChatSource;
 //@pinned_message_id Identifier of the pinned message in the chat; 0 if none
 //@reply_markup_message_id Identifier of the message from which reply markup needs to be used; 0 if there is no default custom reply markup in the chat
 //@draft_message A draft of a message in the chat; may be null
-//@client_data Contains client-specific data associated with the chat. (For example, the chat position or local chat notification settings can be stored here.) Persistent if the message database is used
-chat id:int53 type:ChatType chat_list:ChatList title:string photo:chatPhoto permissions:chatPermissions last_message:message order:int64 source:ChatSource is_pinned:Bool is_marked_as_unread:Bool has_scheduled_messages:Bool can_be_deleted_only_for_self:Bool can_be_deleted_for_all_users:Bool can_be_reported:Bool default_disable_notification:Bool unread_count:int32 last_read_inbox_message_id:int53 last_read_outbox_message_id:int53 unread_mention_count:int32 notification_settings:chatNotificationSettings action_bar:ChatActionBar pinned_message_id:int53 reply_markup_message_id:int53 draft_message:draftMessage client_data:string = Chat;
+//@client_data Contains client-specific data associated with the chat. (For example, the chat scroll position or local chat notification settings can be stored here.) Persistent if the message database is used
+chat id:int53 type:ChatType title:string photo:chatPhoto permissions:chatPermissions last_message:message positions:vector<chatPosition> is_marked_as_unread:Bool has_scheduled_messages:Bool can_be_deleted_only_for_self:Bool can_be_deleted_for_all_users:Bool can_be_reported:Bool default_disable_notification:Bool unread_count:int32 last_read_inbox_message_id:int53 last_read_outbox_message_id:int53 unread_mention_count:int32 notification_settings:chatNotificationSettings action_bar:ChatActionBar pinned_message_id:int53 reply_markup_message_id:int53 draft_message:draftMessage client_data:string = Chat;
 
 //@description Represents a list of chats @chat_ids List of chat identifiers
 chats chat_ids:vector<int53> = Chats;
@@ -1562,8 +1636,9 @@ sendMessageOptions disable_notification:Bool from_background:Bool scheduling_sta
 //@disable_web_page_preview True, if rich web page previews for URLs in the message text should be disabled @clear_draft True, if a chat message draft should be deleted
 inputMessageText text:formattedText disable_web_page_preview:Bool clear_draft:Bool = InputMessageContent;
 
-//@description An animation message (GIF-style). @animation Animation file to be sent @thumbnail Animation thumbnail, if available @duration Duration of the animation, in seconds @width Width of the animation; may be replaced by the server @height Height of the animation; may be replaced by the server @caption Animation caption; 0-GetOption("message_caption_length_max") characters
-inputMessageAnimation animation:InputFile thumbnail:inputThumbnail duration:int32 width:int32 height:int32 caption:formattedText = InputMessageContent;
+//@description An animation message (GIF-style). @animation Animation file to be sent @thumbnail Animation thumbnail, if available @added_sticker_file_ids File identifiers of the stickers added to the animation, if applicable
+//@duration Duration of the animation, in seconds @width Width of the animation; may be replaced by the server @height Height of the animation; may be replaced by the server @caption Animation caption; 0-GetOption("message_caption_length_max") characters
+inputMessageAnimation animation:InputFile thumbnail:inputThumbnail added_sticker_file_ids:vector<int32> duration:int32 width:int32 height:int32 caption:formattedText = InputMessageContent;
 
 //@description An audio message @audio Audio file to be sent @album_cover_thumbnail Thumbnail of the cover for the album, if available @duration Duration of the audio, in seconds; may be replaced by the server @title Title of the audio; 0-64 characters; may be replaced by the server
 //@performer Performer of the audio; 0-64 characters, may be replaced by the server @caption Audio caption; 0-GetOption("message_caption_length_max") characters
@@ -1735,18 +1810,18 @@ stickers stickers:vector<sticker> = Stickers;
 emojis emojis:vector<string> = Emojis;
 
 //@description Represents a sticker set
-//@id Identifier of the sticker set @title Title of the sticker set @name Name of the sticker set @thumbnail Sticker set thumbnail in WEBP format with width and height 100; may be null. The file can be downloaded only before the thumbnail is changed
+//@id Identifier of the sticker set @title Title of the sticker set @name Name of the sticker set @thumbnail Sticker set thumbnail in WEBP or TGS format with width and height 100; may be null. The file can be downloaded only before the thumbnail is changed
 //@is_installed True, if the sticker set has been installed by the current user @is_archived True, if the sticker set has been archived. A sticker set can't be installed and archived simultaneously
 //@is_official True, if the sticker set is official @is_animated True, is the stickers in the set are animated @is_masks True, if the stickers in the set are masks @is_viewed True for already viewed trending sticker sets
 //@stickers List of stickers in this set @emojis A list of emoji corresponding to the stickers in the same order. The list is only for informational purposes, because a sticker is always sent with a fixed emoji from the corresponding Sticker object
-stickerSet id:int64 title:string name:string thumbnail:photoSize is_installed:Bool is_archived:Bool is_official:Bool is_animated:Bool is_masks:Bool is_viewed:Bool stickers:vector<sticker> emojis:vector<emojis> = StickerSet;
+stickerSet id:int64 title:string name:string thumbnail:thumbnail is_installed:Bool is_archived:Bool is_official:Bool is_animated:Bool is_masks:Bool is_viewed:Bool stickers:vector<sticker> emojis:vector<emojis> = StickerSet;
 
 //@description Represents short information about a sticker set
-//@id Identifier of the sticker set @title Title of the sticker set @name Name of the sticker set @thumbnail Sticker set thumbnail in WEBP format with width and height 100; may be null
+//@id Identifier of the sticker set @title Title of the sticker set @name Name of the sticker set @thumbnail Sticker set thumbnail in WEBP or TGS format with width and height 100; may be null
 //@is_installed True, if the sticker set has been installed by current user @is_archived True, if the sticker set has been archived. A sticker set can't be installed and archived simultaneously
 //@is_official True, if the sticker set is official @is_animated True, is the stickers in the set are animated @is_masks True, if the stickers in the set are masks @is_viewed True for already viewed trending sticker sets
 //@size Total number of stickers in the set @covers Contains up to the first 5 stickers from the set, depending on the context. If the client needs more stickers the full set should be requested
-stickerSetInfo id:int64 title:string name:string thumbnail:photoSize is_installed:Bool is_archived:Bool is_official:Bool is_animated:Bool is_masks:Bool is_viewed:Bool size:int32 covers:vector<sticker> = StickerSetInfo;
+stickerSetInfo id:int64 title:string name:string thumbnail:thumbnail is_installed:Bool is_archived:Bool is_official:Bool is_animated:Bool is_masks:Bool is_viewed:Bool size:int32 covers:vector<sticker> = StickerSetInfo;
 
 //@description Represents a list of sticker sets @total_count Approximate total number of sticker sets found @sets List of sticker sets
 stickerSets total_count:int32 sets:vector<stickerSetInfo> = StickerSets;
@@ -1931,17 +2006,17 @@ inputInlineQueryResultVoiceNote id:string title:string voice_note_url:string voi
 //@class InlineQueryResult @description Represents a single result of an inline query
 
 //@description Represents a link to an article or web page @id Unique identifier of the query result @url URL of the result, if it exists @hide_url True, if the URL must be not shown @title Title of the result
-//@param_description A short description of the result @thumbnail Result thumbnail; may be null
-inlineQueryResultArticle id:string url:string hide_url:Bool title:string description:string thumbnail:photoSize = InlineQueryResult;
+//@param_description A short description of the result @thumbnail Result thumbnail in JPEG format; may be null
+inlineQueryResultArticle id:string url:string hide_url:Bool title:string description:string thumbnail:thumbnail = InlineQueryResult;
 
-//@description Represents a user contact @id Unique identifier of the query result @contact A user contact @thumbnail Result thumbnail; may be null
-inlineQueryResultContact id:string contact:contact thumbnail:photoSize = InlineQueryResult;
+//@description Represents a user contact @id Unique identifier of the query result @contact A user contact @thumbnail Result thumbnail in JPEG format; may be null
+inlineQueryResultContact id:string contact:contact thumbnail:thumbnail = InlineQueryResult;
 
-//@description Represents a point on the map @id Unique identifier of the query result @location Location result @title Title of the result @thumbnail Result thumbnail; may be null
-inlineQueryResultLocation id:string location:location title:string thumbnail:photoSize = InlineQueryResult;
+//@description Represents a point on the map @id Unique identifier of the query result @location Location result @title Title of the result @thumbnail Result thumbnail in JPEG format; may be null
+inlineQueryResultLocation id:string location:location title:string thumbnail:thumbnail = InlineQueryResult;
 
-//@description Represents information about a venue @id Unique identifier of the query result @venue Venue result @thumbnail Result thumbnail; may be null
-inlineQueryResultVenue id:string venue:venue thumbnail:photoSize = InlineQueryResult;
+//@description Represents information about a venue @id Unique identifier of the query result @venue Venue result @thumbnail Result thumbnail in JPEG format; may be null
+inlineQueryResultVenue id:string venue:venue thumbnail:thumbnail = InlineQueryResult;
 
 //@description Represents information about a game @id Unique identifier of the query result @game Game result
 inlineQueryResultGame id:string game:game = InlineQueryResult;
@@ -2870,9 +2945,6 @@ updateMessageLiveLocationViewed chat_id:int53 message_id:int53 = Update;
 //@description A new chat has been loaded/created. This update is guaranteed to come before the chat identifier is returned to the client. The chat field changes will be reported through separate updates @chat The chat
 updateNewChat chat:chat = Update;
 
-//@description The list to which the chat belongs was changed. This update is guaranteed to be sent only when chat.order == 0 and the current or the new chat list is null @chat_id Chat identifier @chat_list The new chat's chat list; may be null
-updateChatChatList chat_id:int53 chat_list:ChatList = Update;
-
 //@description The title of a chat was changed @chat_id Chat identifier @title The new chat title
 updateChatTitle chat_id:int53 title:string = Update;
 
@@ -2882,20 +2954,14 @@ updateChatPhoto chat_id:int53 photo:chatPhoto = Update;
 //@description Chat permissions was changed @chat_id Chat identifier @permissions The new chat permissions
 updateChatPermissions chat_id:int53 permissions:chatPermissions = Update;
 
-//@description The last message of a chat was changed. If last_message is null, then the last message in the chat became unknown. Some new unknown messages might be added to the chat in this case @chat_id Chat identifier @last_message The new last message in the chat; may be null @order New value of the chat order
-updateChatLastMessage chat_id:int53 last_message:message order:int64 = Update;
+//@description The last message of a chat was changed. If last_message is null, then the last message in the chat became unknown. Some new unknown messages might be added to the chat in this case @chat_id Chat identifier @last_message The new last message in the chat; may be null @positions The new chat positions in the chat lists
+updateChatLastMessage chat_id:int53 last_message:message positions:vector<chatPosition> = Update;
 
-//@description The order of the chat in the chat list has changed. Instead of this update updateChatLastMessage, updateChatIsPinned, updateChatDraftMessage, or updateChatSource might be sent @chat_id Chat identifier @order New value of the order
-updateChatOrder chat_id:int53 order:int64 = Update;
-
-//@description A chat was pinned or unpinned @chat_id Chat identifier @is_pinned New value of is_pinned @order New value of the chat order
-updateChatIsPinned chat_id:int53 is_pinned:Bool order:int64 = Update;
+//@description The position of a chat in a chat list has changed. Instead of this update updateChatLastMessage or updateChatDraftMessage might be sent @chat_id Chat identifier @position New chat position. If new order is 0, then the chat needs to be removed from the list
+updateChatPosition chat_id:int53 position:chatPosition = Update;
 
 //@description A chat was marked as unread or was read @chat_id Chat identifier @is_marked_as_unread New value of is_marked_as_unread
 updateChatIsMarkedAsUnread chat_id:int53 is_marked_as_unread:Bool = Update;
-
-//@description A chat's source in the chat list has changed @chat_id Chat identifier @source New chat's source; may be null @order New value of chat order
-updateChatSource chat_id:int53 source:ChatSource order:int64 = Update;
 
 //@description A chat's has_scheduled_messages field has changed @chat_id Chat identifier @has_scheduled_messages New value of has_scheduled_messages
 updateChatHasScheduledMessages chat_id:int53 has_scheduled_messages:Bool = Update;
@@ -2928,8 +2994,11 @@ updateChatPinnedMessage chat_id:int53 pinned_message_id:int53 = Update;
 //@chat_id Chat identifier @reply_markup_message_id Identifier of the message from which reply markup needs to be used; 0 if there is no default custom reply markup in the chat
 updateChatReplyMarkup chat_id:int53 reply_markup_message_id:int53 = Update;
 
-//@description A chat draft has changed. Be aware that the update may come in the currently opened chat but with old content of the draft. If the user has changed the content of the draft, this update shouldn't be applied @chat_id Chat identifier @draft_message The new draft message; may be null @order New value of the chat order
-updateChatDraftMessage chat_id:int53 draft_message:draftMessage order:int64 = Update;
+//@description A chat draft has changed. Be aware that the update may come in the currently opened chat but with old content of the draft. If the user has changed the content of the draft, this update shouldn't be applied @chat_id Chat identifier @draft_message The new draft message; may be null @positions The new chat positions in the chat lists
+updateChatDraftMessage chat_id:int53 draft_message:draftMessage positions:vector<chatPosition> = Update;
+
+//@description The list of chat filters or a chat filter has changed @chat_filters The new list of chat filters
+updateChatFilters chat_filters:vector<chatFilterInfo> = Update;
 
 //@description The number of online group members has changed. This update with non-zero count is sent only for currently opened chats. There is no guarantee that it will be sent just after the count has changed @chat_id Identifier of the chat @online_member_count New number of online members in the chat, or 0 if unknown
 updateChatOnlineMemberCount chat_id:int53 online_member_count:int32 = Update;
@@ -3061,6 +3130,9 @@ updateUsersNearby users_nearby:vector<chatNearby> = Update;
 //@description The list of supported dice emojis has changed @emojis The new list of supported dice emojis
 updateDiceEmojis emojis:vector<string> = Update;
 
+//@description The parameters of animation search through GetOption("animation_search_bot_username") bot has changed @provider Name of the animation search provider @emojis The new list of emojis suggested for searching
+updateAnimationSearchParameters provider:string emojis:vector<string> = Update;
+
 //@description A new incoming inline query; for bots only @id Unique query identifier @sender_user_id Identifier of the user who sent the query @user_location User location, provided by the client; may be null
 //@query Text of the query @offset Offset of the first entry to return
 updateNewInlineQuery id:int64 sender_user_id:int32 user_location:location query:string offset:string = Update;
@@ -3159,7 +3231,9 @@ resendAuthenticationCode = Ok;
 //@description Checks the authentication code. Works only when the current authorization state is authorizationStateWaitCode @code The verification code received via SMS, Telegram message, phone call, or flash call
 checkAuthenticationCode code:string = Ok;
 
-//@description Requests QR code authentication by scanning a QR code on another logged in device. Works only when the current authorization state is authorizationStateWaitPhoneNumber @other_user_ids List of user identifiers of other users currently using the client
+//@description Requests QR code authentication by scanning a QR code on another logged in device. Works only when the current authorization state is authorizationStateWaitPhoneNumber,
+//-or if there is no pending authentication query and the current authorization state is authorizationStateWaitCode, authorizationStateWaitRegistration, or authorizationStateWaitPassword
+//@other_user_ids List of user identifiers of other users currently using the client
 requestQrCodeAuthentication other_user_ids:vector<int32> = Ok;
 
 //@description Finishes user registration. Works only when the current authorization state is authorizationStateWaitRegistration
@@ -3283,7 +3357,7 @@ getFile file_id:int32 = File;
 //@remote_file_id Remote identifier of the file to get @file_type File type, if known
 getRemoteFile remote_file_id:string file_type:FileType = File;
 
-//@description Returns an ordered list of chats in a chat list. Chats are sorted by the pair (order, chat_id) in decreasing order. (For example, to get a list of chats from the beginning, the offset_order should be equal to a biggest signed 64-bit number 9223372036854775807 == 2^63 - 1).
+//@description Returns an ordered list of chats in a chat list. Chats are sorted by the pair (chat.position.order, chat.id) in descending order. (For example, to get a list of chats from the beginning, the offset_order should be equal to a biggest signed 64-bit number 9223372036854775807 == 2^63 - 1).
 //-For optimal performance the number of returned chats is chosen by the library
 //@chat_list The chat list in which to return chats
 //@offset_order Chat order to return chats from @offset_chat_id Chat identifier to return chats from
@@ -3296,10 +3370,10 @@ searchPublicChat username:string = Chat;
 //@description Searches public chats by looking for specified query in their username and title. Currently only private chats, supergroups and channels can be public. Returns a meaningful number of results. Returns nothing if the length of the searched username prefix is less than 5. Excludes private chats with contacts and chats from the chat list from the results @query Query to search for
 searchPublicChats query:string = Chats;
 
-//@description Searches for the specified query in the title and username of already known chats, this is an offline request. Returns chats in the order seen in the chat list @query Query to search for. If the query is empty, returns up to 20 recently found chats @limit The maximum number of chats to be returned
+//@description Searches for the specified query in the title and username of already known chats, this is an offline request. Returns chats in the order seen in the main chat list @query Query to search for. If the query is empty, returns up to 20 recently found chats @limit The maximum number of chats to be returned
 searchChats query:string limit:int32 = Chats;
 
-//@description Searches for the specified query in the title and username of already known chats via request to the server. Returns chats in the order seen in the chat list @query Query to search for @limit The maximum number of chats to be returned
+//@description Searches for the specified query in the title and username of already known chats via request to the server. Returns chats in the order seen in the main chat list @query Query to search for @limit The maximum number of chats to be returned
 searchChatsOnServer query:string limit:int32 = Chats;
 
 //@description Returns a list of users and location-based supergroups nearby. The list of users nearby will be updated for 60 seconds after the request by the updates updateUsersNearby. The request should be sent again every 25 seconds with adjusted location to not miss new chats @location Current user location
@@ -3669,8 +3743,34 @@ createNewSecretChat user_id:int32 = Chat;
 upgradeBasicGroupChatToSupergroupChat chat_id:int53 = Chat;
 
 
-//@description Moves a chat to a different chat list. Current chat list of the chat must ne non-null @chat_id Chat identifier @chat_list New chat list of the chat. The chat with the current user (Saved Messages) and the chat 777000 (Telegram) can't be moved to the Archive chat list
-setChatChatList chat_id:int53 chat_list:ChatList = Ok;
+//@description Returns chat lists to which the chat can be added. This is an offline request @chat_id Chat identifier
+getChatListsToAddChat chat_id:int53 = ChatLists;
+
+//@description Adds a chat to a chat list. A chat can't be simultaneously in Main and Archive chat lists, so it is automatically removed from another one if needed
+//@chat_id Chat identifier @chat_list The chat list. Use getChatListsToAddChat to get suitable chat lists
+addChatToList chat_id:int53 chat_list:ChatList = Ok;
+
+//@description Returns information about a chat filter by its identifier @chat_filter_id Chat filter identifier
+getChatFilter chat_filter_id:int32 = ChatFilter;
+
+//@description Creates new chat filter. Returns information about the created chat filter @filter Chat filter
+createChatFilter filter:chatFilter = ChatFilterInfo;
+
+//@description Edits existing chat filter. Returns information about the edited chat filter @chat_filter_id Chat filter identifier @filter The edited chat filter
+editChatFilter chat_filter_id:int32 filter:chatFilter = ChatFilterInfo;
+
+//@description Deletes existing chat filter @chat_filter_id Chat filter identifier
+deleteChatFilter chat_filter_id:int32 = Ok;
+
+//@description Changes the order of chat filters @chat_filter_ids Identifiers of chat filters in the new correct order
+reorderChatFilters chat_filter_ids:vector<int32> = Ok;
+
+//@description Returns recommended chat filters for the current user
+getRecommendedChatFilters = RecommendedChatFilters;
+
+//@description Returns default icon name for a filter. This is an offline method. Can be called before authorization. Can be called synchronously @filter Chat filter
+getChatFilterDefaultIconName filter:chatFilter = Text;
+
 
 //@description Changes the chat title. Supported only for basic groups, supergroups and channels. Requires can_change_info rights. The title will not be changed until the request to the server has been completed
 //@chat_id Chat identifier @title New title of the chat; 1-128 characters
@@ -3690,9 +3790,6 @@ setChatDraftMessage chat_id:int53 draft_message:draftMessage = Ok;
 //@description Changes the notification settings of a chat. Notification settings of a chat with the current user (Saved Messages) can't be changed
 //@chat_id Chat identifier @notification_settings New notification settings for the chat. If the chat is muted for more than 1 week, it is considered to be muted forever
 setChatNotificationSettings chat_id:int53 notification_settings:chatNotificationSettings = Ok;
-
-//@description Changes the pinned state of a chat. You can pin up to GetOption("pinned_chat_count_max")/GetOption("pinned_archived_chat_count_max") non-secret chats and the same number of secret chats in the main/archive chat list @chat_id Chat identifier @is_pinned New value of is_pinned
-toggleChatIsPinned chat_id:int53 is_pinned:Bool = Ok;
 
 //@description Changes the marked as unread state of a chat @chat_id Chat identifier @is_marked_as_unread New value of is_marked_as_unread
 toggleChatIsMarkedAsUnread chat_id:int53 is_marked_as_unread:Bool = Ok;
@@ -3774,6 +3871,10 @@ setScopeNotificationSettings scope:NotificationSettingsScope notification_settin
 //@description Resets all notification settings to their default values. By default, all chats are unmuted, the sound is set to "default" and message previews are shown
 resetAllNotificationSettings = Ok;
 
+
+//@description Changes the pinned state of a chat. You can pin up to GetOption("pinned_chat_count_max")/GetOption("pinned_archived_chat_count_max") non-secret chats and the same number of secret chats in the main/arhive chat list
+//@chat_list Chat list in which to change the pinned state of the chat @chat_id Chat identifier @is_pinned True, if the chat is pinned
+toggleChatIsPinned chat_list:ChatList chat_id:int53 is_pinned:Bool = Ok;
 
 //@description Changes the order of pinned chats @chat_list Chat list in which to change the order of pinned chats @chat_ids The new list of pinned chats
 setPinnedChats chat_list:ChatList chat_ids:vector<int53> = Ok;
@@ -4383,7 +4484,7 @@ answerCustomQuery custom_query_id:int64 data:string = Ok;
 setAlarm seconds:double = Ok;
 
 
-//@description Uses current user IP address to found their country. Returns two-letter ISO 3166-1 alpha-2 country code. Can be called before authorization
+//@description Uses current user IP address to find their country. Returns two-letter ISO 3166-1 alpha-2 country code. Can be called before authorization
 getCountryCode = Text;
 
 //@description Returns the default text for invitation messages to be used as a placeholder when the current user invites friends to Telegram

@@ -84,7 +84,7 @@ class GetInlineBotResultsQuery : public Td::ResultHandler {
         flags, std::move(bot_input_user), std::move(input_peer),
         user_location.empty() ? nullptr : user_location.get_input_geo_point(), query, offset));
     auto result = net_query.get_weak();
-    net_query->need_resend_on_503 = false;
+    net_query->need_resend_on_503_ = false;
     send_query(std::move(net_query));
     return result;
   }
@@ -865,6 +865,29 @@ tl_object_ptr<td_api::photoSize> copy(const td_api::photoSize &obj) {
   return make_tl_object<td_api::photoSize>(obj.type_, copy(obj.photo_), obj.width_, obj.height_);
 }
 
+template <>
+tl_object_ptr<td_api::thumbnail> copy(const td_api::thumbnail &obj) {
+  auto format = [&]() -> td_api::object_ptr<td_api::ThumbnailFormat> {
+    switch (obj.format_->get_id()) {
+      case td_api::thumbnailFormatJpeg::ID:
+        return td_api::make_object<td_api::thumbnailFormatJpeg>();
+      case td_api::thumbnailFormatPng::ID:
+        return td_api::make_object<td_api::thumbnailFormatPng>();
+      case td_api::thumbnailFormatWebp::ID:
+        return td_api::make_object<td_api::thumbnailFormatWebp>();
+      case td_api::thumbnailFormatTgs::ID:
+        return td_api::make_object<td_api::thumbnailFormatTgs>();
+      case td_api::thumbnailFormatMpeg4::ID:
+        return td_api::make_object<td_api::thumbnailFormatMpeg4>();
+      default:
+        UNREACHABLE();
+        return nullptr;
+    }
+  }();
+
+  return make_tl_object<td_api::thumbnail>(std::move(format), obj.width_, obj.height_, copy(obj.file_));
+}
+
 static tl_object_ptr<td_api::photoSize> copy_photo_size(const tl_object_ptr<td_api::photoSize> &obj) {
   return copy(obj);
 }
@@ -894,7 +917,8 @@ tl_object_ptr<td_api::maskPosition> copy(const td_api::maskPosition &obj) {
 template <>
 tl_object_ptr<td_api::animation> copy(const td_api::animation &obj) {
   return make_tl_object<td_api::animation>(obj.duration_, obj.width_, obj.height_, obj.file_name_, obj.mime_type_,
-                                           copy(obj.minithumbnail_), copy(obj.thumbnail_), copy(obj.animation_));
+                                           obj.has_stickers_, copy(obj.minithumbnail_), copy(obj.thumbnail_),
+                                           copy(obj.animation_));
 }
 
 template <>
@@ -1060,15 +1084,16 @@ tl_object_ptr<td_api::inlineQueryResults> InlineQueriesManager::decrease_pending
   return copy(it->second.results);
 }
 
-tl_object_ptr<td_api::photoSize> InlineQueriesManager::register_thumbnail(
+tl_object_ptr<td_api::thumbnail> InlineQueriesManager::register_thumbnail(
     tl_object_ptr<telegram_api::WebDocument> &&web_document_ptr) const {
   PhotoSize thumbnail = get_web_document_photo_size(td_->file_manager_.get(), FileType::Thumbnail, DialogId(),
                                                     std::move(web_document_ptr));
-  if (!thumbnail.file_id.is_valid()) {
+  if (!thumbnail.file_id.is_valid() || thumbnail.type == 'v') {
     return nullptr;
   }
 
-  return get_photo_size_object(td_->file_manager_.get(), &thumbnail);
+  return get_thumbnail_object(td_->file_manager_.get(), thumbnail,
+                              thumbnail.type == 'g' ? PhotoFormat::Gif : PhotoFormat::Jpeg);
 }
 
 string InlineQueriesManager::get_web_document_url(const tl_object_ptr<telegram_api::WebDocument> &web_document_ptr) {
@@ -1201,7 +1226,8 @@ void InlineQueriesManager::on_get_inline_query_results(UserId bot_user_id, uint6
 
               auto document = make_tl_object<td_api::inlineQueryResultDocument>();
               document->id_ = std::move(result->id_);
-              document->document_ = td_->documents_manager_->get_document_object(parsed_document.file_id);
+              document->document_ =
+                  td_->documents_manager_->get_document_object(parsed_document.file_id, PhotoFormat::Jpeg);
               document->title_ = std::move(result->title_);
               document->description_ = std::move(result->description_);
 
@@ -1389,7 +1415,7 @@ void InlineQueriesManager::on_get_inline_query_results(UserId bot_user_id, uint6
 
           PhotoSize photo_size = get_web_document_photo_size(td_->file_manager_.get(), FileType::Temp, DialogId(),
                                                              std::move(result->content_));
-          if (!photo_size.file_id.is_valid()) {
+          if (!photo_size.file_id.is_valid() || photo_size.type == 'v' || photo_size.type == 'g') {
             LOG(ERROR) << "Receive invalid web document photo";
             continue;
           }
@@ -1397,7 +1423,7 @@ void InlineQueriesManager::on_get_inline_query_results(UserId bot_user_id, uint6
           Photo new_photo;
           PhotoSize thumbnail = get_web_document_photo_size(td_->file_manager_.get(), FileType::Thumbnail, DialogId(),
                                                             std::move(result->thumb_));
-          if (thumbnail.file_id.is_valid()) {
+          if (thumbnail.file_id.is_valid() && thumbnail.type != 'v' && thumbnail.type != 'g') {
             new_photo.photos.push_back(std::move(thumbnail));
           }
           new_photo.photos.push_back(std::move(photo_size));
@@ -1467,7 +1493,7 @@ void InlineQueriesManager::on_get_inline_query_results(UserId bot_user_id, uint6
           } else if (result->type_ == "file" && parsed_document.type == Document::Type::General) {
             auto document = make_tl_object<td_api::inlineQueryResultDocument>();
             document->id_ = std::move(result->id_);
-            document->document_ = td_->documents_manager_->get_document_object(file_id);
+            document->document_ = td_->documents_manager_->get_document_object(file_id, PhotoFormat::Jpeg);
             document->title_ = std::move(result->title_);
             document->description_ = std::move(result->description_);
             if (!register_inline_message_content(results->query_id_, document->id_, file_id,

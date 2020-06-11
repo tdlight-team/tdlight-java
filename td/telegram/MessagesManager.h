@@ -16,7 +16,9 @@
 #include "td/telegram/DialogAdministrator.h"
 #include "td/telegram/DialogDate.h"
 #include "td/telegram/DialogDb.h"
+#include "td/telegram/DialogFilterId.h"
 #include "td/telegram/DialogId.h"
+#include "td/telegram/DialogListId.h"
 #include "td/telegram/DialogLocation.h"
 #include "td/telegram/DialogParticipant.h"
 #include "td/telegram/DialogSource.h"
@@ -25,6 +27,7 @@
 #include "td/telegram/FolderId.h"
 #include "td/telegram/FullMessageId.h"
 #include "td/telegram/Global.h"
+#include "td/telegram/InputDialogId.h"
 #include "td/telegram/MessageContentType.h"
 #include "td/telegram/MessageId.h"
 #include "td/telegram/MessagesDb.h"
@@ -72,6 +75,8 @@
 namespace td {
 
 struct BinlogEvent;
+
+class DialogFilter;
 
 class DraftMessage;
 
@@ -297,6 +302,8 @@ class MessagesManager : public Actor {
 
   void on_update_dialog_folder_id(DialogId dialog_id, FolderId folder_id);
 
+  void on_update_dialog_filters();
+
   void on_update_service_notification(tl_object_ptr<telegram_api::updateServiceNotification> &&update,
                                       bool skip_new_entities, Promise<Unit> &&promise);
 
@@ -442,7 +449,9 @@ class MessagesManager : public Actor {
 
   void send_dialog_action(DialogId dialog_id, const tl_object_ptr<td_api::ChatAction> &action, Promise<Unit> &&promise);
 
-  void set_dialog_folder_id(DialogId dialog_id, FolderId folder_id, Promise<Unit> &&promise);
+  vector<DialogListId> get_dialog_lists_to_add_dialog(DialogId dialog_id);
+
+  void add_dialog_to_list(DialogId dialog_id, DialogListId dialog_list_id, Promise<Unit> &&promise);
 
   void set_dialog_photo(DialogId dialog_id, const tl_object_ptr<td_api::InputFile> &photo, Promise<Unit> &&promise);
 
@@ -496,7 +505,12 @@ class MessagesManager : public Actor {
 
   void load_dialogs(vector<DialogId> dialog_ids, Promise<Unit> &&promise);
 
-  vector<DialogId> get_dialogs(FolderId folder_id, DialogDate offset, int32 limit, bool force, Promise<Unit> &&promise);
+  void load_dialog_filter(DialogFilterId dialog_id, bool force, Promise<Unit> &&promise);
+
+  void get_recommended_dialog_filters(Promise<td_api::object_ptr<td_api::recommendedChatFilters>> &&promise);
+
+  vector<DialogId> get_dialogs(DialogListId dialog_list_id, DialogDate offset, int32 limit, bool force,
+                               Promise<Unit> &&promise);
 
   vector<DialogId> search_public_dialogs(const string &query, Promise<Unit> &&promise);
 
@@ -546,6 +560,16 @@ class MessagesManager : public Actor {
 
   td_api::object_ptr<td_api::messageLinkInfo> get_message_link_info_object(const MessageLinkInfo &info) const;
 
+  void create_dialog_filter(td_api::object_ptr<td_api::chatFilter> filter,
+                            Promise<td_api::object_ptr<td_api::chatFilterInfo>> &&promise);
+
+  void edit_dialog_filter(DialogFilterId dialog_filter_id, td_api::object_ptr<td_api::chatFilter> filter,
+                          Promise<td_api::object_ptr<td_api::chatFilterInfo>> &&promise);
+
+  void delete_dialog_filter(DialogFilterId dialog_filter_id, Promise<Unit> &&promise);
+
+  void reorder_dialog_filters(vector<DialogFilterId> dialog_filter_ids, Promise<Unit> &&promise);
+
   Status delete_dialog_reply_markup(DialogId dialog_id, MessageId message_id) TD_WARN_UNUSED_RESULT;
 
   Status set_dialog_draft_message(DialogId dialog_id,
@@ -553,15 +577,13 @@ class MessagesManager : public Actor {
 
   void clear_all_draft_messages(bool exclude_secret_chats, Promise<Unit> &&promise);
 
-  void set_dialog_is_pinned(DialogId dialog_id, bool is_pinned);
-
-  Status toggle_dialog_is_pinned(DialogId dialog_id, bool is_pinned) TD_WARN_UNUSED_RESULT;
+  Status toggle_dialog_is_pinned(DialogListId dialog_list_id, DialogId dialog_id, bool is_pinned) TD_WARN_UNUSED_RESULT;
 
   Status toggle_dialog_is_marked_as_unread(DialogId dialog_id, bool is_marked_as_unread) TD_WARN_UNUSED_RESULT;
 
   Status toggle_dialog_silent_send_message(DialogId dialog_id, bool silent_send_message) TD_WARN_UNUSED_RESULT;
 
-  Status set_pinned_dialogs(FolderId folder_id, vector<DialogId> dialog_ids) TD_WARN_UNUSED_RESULT;
+  Status set_pinned_dialogs(DialogListId dialog_list_id, vector<DialogId> dialog_ids) TD_WARN_UNUSED_RESULT;
 
   Status set_dialog_client_data(DialogId dialog_id, string &&client_data) TD_WARN_UNUSED_RESULT;
 
@@ -607,6 +629,8 @@ class MessagesManager : public Actor {
   tl_object_ptr<td_api::chat> get_chat_object(DialogId dialog_id) const;
 
   static tl_object_ptr<td_api::chats> get_chats_object(const vector<DialogId> &dialogs);
+
+  tl_object_ptr<td_api::chatFilter> get_chat_filter_object(DialogFilterId dialog_filter_id) const;
 
   tl_object_ptr<td_api::messages> get_dialog_history(DialogId dialog_id, MessageId from_message_id, int32 offset,
                                                      int32 limit, int left_tries, bool only_local,
@@ -714,6 +738,8 @@ class MessagesManager : public Actor {
 
   void get_login_url(DialogId dialog_id, MessageId message_id, int32 button_id, bool allow_write_access,
                      Promise<td_api::object_ptr<td_api::httpUrl>> &&promise);
+
+  void on_authorization_success();
 
   void before_get_difference();
 
@@ -1055,7 +1081,9 @@ class MessagesManager : public Actor {
     uint64 read_history_logevent_id_generation = 0;
     uint64 set_folder_id_logevent_id = 0;
     uint64 set_folder_id_logevent_id_generation = 0;
+
     FolderId folder_id;
+    vector<DialogListId> dialog_list_ids;  // TODO replace with mask
 
     MessageId
         last_read_all_mentions_message_id;  // all mentions with a message identifier not greater than it are implicitly read
@@ -1065,7 +1093,6 @@ class MessagesManager : public Actor {
     int32 last_clear_history_date = 0;
     MessageId last_clear_history_message_id;
     int64 order = DEFAULT_ORDER;
-    int64 pinned_order = DEFAULT_ORDER;
     int32 delete_last_message_date = 0;
     MessageId deleted_last_message_id;
     int32 pending_last_message_date = 0;
@@ -1215,8 +1242,13 @@ class MessagesManager : public Actor {
     void parse(ParserT &parser);
   };
 
+  struct RecommendedDialogFilter {
+    unique_ptr<DialogFilter> dialog_filter;
+    string description;
+  };
+
   struct DialogList {
-    FolderId folder_id;
+    DialogListId dialog_list_id;
     bool is_message_unread_count_inited_ = false;
     bool is_dialog_unread_count_inited_ = false;
     bool need_unread_count_recalc_ = true;
@@ -1230,20 +1262,95 @@ class MessagesManager : public Actor {
     int32 server_dialog_total_count_ = -1;
     int32 secret_chat_total_count_ = -1;
 
-    // date of the last dialog in loaded the dialog list prefix
-    DialogDate last_dialog_date_ = MIN_DIALOG_DATE;  // in memory
-    std::set<DialogDate> ordered_dialogs_;           // all dialogs with date <= last_dialog_date_
+    vector<Promise<Unit>> load_list_queries_;
 
-    std::set<DialogDate> ordered_server_dialogs_;  // all known dialogs, including with default order
+    std::unordered_map<DialogId, int64, DialogIdHash> pinned_dialog_id_orders_;
+    vector<DialogDate> pinned_dialogs_;
+    bool are_pinned_dialogs_inited_ = false;
+
+    DialogDate last_pinned_dialog_date_ = MIN_DIALOG_DATE;  // in memory
+
+    // date of the last loaded dialog
+    // min(folder1_last_dialog_date_, folder2_last_dialog_date, last_pinned_dialog_date_)
+    DialogDate list_last_dialog_date_ = MIN_DIALOG_DATE;  // in memory
+  };
+
+  struct DialogFolder {
+    FolderId folder_id;
+    // date of the last loaded dialog in the folder
+    DialogDate folder_last_dialog_date_{MAX_ORDINARY_DIALOG_ORDER, DialogId()};  // in memory
+
+    std::set<DialogDate> ordered_dialogs_;  // all known dialogs, including with default order
 
     // date of last known user/group/channel dialog in the right order
-    DialogDate last_server_dialog_date_ = MIN_DIALOG_DATE;
-    DialogDate last_loaded_database_dialog_date_ = MIN_DIALOG_DATE;
-    DialogDate last_database_server_dialog_date_ = MIN_DIALOG_DATE;
+    DialogDate last_server_dialog_date_{MAX_ORDINARY_DIALOG_ORDER, DialogId()};
+    DialogDate last_loaded_database_dialog_date_{MAX_ORDINARY_DIALOG_ORDER, DialogId()};
+    DialogDate last_database_server_dialog_date_{MAX_ORDINARY_DIALOG_ORDER, DialogId()};
 
-    MultiPromiseActor load_dialog_list_multipromise_{
-        "LoadDialogListMultiPromiseActor"};  // should be defined before pending_on_get_dialogs_
+    MultiPromiseActor load_folder_dialog_list_multipromise_{
+        "LoadDialogListMultiPromiseActor"};  // must be defined before pending_on_get_dialogs_
     int32 load_dialog_list_limit_max_ = 0;
+  };
+
+  class DialogListViewIterator {
+    MessagesManager *messages_manager_;
+    const DialogListId *dialog_list_id_;
+
+   public:
+    DialogListViewIterator(MessagesManager *messages_manager, const DialogListId *dialog_list_id)
+        : messages_manager_(messages_manager), dialog_list_id_(dialog_list_id) {
+    }
+
+    DialogList &operator*() const {
+      auto dialog_list_ptr = messages_manager_->get_dialog_list(*dialog_list_id_);
+      CHECK(dialog_list_ptr != nullptr);
+      return *dialog_list_ptr;
+    }
+
+    bool operator!=(const DialogListViewIterator &other) const {
+      return dialog_list_id_ != other.dialog_list_id_;
+    }
+
+    void operator++() {
+      dialog_list_id_++;
+    }
+  };
+
+  class DialogListView {
+    MessagesManager *messages_manager_;
+    // TODO can be optimized to store only mask of dialog lists
+    vector<DialogListId> dialog_list_ids_;
+
+   public:
+    DialogListView(MessagesManager *messages_manager, vector<DialogListId> dialog_list_ids)
+        : messages_manager_(messages_manager), dialog_list_ids_(std::move(dialog_list_ids)) {
+    }
+
+    DialogListViewIterator begin() {
+      return DialogListViewIterator(messages_manager_, dialog_list_ids_.empty() ? nullptr : &dialog_list_ids_[0]);
+    }
+
+    DialogListViewIterator end() {
+      return DialogListViewIterator(
+          messages_manager_, dialog_list_ids_.empty() ? nullptr : &dialog_list_ids_[0] + dialog_list_ids_.size());
+    }
+  };
+
+  struct DialogPositionInList {
+    int64 order = DEFAULT_ORDER;
+    int64 private_order = 0;
+    int64 public_order = 0;
+    bool is_pinned = false;
+    bool is_sponsored = false;
+
+    int32 total_dialog_count = 0;
+
+    friend StringBuilder &operator<<(StringBuilder &string_builder, const DialogPositionInList &order) {
+      return string_builder << "order = " << order.order << ", private_order = " << order.private_order
+                            << ", public_order = " << order.public_order << ", is_pinned = " << order.is_pinned
+                            << ", is_sponsored = " << order.is_sponsored
+                            << ", total_dialog_count = " << order.total_dialog_count;
+    }
   };
 
   class MessagesIteratorBase {
@@ -1426,6 +1533,8 @@ class MessagesManager : public Actor {
   class UpdateDialogNotificationSettingsOnServerLogEvent;
   class UpdateScopeNotificationSettingsOnServerLogEvent;
 
+  class DialogFiltersLogEvent;
+
   static constexpr size_t MAX_GROUPED_MESSAGES = 10;               // server side limit
   static constexpr int32 MAX_GET_DIALOGS = 100;                    // server side limit
   static constexpr int32 MAX_GET_HISTORY = 100;                    // server side limit
@@ -1433,13 +1542,19 @@ class MessagesManager : public Actor {
   static constexpr int32 MIN_SEARCH_PUBLIC_DIALOG_PREFIX_LEN = 5;  // server side limit
   static constexpr int32 MIN_CHANNEL_DIFFERENCE = 10;
   static constexpr int32 MAX_CHANNEL_DIFFERENCE = 100;
-  static constexpr int32 MAX_BOT_CHANNEL_DIFFERENCE = 100000;  // server side limit
-  static constexpr int32 MAX_RECENT_FOUND_DIALOGS = 20;        // some reasonable value
-  static constexpr size_t MAX_TITLE_LENGTH = 128;              // server side limit for chat title
-  static constexpr size_t MAX_DESCRIPTION_LENGTH = 255;        // server side limit for chat description
+  static constexpr int32 MAX_BOT_CHANNEL_DIFFERENCE = 100000;   // server side limit
+  static constexpr int32 MAX_RECENT_FOUND_DIALOGS = 20;         // some reasonable value
+  static constexpr size_t MAX_TITLE_LENGTH = 128;               // server side limit for chat title
+  static constexpr size_t MAX_DESCRIPTION_LENGTH = 255;         // server side limit for chat description
+  static constexpr size_t MAX_DIALOG_FILTER_TITLE_LENGTH = 12;  // server side limit for dialog filter title
+  static constexpr int32 MAX_PRIVATE_MESSAGE_TTL = 60;          // server side limit
+  static constexpr int32 MAX_DIALOG_FILTERS = 10;               // server side limit
+  static constexpr int32 DIALOG_FILTERS_CACHE_TIME = 86400;
+
   static constexpr int64 SPONSORED_DIALOG_ORDER = static_cast<int64>(2147483647) << 32;
   static constexpr int32 MIN_PINNED_DIALOG_DATE = 2147000000;  // some big date
-  static constexpr int32 MAX_PRIVATE_MESSAGE_TTL = 60;         // server side limit
+  static constexpr int64 MAX_ORDINARY_DIALOG_ORDER =
+      9221294780217032704;  // == get_dialog_order(MessageId(), MIN_PINNED_DIALOG_DATE - 1)
 
   static constexpr int32 UPDATE_CHANNEL_TO_LONG_FLAG_HAS_PTS = 1 << 0;
 
@@ -1491,6 +1606,10 @@ class MessagesManager : public Actor {
   bool is_dialog_pinned_message_notifications_disabled(const Dialog *d) const;
 
   bool is_dialog_mention_notifications_disabled(const Dialog *d) const;
+
+  int64 get_dialog_pinned_order(DialogListId dialog_list_id, DialogId dialog_id) const;
+
+  static int64 get_dialog_pinned_order(const DialogList *list, DialogId dialog_id);
 
   void open_dialog(Dialog *d);
 
@@ -1775,11 +1894,15 @@ class MessagesManager : public Actor {
 
   void try_reuse_notification_group(NotificationGroupInfo &group_info);
 
-  void load_dialog_list(FolderId folder_id, int32 limit, bool only_local, Promise<Unit> &&promise);
+  void load_dialog_list(DialogList &list, int32 limit, Promise<Unit> &&promise);
 
-  void load_dialog_list_from_database(FolderId folder_id, int32 limit, Promise<Unit> &&promise);
+  void load_folder_dialog_list(FolderId folder_id, int32 limit, bool only_local, Promise<Unit> &&promise);
 
-  void preload_dialog_list(FolderId folderId);
+  void on_load_folder_dialog_list_fail(FolderId folder_id, Status error);
+
+  void load_folder_dialog_list_from_database(FolderId folder_id, int32 limit, Promise<Unit> &&promise);
+
+  void preload_folder_dialog_list(FolderId folderId);
 
   static void invalidate_message_indexes(Dialog *d);
 
@@ -1918,9 +2041,13 @@ class MessagesManager : public Actor {
 
   void send_update_chat_last_message_impl(const Dialog *d, const char *source) const;
 
-  void send_update_unread_message_count(FolderId folder_id, DialogId dialog_id, bool force, const char *source);
+  void send_update_chat_filters();
 
-  void send_update_unread_chat_count(FolderId folder_id, DialogId dialog_id, bool force, const char *source);
+  void send_update_unread_message_count(DialogList &list, DialogId dialog_id, bool force, const char *source,
+                                        bool from_database = false);
+
+  void send_update_unread_chat_count(DialogList &list, DialogId dialog_id, bool force, const char *source,
+                                     bool from_database = false);
 
   void send_update_chat_read_inbox(const Dialog *d, bool force, const char *source);
 
@@ -1928,11 +2055,9 @@ class MessagesManager : public Actor {
 
   void send_update_chat_unread_mention_count(const Dialog *d);
 
-  void send_update_chat_source(const Dialog *d) const;
+  void send_update_chat_position(DialogListId dialog_list_id, const Dialog *d, const char *source) const;
 
   void send_update_chat_online_member_count(DialogId dialog_id, int32 online_member_count) const;
-
-  void send_update_chat_chat_list(const Dialog *d) const;
 
   void send_update_secret_chats_with_user_action_bar(const Dialog *d) const;
 
@@ -1964,18 +2089,22 @@ class MessagesManager : public Actor {
 
   int32 get_dialog_total_count(const DialogList &list) const;
 
-  void repair_server_dialog_total_count(FolderId folder_id);
+  void repair_server_dialog_total_count(DialogListId dialog_list_id);
 
-  void repair_secret_chat_total_count(FolderId folder_id);
+  void repair_secret_chat_total_count(DialogListId dialog_list_id);
 
-  void on_get_secret_chat_total_count(FolderId folder_id, int32 total_count);
+  void on_get_secret_chat_total_count(DialogListId dialog_list_id, int32 total_count);
 
-  void recalc_unread_count(FolderId folder_id);
+  void recalc_unread_count(DialogListId dialog_list_id, int32 old_dialog_total_count = -1);
+
+  td_api::object_ptr<td_api::updateChatFilters> get_update_chat_filters_object() const;
 
   td_api::object_ptr<td_api::updateUnreadMessageCount> get_update_unread_message_count_object(
       const DialogList &list) const;
 
   td_api::object_ptr<td_api::updateUnreadChatCount> get_update_unread_chat_count_object(const DialogList &list) const;
+
+  void save_unread_chat_count(const DialogList &list);
 
   void set_dialog_last_read_inbox_message_id(Dialog *d, MessageId message_id, int32 server_unread_count,
                                              int32 local_unread_count, bool force_update, const char *source);
@@ -1996,11 +2125,14 @@ class MessagesManager : public Actor {
 
   void set_dialog_is_empty(Dialog *d, const char *source);
 
-  static int32 get_pinned_dialogs_limit(FolderId folder_id);
+  static int32 get_pinned_dialogs_limit(DialogListId dialog_list_id);
 
   static vector<DialogId> remove_secret_chat_dialog_ids(vector<DialogId> dialog_ids);
 
-  void set_dialog_is_pinned(Dialog *d, bool is_pinned);
+  void set_dialog_is_pinned(DialogId dialog_id, bool is_pinned);
+
+  bool set_dialog_is_pinned(DialogListId dialog_list_id, Dialog *d, bool is_pinned,
+                            bool need_update_dialog_lists = true);
 
   void set_dialog_is_marked_as_unread(Dialog *d, bool is_marked_as_unread);
 
@@ -2045,10 +2177,14 @@ class MessagesManager : public Actor {
   bool update_scope_notification_settings(NotificationSettingsScope scope, ScopeNotificationSettings *current_settings,
                                           const ScopeNotificationSettings &new_settings);
 
-  void update_dialog_unmute_timeout(Dialog *d, bool old_use_default, int32 old_mute_until, bool new_use_default,
+  void schedule_dialog_unmute(DialogId dialog_id, bool use_default, int32 mute_until);
+
+  void update_dialog_unmute_timeout(Dialog *d, bool &old_use_default, int32 &old_mute_until, bool new_use_default,
                                     int32 new_mute_until);
 
-  void update_scope_unmute_timeout(NotificationSettingsScope scope, int32 old_mute_until, int32 new_mute_until);
+  void schedule_scope_unmute(NotificationSettingsScope scope, int32 mute_until);
+
+  void update_scope_unmute_timeout(NotificationSettingsScope scope, int32 &old_mute_until, int32 new_mute_until);
 
   void on_dialog_unmute(DialogId dialog_id);
 
@@ -2086,10 +2222,6 @@ class MessagesManager : public Actor {
 
   td_api::object_ptr<td_api::ChatType> get_chat_type_object(DialogId dialog_id) const;
 
-  td_api::object_ptr<td_api::ChatList> get_chat_list_object(const Dialog *d) const;
-
-  static td_api::object_ptr<td_api::ChatList> get_chat_list_object(FolderId folder_id);
-
   td_api::object_ptr<td_api::ChatActionBar> get_chat_action_bar_object(const Dialog *d) const;
 
   td_api::object_ptr<td_api::chat> get_chat_object(const Dialog *d, int64 real_order = DEFAULT_ORDER) const;
@@ -2111,15 +2243,107 @@ class MessagesManager : public Actor {
 
   void send_search_public_dialogs_query(const string &query, Promise<Unit> &&promise);
 
-  vector<DialogId> get_pinned_dialog_ids(FolderId folder_id) const;
+  vector<DialogId> get_pinned_dialog_ids(DialogListId dialog_list_id) const;
 
-  void reload_pinned_dialogs(FolderId folder_id, Promise<Unit> &&promise);
+  void reload_pinned_dialogs(DialogListId dialog_list_id, Promise<Unit> &&promise);
+
+  double get_dialog_filters_cache_time() const;
+
+  void schedule_dialog_filters_reload(double timeout);
+
+  static void on_reload_dialog_filters_timeout(void *messages_manager_ptr);
+
+  void reload_dialog_filters();
+
+  void on_get_dialog_filters(Result<vector<tl_object_ptr<telegram_api::dialogFilter>>> r_filters, bool dummy);
+
+  bool need_synchronize_dialog_filters() const;
+
+  void synchronize_dialog_filters();
 
   void update_dialogs_hints(const Dialog *d);
   void update_dialogs_hints_rating(const Dialog *d);
 
-  DialogList &get_dialog_list(FolderId folder_id);
-  const DialogList *get_dialog_list(FolderId folder_id) const;
+  td_api::object_ptr<td_api::chatFilter> get_chat_filter_object(const DialogFilter *filter) const;
+
+  void load_dialog_filter(const DialogFilter *filter, bool force, Promise<Unit> &&promise);
+
+  void on_get_recommended_dialog_filters(Result<vector<tl_object_ptr<telegram_api::dialogFilterSuggested>>> result,
+                                         Promise<td_api::object_ptr<td_api::recommendedChatFilters>> &&promise);
+
+  void on_load_recommended_dialog_filters(Result<Unit> &&result, vector<RecommendedDialogFilter> &&filters,
+                                          Promise<td_api::object_ptr<td_api::recommendedChatFilters>> &&promise);
+
+  InputDialogId get_input_dialog_id(DialogId dialog_id) const;
+
+  void sort_dialog_filter_input_dialog_ids(DialogFilter *dialog_filter) const;
+
+  Result<unique_ptr<DialogFilter>> create_dialog_filter(DialogFilterId dialog_filter_id,
+                                                        td_api::object_ptr<td_api::chatFilter> filter);
+
+  void update_dialog_filter_on_server(unique_ptr<DialogFilter> &&dialog_filter);
+
+  void on_update_dialog_filter(unique_ptr<DialogFilter> dialog_filter, Status result);
+
+  void delete_dialog_filter_on_server(DialogFilterId dialog_filter_id);
+
+  void on_delete_dialog_filter(DialogFilterId dialog_filter_id, Status result);
+
+  void reorder_dialog_filters_on_server(vector<DialogFilterId> dialog_filter_ids);
+
+  void on_reorder_dialog_filters(vector<DialogFilterId> dialog_filter_ids, Status result);
+
+  void save_dialog_filters();
+
+  void add_dialog_filter(unique_ptr<DialogFilter> dialog_filter, bool at_beginning, const char *source);
+
+  void edit_dialog_filter(unique_ptr<DialogFilter> new_dialog_filter, const char *source);
+
+  void delete_dialog_filter(DialogFilterId dialog_filter_id, const char *source);
+
+  static bool set_dialog_filters_order(vector<unique_ptr<DialogFilter>> &dialog_filters,
+                                       vector<DialogFilterId> dialog_filter_ids);
+
+  const DialogFilter *get_server_dialog_filter(DialogFilterId dialog_filter_id) const;
+
+  DialogFilter *get_dialog_filter(DialogFilterId dialog_filter_id);
+  const DialogFilter *get_dialog_filter(DialogFilterId dialog_filter_id) const;
+
+  static vector<DialogFilterId> get_dialog_filter_ids(const vector<unique_ptr<DialogFilter>> &dialog_filters);
+
+  static vector<FolderId> get_dialog_filter_folder_ids(const DialogFilter *filter);
+
+  vector<FolderId> get_dialog_list_folder_ids(const DialogList &list) const;
+
+  bool has_dialogs_from_folder(const DialogList &list, const DialogFolder &folder) const;
+
+  bool is_dialog_in_list(const Dialog *d, DialogListId dialog_list_id) const;
+
+  void add_dialog_to_list(Dialog *d, DialogListId dialog_list_id) const;
+
+  void remove_dialog_from_list(Dialog *d, DialogListId dialog_list_id) const;
+
+  bool need_dialog_in_filter(const Dialog *d, const DialogFilter *filter) const;
+
+  bool need_dialog_in_list(const Dialog *d, const DialogList &list) const;
+
+  static bool need_send_update_chat_position(const DialogPositionInList &old_position,
+                                             const DialogPositionInList &new_position);
+
+  DialogPositionInList get_dialog_position_in_list(const DialogList *list, const Dialog *d, bool actual = false) const;
+
+  std::unordered_map<DialogListId, DialogPositionInList, DialogListIdHash> get_dialog_positions(const Dialog *d) const;
+
+  vector<DialogListId> get_dialog_list_ids(const Dialog *d) const;
+  DialogListView get_dialog_lists(const Dialog *d);
+
+  DialogList &add_dialog_list(DialogListId dialog_list_id);
+
+  DialogList *get_dialog_list(DialogListId dialog_list_id);
+  const DialogList *get_dialog_list(DialogListId dialog_list_id) const;
+
+  DialogFolder *get_dialog_folder(FolderId folder_id);
+  const DialogFolder *get_dialog_folder(FolderId folder_id) const;
 
   std::pair<int32, vector<DialogParticipant>> search_private_chat_participants(UserId my_user_id, UserId peer_user_id,
                                                                                const string &query, int32 limit,
@@ -2205,6 +2429,7 @@ class MessagesManager : public Actor {
   void loop() override;
   void tear_down() override;
 
+  void create_folders();
   void init();
 
   void ttl_db_loop_start(double server_now);
@@ -2270,15 +2495,13 @@ class MessagesManager : public Actor {
 
   bool is_dialog_sponsored(const Dialog *d) const;
 
-  int64 get_dialog_private_order(FolderId folder_id, const Dialog *d) const;
+  int64 get_dialog_base_order(const Dialog *d) const;
 
   int64 get_dialog_private_order(const DialogList *list, const Dialog *d) const;
 
-  int64 get_dialog_public_order(FolderId folder_id, const Dialog *d) const;
+  td_api::object_ptr<td_api::chatPosition> get_chat_position_object(DialogListId dialog_list_id, const Dialog *d) const;
 
-  int64 get_dialog_public_order(const DialogList *list, const Dialog *d) const;
-
-  int64 get_dialog_order_object(const Dialog *d) const;
+  vector<td_api::object_ptr<td_api::chatPosition>> get_chat_positions_object(const Dialog *d) const;
 
   bool update_dialog_draft_message(Dialog *d, unique_ptr<DraftMessage> &&draft_message, bool from_update,
                                    bool need_update_dialog_pos);
@@ -2308,13 +2531,25 @@ class MessagesManager : public Actor {
 
   bool is_removed_from_dialog_list(const Dialog *d) const;
 
-  void update_dialog_pos(Dialog *d, const char *source, bool need_send_update_chat_order = true,
+  void update_dialog_pos(Dialog *d, const char *source, bool need_send_update = true,
                          bool is_loaded_from_database = false);
 
-  bool set_dialog_order(Dialog *d, int64 new_order, bool need_send_update_chat_order, bool is_loaded_from_database,
+  bool set_dialog_order(Dialog *d, int64 new_order, bool need_send_update, bool is_loaded_from_database,
                         const char *source);
 
+  void update_dialog_lists(Dialog *d,
+                           std::unordered_map<DialogListId, DialogPositionInList, DialogListIdHash> &&old_positions,
+                           bool need_send_update, bool is_loaded_from_database, const char *source);
+
   void update_last_dialog_date(FolderId folder_id);
+
+  bool do_update_list_last_pinned_dialog_date(DialogList &list) const;
+
+  void update_list_last_pinned_dialog_date(DialogList &list);
+
+  bool do_update_list_last_dialog_date(DialogList &list, const vector<FolderId> &folder_ids) const;
+
+  void update_list_last_dialog_date(DialogList &list);
 
   void load_notification_settings();
 
@@ -2375,7 +2610,7 @@ class MessagesManager : public Actor {
 
   static void on_update_dialog_online_member_count_timeout_callback(void *messages_manager_ptr, int64 dialog_id_int);
 
-  static void on_preload_dialog_list_timeout_callback(void *messages_manager_ptr, int64 folder_id_int);
+  static void on_preload_folder_dialog_list_timeout_callback(void *messages_manager_ptr, int64 folder_id_int);
 
   void load_secret_thumbnail(FileId thumbnail_file_id);
 
@@ -2683,12 +2918,24 @@ class MessagesManager : public Actor {
 
   uint64 current_message_edit_generation_ = 0;
 
-  std::unordered_set<FolderId, FolderIdHash> postponed_unread_message_count_updates_;
-  std::unordered_set<FolderId, FolderIdHash> postponed_unread_chat_count_updates_;
+  std::unordered_set<DialogListId, DialogListIdHash> postponed_unread_message_count_updates_;
+  std::unordered_set<DialogListId, DialogListIdHash> postponed_unread_chat_count_updates_;
 
-  int64 current_pinned_dialog_order_ = DEFAULT_ORDER;
+  int64 current_pinned_dialog_order_ = static_cast<int64>(MIN_PINNED_DIALOG_DATE) << 32;
 
-  std::unordered_map<FolderId, DialogList, FolderIdHash> dialog_lists_;
+  std::unordered_map<DialogListId, DialogList, DialogListIdHash> dialog_lists_;
+  std::unordered_map<FolderId, DialogFolder, FolderIdHash> dialog_folders_;
+
+  bool are_dialog_filters_being_synchronized_ = false;
+  bool are_dialog_filters_being_reloaded_ = false;
+  bool need_dialog_filters_reload_ = false;
+  bool disable_get_dialog_filter_ = false;
+  bool is_update_chat_filters_sent_ = false;
+  int32 dialog_filters_updated_date_ = 0;
+  vector<unique_ptr<DialogFilter>> server_dialog_filters_;
+  vector<unique_ptr<DialogFilter>> dialog_filters_;
+  vector<RecommendedDialogFilter> recommended_dialog_filters_;
+  vector<Promise<Unit>> dialog_filter_reload_queries_;
 
   std::unordered_map<DialogId, string, DialogIdHash> active_get_channel_differencies_;
   std::unordered_map<DialogId, uint64, DialogIdHash> get_channel_difference_to_logevent_id_;
@@ -2705,7 +2952,9 @@ class MessagesManager : public Actor {
   MultiTimeout pending_send_dialog_action_timeout_{"PendingSendDialogActionTimeout"};
   MultiTimeout active_dialog_action_timeout_{"ActiveDialogActionTimeout"};
   MultiTimeout update_dialog_online_member_count_timeout_{"UpdateDialogOnlineMemberCountTimeout"};
-  MultiTimeout preload_dialog_list_timeout_{"PreloadDialogListTimeout"};
+  MultiTimeout preload_folder_dialog_list_timeout_{"PreloadFolderDialogListTimeout"};
+
+  Timeout reload_dialog_filters_timeout_;
 
   Hints dialogs_hints_;  // search dialogs by title and username
 

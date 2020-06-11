@@ -138,6 +138,10 @@ void CallActor::create_call(UserId user_id, tl_object_ptr<telegram_api::InputUse
   promise.set_value(CallId(local_call_id_));
 }
 
+void CallActor::update_call_signaling_data(string data) {
+  // nothing to do
+}
+
 void CallActor::discard_call(bool is_disconnected, int32 duration, bool is_video, int64 connection_id,
                              Promise<> promise) {
   promise.set_value(Unit());
@@ -578,7 +582,7 @@ void CallActor::try_send_request_query() {
   double timeout = call_receive_timeout_ms * 0.001;
   LOG(INFO) << "Set call timeout to " << timeout;
   set_timeout_in(timeout);
-  query->total_timeout_limit = timeout;
+  query->total_timeout_limit_ = max(timeout, 10.0);
   request_query_ref_ = query.get_weak();
   send_with_promise(std::move(query), PromiseCreator::lambda([actor_id = actor_id(this)](NetQueryPtr net_query) {
                       send_closure(actor_id, &CallActor::on_request_query_result, std::move(net_query));
@@ -726,7 +730,7 @@ void CallActor::on_get_call_config_result(NetQueryPtr net_query) {
 }
 
 void CallActor::loop() {
-  LOG(DEBUG) << "Enter loop for call " << call_id_ << " in state " << static_cast<int32>(state_) << '/'
+  LOG(DEBUG) << "Enter loop for " << call_id_ << " in state " << static_cast<int32>(state_) << '/'
              << static_cast<int32>(call_state_.type);
   flush_call_state();
   switch (state_) {
@@ -747,7 +751,7 @@ void CallActor::loop() {
           (call_state_.need_rating || call_state_.need_debug_information)) {
         break;
       }
-      LOG(INFO) << "Close call " << local_call_id_;
+      LOG(INFO) << "Close " << local_call_id_;
       stop();
       break;
     }

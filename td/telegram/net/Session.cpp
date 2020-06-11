@@ -617,7 +617,10 @@ void Session::on_message_ack_impl_inner(uint64 id, int32 type, bool in_container
   }
   VLOG(net_query) << "Ack " << tag("msg_id", id) << it->second.query;
   it->second.ack = true;
-  it->second.query->debug_ack |= type;
+  {
+    auto lock = it->second.query->lock();
+    it->second.query->get_data_unsafe().ack_state_ |= type;
+  }
   it->second.query->quick_ack_promise_.set_value(Unit());
   if (!in_container) {
     cleanup_container(id, &it->second);
@@ -652,7 +655,10 @@ void Session::cleanup_container(uint64 message_id, Query *query) {
 }
 
 void Session::mark_as_known(uint64 id, Query *query) {
-  query->query->debug_unknown = false;
+  {
+    auto lock = query->query->lock();
+    query->query->get_data_unsafe().unknown_state_ = false;
+  }
   if (!query->unknown) {
     return;
   }
@@ -665,7 +671,10 @@ void Session::mark_as_known(uint64 id, Query *query) {
 }
 
 void Session::mark_as_unknown(uint64 id, Query *query) {
-  query->query->debug_unknown = true;
+  {
+    auto lock = query->query->lock();
+    query->query->get_data_unsafe().unknown_state_ = true;
+  }
   if (query->unknown) {
     return;
   }
@@ -930,8 +939,11 @@ void Session::connection_send_query(ConnectionInfo *info, NetQueryPtr &&net_quer
   net_query->set_message_id(message_id);
   net_query->cancel_slot_.clear_event();
   LOG_CHECK(sent_queries_.find(message_id) == sent_queries_.end()) << message_id;
-  net_query->debug_unknown = false;
-  net_query->debug_ack = 0;
+  {
+    auto lock = net_query->lock();
+    net_query->get_data_unsafe().unknown_state_ = false;
+    net_query->get_data_unsafe().ack_state_ = 0;
+  }
   if (!net_query->cancel_slot_.empty()) {
     LOG(DEBUG) << "Set event for net_query cancellation " << tag("message_id", format::as_hex(message_id));
     net_query->cancel_slot_.set_event(EventCreator::raw(actor_id(), message_id));
@@ -1106,7 +1118,7 @@ bool Session::connection_send_check_main_key(ConnectionInfo *info) {
   last_check_query_id_ = UniqueId::next(UniqueId::BindKey);
   NetQueryPtr query = G()->net_query_creator().create(last_check_query_id_, telegram_api::help_getNearestDc(),
                                                       DcId::main(), NetQuery::Type::Common, NetQuery::AuthFlag::On);
-  query->dispatch_ttl = 0;
+  query->dispatch_ttl_ = 0;
   query->set_callback(actor_shared(this));
   connection_send_query(info, std::move(query));
 
@@ -1143,7 +1155,7 @@ bool Session::connection_send_bind_key(ConnectionInfo *info) {
       last_bind_query_id_,
       telegram_api::auth_bindTempAuthKey(perm_auth_key_id, nonce, expires_at, std::move(encrypted)), DcId::main(),
       NetQuery::Type::Common, NetQuery::AuthFlag::On);
-  query->dispatch_ttl = 0;
+  query->dispatch_ttl_ = 0;
   query->set_callback(actor_shared(this));
   connection_send_query(info, std::move(query), message_id);
 

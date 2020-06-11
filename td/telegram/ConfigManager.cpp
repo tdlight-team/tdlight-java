@@ -506,9 +506,9 @@ ActorOwn<> get_full_config(DcOption option, Promise<FullConfig> promise, ActorSh
                                        false /*need_destroy_auth_key*/, mtproto::AuthKey(),
                                        std::vector<mtproto::ServerSalt>());
       auto query = G()->net_query_creator().create_unauth(telegram_api::help_getConfig(), DcId::empty());
-      query->total_timeout_limit = 60 * 60 * 24;
+      query->total_timeout_limit_ = 60 * 60 * 24;
       query->set_callback(actor_shared(this));
-      query->dispatch_ttl = 0;
+      query->dispatch_ttl_ = 0;
       send_closure(session_, &Session::send, std::move(query));
       set_timeout_in(10);
     }
@@ -579,7 +579,7 @@ class ConfigRecoverer : public Actor {
     loop();
   }
   void on_connecting(bool is_connecting) {
-    VLOG(config_recoverer) << "ON CONNECTING " << is_connecting;
+    VLOG(config_recoverer) << "On connecting " << is_connecting;
     if (is_connecting && !is_connecting_) {
       connecting_since_ = Time::now_cached();
     }
@@ -726,7 +726,7 @@ class ConfigRecoverer : public Actor {
 
   uint32 ref_cnt_{1};
   bool close_flag_{false};
-  uint8 simple_config_turn_{0};
+  uint32 simple_config_turn_{0};
 
   ActorShared<> parent_;
 
@@ -757,9 +757,9 @@ class ConfigRecoverer : public Actor {
     }
 
     if (is_connecting_) {
-      VLOG(config_recoverer) << "Failed to connect for " << Time::now_cached() - connecting_since_;
+      VLOG(config_recoverer) << "Failed to connect for " << Time::now() - connecting_since_;
     } else {
-      VLOG(config_recoverer) << "Successfully connected";
+      VLOG(config_recoverer) << "Successfully connected in " << Time::now() - connecting_since_;
     }
 
     Timestamp wakeup_timestamp;
@@ -786,24 +786,28 @@ class ConfigRecoverer : public Actor {
                             check_timeout(Timestamp::at(dc_options_at_ + (expect_blocking() ? 5 : 10)));
     if (need_simple_config) {
       ref_cnt_++;
-      VLOG(config_recoverer) << "ASK SIMPLE CONFIG";
+      VLOG(config_recoverer) << "Ask simple config with turn " << simple_config_turn_;
       auto promise =
           PromiseCreator::lambda([actor_id = actor_shared(this)](Result<SimpleConfigResult> r_simple_config) {
             send_closure(actor_id, &ConfigRecoverer::on_simple_config, std::move(r_simple_config), false);
           });
       auto get_simple_config = [&] {
-        switch (simple_config_turn_ % 4) {
-          case 2:
+        switch (simple_config_turn_ % 10) {
+          case 6:
             return get_simple_config_azure;
-          case 3:
+          case 2:
             return get_simple_config_firebase_remote_config;
           case 4:
             return get_simple_config_firebase_realtime;
-          case 5:
+          case 9:
             return get_simple_config_firebase_firestore;
           case 0:
+          case 3:
+          case 8:
             return get_simple_config_google_dns;
           case 1:
+          case 5:
+          case 7:
           default:
             return get_simple_config_mozilla_dns;
         }
@@ -815,7 +819,7 @@ class ConfigRecoverer : public Actor {
 
     if (need_full_config) {
       ref_cnt_++;
-      VLOG(config_recoverer) << "ASK FULL CONFIG";
+      VLOG(config_recoverer) << "Ask full config with dc_options_i_ = " << dc_options_i_;
       full_config_query_ =
           get_full_config(dc_options_.dc_options[dc_options_i_],
                           PromiseCreator::lambda([actor_id = actor_id(this)](Result<FullConfig> r_full_config) {
@@ -829,7 +833,7 @@ class ConfigRecoverer : public Actor {
       VLOG(config_recoverer) << "Wakeup in " << format::as_time(wakeup_timestamp.in());
       set_timeout_at(wakeup_timestamp.at());
     } else {
-      VLOG(config_recoverer) << "Wakeup NEVER";
+      VLOG(config_recoverer) << "Wakeup never";
     }
   }
 
@@ -933,7 +937,7 @@ void ConfigManager::get_app_config(Promise<td_api::object_ptr<td_api::JsonValue>
   get_app_config_queries_.push_back(std::move(promise));
   if (get_app_config_queries_.size() == 1) {
     auto query = G()->net_query_creator().create_unauth(telegram_api::help_getAppConfig());
-    query->total_timeout_limit = 60 * 60 * 24;
+    query->total_timeout_limit_ = 60 * 60 * 24;
     G()->net_query_dispatcher().dispatch_with_callback(std::move(query), actor_shared(this, 1));
   }
 }
@@ -989,7 +993,7 @@ void ConfigManager::on_dc_options_update(DcOptions dc_options) {
 void ConfigManager::request_config_from_dc_impl(DcId dc_id) {
   config_sent_cnt_++;
   auto query = G()->net_query_creator().create_unauth(telegram_api::help_getConfig(), dc_id);
-  query->total_timeout_limit = 60 * 60 * 24;
+  query->total_timeout_limit_ = 60 * 60 * 24;
   G()->net_query_dispatcher().dispatch_with_callback(std::move(query), actor_shared(this, 0));
 }
 
@@ -1283,33 +1287,17 @@ void ConfigManager::process_app_config(tl_object_ptr<telegram_api::JSONValue> &c
   LOG(INFO) << "Receive app config " << to_string(config);
 
   vector<tl_object_ptr<telegram_api::jsonObjectValue>> new_values;
-  string wallet_blockchain_name;
-  string wallet_config;
   string ignored_restriction_reasons;
   vector<string> dice_emojis;
   std::unordered_map<string, size_t> dice_emoji_index;
   std::unordered_map<string, string> dice_emoji_success_value;
+  string animation_search_provider;
+  string animation_search_emojis;
   if (config->get_id() == telegram_api::jsonObject::ID) {
     for (auto &key_value : static_cast<telegram_api::jsonObject *>(config.get())->value_) {
       Slice key = key_value->key_;
       telegram_api::JSONValue *value = key_value->value_.get();
-      if (key == "test" || key == "wallet_enabled") {
-        continue;
-      }
-      if (key == "wallet_blockchain_name") {
-        if (value->get_id() == telegram_api::jsonString::ID) {
-          wallet_blockchain_name = std::move(static_cast<telegram_api::jsonString *>(value)->value_);
-        } else {
-          LOG(ERROR) << "Receive unexpected wallet_blockchain_name " << to_string(*value);
-        }
-        continue;
-      }
-      if (key == "wallet_config") {
-        if (value->get_id() == telegram_api::jsonString::ID) {
-          wallet_config = std::move(static_cast<telegram_api::jsonString *>(value)->value_);
-        } else {
-          LOG(ERROR) << "Receive unexpected wallet_config " << to_string(*value);
-        }
+      if (key == "test" || key == "wallet_enabled" || key == "wallet_blockchain_name" || key == "wallet_config") {
         continue;
       }
       if (key == "ignore_restriction_reasons") {
@@ -1394,6 +1382,38 @@ void ConfigManager::process_app_config(tl_object_ptr<telegram_api::JSONValue> &c
         }
         continue;
       }
+      if (key == "gif_search_branding") {
+        if (value->get_id() == telegram_api::jsonString::ID) {
+          animation_search_provider = std::move(static_cast<telegram_api::jsonString *>(value)->value_);
+        } else {
+          LOG(ERROR) << "Receive unexpected gif_search_branding " << to_string(*value);
+        }
+        continue;
+      }
+      if (key == "gif_search_emojies") {
+        if (value->get_id() == telegram_api::jsonArray::ID) {
+          auto emojis = std::move(static_cast<telegram_api::jsonArray *>(value)->value_);
+          for (auto &emoji : emojis) {
+            CHECK(emoji != nullptr);
+            if (emoji->get_id() == telegram_api::jsonString::ID) {
+              Slice emoji_str = static_cast<telegram_api::jsonString *>(emoji.get())->value_;
+              if (!emoji_str.empty() && emoji_str.find(',') == Slice::npos) {
+                if (!animation_search_emojis.empty()) {
+                  animation_search_emojis += ',';
+                }
+                animation_search_emojis.append(emoji_str.begin(), emoji_str.end());
+              } else {
+                LOG(ERROR) << "Receive unexpected animation search emoji " << emoji_str;
+              }
+            } else {
+              LOG(ERROR) << "Receive unexpected animation search emoji " << to_string(emoji);
+            }
+          }
+        } else {
+          LOG(ERROR) << "Receive unexpected gif_search_emojies " << to_string(*value);
+        }
+        continue;
+      }
 
       new_values.push_back(std::move(key_value));
     }
@@ -1403,13 +1423,6 @@ void ConfigManager::process_app_config(tl_object_ptr<telegram_api::JSONValue> &c
   config = make_tl_object<telegram_api::jsonObject>(std::move(new_values));
 
   ConfigShared &shared_config = G()->shared_config();
-  if (wallet_config.empty()) {
-    shared_config.set_option_empty("default_ton_blockchain_config");
-    shared_config.set_option_empty("default_ton_blockchain_name");
-  } else {
-    shared_config.set_option_string("default_ton_blockchain_name", wallet_blockchain_name);
-    shared_config.set_option_string("default_ton_blockchain_config", wallet_config);
-  }
 
   if (ignored_restriction_reasons.empty()) {
     shared_config.set_option_empty("ignored_restriction_reasons");
@@ -1437,6 +1450,20 @@ void ConfigManager::process_app_config(tl_object_ptr<telegram_api::JSONValue> &c
     shared_config.set_option_string("dice_success_values", implode(dice_success_values, ','));
     shared_config.set_option_string("dice_emojis", implode(dice_emojis, '\x01'));
   }
+
+  if (animation_search_provider.empty()) {
+    shared_config.set_option_empty("animation_search_provider");
+  } else {
+    shared_config.set_option_string("animation_search_provider", animation_search_provider);
+  }
+  if (animation_search_emojis.empty()) {
+    shared_config.set_option_empty("animation_search_emojis");
+  } else {
+    shared_config.set_option_string("animation_search_emojis", animation_search_emojis);
+  }
+
+  shared_config.set_option_empty("default_ton_blockchain_config");
+  shared_config.set_option_empty("default_ton_blockchain_name");
 }
 
 }  // namespace td

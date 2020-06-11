@@ -16,7 +16,6 @@
 #include "td/utils/buffer.h"
 #include "td/utils/common.h"
 #include "td/utils/format.h"
-#include "td/utils/List.h"
 #include "td/utils/logging.h"
 #include "td/utils/ObjectPool.h"
 #include "td/utils/Slice.h"
@@ -24,6 +23,7 @@
 #include "td/utils/StringBuilder.h"
 #include "td/utils/Time.h"
 #include "td/utils/tl_parsers.h"
+#include "td/utils/TsList.h"
 
 #include <atomic>
 #include <utility>
@@ -40,9 +40,19 @@ class NetQueryCallback : public Actor {
   virtual void on_result_resendable(NetQueryPtr query, Promise<NetQueryPtr> promise);
 };
 
-extern ListNode net_query_list_;
+struct NetQueryDebug {
+  double start_timestamp_ = 0;
+  int32 my_id_ = 0;
+  int32 resend_count_ = 0;
+  string state_ = "empty";
+  double state_timestamp_ = 0;
+  int32 state_change_count_ = 0;
+  int32 send_failed_count_ = 0;
+  int ack_state_ = 0;
+  bool unknown_state_ = false;
+};
 
-class NetQuery : public ListNode {
+class NetQuery : public TsListNode<NetQueryDebug> {
  public:
   NetQuery() = default;
 
@@ -78,7 +88,10 @@ class NetQuery : public ListNode {
 
   void resend(DcId new_dc_id) {
     VLOG(net_query) << "Resend" << *this;
-    debug_resend_cnt_++;
+    {
+      auto guard = lock();
+      get_data_unsafe().resend_count_++;
+    }
     dc_id_ = new_dc_id;
     status_ = Status::OK();
     state_ = State::Query;
@@ -133,7 +146,7 @@ class NetQuery : public ListNode {
   void on_net_write(size_t size);
   void on_net_read(size_t size);
 
-  void set_error(Status status, string source = "");
+  void set_error(Status status, string source = string());
 
   void set_error_resend() {
     set_error_impl(Status::Error<Error::Resend>());
@@ -213,7 +226,10 @@ class NetQuery : public ListNode {
   }
 
   void clear() {
-    LOG_IF(ERROR, !is_ready()) << "Destroy not ready query " << *this << " " << tag("debug", debug_str_);
+    if (!is_ready()) {
+      auto guard = lock();
+      LOG(ERROR) << "Destroy not ready query " << *this << " " << tag("state", get_data_unsafe().state_);
+    }
     // TODO: CHECK if net_query is lost here
     cancel_slot_.close();
     *this = NetQuery();
@@ -228,15 +244,20 @@ class NetQuery : public ListNode {
   }
 
   void debug_send_failed() {
-    debug_send_failed_cnt_++;
+    auto guard = lock();
+    get_data_unsafe().send_failed_count_++;
   }
 
-  void debug(string str, bool may_be_lost = false) {
+  void debug(string state, bool may_be_lost = false) {
     may_be_lost_ = may_be_lost;
-    debug_str_ = std::move(str);
-    debug_timestamp_ = Time::now();
-    debug_cnt_++;
-    VLOG(net_query) << *this << " " << tag("debug", debug_str_);
+    {
+      auto guard = lock();
+      auto &data = get_data_unsafe();
+      data.state_ = state;
+      data.state_timestamp_ = Time::now();
+      data.state_change_count_++;
+    }
+    VLOG(net_query) << *this << " " << tag("state", state);
   }
 
   void set_callback(ActorShared<NetQueryCallback> callback) {
@@ -258,6 +279,8 @@ class NetQuery : public ListNode {
 
   static int32 tl_magic(const BufferSlice &buffer_slice);
 
+  static TsList<NetQueryDebug> &get_net_query_list();
+
  private:
   State state_ = State::Empty;
   Type type_ = Type::Common;
@@ -265,6 +288,7 @@ class NetQuery : public ListNode {
   GzipFlag gzip_flag_ = GzipFlag::Off;
   DcId dc_id_;
 
+  NetQueryCounter nq_counter_;
   Status status_;
   uint64 id_ = 0;
   BufferSlice query_;
@@ -273,6 +297,9 @@ class NetQuery : public ListNode {
 
   NetQueryRef invoke_after_;
   uint32 session_rand_ = 0;
+
+  bool may_be_lost_ = false;
+
   template <class T>
   struct movable_atomic : public std::atomic<T> {
     movable_atomic() = default;
@@ -290,44 +317,32 @@ class NetQuery : public ListNode {
     ~movable_atomic() = default;
   };
 
-  static int32 get_my_id();
-
   movable_atomic<uint64> session_id_{0};
   uint64 message_id_{0};
 
   movable_atomic<int32> cancellation_token_{-1};  // == 0 if query is canceled
   ActorShared<NetQueryCallback> callback_;
 
-  void set_error_impl(Status status, string source = "") {
+  void set_error_impl(Status status, string source = string()) {
     VLOG(net_query) << "Got error " << *this << " " << status;
     status_ = std::move(status);
     state_ = State::Error;
     source_ = std::move(source);
   }
 
- public:
-  double next_timeout = 1;
-  double total_timeout = 0;
-  double total_timeout_limit = 60;
-  double last_timeout = 0;
-  bool need_resend_on_503 = true;
-  bool may_be_lost_ = false;
-  string debug_str_ = "empty";
-  string source_;
-  double debug_timestamp_ = 0;
-  int32 debug_cnt_ = 0;
-  int32 debug_send_failed_cnt_ = 0;
-  int32 debug_resend_cnt_ = 0;
-  int debug_ack = 0;
-  bool debug_unknown = false;
-  int32 dispatch_ttl = -1;
-  Slot cancel_slot_;
-  Promise<> quick_ack_promise_;
-  int32 file_type_ = -1;
+  static int32 get_my_id();
 
-  double start_timestamp_ = 0;
-  int32 my_id_ = 0;
-  NetQueryCounter nq_counter_;
+ public:
+  double next_timeout_ = 1;          // for NetQueryDelayer
+  double total_timeout_ = 0;         // for NetQueryDelayer/SequenceDispatcher
+  double total_timeout_limit_ = 60;  // for NetQueryDelayer/SequenceDispatcher and to be set by caller
+  double last_timeout_ = 0;          // for NetQueryDelayer/SequenceDispatcher
+  string source_;                    // for NetQueryDelayer/SequenceDispatcher
+  bool need_resend_on_503_ = true;   // for NetQueryDispatcher and to be set by caller
+  int32 dispatch_ttl_ = -1;          // for NetQueryDispatcher and to be set by caller
+  Slot cancel_slot_;                 // for Session and to be set by caller
+  Promise<> quick_ack_promise_;      // for Session and to be set by caller
+  int32 file_type_ = -1;             // to be set by caller
 
   NetQuery(State state, uint64 id, BufferSlice &&query, BufferSlice &&answer, DcId dc_id, Type type, AuthFlag auth_flag,
            GzipFlag gzip_flag, int32 tl_constructor, double total_timeout_limit)
@@ -336,17 +351,17 @@ class NetQuery : public ListNode {
       , auth_flag_(auth_flag)
       , gzip_flag_(gzip_flag)
       , dc_id_(dc_id)
+      , nq_counter_(true)
       , status_()
       , id_(id)
       , query_(std::move(query))
       , answer_(std::move(answer))
       , tl_constructor_(tl_constructor)
-      , total_timeout_limit(total_timeout_limit)
-      , nq_counter_(true) {
-    my_id_ = get_my_id();
-    start_timestamp_ = Time::now();
+      , total_timeout_limit_(total_timeout_limit) {
+    get_data_unsafe().my_id_ = get_my_id();
+    get_data_unsafe().start_timestamp_ = Time::now();
     LOG(INFO) << *this;
-    // net_query_list_.put(this);
+    get_net_query_list().put(this);
   }
 };
 

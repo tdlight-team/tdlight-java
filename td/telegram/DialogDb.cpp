@@ -12,12 +12,16 @@
 #include "td/db/SqliteDb.h"
 #include "td/db/SqliteStatement.h"
 
+#include "td/utils/common.h"
+#include "td/utils/format.h"
+#include "td/utils/logging.h"
+#include "td/utils/misc.h"
 #include "td/utils/ScopeGuard.h"
 #include "td/utils/Time.h"
 
 namespace td {
 // NB: must happen inside a transaction
-Status init_dialog_db(SqliteDb &db, int32 version, bool &was_created) {
+Status init_dialog_db(SqliteDb &db, int32 version, KeyValueSyncInterface &binlog_pmc, bool &was_created) {
   return Status::OK();
 }
 

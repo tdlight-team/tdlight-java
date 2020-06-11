@@ -8,17 +8,21 @@
 
 #include "td/utils/as.h"
 #include "td/utils/BigNum.h"
+#include "td/utils/common.h"
 #include "td/utils/logging.h"
 #include "td/utils/misc.h"
 #include "td/utils/port/RwMutex.h"
 #include "td/utils/port/thread_local.h"
 #include "td/utils/Random.h"
 #include "td/utils/ScopeGuard.h"
+#include "td/utils/StackAllocator.h"
+#include "td/utils/StringBuilder.h"
 
 #if TD_HAVE_OPENSSL
 #include <openssl/aes.h>
 #include <openssl/bio.h>
 #include <openssl/crypto.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/md5.h>
@@ -36,6 +40,8 @@
 #endif
 
 #include <algorithm>
+#include <cerrno>
+#include <cstring>
 #include <mutex>
 #include <utility>
 
@@ -132,11 +138,13 @@ uint64 pq_factorize(uint64 pq) {
 void init_crypto() {
   static bool is_inited = [] {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
-    return OPENSSL_init_crypto(0, nullptr) != 0;
+    bool result = OPENSSL_init_crypto(0, nullptr) != 0;
 #else
     OpenSSL_add_all_algorithms();
-    return true;
+    bool result = true;
 #endif
+    clear_openssl_errors("Init crypto");
+    return result;
   }();
   CHECK(is_inited);
 }
@@ -670,6 +678,35 @@ void init_openssl_threads() {
   }
 #endif
 }
+
+Status create_openssl_error(int code, Slice message) {
+  const int max_result_size = 1 << 12;
+  auto result = StackAllocator::alloc(max_result_size);
+  StringBuilder sb(result.as_slice());
+
+  sb << message;
+  while (unsigned long error_code = ERR_get_error()) {
+    char error_buf[1024];
+    ERR_error_string_n(error_code, error_buf, sizeof(error_buf));
+    Slice error(error_buf, std::strlen(error_buf));
+    sb << "{" << error << "}";
+  }
+  LOG_IF(ERROR, sb.is_error()) << "OpenSSL error buffer overflow";
+  LOG(DEBUG) << sb.as_cslice();
+  return Status::Error(code, sb.as_cslice());
+}
+
+void clear_openssl_errors(Slice source) {
+  if (ERR_peek_error() != 0) {
+    LOG(ERROR) << source << ": " << create_openssl_error(0, "Unprocessed OPENSSL_ERROR");
+  }
+#if TD_PORT_WINDOWS
+  WSASetLastError(0);
+#else
+  errno = 0;
+#endif
+}
+
 #endif
 
 #if TD_HAVE_ZLIB
