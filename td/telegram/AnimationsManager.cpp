@@ -387,6 +387,11 @@ tl_object_ptr<telegram_api::InputMedia> AnimationsManager::get_input_media(
                                                                                     animation->dimensions.height));
     }
     int32 flags = 0;
+    vector<tl_object_ptr<telegram_api::InputDocument>> added_stickers;
+    if (animation->has_stickers) {
+      flags |= telegram_api::inputMediaUploadedDocument::STICKERS_MASK;
+      added_stickers = td_->file_manager_->get_input_documents(animation->sticker_file_ids);
+    }
     if (input_thumbnail != nullptr) {
       flags |= telegram_api::inputMediaUploadedDocument::THUMB_MASK;
     }
