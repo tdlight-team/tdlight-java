@@ -6930,15 +6930,6 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
       if (set_boolean_option("disable_notifications")) {
         return;
       }
-      if (set_boolean_option("ignore_update_chat_last_message")) {
-        return;
-      }
-      if (set_boolean_option("ignore_update_chat_read_inbox")) {
-        return;
-      }
-      if (set_boolean_option("ignore_update_user_chat_action")) {
-        return;
-      }
       // End custom-patches
 
       if (request.name_ == "drop_notification_ids") {
@@ -6964,6 +6955,19 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
       if (set_boolean_option("is_emulator")) {
         return;
       }
+
+      // Start custom-patches
+      if (set_boolean_option("ignore_update_chat_last_message")) {
+        return;
+      }
+      if (set_boolean_option("ignore_update_chat_read_inbox")) {
+        return;
+      }
+      if (set_boolean_option("ignore_update_user_chat_action")) {
+        return;
+      }
+      // End custom-patches
+
       if (!is_bot && request.name_ == "ignore_sensitive_content_restrictions") {
         if (!G()->shared_config().get_option_boolean("can_ignore_sensitive_content_restrictions")) {
           return send_error_raw(id, 3, "Option \"ignore_sensitive_content_restrictions\" can't be changed by the user");
