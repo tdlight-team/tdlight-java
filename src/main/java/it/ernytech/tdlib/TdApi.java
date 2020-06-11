@@ -256,6 +256,10 @@ public class TdApi {
 					return new ChatEventLogFilters(input);
 				case ChatEvents.CONSTRUCTOR:
 					return new ChatEvents(input);
+				case ChatFilter.CONSTRUCTOR:
+					return new ChatFilter(input);
+				case ChatFilterInfo.CONSTRUCTOR:
+					return new ChatFilterInfo(input);
 				case ChatInviteLink.CONSTRUCTOR:
 					return new ChatInviteLink(input);
 				case ChatInviteLinkInfo.CONSTRUCTOR:
@@ -264,6 +268,10 @@ public class TdApi {
 					return new ChatListMain(input);
 				case ChatListArchive.CONSTRUCTOR:
 					return new ChatListArchive(input);
+				case ChatListFilter.CONSTRUCTOR:
+					return new ChatListFilter(input);
+				case ChatLists.CONSTRUCTOR:
+					return new ChatLists(input);
 				case ChatLocation.CONSTRUCTOR:
 					return new ChatLocation(input);
 				case ChatMember.CONSTRUCTOR:
@@ -302,6 +310,8 @@ public class TdApi {
 					return new ChatPermissions(input);
 				case ChatPhoto.CONSTRUCTOR:
 					return new ChatPhoto(input);
+				case ChatPosition.CONSTRUCTOR:
+					return new ChatPosition(input);
 				case ChatReportReasonSpam.CONSTRUCTOR:
 					return new ChatReportReasonSpam(input);
 				case ChatReportReasonViolence.CONSTRUCTOR:
@@ -1130,6 +1140,10 @@ public class TdApi {
 					return new PushMessageContentMediaAlbum(input);
 				case PushReceiverId.CONSTRUCTOR:
 					return new PushReceiverId(input);
+				case RecommendedChatFilter.CONSTRUCTOR:
+					return new RecommendedChatFilter(input);
+				case RecommendedChatFilters.CONSTRUCTOR:
+					return new RecommendedChatFilters(input);
 				case RecoveryEmailAddress.CONSTRUCTOR:
 					return new RecoveryEmailAddress(input);
 				case RemoteFile.CONSTRUCTOR:
@@ -1352,6 +1366,20 @@ public class TdApi {
 					return new TextParseModeMarkdown(input);
 				case TextParseModeHTML.CONSTRUCTOR:
 					return new TextParseModeHTML(input);
+				case Thumbnail.CONSTRUCTOR:
+					return new Thumbnail(input);
+				case ThumbnailFormatJpeg.CONSTRUCTOR:
+					return new ThumbnailFormatJpeg(input);
+				case ThumbnailFormatPng.CONSTRUCTOR:
+					return new ThumbnailFormatPng(input);
+				case ThumbnailFormatWebp.CONSTRUCTOR:
+					return new ThumbnailFormatWebp(input);
+				case ThumbnailFormatGif.CONSTRUCTOR:
+					return new ThumbnailFormatGif(input);
+				case ThumbnailFormatTgs.CONSTRUCTOR:
+					return new ThumbnailFormatTgs(input);
+				case ThumbnailFormatMpeg4.CONSTRUCTOR:
+					return new ThumbnailFormatMpeg4(input);
 				case TopChatCategoryUsers.CONSTRUCTOR:
 					return new TopChatCategoryUsers(input);
 				case TopChatCategoryBots.CONSTRUCTOR:
@@ -1390,8 +1418,6 @@ public class TdApi {
 					return new UpdateMessageLiveLocationViewed(input);
 				case UpdateNewChat.CONSTRUCTOR:
 					return new UpdateNewChat(input);
-				case UpdateChatChatList.CONSTRUCTOR:
-					return new UpdateChatChatList(input);
 				case UpdateChatTitle.CONSTRUCTOR:
 					return new UpdateChatTitle(input);
 				case UpdateChatPhoto.CONSTRUCTOR:
@@ -1400,14 +1426,10 @@ public class TdApi {
 					return new UpdateChatPermissions(input);
 				case UpdateChatLastMessage.CONSTRUCTOR:
 					return new UpdateChatLastMessage(input);
-				case UpdateChatOrder.CONSTRUCTOR:
-					return new UpdateChatOrder(input);
-				case UpdateChatIsPinned.CONSTRUCTOR:
-					return new UpdateChatIsPinned(input);
+				case UpdateChatPosition.CONSTRUCTOR:
+					return new UpdateChatPosition(input);
 				case UpdateChatIsMarkedAsUnread.CONSTRUCTOR:
 					return new UpdateChatIsMarkedAsUnread(input);
-				case UpdateChatSource.CONSTRUCTOR:
-					return new UpdateChatSource(input);
 				case UpdateChatHasScheduledMessages.CONSTRUCTOR:
 					return new UpdateChatHasScheduledMessages(input);
 				case UpdateChatDefaultDisableNotification.CONSTRUCTOR:
@@ -1430,6 +1452,8 @@ public class TdApi {
 					return new UpdateChatReplyMarkup(input);
 				case UpdateChatDraftMessage.CONSTRUCTOR:
 					return new UpdateChatDraftMessage(input);
+				case UpdateChatFilters.CONSTRUCTOR:
+					return new UpdateChatFilters(input);
 				case UpdateChatOnlineMemberCount.CONSTRUCTOR:
 					return new UpdateChatOnlineMemberCount(input);
 				case UpdateNotification.CONSTRUCTOR:
@@ -1502,6 +1526,8 @@ public class TdApi {
 					return new UpdateUsersNearby(input);
 				case UpdateDiceEmojis.CONSTRUCTOR:
 					return new UpdateDiceEmojis(input);
+				case UpdateAnimationSearchParameters.CONSTRUCTOR:
+					return new UpdateAnimationSearchParameters(input);
 				case UpdateNewInlineQuery.CONSTRUCTOR:
 					return new UpdateNewInlineQuery(input);
 				case UpdateNewChosenInlineResult.CONSTRUCTOR:
@@ -1610,6 +1636,8 @@ public class TdApi {
 					return new AddChatMember(input);
 				case AddChatMembers.CONSTRUCTOR:
 					return new AddChatMembers(input);
+				case AddChatToList.CONSTRUCTOR:
+					return new AddChatToList(input);
 				case AddContact.CONSTRUCTOR:
 					return new AddContact(input);
 				case AddCustomServerLanguagePack.CONSTRUCTOR:
@@ -1702,6 +1730,8 @@ public class TdApi {
 					return new CreateBasicGroupChat(input);
 				case CreateCall.CONSTRUCTOR:
 					return new CreateCall(input);
+				case CreateChatFilter.CONSTRUCTOR:
+					return new CreateChatFilter(input);
 				case CreateNewBasicGroupChat.CONSTRUCTOR:
 					return new CreateNewBasicGroupChat(input);
 				case CreateNewSecretChat.CONSTRUCTOR:
@@ -1720,6 +1750,8 @@ public class TdApi {
 					return new CreateTemporaryPassword(input);
 				case DeleteAccount.CONSTRUCTOR:
 					return new DeleteAccount(input);
+				case DeleteChatFilter.CONSTRUCTOR:
+					return new DeleteChatFilter(input);
 				case DeleteChatHistory.CONSTRUCTOR:
 					return new DeleteChatHistory(input);
 				case DeleteChatMessagesFromUser.CONSTRUCTOR:
@@ -1754,6 +1786,8 @@ public class TdApi {
 					return new DisconnectWebsite(input);
 				case DownloadFile.CONSTRUCTOR:
 					return new DownloadFile(input);
+				case EditChatFilter.CONSTRUCTOR:
+					return new EditChatFilter(input);
 				case EditCustomLanguagePackInfo.CONSTRUCTOR:
 					return new EditCustomLanguagePackInfo(input);
 				case EditInlineMessageCaption.CONSTRUCTOR:
@@ -1826,8 +1860,14 @@ public class TdApi {
 					return new GetChatAdministrators(input);
 				case GetChatEventLog.CONSTRUCTOR:
 					return new GetChatEventLog(input);
+				case GetChatFilter.CONSTRUCTOR:
+					return new GetChatFilter(input);
+				case GetChatFilterDefaultIconName.CONSTRUCTOR:
+					return new GetChatFilterDefaultIconName(input);
 				case GetChatHistory.CONSTRUCTOR:
 					return new GetChatHistory(input);
+				case GetChatListsToAddChat.CONSTRUCTOR:
+					return new GetChatListsToAddChat(input);
 				case GetChatMember.CONSTRUCTOR:
 					return new GetChatMember(input);
 				case GetChatMessageByDate.CONSTRUCTOR:
@@ -1964,6 +2004,8 @@ public class TdApi {
 					return new GetRecentStickers(input);
 				case GetRecentlyVisitedTMeUrls.CONSTRUCTOR:
 					return new GetRecentlyVisitedTMeUrls(input);
+				case GetRecommendedChatFilters.CONSTRUCTOR:
+					return new GetRecommendedChatFilters(input);
 				case GetRecoveryEmailAddress.CONSTRUCTOR:
 					return new GetRecoveryEmailAddress(input);
 				case GetRemoteFile.CONSTRUCTOR:
@@ -2082,6 +2124,8 @@ public class TdApi {
 					return new RemoveStickerFromSet(input);
 				case RemoveTopChat.CONSTRUCTOR:
 					return new RemoveTopChat(input);
+				case ReorderChatFilters.CONSTRUCTOR:
+					return new ReorderChatFilters(input);
 				case ReorderInstalledStickerSets.CONSTRUCTOR:
 					return new ReorderInstalledStickerSets(input);
 				case ReportChat.CONSTRUCTOR:
@@ -2198,8 +2242,6 @@ public class TdApi {
 					return new SetBio(input);
 				case SetBotUpdatesStatus.CONSTRUCTOR:
 					return new SetBotUpdatesStatus(input);
-				case SetChatChatList.CONSTRUCTOR:
-					return new SetChatChatList(input);
 				case SetChatClientData.CONSTRUCTOR:
 					return new SetChatClientData(input);
 				case SetChatDescription.CONSTRUCTOR:
@@ -2486,6 +2528,8 @@ public class TdApi {
 
 	public abstract static class TextParseMode extends Object {}
 
+	public abstract static class ThumbnailFormat extends Object {}
+
 	public abstract static class TopChatCategory extends Object {}
 
 	public abstract static class Update extends Object {}
@@ -2640,20 +2684,22 @@ public class TdApi {
 		public int height;
 		public String fileName;
 		public String mimeType;
+		public boolean hasStickers;
 		public Minithumbnail minithumbnail;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 		public File animation;
 
-		public static final int CONSTRUCTOR = -1629245379;
+		public static final int CONSTRUCTOR = -872359106;
 
 		public Animation() {}
 
-		public Animation(int duration, int width, int height, String fileName, String mimeType, Minithumbnail minithumbnail, PhotoSize thumbnail, File animation) {
+		public Animation(int duration, int width, int height, String fileName, String mimeType, boolean hasStickers, Minithumbnail minithumbnail, Thumbnail thumbnail, File animation) {
 			this.duration = duration;
 			this.width = width;
 			this.height = height;
 			this.fileName = fileName;
 			this.mimeType = mimeType;
+			this.hasStickers = hasStickers;
 			this.minithumbnail = minithumbnail;
 			this.thumbnail = thumbnail;
 			this.animation = animation;
@@ -2673,6 +2719,7 @@ public class TdApi {
 				input.readFully(mimeTypeTmp);
 				this.mimeType = new String(mimeTypeTmp, StandardCharsets.UTF_8);
 			}
+			this.hasStickers = input.readBoolean();
 			if (input.readBoolean()) {
 				if (Minithumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
@@ -2680,10 +2727,10 @@ public class TdApi {
 				this.minithumbnail = new Minithumbnail(input);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 			if (input.readBoolean()) {
 				if (File.CONSTRUCTOR != input.readInt()) {
@@ -2718,6 +2765,7 @@ public class TdApi {
 				output.writeInt(mimeTypeTmp.length);
 				output.write(mimeTypeTmp);
 			}
+			output.writeBoolean(this.hasStickers);
 			if (this.minithumbnail == null) {
 				output.writeBoolean(false);
 			} else {
@@ -2787,14 +2835,14 @@ public class TdApi {
 		public String fileName;
 		public String mimeType;
 		public Minithumbnail albumCoverMinithumbnail;
-		public PhotoSize albumCoverThumbnail;
+		public Thumbnail albumCoverThumbnail;
 		public File audio;
 
-		public static final int CONSTRUCTOR = 1475294302;
+		public static final int CONSTRUCTOR = -1179334690;
 
 		public Audio() {}
 
-		public Audio(int duration, String title, String performer, String fileName, String mimeType, Minithumbnail albumCoverMinithumbnail, PhotoSize albumCoverThumbnail, File audio) {
+		public Audio(int duration, String title, String performer, String fileName, String mimeType, Minithumbnail albumCoverMinithumbnail, Thumbnail albumCoverThumbnail, File audio) {
 			this.duration = duration;
 			this.title = title;
 			this.performer = performer;
@@ -2834,10 +2882,10 @@ public class TdApi {
 				this.albumCoverMinithumbnail = new Minithumbnail(input);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.albumCoverThumbnail = new PhotoSize(input);
+				this.albumCoverThumbnail = new Thumbnail(input);
 			}
 			if (input.readBoolean()) {
 				if (File.CONSTRUCTOR != input.readInt()) {
@@ -5097,14 +5145,11 @@ public class TdApi {
 	public static class Chat extends Object {
 		public long id;
 		public ChatType type;
-		public ChatList chatList;
 		public String title;
 		public ChatPhoto photo;
 		public ChatPermissions permissions;
 		public Message lastMessage;
-		public long order;
-		public ChatSource source;
-		public boolean isPinned;
+		public ChatPosition[] positions;
 		public boolean isMarkedAsUnread;
 		public boolean hasScheduledMessages;
 		public boolean canBeDeletedOnlyForSelf;
@@ -5122,21 +5167,18 @@ public class TdApi {
 		public DraftMessage draftMessage;
 		public String clientData;
 
-		public static final int CONSTRUCTOR = 925912166;
+		public static final int CONSTRUCTOR = -653583919;
 
 		public Chat() {}
 
-		public Chat(long id, ChatType type, ChatList chatList, String title, ChatPhoto photo, ChatPermissions permissions, Message lastMessage, long order, ChatSource source, boolean isPinned, boolean isMarkedAsUnread, boolean hasScheduledMessages, boolean canBeDeletedOnlyForSelf, boolean canBeDeletedForAllUsers, boolean canBeReported, boolean defaultDisableNotification, int unreadCount, long lastReadInboxMessageId, long lastReadOutboxMessageId, int unreadMentionCount, ChatNotificationSettings notificationSettings, ChatActionBar actionBar, long pinnedMessageId, long replyMarkupMessageId, DraftMessage draftMessage, String clientData) {
+		public Chat(long id, ChatType type, String title, ChatPhoto photo, ChatPermissions permissions, Message lastMessage, ChatPosition[] positions, boolean isMarkedAsUnread, boolean hasScheduledMessages, boolean canBeDeletedOnlyForSelf, boolean canBeDeletedForAllUsers, boolean canBeReported, boolean defaultDisableNotification, int unreadCount, long lastReadInboxMessageId, long lastReadOutboxMessageId, int unreadMentionCount, ChatNotificationSettings notificationSettings, ChatActionBar actionBar, long pinnedMessageId, long replyMarkupMessageId, DraftMessage draftMessage, String clientData) {
 			this.id = id;
 			this.type = type;
-			this.chatList = chatList;
 			this.title = title;
 			this.photo = photo;
 			this.permissions = permissions;
 			this.lastMessage = lastMessage;
-			this.order = order;
-			this.source = source;
-			this.isPinned = isPinned;
+			this.positions = positions;
 			this.isMarkedAsUnread = isMarkedAsUnread;
 			this.hasScheduledMessages = hasScheduledMessages;
 			this.canBeDeletedOnlyForSelf = canBeDeletedOnlyForSelf;
@@ -5176,18 +5218,6 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				switch(input.readInt()) {
-					case ChatListMain.CONSTRUCTOR:
-						this.chatList = new ChatListMain(input);
-						break;
-					case ChatListArchive.CONSTRUCTOR:
-						this.chatList = new ChatListArchive(input);
-						break;
-					default:
-						throw new UnsupportedOperationException();
-				}
-			}
-			if (input.readBoolean()) {
 				var titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
@@ -5210,20 +5240,15 @@ public class TdApi {
 				}
 				this.lastMessage = new Message(input);
 			}
-			this.order = input.readLong();
 			if (input.readBoolean()) {
-				switch(input.readInt()) {
-					case ChatSourceMtprotoProxy.CONSTRUCTOR:
-						this.source = new ChatSourceMtprotoProxy(input);
-						break;
-					case ChatSourcePublicServiceAnnouncement.CONSTRUCTOR:
-						this.source = new ChatSourcePublicServiceAnnouncement(input);
-						break;
-					default:
+				this.positions = new ChatPosition[input.readInt()];
+				for (int i = 0; i < this.positions.length; i++) {
+					if (ChatPosition.CONSTRUCTOR != input.readInt()) {
 						throw new UnsupportedOperationException();
+					}
+					this.positions[i] = new ChatPosition(input);
 				}
 			}
-			this.isPinned = input.readBoolean();
 			this.isMarkedAsUnread = input.readBoolean();
 			this.hasScheduledMessages = input.readBoolean();
 			this.canBeDeletedOnlyForSelf = input.readBoolean();
@@ -5289,12 +5314,6 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.type.serialize(output);
 			}
-			if (this.chatList == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				this.chatList.serialize(output);
-			}
 			if (this.title == null) {
 				output.writeBoolean(false);
 			} else {
@@ -5321,14 +5340,15 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.lastMessage.serialize(output);
 			}
-			output.writeLong(this.order);
-			if (this.source == null) {
+			if (this.positions == null) {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				this.source.serialize(output);
+				output.writeInt(this.positions.length);
+				for (int i = 0; i < this.positions.length; i++) {
+					this.positions[i].serialize(output);
+				}
 			}
-			output.writeBoolean(this.isPinned);
 			output.writeBoolean(this.isMarkedAsUnread);
 			output.writeBoolean(this.hasScheduledMessages);
 			output.writeBoolean(this.canBeDeletedOnlyForSelf);
@@ -6934,6 +6954,195 @@ public class TdApi {
 		}
 	}
 
+	public static class ChatFilter extends Object {
+		public String title;
+		public String iconName;
+		public long[] pinnedChatIds;
+		public long[] includedChatIds;
+		public long[] excludedChatIds;
+		public boolean excludeMuted;
+		public boolean excludeRead;
+		public boolean excludeArchived;
+		public boolean includeContacts;
+		public boolean includeNonContacts;
+		public boolean includeBots;
+		public boolean includeGroups;
+		public boolean includeChannels;
+
+		public static final int CONSTRUCTOR = -664815123;
+
+		public ChatFilter() {}
+
+		public ChatFilter(String title, String iconName, long[] pinnedChatIds, long[] includedChatIds, long[] excludedChatIds, boolean excludeMuted, boolean excludeRead, boolean excludeArchived, boolean includeContacts, boolean includeNonContacts, boolean includeBots, boolean includeGroups, boolean includeChannels) {
+			this.title = title;
+			this.iconName = iconName;
+			this.pinnedChatIds = pinnedChatIds;
+			this.includedChatIds = includedChatIds;
+			this.excludedChatIds = excludedChatIds;
+			this.excludeMuted = excludeMuted;
+			this.excludeRead = excludeRead;
+			this.excludeArchived = excludeArchived;
+			this.includeContacts = includeContacts;
+			this.includeNonContacts = includeNonContacts;
+			this.includeBots = includeBots;
+			this.includeGroups = includeGroups;
+			this.includeChannels = includeChannels;
+		}
+
+		public ChatFilter(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				var titleTmp = new byte[input.readInt()];
+				input.readFully(titleTmp);
+				this.title = new String(titleTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				var iconNameTmp = new byte[input.readInt()];
+				input.readFully(iconNameTmp);
+				this.iconName = new String(iconNameTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				this.pinnedChatIds = new long[input.readInt()];
+				for (int i = 0; i < this.pinnedChatIds.length; i++) {
+					this.pinnedChatIds[i] = input.readLong();
+				}
+			}
+			if (input.readBoolean()) {
+				this.includedChatIds = new long[input.readInt()];
+				for (int i = 0; i < this.includedChatIds.length; i++) {
+					this.includedChatIds[i] = input.readLong();
+				}
+			}
+			if (input.readBoolean()) {
+				this.excludedChatIds = new long[input.readInt()];
+				for (int i = 0; i < this.excludedChatIds.length; i++) {
+					this.excludedChatIds[i] = input.readLong();
+				}
+			}
+			this.excludeMuted = input.readBoolean();
+			this.excludeRead = input.readBoolean();
+			this.excludeArchived = input.readBoolean();
+			this.includeContacts = input.readBoolean();
+			this.includeNonContacts = input.readBoolean();
+			this.includeBots = input.readBoolean();
+			this.includeGroups = input.readBoolean();
+			this.includeChannels = input.readBoolean();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.title == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(titleTmp.length);
+				output.write(titleTmp);
+			}
+			if (this.iconName == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var iconNameTmp = this.iconName.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(iconNameTmp.length);
+				output.write(iconNameTmp);
+			}
+			if (this.pinnedChatIds == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.pinnedChatIds.length);
+				for (int i = 0; i < this.pinnedChatIds.length; i++) {
+					output.writeLong(this.pinnedChatIds[i]);
+				}
+			}
+			if (this.includedChatIds == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.includedChatIds.length);
+				for (int i = 0; i < this.includedChatIds.length; i++) {
+					output.writeLong(this.includedChatIds[i]);
+				}
+			}
+			if (this.excludedChatIds == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.excludedChatIds.length);
+				for (int i = 0; i < this.excludedChatIds.length; i++) {
+					output.writeLong(this.excludedChatIds[i]);
+				}
+			}
+			output.writeBoolean(this.excludeMuted);
+			output.writeBoolean(this.excludeRead);
+			output.writeBoolean(this.excludeArchived);
+			output.writeBoolean(this.includeContacts);
+			output.writeBoolean(this.includeNonContacts);
+			output.writeBoolean(this.includeBots);
+			output.writeBoolean(this.includeGroups);
+			output.writeBoolean(this.includeChannels);
+		}
+	}
+
+	public static class ChatFilterInfo extends Object {
+		public int id;
+		public String title;
+		public String iconName;
+
+		public static final int CONSTRUCTOR = -943721165;
+
+		public ChatFilterInfo() {}
+
+		public ChatFilterInfo(int id, String title, String iconName) {
+			this.id = id;
+			this.title = title;
+			this.iconName = iconName;
+		}
+
+		public ChatFilterInfo(DataInput input) throws IOException {
+			this.id = input.readInt();
+			if (input.readBoolean()) {
+				var titleTmp = new byte[input.readInt()];
+				input.readFully(titleTmp);
+				this.title = new String(titleTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				var iconNameTmp = new byte[input.readInt()];
+				input.readFully(iconNameTmp);
+				this.iconName = new String(iconNameTmp, StandardCharsets.UTF_8);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.id);
+			if (this.title == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(titleTmp.length);
+				output.write(titleTmp);
+			}
+			if (this.iconName == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var iconNameTmp = this.iconName.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(iconNameTmp.length);
+				output.write(iconNameTmp);
+			}
+		}
+	}
+
 	public static class ChatInviteLink extends Object {
 		public String inviteLink;
 
@@ -7108,6 +7317,81 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class ChatListFilter extends ChatList {
+		public int chatFilterId;
+
+		public static final int CONSTRUCTOR = -2022707655;
+
+		public ChatListFilter() {}
+
+		public ChatListFilter(int chatFilterId) {
+			this.chatFilterId = chatFilterId;
+		}
+
+		public ChatListFilter(DataInput input) throws IOException {
+			this.chatFilterId = input.readInt();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.chatFilterId);
+		}
+	}
+
+	public static class ChatLists extends Object {
+		public ChatList[] chatLists;
+
+		public static final int CONSTRUCTOR = -258292771;
+
+		public ChatLists() {}
+
+		public ChatLists(ChatList[] chatLists) {
+			this.chatLists = chatLists;
+		}
+
+		public ChatLists(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				this.chatLists = new ChatList[input.readInt()];
+				for (int i = 0; i < this.chatLists.length; i++) {
+					switch(input.readInt()) {
+						case ChatListMain.CONSTRUCTOR:
+							this.chatLists[i] = new ChatListMain(input);
+							break;
+						case ChatListArchive.CONSTRUCTOR:
+							this.chatLists[i] = new ChatListArchive(input);
+							break;
+						case ChatListFilter.CONSTRUCTOR:
+							this.chatLists[i] = new ChatListFilter(input);
+							break;
+						default:
+							throw new UnsupportedOperationException();
+					}
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.chatLists == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.chatLists.length);
+				for (int i = 0; i < this.chatLists.length; i++) {
+					this.chatLists[i].serialize(output);
+				}
+			}
 		}
 	}
 
@@ -7808,6 +8092,78 @@ public class TdApi {
 			} else {
 				output.writeBoolean(true);
 				this.big.serialize(output);
+			}
+		}
+	}
+
+	public static class ChatPosition extends Object {
+		public ChatList list;
+		public long order;
+		public boolean isPinned;
+		public ChatSource source;
+
+		public static final int CONSTRUCTOR = -622557355;
+
+		public ChatPosition() {}
+
+		public ChatPosition(ChatList list, long order, boolean isPinned, ChatSource source) {
+			this.list = list;
+			this.order = order;
+			this.isPinned = isPinned;
+			this.source = source;
+		}
+
+		public ChatPosition(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case ChatListMain.CONSTRUCTOR:
+						this.list = new ChatListMain(input);
+						break;
+					case ChatListArchive.CONSTRUCTOR:
+						this.list = new ChatListArchive(input);
+						break;
+					case ChatListFilter.CONSTRUCTOR:
+						this.list = new ChatListFilter(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
+			this.order = input.readLong();
+			this.isPinned = input.readBoolean();
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case ChatSourceMtprotoProxy.CONSTRUCTOR:
+						this.source = new ChatSourceMtprotoProxy(input);
+						break;
+					case ChatSourcePublicServiceAnnouncement.CONSTRUCTOR:
+						this.source = new ChatSourcePublicServiceAnnouncement(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.list == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.list.serialize(output);
+			}
+			output.writeLong(this.order);
+			output.writeBoolean(this.isPinned);
+			if (this.source == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.source.serialize(output);
 			}
 		}
 	}
@@ -9674,14 +10030,14 @@ public class TdApi {
 		public String fileName;
 		public String mimeType;
 		public Minithumbnail minithumbnail;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 		public File document;
 
-		public static final int CONSTRUCTOR = 21881988;
+		public static final int CONSTRUCTOR = -1357271080;
 
 		public Document() {}
 
-		public Document(String fileName, String mimeType, Minithumbnail minithumbnail, PhotoSize thumbnail, File document) {
+		public Document(String fileName, String mimeType, Minithumbnail minithumbnail, Thumbnail thumbnail, File document) {
 			this.fileName = fileName;
 			this.mimeType = mimeType;
 			this.minithumbnail = minithumbnail;
@@ -9707,10 +10063,10 @@ public class TdApi {
 				this.minithumbnail = new Minithumbnail(input);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 			if (input.readBoolean()) {
 				if (File.CONSTRUCTOR != input.readInt()) {
@@ -11428,13 +11784,13 @@ public class TdApi {
 		public boolean hideUrl;
 		public String title;
 		public String description;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 
-		public static final int CONSTRUCTOR = -518366710;
+		public static final int CONSTRUCTOR = 206340825;
 
 		public InlineQueryResultArticle() {}
 
-		public InlineQueryResultArticle(String id, String url, boolean hideUrl, String title, String description, PhotoSize thumbnail) {
+		public InlineQueryResultArticle(String id, String url, boolean hideUrl, String title, String description, Thumbnail thumbnail) {
 			this.id = id;
 			this.url = url;
 			this.hideUrl = hideUrl;
@@ -11466,10 +11822,10 @@ public class TdApi {
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 		}
 
@@ -11524,13 +11880,13 @@ public class TdApi {
 	public static class InlineQueryResultContact extends InlineQueryResult {
 		public String id;
 		public Contact contact;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 
-		public static final int CONSTRUCTOR = 410081985;
+		public static final int CONSTRUCTOR = -181960174;
 
 		public InlineQueryResultContact() {}
 
-		public InlineQueryResultContact(String id, Contact contact, PhotoSize thumbnail) {
+		public InlineQueryResultContact(String id, Contact contact, Thumbnail thumbnail) {
 			this.id = id;
 			this.contact = contact;
 			this.thumbnail = thumbnail;
@@ -11549,10 +11905,10 @@ public class TdApi {
 				this.contact = new Contact(input);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 		}
 
@@ -11589,13 +11945,13 @@ public class TdApi {
 		public String id;
 		public Location location;
 		public String title;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 
-		public static final int CONSTRUCTOR = -158305341;
+		public static final int CONSTRUCTOR = 466004752;
 
 		public InlineQueryResultLocation() {}
 
-		public InlineQueryResultLocation(String id, Location location, String title, PhotoSize thumbnail) {
+		public InlineQueryResultLocation(String id, Location location, String title, Thumbnail thumbnail) {
 			this.id = id;
 			this.location = location;
 			this.title = title;
@@ -11620,10 +11976,10 @@ public class TdApi {
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 		}
 
@@ -11667,13 +12023,13 @@ public class TdApi {
 	public static class InlineQueryResultVenue extends InlineQueryResult {
 		public String id;
 		public Venue venue;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 
-		public static final int CONSTRUCTOR = -1592932211;
+		public static final int CONSTRUCTOR = 1281036382;
 
 		public InlineQueryResultVenue() {}
 
-		public InlineQueryResultVenue(String id, Venue venue, PhotoSize thumbnail) {
+		public InlineQueryResultVenue(String id, Venue venue, Thumbnail thumbnail) {
 			this.id = id;
 			this.venue = venue;
 			this.thumbnail = thumbnail;
@@ -11692,10 +12048,10 @@ public class TdApi {
 				this.venue = new Venue(input);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 		}
 
@@ -15074,18 +15430,20 @@ public class TdApi {
 	public static class InputMessageAnimation extends InputMessageContent {
 		public InputFile animation;
 		public InputThumbnail thumbnail;
+		public int[] addedStickerFileIds;
 		public int duration;
 		public int width;
 		public int height;
 		public FormattedText caption;
 
-		public static final int CONSTRUCTOR = 926542724;
+		public static final int CONSTRUCTOR = 1208433535;
 
 		public InputMessageAnimation() {}
 
-		public InputMessageAnimation(InputFile animation, InputThumbnail thumbnail, int duration, int width, int height, FormattedText caption) {
+		public InputMessageAnimation(InputFile animation, InputThumbnail thumbnail, int[] addedStickerFileIds, int duration, int width, int height, FormattedText caption) {
 			this.animation = animation;
 			this.thumbnail = thumbnail;
+			this.addedStickerFileIds = addedStickerFileIds;
 			this.duration = duration;
 			this.width = width;
 			this.height = height;
@@ -15117,6 +15475,12 @@ public class TdApi {
 				}
 				this.thumbnail = new InputThumbnail(input);
 			}
+			if (input.readBoolean()) {
+				this.addedStickerFileIds = new int[input.readInt()];
+				for (int i = 0; i < this.addedStickerFileIds.length; i++) {
+					this.addedStickerFileIds[i] = input.readInt();
+				}
+			}
 			this.duration = input.readInt();
 			this.width = input.readInt();
 			this.height = input.readInt();
@@ -15145,6 +15509,15 @@ public class TdApi {
 			} else {
 				output.writeBoolean(true);
 				this.thumbnail.serialize(output);
+			}
+			if (this.addedStickerFileIds == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.addedStickerFileIds.length);
+				for (int i = 0; i < this.addedStickerFileIds.length; i++) {
+					output.writeInt(this.addedStickerFileIds[i]);
+				}
 			}
 			output.writeInt(this.duration);
 			output.writeInt(this.width);
@@ -29444,6 +29817,97 @@ public class TdApi {
 		}
 	}
 
+	public static class RecommendedChatFilter extends Object {
+		public ChatFilter filter;
+		public String description;
+
+		public static final int CONSTRUCTOR = 36048610;
+
+		public RecommendedChatFilter() {}
+
+		public RecommendedChatFilter(ChatFilter filter, String description) {
+			this.filter = filter;
+			this.description = description;
+		}
+
+		public RecommendedChatFilter(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				if (ChatFilter.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.filter = new ChatFilter(input);
+			}
+			if (input.readBoolean()) {
+				var descriptionTmp = new byte[input.readInt()];
+				input.readFully(descriptionTmp);
+				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.filter == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.filter.serialize(output);
+			}
+			if (this.description == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(descriptionTmp.length);
+				output.write(descriptionTmp);
+			}
+		}
+	}
+
+	public static class RecommendedChatFilters extends Object {
+		public RecommendedChatFilter[] chatFilters;
+
+		public static final int CONSTRUCTOR = -263416880;
+
+		public RecommendedChatFilters() {}
+
+		public RecommendedChatFilters(RecommendedChatFilter[] chatFilters) {
+			this.chatFilters = chatFilters;
+		}
+
+		public RecommendedChatFilters(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				this.chatFilters = new RecommendedChatFilter[input.readInt()];
+				for (int i = 0; i < this.chatFilters.length; i++) {
+					if (RecommendedChatFilter.CONSTRUCTOR != input.readInt()) {
+						throw new UnsupportedOperationException();
+					}
+					this.chatFilters[i] = new RecommendedChatFilter(input);
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.chatFilters == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.chatFilters.length);
+				for (int i = 0; i < this.chatFilters.length; i++) {
+					this.chatFilters[i].serialize(output);
+				}
+			}
+		}
+	}
+
 	public static class RecoveryEmailAddress extends Object {
 		public String recoveryEmailAddress;
 
@@ -32242,14 +32706,14 @@ public class TdApi {
 		public boolean isAnimated;
 		public boolean isMask;
 		public MaskPosition maskPosition;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 		public File sticker;
 
-		public static final int CONSTRUCTOR = -1835470627;
+		public static final int CONSTRUCTOR = -692141937;
 
 		public Sticker() {}
 
-		public Sticker(long setId, int width, int height, String emoji, boolean isAnimated, boolean isMask, MaskPosition maskPosition, PhotoSize thumbnail, File sticker) {
+		public Sticker(long setId, int width, int height, String emoji, boolean isAnimated, boolean isMask, MaskPosition maskPosition, Thumbnail thumbnail, File sticker) {
 			this.setId = setId;
 			this.width = width;
 			this.height = height;
@@ -32279,10 +32743,10 @@ public class TdApi {
 				this.maskPosition = new MaskPosition(input);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 			if (input.readBoolean()) {
 				if (File.CONSTRUCTOR != input.readInt()) {
@@ -32336,7 +32800,7 @@ public class TdApi {
 		public long id;
 		public String title;
 		public String name;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 		public boolean isInstalled;
 		public boolean isArchived;
 		public boolean isOfficial;
@@ -32346,11 +32810,11 @@ public class TdApi {
 		public Sticker[] stickers;
 		public Emojis[] emojis;
 
-		public static final int CONSTRUCTOR = 734588298;
+		public static final int CONSTRUCTOR = 853438190;
 
 		public StickerSet() {}
 
-		public StickerSet(long id, String title, String name, PhotoSize thumbnail, boolean isInstalled, boolean isArchived, boolean isOfficial, boolean isAnimated, boolean isMasks, boolean isViewed, Sticker[] stickers, Emojis[] emojis) {
+		public StickerSet(long id, String title, String name, Thumbnail thumbnail, boolean isInstalled, boolean isArchived, boolean isOfficial, boolean isAnimated, boolean isMasks, boolean isViewed, Sticker[] stickers, Emojis[] emojis) {
 			this.id = id;
 			this.title = title;
 			this.name = name;
@@ -32378,10 +32842,10 @@ public class TdApi {
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 			this.isInstalled = input.readBoolean();
 			this.isArchived = input.readBoolean();
@@ -32469,7 +32933,7 @@ public class TdApi {
 		public long id;
 		public String title;
 		public String name;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 		public boolean isInstalled;
 		public boolean isArchived;
 		public boolean isOfficial;
@@ -32479,11 +32943,11 @@ public class TdApi {
 		public int size;
 		public Sticker[] covers;
 
-		public static final int CONSTRUCTOR = 228054782;
+		public static final int CONSTRUCTOR = 703844215;
 
 		public StickerSetInfo() {}
 
-		public StickerSetInfo(long id, String title, String name, PhotoSize thumbnail, boolean isInstalled, boolean isArchived, boolean isOfficial, boolean isAnimated, boolean isMasks, boolean isViewed, int size, Sticker[] covers) {
+		public StickerSetInfo(long id, String title, String name, Thumbnail thumbnail, boolean isInstalled, boolean isArchived, boolean isOfficial, boolean isAnimated, boolean isMasks, boolean isViewed, int size, Sticker[] covers) {
 			this.id = id;
 			this.title = title;
 			this.name = name;
@@ -32511,10 +32975,10 @@ public class TdApi {
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 			this.isInstalled = input.readBoolean();
 			this.isArchived = input.readBoolean();
@@ -34615,6 +35079,189 @@ public class TdApi {
 		}
 	}
 
+	public static class Thumbnail extends Object {
+		public ThumbnailFormat format;
+		public int width;
+		public int height;
+		public File file;
+
+		public static final int CONSTRUCTOR = 1243275371;
+
+		public Thumbnail() {}
+
+		public Thumbnail(ThumbnailFormat format, int width, int height, File file) {
+			this.format = format;
+			this.width = width;
+			this.height = height;
+			this.file = file;
+		}
+
+		public Thumbnail(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case ThumbnailFormatJpeg.CONSTRUCTOR:
+						this.format = new ThumbnailFormatJpeg(input);
+						break;
+					case ThumbnailFormatPng.CONSTRUCTOR:
+						this.format = new ThumbnailFormatPng(input);
+						break;
+					case ThumbnailFormatWebp.CONSTRUCTOR:
+						this.format = new ThumbnailFormatWebp(input);
+						break;
+					case ThumbnailFormatGif.CONSTRUCTOR:
+						this.format = new ThumbnailFormatGif(input);
+						break;
+					case ThumbnailFormatTgs.CONSTRUCTOR:
+						this.format = new ThumbnailFormatTgs(input);
+						break;
+					case ThumbnailFormatMpeg4.CONSTRUCTOR:
+						this.format = new ThumbnailFormatMpeg4(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
+			this.width = input.readInt();
+			this.height = input.readInt();
+			if (input.readBoolean()) {
+				if (File.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.file = new File(input);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.format == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.format.serialize(output);
+			}
+			output.writeInt(this.width);
+			output.writeInt(this.height);
+			if (this.file == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.file.serialize(output);
+			}
+		}
+	}
+
+	public static class ThumbnailFormatJpeg extends ThumbnailFormat {
+		public static final int CONSTRUCTOR = -653503352;
+
+		public ThumbnailFormatJpeg() {}
+
+
+		public ThumbnailFormatJpeg(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class ThumbnailFormatPng extends ThumbnailFormat {
+		public static final int CONSTRUCTOR = 1577490421;
+
+		public ThumbnailFormatPng() {}
+
+
+		public ThumbnailFormatPng(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class ThumbnailFormatWebp extends ThumbnailFormat {
+		public static final int CONSTRUCTOR = -53588974;
+
+		public ThumbnailFormatWebp() {}
+
+
+		public ThumbnailFormatWebp(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class ThumbnailFormatGif extends ThumbnailFormat {
+		public static final int CONSTRUCTOR = 1252205962;
+
+		public ThumbnailFormatGif() {}
+
+
+		public ThumbnailFormatGif(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class ThumbnailFormatTgs extends ThumbnailFormat {
+		public static final int CONSTRUCTOR = 1315522642;
+
+		public ThumbnailFormatTgs() {}
+
+
+		public ThumbnailFormatTgs(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class ThumbnailFormatMpeg4 extends ThumbnailFormat {
+		public static final int CONSTRUCTOR = 278616062;
+
+		public ThumbnailFormatMpeg4() {}
+
+
+		public ThumbnailFormatMpeg4(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
 	public static class TopChatCategoryUsers extends TopChatCategory {
 		public static final int CONSTRUCTOR = 1026706816;
 
@@ -35354,51 +36001,6 @@ public class TdApi {
 		}
 	}
 
-	public static class UpdateChatChatList extends Update {
-		public long chatId;
-		public ChatList chatList;
-
-		public static final int CONSTRUCTOR = -170455894;
-
-		public UpdateChatChatList() {}
-
-		public UpdateChatChatList(long chatId, ChatList chatList) {
-			this.chatId = chatId;
-			this.chatList = chatList;
-		}
-
-		public UpdateChatChatList(DataInput input) throws IOException {
-			this.chatId = input.readLong();
-			if (input.readBoolean()) {
-				switch(input.readInt()) {
-					case ChatListMain.CONSTRUCTOR:
-						this.chatList = new ChatListMain(input);
-						break;
-					case ChatListArchive.CONSTRUCTOR:
-						this.chatList = new ChatListArchive(input);
-						break;
-					default:
-						throw new UnsupportedOperationException();
-				}
-			}
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			output.writeLong(this.chatId);
-			if (this.chatList == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				this.chatList.serialize(output);
-			}
-		}
-	}
-
 	public static class UpdateChatTitle extends Update {
 		public long chatId;
 		public String title;
@@ -35520,16 +36122,16 @@ public class TdApi {
 	public static class UpdateChatLastMessage extends Update {
 		public long chatId;
 		public Message lastMessage;
-		public long order;
+		public ChatPosition[] positions;
 
-		public static final int CONSTRUCTOR = 580348828;
+		public static final int CONSTRUCTOR = -923244537;
 
 		public UpdateChatLastMessage() {}
 
-		public UpdateChatLastMessage(long chatId, Message lastMessage, long order) {
+		public UpdateChatLastMessage(long chatId, Message lastMessage, ChatPosition[] positions) {
 			this.chatId = chatId;
 			this.lastMessage = lastMessage;
-			this.order = order;
+			this.positions = positions;
 		}
 
 		public UpdateChatLastMessage(DataInput input) throws IOException {
@@ -35540,7 +36142,15 @@ public class TdApi {
 				}
 				this.lastMessage = new Message(input);
 			}
-			this.order = input.readLong();
+			if (input.readBoolean()) {
+				this.positions = new ChatPosition[input.readInt()];
+				for (int i = 0; i < this.positions.length; i++) {
+					if (ChatPosition.CONSTRUCTOR != input.readInt()) {
+						throw new UnsupportedOperationException();
+					}
+					this.positions[i] = new ChatPosition(input);
+				}
+			}
 		}
 
 		public int getConstructor() {
@@ -35556,26 +36166,39 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.lastMessage.serialize(output);
 			}
-			output.writeLong(this.order);
+			if (this.positions == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.positions.length);
+				for (int i = 0; i < this.positions.length; i++) {
+					this.positions[i].serialize(output);
+				}
+			}
 		}
 	}
 
-	public static class UpdateChatOrder extends Update {
+	public static class UpdateChatPosition extends Update {
 		public long chatId;
-		public long order;
+		public ChatPosition position;
 
-		public static final int CONSTRUCTOR = -1601888026;
+		public static final int CONSTRUCTOR = -8979849;
 
-		public UpdateChatOrder() {}
+		public UpdateChatPosition() {}
 
-		public UpdateChatOrder(long chatId, long order) {
+		public UpdateChatPosition(long chatId, ChatPosition position) {
 			this.chatId = chatId;
-			this.order = order;
+			this.position = position;
 		}
 
-		public UpdateChatOrder(DataInput input) throws IOException {
+		public UpdateChatPosition(DataInput input) throws IOException {
 			this.chatId = input.readLong();
-			this.order = input.readLong();
+			if (input.readBoolean()) {
+				if (ChatPosition.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.position = new ChatPosition(input);
+			}
 		}
 
 		public int getConstructor() {
@@ -35585,40 +36208,12 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
-			output.writeLong(this.order);
-		}
-	}
-
-	public static class UpdateChatIsPinned extends Update {
-		public long chatId;
-		public boolean isPinned;
-		public long order;
-
-		public static final int CONSTRUCTOR = 488876260;
-
-		public UpdateChatIsPinned() {}
-
-		public UpdateChatIsPinned(long chatId, boolean isPinned, long order) {
-			this.chatId = chatId;
-			this.isPinned = isPinned;
-			this.order = order;
-		}
-
-		public UpdateChatIsPinned(DataInput input) throws IOException {
-			this.chatId = input.readLong();
-			this.isPinned = input.readBoolean();
-			this.order = input.readLong();
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			output.writeLong(this.chatId);
-			output.writeBoolean(this.isPinned);
-			output.writeLong(this.order);
+			if (this.position == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.position.serialize(output);
+			}
 		}
 	}
 
@@ -35648,55 +36243,6 @@ public class TdApi {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
 			output.writeBoolean(this.isMarkedAsUnread);
-		}
-	}
-
-	public static class UpdateChatSource extends Update {
-		public long chatId;
-		public ChatSource source;
-		public long order;
-
-		public static final int CONSTRUCTOR = 736995303;
-
-		public UpdateChatSource() {}
-
-		public UpdateChatSource(long chatId, ChatSource source, long order) {
-			this.chatId = chatId;
-			this.source = source;
-			this.order = order;
-		}
-
-		public UpdateChatSource(DataInput input) throws IOException {
-			this.chatId = input.readLong();
-			if (input.readBoolean()) {
-				switch(input.readInt()) {
-					case ChatSourceMtprotoProxy.CONSTRUCTOR:
-						this.source = new ChatSourceMtprotoProxy(input);
-						break;
-					case ChatSourcePublicServiceAnnouncement.CONSTRUCTOR:
-						this.source = new ChatSourcePublicServiceAnnouncement(input);
-						break;
-					default:
-						throw new UnsupportedOperationException();
-				}
-			}
-			this.order = input.readLong();
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			output.writeLong(this.chatId);
-			if (this.source == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				this.source.serialize(output);
-			}
-			output.writeLong(this.order);
 		}
 	}
 
@@ -36061,16 +36607,16 @@ public class TdApi {
 	public static class UpdateChatDraftMessage extends Update {
 		public long chatId;
 		public DraftMessage draftMessage;
-		public long order;
+		public ChatPosition[] positions;
 
-		public static final int CONSTRUCTOR = -1436617498;
+		public static final int CONSTRUCTOR = 1455190380;
 
 		public UpdateChatDraftMessage() {}
 
-		public UpdateChatDraftMessage(long chatId, DraftMessage draftMessage, long order) {
+		public UpdateChatDraftMessage(long chatId, DraftMessage draftMessage, ChatPosition[] positions) {
 			this.chatId = chatId;
 			this.draftMessage = draftMessage;
-			this.order = order;
+			this.positions = positions;
 		}
 
 		public UpdateChatDraftMessage(DataInput input) throws IOException {
@@ -36081,7 +36627,15 @@ public class TdApi {
 				}
 				this.draftMessage = new DraftMessage(input);
 			}
-			this.order = input.readLong();
+			if (input.readBoolean()) {
+				this.positions = new ChatPosition[input.readInt()];
+				for (int i = 0; i < this.positions.length; i++) {
+					if (ChatPosition.CONSTRUCTOR != input.readInt()) {
+						throw new UnsupportedOperationException();
+					}
+					this.positions[i] = new ChatPosition(input);
+				}
+			}
 		}
 
 		public int getConstructor() {
@@ -36097,7 +36651,56 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.draftMessage.serialize(output);
 			}
-			output.writeLong(this.order);
+			if (this.positions == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.positions.length);
+				for (int i = 0; i < this.positions.length; i++) {
+					this.positions[i].serialize(output);
+				}
+			}
+		}
+	}
+
+	public static class UpdateChatFilters extends Update {
+		public ChatFilterInfo[] chatFilters;
+
+		public static final int CONSTRUCTOR = -961518713;
+
+		public UpdateChatFilters() {}
+
+		public UpdateChatFilters(ChatFilterInfo[] chatFilters) {
+			this.chatFilters = chatFilters;
+		}
+
+		public UpdateChatFilters(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				this.chatFilters = new ChatFilterInfo[input.readInt()];
+				for (int i = 0; i < this.chatFilters.length; i++) {
+					if (ChatFilterInfo.CONSTRUCTOR != input.readInt()) {
+						throw new UnsupportedOperationException();
+					}
+					this.chatFilters[i] = new ChatFilterInfo(input);
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.chatFilters == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.chatFilters.length);
+				for (int i = 0; i < this.chatFilters.length; i++) {
+					this.chatFilters[i].serialize(output);
+				}
+			}
 		}
 	}
 
@@ -37224,6 +37827,9 @@ public class TdApi {
 					case ChatListArchive.CONSTRUCTOR:
 						this.chatList = new ChatListArchive(input);
 						break;
+					case ChatListFilter.CONSTRUCTOR:
+						this.chatList = new ChatListFilter(input);
+						break;
 					default:
 						throw new UnsupportedOperationException();
 				}
@@ -37278,6 +37884,9 @@ public class TdApi {
 						break;
 					case ChatListArchive.CONSTRUCTOR:
 						this.chatList = new ChatListArchive(input);
+						break;
+					case ChatListFilter.CONSTRUCTOR:
+						this.chatList = new ChatListFilter(input);
 						break;
 					default:
 						throw new UnsupportedOperationException();
@@ -37881,6 +38490,63 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
+			if (this.emojis == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.emojis.length);
+				for (int i = 0; i < this.emojis.length; i++) {
+					var emojisTmp = this.emojis[i].getBytes(StandardCharsets.UTF_8);
+					output.writeInt(emojisTmp.length);
+					output.write(emojisTmp);
+				}
+			}
+		}
+	}
+
+	public static class UpdateAnimationSearchParameters extends Update {
+		public String provider;
+		public String[] emojis;
+
+		public static final int CONSTRUCTOR = -1144983202;
+
+		public UpdateAnimationSearchParameters() {}
+
+		public UpdateAnimationSearchParameters(String provider, String[] emojis) {
+			this.provider = provider;
+			this.emojis = emojis;
+		}
+
+		public UpdateAnimationSearchParameters(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				var providerTmp = new byte[input.readInt()];
+				input.readFully(providerTmp);
+				this.provider = new String(providerTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				this.emojis = new String[input.readInt()];
+				for (int i = 0; i < this.emojis.length; i++) {
+					var emojisTmp = new byte[input.readInt()];
+					input.readFully(emojisTmp);
+					this.emojis[i] = new String(emojisTmp, StandardCharsets.UTF_8);
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.provider == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var providerTmp = this.provider.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(providerTmp.length);
+				output.write(providerTmp);
+			}
 			if (this.emojis == null) {
 				output.writeBoolean(false);
 			} else {
@@ -38542,9 +39208,6 @@ public class TdApi {
 						case UpdateNewChat.CONSTRUCTOR:
 							this.updates[i] = new UpdateNewChat(input);
 							break;
-						case UpdateChatChatList.CONSTRUCTOR:
-							this.updates[i] = new UpdateChatChatList(input);
-							break;
 						case UpdateChatTitle.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatTitle(input);
 							break;
@@ -38557,17 +39220,11 @@ public class TdApi {
 						case UpdateChatLastMessage.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatLastMessage(input);
 							break;
-						case UpdateChatOrder.CONSTRUCTOR:
-							this.updates[i] = new UpdateChatOrder(input);
-							break;
-						case UpdateChatIsPinned.CONSTRUCTOR:
-							this.updates[i] = new UpdateChatIsPinned(input);
+						case UpdateChatPosition.CONSTRUCTOR:
+							this.updates[i] = new UpdateChatPosition(input);
 							break;
 						case UpdateChatIsMarkedAsUnread.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatIsMarkedAsUnread(input);
-							break;
-						case UpdateChatSource.CONSTRUCTOR:
-							this.updates[i] = new UpdateChatSource(input);
 							break;
 						case UpdateChatHasScheduledMessages.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatHasScheduledMessages(input);
@@ -38601,6 +39258,9 @@ public class TdApi {
 							break;
 						case UpdateChatDraftMessage.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatDraftMessage(input);
+							break;
+						case UpdateChatFilters.CONSTRUCTOR:
+							this.updates[i] = new UpdateChatFilters(input);
 							break;
 						case UpdateChatOnlineMemberCount.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatOnlineMemberCount(input);
@@ -38709,6 +39369,9 @@ public class TdApi {
 							break;
 						case UpdateDiceEmojis.CONSTRUCTOR:
 							this.updates[i] = new UpdateDiceEmojis(input);
+							break;
+						case UpdateAnimationSearchParameters.CONSTRUCTOR:
+							this.updates[i] = new UpdateAnimationSearchParameters(input);
 							break;
 						case UpdateNewInlineQuery.CONSTRUCTOR:
 							this.updates[i] = new UpdateNewInlineQuery(input);
@@ -40033,14 +40696,14 @@ public class TdApi {
 		public boolean hasStickers;
 		public boolean supportsStreaming;
 		public Minithumbnail minithumbnail;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 		public File video;
 
-		public static final int CONSTRUCTOR = -536898740;
+		public static final int CONSTRUCTOR = 832856268;
 
 		public Video() {}
 
-		public Video(int duration, int width, int height, String fileName, String mimeType, boolean hasStickers, boolean supportsStreaming, Minithumbnail minithumbnail, PhotoSize thumbnail, File video) {
+		public Video(int duration, int width, int height, String fileName, String mimeType, boolean hasStickers, boolean supportsStreaming, Minithumbnail minithumbnail, Thumbnail thumbnail, File video) {
 			this.duration = duration;
 			this.width = width;
 			this.height = height;
@@ -40076,10 +40739,10 @@ public class TdApi {
 				this.minithumbnail = new Minithumbnail(input);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 			if (input.readBoolean()) {
 				if (File.CONSTRUCTOR != input.readInt()) {
@@ -40141,14 +40804,14 @@ public class TdApi {
 		public int duration;
 		public int length;
 		public Minithumbnail minithumbnail;
-		public PhotoSize thumbnail;
+		public Thumbnail thumbnail;
 		public File video;
 
-		public static final int CONSTRUCTOR = -1080075672;
+		public static final int CONSTRUCTOR = -71734726;
 
 		public VideoNote() {}
 
-		public VideoNote(int duration, int length, Minithumbnail minithumbnail, PhotoSize thumbnail, File video) {
+		public VideoNote(int duration, int length, Minithumbnail minithumbnail, Thumbnail thumbnail, File video) {
 			this.duration = duration;
 			this.length = length;
 			this.minithumbnail = minithumbnail;
@@ -40166,10 +40829,10 @@ public class TdApi {
 				this.minithumbnail = new Minithumbnail(input);
 			}
 			if (input.readBoolean()) {
-				if (PhotoSize.CONSTRUCTOR != input.readInt()) {
+				if (Thumbnail.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.thumbnail = new PhotoSize(input);
+				this.thumbnail = new Thumbnail(input);
 			}
 			if (input.readBoolean()) {
 				if (File.CONSTRUCTOR != input.readInt()) {
@@ -40848,6 +41511,54 @@ public class TdApi {
 				for (int i = 0; i < this.userIds.length; i++) {
 					output.writeInt(this.userIds[i]);
 				}
+			}
+		}
+	}
+
+	public static class AddChatToList extends Function {
+		public long chatId;
+		public ChatList chatList;
+
+		public static final int CONSTRUCTOR = -80523595;
+
+		public AddChatToList() {}
+
+		public AddChatToList(long chatId, ChatList chatList) {
+			this.chatId = chatId;
+			this.chatList = chatList;
+		}
+
+		public AddChatToList(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case ChatListMain.CONSTRUCTOR:
+						this.chatList = new ChatListMain(input);
+						break;
+					case ChatListArchive.CONSTRUCTOR:
+						this.chatList = new ChatListArchive(input);
+						break;
+					case ChatListFilter.CONSTRUCTOR:
+						this.chatList = new ChatListFilter(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			if (this.chatList == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.chatList.serialize(output);
 			}
 		}
 	}
@@ -42698,6 +43409,41 @@ public class TdApi {
 		}
 	}
 
+	public static class CreateChatFilter extends Function {
+		public ChatFilter filter;
+
+		public static final int CONSTRUCTOR = 49065126;
+
+		public CreateChatFilter() {}
+
+		public CreateChatFilter(ChatFilter filter) {
+			this.filter = filter;
+		}
+
+		public CreateChatFilter(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				if (ChatFilter.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.filter = new ChatFilter(input);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.filter == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.filter.serialize(output);
+			}
+		}
+	}
+
 	public static class CreateNewBasicGroupChat extends Function {
 		public int[] userIds;
 		public String title;
@@ -43086,6 +43832,31 @@ public class TdApi {
 				output.writeInt(reasonTmp.length);
 				output.write(reasonTmp);
 			}
+		}
+	}
+
+	public static class DeleteChatFilter extends Function {
+		public int chatFilterId;
+
+		public static final int CONSTRUCTOR = -523220877;
+
+		public DeleteChatFilter() {}
+
+		public DeleteChatFilter(int chatFilterId) {
+			this.chatFilterId = chatFilterId;
+		}
+
+		public DeleteChatFilter(DataInput input) throws IOException {
+			this.chatFilterId = input.readInt();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.chatFilterId);
 		}
 	}
 
@@ -43601,6 +44372,45 @@ public class TdApi {
 			output.writeInt(this.offset);
 			output.writeInt(this.limit);
 			output.writeBoolean(this.synchronous);
+		}
+	}
+
+	public static class EditChatFilter extends Function {
+		public int chatFilterId;
+		public ChatFilter filter;
+
+		public static final int CONSTRUCTOR = -1674793086;
+
+		public EditChatFilter() {}
+
+		public EditChatFilter(int chatFilterId, ChatFilter filter) {
+			this.chatFilterId = chatFilterId;
+			this.filter = filter;
+		}
+
+		public EditChatFilter(DataInput input) throws IOException {
+			this.chatFilterId = input.readInt();
+			if (input.readBoolean()) {
+				if (ChatFilter.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.filter = new ChatFilter(input);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.chatFilterId);
+			if (this.filter == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.filter.serialize(output);
+			}
 		}
 	}
 
@@ -45400,6 +46210,66 @@ public class TdApi {
 		}
 	}
 
+	public static class GetChatFilter extends Function {
+		public int chatFilterId;
+
+		public static final int CONSTRUCTOR = 1826317803;
+
+		public GetChatFilter() {}
+
+		public GetChatFilter(int chatFilterId) {
+			this.chatFilterId = chatFilterId;
+		}
+
+		public GetChatFilter(DataInput input) throws IOException {
+			this.chatFilterId = input.readInt();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.chatFilterId);
+		}
+	}
+
+	public static class GetChatFilterDefaultIconName extends Function {
+		public ChatFilter filter;
+
+		public static final int CONSTRUCTOR = -1339828680;
+
+		public GetChatFilterDefaultIconName() {}
+
+		public GetChatFilterDefaultIconName(ChatFilter filter) {
+			this.filter = filter;
+		}
+
+		public GetChatFilterDefaultIconName(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				if (ChatFilter.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.filter = new ChatFilter(input);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.filter == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.filter.serialize(output);
+			}
+		}
+	}
+
 	public static class GetChatHistory extends Function {
 		public long chatId;
 		public long fromMessageId;
@@ -45438,6 +46308,31 @@ public class TdApi {
 			output.writeInt(this.offset);
 			output.writeInt(this.limit);
 			output.writeBoolean(this.onlyLocal);
+		}
+	}
+
+	public static class GetChatListsToAddChat extends Function {
+		public long chatId;
+
+		public static final int CONSTRUCTOR = 654956193;
+
+		public GetChatListsToAddChat() {}
+
+		public GetChatListsToAddChat(long chatId) {
+			this.chatId = chatId;
+		}
+
+		public GetChatListsToAddChat(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
 		}
 	}
 
@@ -45833,6 +46728,9 @@ public class TdApi {
 						break;
 					case ChatListArchive.CONSTRUCTOR:
 						this.chatList = new ChatListArchive(input);
+						break;
+					case ChatListFilter.CONSTRUCTOR:
+						this.chatList = new ChatListFilter(input);
 						break;
 					default:
 						throw new UnsupportedOperationException();
@@ -47788,6 +48686,24 @@ public class TdApi {
 				output.writeInt(referrerTmp.length);
 				output.write(referrerTmp);
 			}
+		}
+	}
+
+	public static class GetRecommendedChatFilters extends Function {
+		public static final int CONSTRUCTOR = -779390746;
+
+		public GetRecommendedChatFilters() {}
+
+
+		public GetRecommendedChatFilters(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
 		}
 	}
 
@@ -50009,6 +50925,44 @@ public class TdApi {
 		}
 	}
 
+	public static class ReorderChatFilters extends Function {
+		public int[] chatFilterIds;
+
+		public static final int CONSTRUCTOR = -1258111097;
+
+		public ReorderChatFilters() {}
+
+		public ReorderChatFilters(int[] chatFilterIds) {
+			this.chatFilterIds = chatFilterIds;
+		}
+
+		public ReorderChatFilters(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				this.chatFilterIds = new int[input.readInt()];
+				for (int i = 0; i < this.chatFilterIds.length; i++) {
+					this.chatFilterIds[i] = input.readInt();
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.chatFilterIds == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.chatFilterIds.length);
+				for (int i = 0; i < this.chatFilterIds.length; i++) {
+					output.writeInt(this.chatFilterIds[i]);
+				}
+			}
+		}
+	}
+
 	public static class ReorderInstalledStickerSets extends Function {
 		public boolean isMasks;
 		public long[] stickerSetIds;
@@ -51148,6 +52102,9 @@ public class TdApi {
 						break;
 					case ChatListArchive.CONSTRUCTOR:
 						this.chatList = new ChatListArchive(input);
+						break;
+					case ChatListFilter.CONSTRUCTOR:
+						this.chatList = new ChatListFilter(input);
 						break;
 					default:
 						throw new UnsupportedOperationException();
@@ -52792,51 +53749,6 @@ public class TdApi {
 		}
 	}
 
-	public static class SetChatChatList extends Function {
-		public long chatId;
-		public ChatList chatList;
-
-		public static final int CONSTRUCTOR = -1396517321;
-
-		public SetChatChatList() {}
-
-		public SetChatChatList(long chatId, ChatList chatList) {
-			this.chatId = chatId;
-			this.chatList = chatList;
-		}
-
-		public SetChatChatList(DataInput input) throws IOException {
-			this.chatId = input.readLong();
-			if (input.readBoolean()) {
-				switch(input.readInt()) {
-					case ChatListMain.CONSTRUCTOR:
-						this.chatList = new ChatListMain(input);
-						break;
-					case ChatListArchive.CONSTRUCTOR:
-						this.chatList = new ChatListArchive(input);
-						break;
-					default:
-						throw new UnsupportedOperationException();
-				}
-			}
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			output.writeLong(this.chatId);
-			if (this.chatList == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				this.chatList.serialize(output);
-			}
-		}
-	}
-
 	public static class SetChatClientData extends Function {
 		public long chatId;
 		public String clientData;
@@ -54141,6 +55053,9 @@ public class TdApi {
 					case ChatListArchive.CONSTRUCTOR:
 						this.chatList = new ChatListArchive(input);
 						break;
+					case ChatListFilter.CONSTRUCTOR:
+						this.chatList = new ChatListFilter(input);
+						break;
 					default:
 						throw new UnsupportedOperationException();
 				}
@@ -55362,19 +56277,36 @@ public class TdApi {
 	}
 
 	public static class ToggleChatIsPinned extends Function {
+		public ChatList chatList;
 		public long chatId;
 		public boolean isPinned;
 
-		public static final int CONSTRUCTOR = -1166802621;
+		public static final int CONSTRUCTOR = -1485429186;
 
 		public ToggleChatIsPinned() {}
 
-		public ToggleChatIsPinned(long chatId, boolean isPinned) {
+		public ToggleChatIsPinned(ChatList chatList, long chatId, boolean isPinned) {
+			this.chatList = chatList;
 			this.chatId = chatId;
 			this.isPinned = isPinned;
 		}
 
 		public ToggleChatIsPinned(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case ChatListMain.CONSTRUCTOR:
+						this.chatList = new ChatListMain(input);
+						break;
+					case ChatListArchive.CONSTRUCTOR:
+						this.chatList = new ChatListArchive(input);
+						break;
+					case ChatListFilter.CONSTRUCTOR:
+						this.chatList = new ChatListFilter(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
 			this.chatId = input.readLong();
 			this.isPinned = input.readBoolean();
 		}
@@ -55385,6 +56317,12 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
+			if (this.chatList == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.chatList.serialize(output);
+			}
 			output.writeLong(this.chatId);
 			output.writeBoolean(this.isPinned);
 		}
