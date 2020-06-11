@@ -12,6 +12,10 @@ We added some options:
 * **disable_minithumbnails** (true/false) This setting removes minithumbnails everywhere. It reduces memory usage because tdlib keeps them in RAM.
 * **disable_document_filenames** (true/false) If you don't care about having the original filenames of every file stored in RAM, you can disable them using this option. It reduces memory usage.
 * **disable_notifications** (true/false) In TDLib pending notification updates are stored in ram until you "read" them. This option disables completely notifications and keeps the pending notifications queue empty, reducing memory usage.
+* **ignore_update_chat_last_message**  (true/false) If you don't care about have updateChatLastMessage updates enable this
+* **ignore_update_chat_read_inbox**  (true/false) If you don't care about have updateChatReadInbox updates enable this
+* **ignore_update_user_chat_action**  (true/false) If you don't care about have updateUserChatAction updates enable this
+
 
 ## Modified features
 ### TdApi.OptimizeStorage
