@@ -48,6 +48,14 @@ unexpand --tabs=2 ../java/it/ernytech/tdlib/new_TdApi.java > ../java/it/ernytech
 rm ../java/it/ernytech/tdlib/new_TdApi.java
 cd ../../../
 
+echo "Installing jar utils"
+
+cd common-utils/
+
+mvn clean install -X
+
+cd ../
+
 echo "Installing jar"
 
 mvn clean install -X
