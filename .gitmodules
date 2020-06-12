@@ -1,6 +1,6 @@
 [submodule "src/main/jni/td"]
 	path = src/main/jni/td
-	url = git@ssh.git.ignuranza.net:andreacavalli/tdlib-fork.git
+	url = git@ssh.git.ignuranza.net:tdlight-team/tdlight.git
 [submodule "src/main/jni/tdlib-serializer"]
 	path = src/main/jni/tdlib-serializer
 	url = ssh://git@ssh.git.ignuranza.net/windoz/tdlib-serializer.git
