@@ -11,5 +11,5 @@
 ../../../java/it/ernytech/tdlib/FatalErrorCallbackPtr.java
 ../../../java/it/ernytech/tdbot/ConstructorDetector.java
 ../../../java/it/ernytech/tdlib/TdApi.java
-../../../../../target/generated-sources/java-templates/it/ernytech/tdlib/utils/LibraryVersion.java 
+../../../java-templates/it/ernytech/tdlib/utils/LibraryVersion.java
 
