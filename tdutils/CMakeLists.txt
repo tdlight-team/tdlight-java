@@ -4,14 +4,6 @@ if (NOT DEFINED CMAKE_INSTALL_LIBDIR)
   set(CMAKE_INSTALL_LIBDIR "lib")
 endif()
 
-if (WIN32)
-  if (WINGETOPT_FOUND)
-    set(TD_HAVE_GETOPT 1)
-  endif()
-else()
-  set(TD_HAVE_GETOPT 1)
-endif()
-
 if (NOT ZLIB_FOUND)
   find_package(ZLIB)
 endif()
@@ -58,6 +50,7 @@ set(TDUTILS_SOURCE
   td/utils/port/MemoryMapping.cpp
   td/utils/port/path.cpp
   td/utils/port/PollFlags.cpp
+  td/utils/port/rlimit.cpp
   td/utils/port/ServerSocketFd.cpp
   td/utils/port/signals.cpp
   td/utils/port/sleep.cpp
@@ -67,6 +60,7 @@ set(TDUTILS_SOURCE
   td/utils/port/StdStreams.cpp
   td/utils/port/thread_local.cpp
   td/utils/port/UdpSocketFd.cpp
+  td/utils/port/user.cpp
   td/utils/port/wstring_convert.cpp
 
   td/utils/port/detail/Epoll.cpp
@@ -102,7 +96,7 @@ set(TDUTILS_SOURCE
   td/utils/misc.cpp
   td/utils/MimeType.cpp
   td/utils/MpmcQueue.cpp
-  td/utils/OptionsParser.cpp
+  td/utils/OptionParser.cpp
   td/utils/PathView.cpp
   td/utils/Random.cpp
   td/utils/SharedSlice.cpp
@@ -133,6 +127,7 @@ set(TDUTILS_SOURCE
   td/utils/port/Poll.h
   td/utils/port/PollBase.h
   td/utils/port/PollFlags.h
+  td/utils/port/rlimit.h
   td/utils/port/RwMutex.h
   td/utils/port/ServerSocketFd.h
   td/utils/port/signals.h
@@ -144,6 +139,7 @@ set(TDUTILS_SOURCE
   td/utils/port/thread.h
   td/utils/port/thread_local.h
   td/utils/port/UdpSocketFd.h
+  td/utils/port/user.h
   td/utils/port/wstring_convert.h
 
   td/utils/port/detail/Epoll.h
@@ -156,6 +152,7 @@ set(TDUTILS_SOURCE
   td/utils/port/detail/Poll.h
   td/utils/port/detail/PollableFd.h
   td/utils/port/detail/Select.h
+  td/utils/port/detail/skip_eintr.h
   td/utils/port/detail/ThreadIdGuard.h
   td/utils/port/detail/ThreadPthread.h
   td/utils/port/detail/ThreadStl.h
@@ -217,7 +214,7 @@ set(TDUTILS_SOURCE
   td/utils/ObjectPool.h
   td/utils/Observer.h
   td/utils/optional.h
-  td/utils/OptionsParser.h
+  td/utils/OptionParser.h
   td/utils/OrderedEventsProcessor.h
   td/utils/overloaded.h
   td/utils/Parser.h
@@ -275,6 +272,7 @@ set(TDUTILS_TEST_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/test/MpmcQueue.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test/MpmcWaiter.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test/MpscLinkQueue.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/OptionParser.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test/OrderedEventsProcessor.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test/port.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test/pq.cpp
@@ -291,7 +289,7 @@ if (WIN32)
   # find_library(WS2_32_LIBRARY ws2_32)
   # find_library(MSWSOCK_LIBRARY Mswsock)
   # target_link_libraries(tdutils PRIVATE ${WS2_32_LIBRARY} ${MSWSOCK_LIBRARY})
-  target_link_libraries(tdutils PRIVATE ws2_32 Mswsock Normaliz)
+  target_link_libraries(tdutils PRIVATE ws2_32 Mswsock Normaliz psapi)
 endif()
 if (NOT CMAKE_CROSSCOMPILING)
   add_dependencies(tdutils tdmime_auto)
@@ -317,10 +315,6 @@ if (CRC32C_FOUND)
 endif()
 if (ABSL_FOUND)
   target_link_libraries(tdutils PUBLIC absl::flat_hash_map absl::flat_hash_set absl::hash)
-endif()
-
-if (WIN32 AND WINGETOPT_FOUND)
-  target_link_libraries(tdutils PRIVATE wingetopt)
 endif()
 
 if (ANDROID)

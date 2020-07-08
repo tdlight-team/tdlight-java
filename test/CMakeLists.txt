@@ -12,6 +12,7 @@ set(TD_TEST_SOURCE
   ${CMAKE_CURRENT_SOURCE_DIR}/set_with_position.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/string_cleaning.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/tdclient.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tqueue.cpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/data.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/data.h

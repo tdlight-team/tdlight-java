@@ -21,8 +21,49 @@ void init_crypto();
 
 int pq_factorize(Slice pq_str, string *p_str, string *q_str);
 
+class AesState {
+ public:
+  AesState();
+  AesState(const AesState &from) = delete;
+  AesState &operator=(const AesState &from) = delete;
+  AesState(AesState &&from);
+  AesState &operator=(AesState &&from);
+  ~AesState();
+
+  void init(Slice key, bool encrypt);
+
+  void encrypt(const uint8 *src, uint8 *dst, int size);
+
+  void decrypt(const uint8 *src, uint8 *dst, int size);
+
+ private:
+  struct Impl;
+  unique_ptr<Impl> impl_;
+};
+
 void aes_ige_encrypt(Slice aes_key, MutableSlice aes_iv, Slice from, MutableSlice to);
 void aes_ige_decrypt(Slice aes_key, MutableSlice aes_iv, Slice from, MutableSlice to);
+
+class AesIgeStateImpl;
+
+class AesIgeState {
+ public:
+  AesIgeState();
+  AesIgeState(const AesIgeState &from) = delete;
+  AesIgeState &operator=(const AesIgeState &from) = delete;
+  AesIgeState(AesIgeState &&from);
+  AesIgeState &operator=(AesIgeState &&from);
+  ~AesIgeState();
+
+  void init(Slice key, Slice iv, bool encrypt);
+
+  void encrypt(Slice from, MutableSlice to);
+
+  void decrypt(Slice from, MutableSlice to);
+
+ private:
+  unique_ptr<AesIgeStateImpl> impl_;
+};
 
 void aes_cbc_encrypt(Slice aes_key, MutableSlice aes_iv, Slice from, MutableSlice to);
 void aes_cbc_decrypt(Slice aes_key, MutableSlice aes_iv, Slice from, MutableSlice to);

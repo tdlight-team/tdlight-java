@@ -15,34 +15,35 @@
 
 namespace td {
 
-class OptionsParser {
+class OptionParser {
   class Option {
    public:
-    enum class Type { NoArg, Arg, OptionalArg };
+    enum class Type { NoArg, Arg };
     Type type;
     char short_key;
-    std::string long_key;
-    std::string description;
+    string long_key;
+    string description;
     std::function<Status(Slice)> arg_callback;
   };
 
- public:
-  void set_description(std::string description);
-
   void add_option(Option::Type type, char short_key, Slice long_key, Slice description,
                   std::function<Status(Slice)> callback);
+
+ public:
+  void set_description(string description);
 
   void add_option(char short_key, Slice long_key, Slice description, std::function<Status(Slice)> callback);
 
   void add_option(char short_key, Slice long_key, Slice description, std::function<Status(void)> callback);
 
-  Result<int> run(int argc, char *argv[]) TD_WARN_UNUSED_RESULT;
+  // returns found non-option parameters
+  Result<vector<char *>> run(int argc, char *argv[]) TD_WARN_UNUSED_RESULT;
 
-  friend StringBuilder &operator<<(StringBuilder &sb, const OptionsParser &o);
+  friend StringBuilder &operator<<(StringBuilder &sb, const OptionParser &o);
 
  private:
-  std::vector<Option> options_;
-  std::string description_;
+  vector<Option> options_;
+  string description_;
 };
 
 }  // namespace td

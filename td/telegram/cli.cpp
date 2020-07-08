@@ -23,6 +23,7 @@
 #include "td/utils/JsonBuilder.h"
 #include "td/utils/logging.h"
 #include "td/utils/misc.h"
+#include "td/utils/OptionParser.h"
 #include "td/utils/port/FileFd.h"
 #include "td/utils/port/PollFlags.h"
 #include "td/utils/port/signals.h"
@@ -4062,6 +4063,29 @@ class CliClient final : public Actor {
       fd.write("a").ignore();
       fd.seek(size).ignore();
       fd.truncate_to_current_position(size).ignore();
+    } else if (op == "mem") {
+      auto r_mem_stats = mem_stat();
+      if (r_mem_stats.is_error()) {
+        LOG(ERROR) << r_mem_stats.error();
+      } else {
+        auto stats = r_mem_stats.move_as_ok();
+        LOG(ERROR) << "RSS = " << stats.resident_size_ << ", peak RSS = " << stats.resident_size_peak_ << ", VSZ "
+                   << stats.virtual_size_ << ", peak VSZ = " << stats.virtual_size_peak_;
+      }
+    } else if (op == "cpu") {
+      uint32 inc_count = to_integer<uint32>(args);
+      while (inc_count-- > 0) {
+        cpu_counter_++;
+      }
+      auto r_cpu_stats = cpu_stat();
+      if (r_cpu_stats.is_error()) {
+        LOG(ERROR) << r_cpu_stats.error();
+      } else {
+        auto stats = r_cpu_stats.move_as_ok();
+        LOG(ERROR) << cpu_counter_ << ", total ticks = " << stats.total_ticks_
+                   << ", user ticks = " << stats.process_user_ticks_
+                   << ", system ticks = " << stats.process_system_ticks_;
+      }
     } else if (op == "SetVerbosity" || op == "SV") {
       Log::set_verbosity_level(to_integer<int>(args));
     } else if (op[0] == 'v' && op[1] == 'v') {
@@ -4247,8 +4271,11 @@ class CliClient final : public Actor {
   bool disable_network_ = false;
   int api_id_ = 0;
   std::string api_hash_;
+
+  static std::atomic<uint64> cpu_counter_;
 };
 CliClient *CliClient::instance_ = nullptr;
+std::atomic<uint64> CliClient::cpu_counter_;
 
 void quit() {
   CliClient::quit_instance();
@@ -4259,10 +4286,6 @@ static void fail_signal(int sig) {
   while (true) {
     // spin forever to allow debugger to attach
   }
-}
-
-static void usage() {
-  //TODO:
 }
 
 static void on_fatal_error(const char *error) {
@@ -4307,52 +4330,72 @@ void main(int argc, char **argv) {
     }
     return std::string();
   }(std::getenv("TD_API_HASH"));
-  // TODO port OptionsParser to Windows
-  for (int i = 1; i < argc; i++) {
-    if (!std::strcmp(argv[i], "--test")) {
-      use_test_dc = true;
-    } else if (!std::strncmp(argv[i], "-v", 2)) {
-      const char *arg = argv[i] + 2;
-      if (*arg == '\0' && i + 1 < argc) {
-        arg = argv[++i];
-      }
-      int new_verbosity = 1;
-      while (*arg == 'v') {
-        new_verbosity++;
-        arg++;
-      }
-      if (*arg) {
-        new_verbosity += to_integer<int>(Slice(arg)) - (new_verbosity == 1);
-      }
-      new_verbosity_level = VERBOSITY_NAME(FATAL) + new_verbosity;
-    } else if (!std::strncmp(argv[i], "-l", 2)) {
-      const char *arg = argv[i] + 2;
-      if (*arg == '\0' && i + 1 < argc) {
-        arg = argv[++i];
-      }
-      if (file_log.init(arg).is_ok() && file_log.init(arg).is_ok() && file_log.init(arg, 1000 << 20).is_ok()) {
-        log_interface = &ts_log;
-      }
-    } else if (!std::strcmp(argv[i], "-W")) {
-      get_chat_list = true;
-    } else if (!std::strcmp(argv[i], "--disable-network") || !std::strcmp(argv[i], "-n")) {
-      disable_network = true;
-    } else if (!std::strcmp(argv[i], "--api_id") || !std::strcmp(argv[i], "--api-id")) {
-      if (i + 1 >= argc) {
-        return usage();
-      }
-      api_id = to_integer<int32>(Slice(argv[++i]));
-    } else if (!std::strcmp(argv[i], "--api_hash") || !std::strcmp(argv[i], "--api-hash")) {
-      if (i + 1 >= argc) {
-        return usage();
-      }
-      api_hash = argv[++i];
+
+  td::OptionParser options;
+  options.set_description("TDLib test client");
+  options.add_option('\0', "test", "Use test DC", [&] {
+    use_test_dc = true;
+    return Status::OK();
+  });
+  options.add_option('v', "verbosity", "Set verbosity level", [&](Slice level) {
+    int new_verbosity = 1;
+    while (begins_with(level, "v")) {
+      new_verbosity++;
+      level.remove_prefix(1);
     }
+    if (!level.empty()) {
+      new_verbosity += to_integer<int>(level) - (new_verbosity == 1);
+    }
+    new_verbosity_level = VERBOSITY_NAME(FATAL) + new_verbosity;
+    return Status::OK();
+  });
+  options.add_option('l', "log", "Log to file", [&](Slice file_name) {
+    if (file_log.init(file_name.str()).is_ok() && file_log.init(file_name.str()).is_ok() &&
+        file_log.init(file_name.str(), 1000 << 20).is_ok()) {
+      log_interface = &ts_log;
+    }
+    return Status::OK();
+  });
+  options.add_option('W', "", "Preload chat list", [&] {
+    get_chat_list = true;
+    return Status::OK();
+  });
+  options.add_option('n', "disable-network", "Disable network", [&] {
+    disable_network = true;
+    return Status::OK();
+  });
+  options.add_option('\0', "api-id", "Set Telegram API ID", [&](Slice parameter) {
+    api_id = to_integer<int32>(parameter);
+    return Status::OK();
+  });
+  options.add_option('\0', "api_id", "Set Telegram API ID", [&](Slice parameter) {
+    api_id = to_integer<int32>(parameter);
+    return Status::OK();
+  });
+  options.add_option('\0', "api-hash", "Set Telegram API hash", [&](Slice parameter) {
+    api_hash = parameter.str();
+    return Status::OK();
+  });
+  options.add_option('\0', "api_hash", "Set Telegram API hash", [&](Slice parameter) {
+    api_hash = parameter.str();
+    return Status::OK();
+  });
+  auto res = options.run(argc, argv);
+  if (res.is_error()) {
+    LOG(PLAIN) << "tg_cli: " << res.error().message();
+    LOG(PLAIN) << options;
+    return;
+  }
+  if (!res.ok().empty()) {
+    LOG(PLAIN) << "tg_cli: " << "Have unexpected non-option parameters";
+    LOG(PLAIN) << options;
+    return;
   }
 
   if (api_id == 0 || api_hash.empty()) {
-    LOG(ERROR) << "You should provide some valid api_id and api_hash";
-    return usage();
+    LOG(PLAIN) << "tg_cli: " << "You should provide some valid api_id and api_hash";
+    LOG(PLAIN) << options;
+    return;
   }
 
   SET_VERBOSITY_LEVEL(new_verbosity_level);

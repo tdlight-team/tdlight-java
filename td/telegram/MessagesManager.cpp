@@ -10907,18 +10907,17 @@ void MessagesManager::init() {
         auto *list = get_dialog_list(DialogListId(folder_id));
         CHECK(list != nullptr);
         CHECK(list->pinned_dialogs_.empty());
-        if (!r_dialog_ids.empty()) {
-          for (auto &r_dialog_id : reversed(r_dialog_ids)) {
-            auto dialog_id = r_dialog_id.move_as_ok();
-            auto order = get_next_pinned_dialog_order();
-            list->pinned_dialogs_.emplace_back(order, dialog_id);
-            list->pinned_dialog_id_orders_.emplace(dialog_id, order);
-          }
-          std::reverse(list->pinned_dialogs_.begin(), list->pinned_dialogs_.end());
-          list->are_pinned_dialogs_inited_ = true;
-
-          update_list_last_pinned_dialog_date(*list);
+        for (auto &r_dialog_id : reversed(r_dialog_ids)) {
+          auto dialog_id = r_dialog_id.move_as_ok();
+          auto order = get_next_pinned_dialog_order();
+          list->pinned_dialogs_.emplace_back(order, dialog_id);
+          list->pinned_dialog_id_orders_.emplace(dialog_id, order);
         }
+        std::reverse(list->pinned_dialogs_.begin(), list->pinned_dialogs_.end());
+        list->are_pinned_dialogs_inited_ = true;
+        update_list_last_pinned_dialog_date(*list);
+
+        LOG(INFO) << "Loaded pinned chats " << list->pinned_dialogs_ << " in " << folder_id;
       }
     }
 
@@ -12990,8 +12989,9 @@ void MessagesManager::on_get_dialogs(FolderId folder_id, vector<tl_object_ptr<te
       }
     } else if (promise) {
       LOG(ERROR) << "Last server dialog date didn't increased from " << folder->last_server_dialog_date_ << " to "
-                 << max_dialog_date << " after receiving " << dialogs.size() << " chats from " << total_count << " in "
-                 << folder_id << ". last_dialog_date = " << folder->folder_last_dialog_date_
+                 << max_dialog_date << " after receiving " << dialogs.size() << " chats " << added_dialog_ids
+                 << " from " << total_count << " in " << folder_id
+                 << ". last_dialog_date = " << folder->folder_last_dialog_date_
                  << ", last_loaded_database_dialog_date = " << folder->last_loaded_database_dialog_date_;
     }
   }

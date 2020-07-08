@@ -160,8 +160,23 @@ uint64 Random::Xorshift128plus::operator()() {
   seed_[1] = x ^ y ^ (x >> 17) ^ (y >> 26);
   return seed_[1] + y;
 }
+
 int Random::Xorshift128plus::fast(int min, int max) {
   return static_cast<int>((*this)() % (max - min + 1) + min);
+}
+
+void Random::Xorshift128plus::bytes(MutableSlice dest) {
+  int cnt = 0;
+  uint64 buf = 0;
+  for (auto &c : dest) {
+    if (cnt == 0) {
+      buf = operator()();
+      cnt = 8;
+    }
+    cnt--;
+    c = static_cast<char>(buf & 255);
+    buf >>= 8;
+  }
 }
 
 }  // namespace td

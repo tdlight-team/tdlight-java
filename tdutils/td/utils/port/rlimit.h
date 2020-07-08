@@ -6,15 +6,13 @@
 //
 #pragma once
 
-#include "td/db/binlog/ConcurrentBinlog.h"
-#include "td/db/BinlogKeyValue.h"
-
-#include <memory>
+#include "td/utils/common.h"
+#include "td/utils/Status.h"
 
 namespace td {
 
-using BinlogPmcBase = BinlogKeyValue<ConcurrentBinlog>;
-using BinlogPmc = std::shared_ptr<BinlogPmcBase>;
-using BinlogPmcPtr = BinlogPmcBase *;
+enum class ResourceLimitType { NoFile };
+
+Status set_resource_limit(ResourceLimitType type, uint64 value);
 
 }  // namespace td

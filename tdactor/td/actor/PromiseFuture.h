@@ -62,12 +62,10 @@ class SafePromise;
 template <class T = Unit>
 class Promise {
  public:
-  bool was_set_value{false};
   void set_value(T &&value) {
     if (!promise_) {
       return;
     }
-    was_set_value = true;
     promise_->set_value(std::move(value));
     promise_.reset();
   }
@@ -75,7 +73,6 @@ class Promise {
     if (!promise_) {
       return;
     }
-    was_set_value = true;
     promise_->set_error(std::move(error));
     promise_.reset();
   }
@@ -83,7 +80,6 @@ class Promise {
     if (!promise_) {
       return;
     }
-    was_set_value = true;
     promise_->set_result(std::move(result));
     promise_.reset();
   }
@@ -412,7 +408,7 @@ class FutureActor final : public Actor {
  public:
   enum State { Waiting, Ready };
 
-  static constexpr int Hangup = 426487;
+  static constexpr int HANGUP_ERROR_CODE = 426487;
 
   FutureActor() = default;
 
@@ -491,7 +487,7 @@ class FutureActor final : public Actor {
   }
 
   void hangup() override {
-    set_error(Status::Error<Hangup>());
+    set_error(Status::Error<HANGUP_ERROR_CODE>());
   }
 
   void start_up() override {
