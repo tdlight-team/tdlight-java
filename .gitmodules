@@ -1,9 +1,9 @@
 [submodule "src/main/jni/td"]
 	path = src/main/jni/td
-	url = https://git.ignuranza.net:tdlight-team/tdlight.git
+	url = https://git.ignuranza.net/tdlight-team/tdlight.git
 [submodule "common-utils"]
 	path = common-utils
-	url = https://git.ignuranza.net:tdlight-team/common-utils.git
+	url = https://git.ignuranza.net/tdlight-team/common-utils.git
 [submodule "src/main/jni/tdlib-serializer"]
 	path = src/main/jni/tdlib-serializer
 	url = https://git.ignuranza.net/windoz/tdlib-serializer.git
