@@ -652,7 +652,8 @@ class MessageDice : public MessageContent {
 
   MessageDice() = default;
   MessageDice(string emoji, int32 dice_value)
-      : emoji(emoji.empty() ? string(DEFAULT_EMOJI) : std::move(emoji)), dice_value(dice_value) {
+      : emoji(emoji.empty() ? string(DEFAULT_EMOJI) : remove_emoji_modifiers(std::move(emoji)))
+      , dice_value(dice_value) {
   }
 
   MessageContentType get_type() const override {
@@ -1280,7 +1281,9 @@ static void parse(unique_ptr<MessageContent> &content, ParserT &parser) {
     case MessageContentType::Dice: {
       auto m = make_unique<MessageDice>();
       if (parser.version() >= static_cast<int32>(Version::AddDiceEmoji)) {
-        parse(m->emoji, parser);
+        string emoji;
+        parse(emoji, parser);
+        m->emoji = remove_emoji_modifiers(std::move(emoji));
       } else {
         m->emoji = MessageDice::DEFAULT_EMOJI;
       }
@@ -1475,8 +1478,8 @@ static Result<InputMessageContent> create_input_message_content(
 
       bool has_stickers = !sticker_file_ids.empty();
       td->animations_manager_->create_animation(
-          file_id, string(), thumbnail, PhotoSize(), has_stickers, std::move(sticker_file_ids), std::move(file_name),
-          std::move(mime_type), input_animation->duration_,
+          file_id, string(), thumbnail, AnimationSize(), has_stickers, std::move(sticker_file_ids),
+          std::move(file_name), std::move(mime_type), input_animation->duration_,
           get_dimensions(input_animation->width_, input_animation->height_), false);
 
       content = make_unique<MessageAnimation>(file_id, std::move(caption));
@@ -1529,6 +1532,8 @@ static Result<InputMessageContent> create_input_message_content(
 
       if (file_view.has_remote_location() && !file_view.remote_location().is_web()) {
         message_photo->photo.id = file_view.remote_location().get_id();
+      } else {
+        message_photo->photo.id = 0;
       }
       message_photo->photo.date = G()->unix_time();
       int32 type = 'i';
@@ -1577,9 +1582,9 @@ static Result<InputMessageContent> create_input_message_content(
 
       bool has_stickers = !sticker_file_ids.empty();
       td->videos_manager_->create_video(
-          file_id, string(), thumbnail, PhotoSize(), has_stickers, std::move(sticker_file_ids), std::move(file_name),
-          std::move(mime_type), input_video->duration_, get_dimensions(input_video->width_, input_video->height_),
-          input_video->supports_streaming_, false);
+          file_id, string(), thumbnail, AnimationSize(), has_stickers, std::move(sticker_file_ids),
+          std::move(file_name), std::move(mime_type), input_video->duration_,
+          get_dimensions(input_video->width_, input_video->height_), input_video->supports_streaming_, false);
 
       content = make_unique<MessageVideo>(file_id, std::move(caption));
       break;
@@ -1673,22 +1678,21 @@ static Result<InputMessageContent> create_input_message_content(
         if (!input_invoice->photo_url_.empty()) {
           LOG(INFO) << "Can't register url " << input_invoice->photo_url_;
         }
-        message_invoice->photo.id = -2;
       } else {
         auto url = r_http_url.ok().get_url();
         auto r_invoice_file_id = td->file_manager_->from_persistent_id(url, FileType::Temp);
         if (r_invoice_file_id.is_error()) {
           LOG(INFO) << "Can't register url " << url;
-          message_invoice->photo.id = -2;
         } else {
           auto invoice_file_id = r_invoice_file_id.move_as_ok();
 
           PhotoSize s;
-          s.type = 'u';
+          s.type = 'n';
           s.dimensions = get_dimensions(input_invoice->photo_width_, input_invoice->photo_height_);
           s.size = input_invoice->photo_size_;  // TODO use invoice_file_id size
           s.file_id = invoice_file_id;
 
+          message_invoice->photo.id = 0;
           message_invoice->photo.photos.push_back(s);
         }
       }
@@ -1743,9 +1747,9 @@ static Result<InputMessageContent> create_input_message_content(
       break;
     }
     case td_api::inputMessagePoll::ID: {
-      constexpr size_t MAX_POLL_QUESTION_LENGTH = 255;  // server-side limit
-      constexpr size_t MAX_POLL_OPTION_LENGTH = 100;    // server-side limit
-      constexpr size_t MAX_POLL_OPTIONS = 10;           // server-side limit
+      const size_t MAX_POLL_QUESTION_LENGTH = is_bot ? 300 : 255;  // server-side limit
+      constexpr size_t MAX_POLL_OPTION_LENGTH = 100;               // server-side limit
+      constexpr size_t MAX_POLL_OPTIONS = 10;                      // server-side limit
       auto input_poll = static_cast<td_api::inputMessagePoll *>(input_message_content.get());
       if (!clean_input_string(input_poll->question_)) {
         return Status::Error(400, "Poll question must be encoded in UTF-8");
@@ -1855,8 +1859,9 @@ Result<InputMessageContent> get_input_message_content(
     }
     case td_api::inputMessageDocument::ID: {
       auto input_message = static_cast<td_api::inputMessageDocument *>(input_message_content.get());
-      r_file_id = td->file_manager_->get_input_file_id(FileType::Document, input_message->document_, dialog_id, false,
-                                                       is_secret, true);
+      auto file_type = input_message->force_file_ ? FileType::DocumentAsFile : FileType::Document;
+      r_file_id =
+          td->file_manager_->get_input_file_id(file_type, input_message->document_, dialog_id, false, is_secret, true);
       input_thumbnail = std::move(input_message->thumbnail_);
       break;
     }
@@ -2127,7 +2132,7 @@ static tl_object_ptr<telegram_api::invoice> get_input_invoice(const Invoice &inv
 
 static tl_object_ptr<telegram_api::inputWebDocument> get_input_web_document(const FileManager *file_manager,
                                                                             const Photo &photo) {
-  if (photo.id == -2) {
+  if (photo.is_empty()) {
     return nullptr;
   }
 
@@ -2829,7 +2834,7 @@ void merge_message_contents(Td *td, const MessageContent *old_content, MessageCo
       if (old_photo->date != new_photo->date) {
         is_content_changed = true;
       }
-      if (old_photo->id != new_photo->id || old_->caption != new_->caption) {
+      if (old_photo->id.get() != new_photo->id.get() || old_->caption != new_->caption) {
         need_update = true;
       }
       if (old_photo->minithumbnail != new_photo->minithumbnail) {
@@ -3783,7 +3788,7 @@ unique_ptr<MessageContent> get_message_content(Td *td, FormattedText message,
       }
 
       auto photo = get_photo(td->file_manager_.get(), std::move(message_photo->photo_), owner_dialog_id);
-      if (photo.id == -2) {
+      if (photo.is_empty()) {
         return make_unique<MessageExpiredPhoto>();
       }
 
@@ -4195,7 +4200,7 @@ unique_ptr<MessageContent> get_action_message_content(Td *td, tl_object_ptr<tele
     case telegram_api::messageActionChatEditPhoto::ID: {
       auto chat_edit_photo = move_tl_object_as<telegram_api::messageActionChatEditPhoto>(action);
       auto photo = get_photo(td->file_manager_.get(), std::move(chat_edit_photo->photo_), owner_dialog_id);
-      if (photo.id == -2) {
+      if (photo.is_empty()) {
         break;
       }
       return make_unique<MessageChatChangePhoto>(std::move(photo));
@@ -4377,7 +4382,7 @@ tl_object_ptr<td_api::MessageContent> get_message_content_object(const MessageCo
     case MessageContentType::Invoice: {
       const MessageInvoice *m = static_cast<const MessageInvoice *>(content);
       return make_tl_object<td_api::messageInvoice>(
-          m->title, m->description, get_photo_object(td->file_manager_.get(), &m->photo), m->invoice.currency,
+          m->title, m->description, get_photo_object(td->file_manager_.get(), m->photo), m->invoice.currency,
           m->total_amount, m->start_parameter, m->invoice.is_test, m->invoice.need_shipping_address,
           m->receipt_message_id.get());
     }
@@ -4393,7 +4398,7 @@ tl_object_ptr<td_api::MessageContent> get_message_content_object(const MessageCo
     }
     case MessageContentType::Photo: {
       const MessagePhoto *m = static_cast<const MessagePhoto *>(content);
-      return make_tl_object<td_api::messagePhoto>(get_photo_object(td->file_manager_.get(), &m->photo),
+      return make_tl_object<td_api::messagePhoto>(get_photo_object(td->file_manager_.get(), m->photo),
                                                   get_formatted_text_object(m->caption), is_content_secret);
     }
     case MessageContentType::Sticker: {
@@ -4437,7 +4442,7 @@ tl_object_ptr<td_api::MessageContent> get_message_content_object(const MessageCo
     }
     case MessageContentType::ChatChangePhoto: {
       const MessageChatChangePhoto *m = static_cast<const MessageChatChangePhoto *>(content);
-      return make_tl_object<td_api::messageChatChangePhoto>(get_photo_object(td->file_manager_.get(), &m->photo));
+      return make_tl_object<td_api::messageChatChangePhoto>(get_chat_photo_object(td->file_manager_.get(), m->photo));
     }
     case MessageContentType::ChatDeletePhoto:
       return make_tl_object<td_api::messageChatDeletePhoto>();
@@ -4705,7 +4710,7 @@ FileId get_message_content_thumbnail_file_id(const MessageContent *content, cons
   return FileId();
 }
 
-FileId get_message_content_animated_thumbnail_file_id(const MessageContent *content, const Td *td) {
+static FileId get_message_content_animated_thumbnail_file_id(const MessageContent *content, const Td *td) {
   switch (content->get_type()) {
     case MessageContentType::Animation:
       return td->animations_manager_->get_animation_animated_thumbnail_file_id(

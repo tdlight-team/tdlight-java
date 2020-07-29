@@ -32,21 +32,22 @@ std::pair<T, T> split(T s, char delimiter = ' ') {
 }
 
 template <class T>
-vector<T> full_split(T s, char delimiter = ' ') {
+vector<T> full_split(T s, char delimiter = ' ', size_t max_parts = std::numeric_limits<size_t>::max()) {
   vector<T> result;
   if (s.empty()) {
     return result;
   }
-  while (true) {
+  while (result.size() + 1 < max_parts) {
     auto delimiter_pos = s.find(delimiter);
     if (delimiter_pos == string::npos) {
-      result.push_back(std::move(s));
-      return result;
-    } else {
-      result.push_back(s.substr(0, delimiter_pos));
-      s = s.substr(delimiter_pos + 1);
+      break;
     }
+
+    result.push_back(s.substr(0, delimiter_pos));
+    s = s.substr(delimiter_pos + 1);
   }
+  result.push_back(std::move(s));
+  return result;
 }
 
 string implode(const vector<string> &v, char delimiter = ' ');
@@ -84,13 +85,13 @@ auto transform(V &&v, const Func &f) {
 }
 
 template <class V, class Func>
-void remove_if(V &v, const Func &f) {
+bool remove_if(V &v, const Func &f) {
   size_t i = 0;
   while (i != v.size() && !f(v[i])) {
     i++;
   }
   if (i == v.size()) {
-    return;
+    return false;
   }
 
   size_t j = i;
@@ -100,6 +101,7 @@ void remove_if(V &v, const Func &f) {
     }
   }
   v.erase(v.begin() + j, v.end());
+  return true;
 }
 
 template <class V, class T>
@@ -193,10 +195,11 @@ inline char to_lower(char c) {
   return c;
 }
 
-inline void to_lower_inplace(MutableSlice slice) {
+inline MutableSlice to_lower_inplace(MutableSlice slice) {
   for (auto &c : slice) {
     c = to_lower(c);
   }
+  return slice;
 }
 
 inline string to_lower(Slice slice) {
@@ -336,6 +339,24 @@ typename std::enable_if<std::is_unsigned<T>::value, T>::type hex_to_integer(Slic
   auto end = str.end();
   while (begin != end && is_hex_digit(*begin)) {
     integer_value = static_cast<T>(integer_value * 16 + hex_to_int(*begin++));
+  }
+  return integer_value;
+}
+
+template <class T>
+Result<typename std::enable_if<std::is_unsigned<T>::value, T>::type> hex_to_integer_safe(Slice str) {
+  T integer_value = 0;
+  auto begin = str.begin();
+  auto end = str.end();
+  while (begin != end) {
+    T digit = hex_to_int(*begin++);
+    if (digit == 16) {
+      return Status::Error("Not a hex digit");
+    }
+    if (integer_value > std::numeric_limits<T>::max() / 16) {
+      return Status::Error("Hex number overflow");
+    }
+    integer_value = integer_value * 16 + digit;
   }
   return integer_value;
 }

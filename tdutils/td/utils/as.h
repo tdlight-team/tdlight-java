@@ -28,7 +28,7 @@ class As {
   }
   ~As() = default;
 
-  As &operator=(T new_value) && {
+  As &operator=(const T &new_value) && {
     std::memcpy(ptr_, &new_value, sizeof(T));
     return *this;
   }
@@ -68,7 +68,7 @@ class ConstAs {
 #if __GLIBCXX__
 #define TD_IS_TRIVIALLY_COPYABLE(T) __has_trivial_copy(T)
 #else
-#define TD_IS_TRIVIALLY_COPYABLE(T) std::is_trivially_copyable<T>::value
+#define TD_IS_TRIVIALLY_COPYABLE(T) ::std::is_trivially_copyable<T>::value
 #endif
 
 template <class ToT, class FromT,

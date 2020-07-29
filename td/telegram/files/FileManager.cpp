@@ -46,13 +46,14 @@
 #include <limits>
 #include <numeric>
 #include <tuple>
+#include <unordered_set>
 #include <utility>
 
 #define FILE_TTL 20
 
 namespace td {
 namespace {
-constexpr int64 MAX_FILE_SIZE = 1500 * (1 << 20) /* 1500MB */;
+constexpr int64 MAX_FILE_SIZE = 2000 * (1 << 20) /* 2000MB */;
 }  // namespace
 
 int VERBOSITY_NAME(update_file) = VERBOSITY_NAME(INFO);
@@ -735,6 +736,57 @@ bool FileView::can_delete() const {
   return node_->local_.type() == LocalFileLocation::Type::Partial;
 }
 
+string FileView::get_unique_id(const FullGenerateFileLocation &location) {
+  return base64url_encode(zero_encode('\xff' + serialize(location)));
+}
+
+string FileView::get_unique_id(const FullRemoteFileLocation &location) {
+  return base64url_encode(zero_encode(serialize(location.as_unique())));
+}
+
+string FileView::get_persistent_id(const FullGenerateFileLocation &location) {
+  auto binary = serialize(location);
+
+  binary = zero_encode(binary);
+  binary.push_back(FileNode::PERSISTENT_ID_VERSION_MAP);
+  return base64url_encode(binary);
+}
+
+string FileView::get_persistent_id(const FullRemoteFileLocation &location) {
+  auto binary = serialize(location);
+
+  binary = zero_encode(binary);
+  binary.push_back(static_cast<char>(narrow_cast<uint8>(Version::Next) - 1));
+  binary.push_back(FileNode::PERSISTENT_ID_VERSION);
+  return base64url_encode(binary);
+}
+
+string FileView::get_persistent_file_id() const {
+  if (!empty()) {
+    if (has_alive_remote_location()) {
+      return get_persistent_id(remote_location());
+    } else if (has_url()) {
+      return url();
+    } else if (has_generate_location() && begins_with(generate_location().conversion_, "#map#")) {
+      return get_persistent_id(generate_location());
+    }
+  }
+  return string();
+}
+
+string FileView::get_unique_file_id() const {
+  if (!empty()) {
+    if (has_alive_remote_location()) {
+      if (!remote_location().is_web()) {
+        return get_unique_id(remote_location());
+      }
+    } else if (has_generate_location() && begins_with(generate_location().conversion_, "#map#")) {
+      return get_unique_id(generate_location());
+    }
+  }
+  return string();
+}
+
 /*** FileManager ***/
 static int merge_choose_remote_location(const FullRemoteFileLocation &x, FileLocationSource x_source,
                                         const FullRemoteFileLocation &y, FileLocationSource y_source);
@@ -754,9 +806,15 @@ FileManager::FileManager(unique_ptr<Context> context) : context_(std::move(conte
   next_file_id();
   next_file_node_id();
 
-  std::vector<string> dirs;
-  auto create_dir = [&](CSlice path) {
-    dirs.push_back(path.str());
+  std::unordered_set<string> dir_paths;
+  for (int32 i = 0; i < MAX_FILE_TYPE; i++) {
+    dir_paths.insert(get_files_dir(static_cast<FileType>(i)));
+  }
+  // add both temp dirs
+  dir_paths.insert(get_files_temp_dir(FileType::Encrypted));
+  dir_paths.insert(get_files_temp_dir(FileType::Video));
+
+  for (const auto &path : dir_paths) {
     auto status = mkdir(path, 0750);
     if (status.is_error()) {
       auto r_stat = stat(path);
@@ -767,21 +825,9 @@ FileManager::FileManager(unique_ptr<Context> context) : context_(std::move(conte
       }
     }
 #if TD_ANDROID
-    FileFd::open(dirs.back() + ".nomedia", FileFd::Create | FileFd::Read).ignore();
+    FileFd::open(path + ".nomedia", FileFd::Create | FileFd::Read).ignore();
 #endif
   };
-  for (int32 i = 0; i < file_type_size; i++) {
-    FileType file_type = static_cast<FileType>(i);
-    if (file_type == FileType::SecureRaw || file_type == FileType::Background) {
-      continue;
-    }
-    auto path = get_files_dir(file_type);
-    create_dir(path);
-  }
-
-  // Create both temp dirs.
-  create_dir(get_files_temp_dir(FileType::Encrypted));
-  create_dir(get_files_temp_dir(FileType::Video));
 
   G()->td_db()->with_db_path([this](CSlice path) { this->bad_paths_.insert(path.str()); });
 }
@@ -853,6 +899,7 @@ string FileManager::get_file_name(FileType file_type, Slice path) {
     case FileType::EncryptedThumbnail:
     case FileType::Secure:
     case FileType::SecureRaw:
+    case FileType::DocumentAsFile:
       break;
     default:
       UNREACHABLE();
@@ -1056,13 +1103,13 @@ Result<FileId> FileManager::register_local(FullLocalFileLocation location, Dialo
 }
 
 FileId FileManager::register_remote(const FullRemoteFileLocation &location, FileLocationSource file_location_source,
-                                    DialogId owner_dialog_id, int64 size, int64 expected_size, string name) {
+                                    DialogId owner_dialog_id, int64 size, int64 expected_size, string remote_name) {
   FileData data;
   data.remote_ = RemoteFileLocation(location);
   data.owner_dialog_id_ = owner_dialog_id;
   data.size_ = size;
   data.expected_size_ = expected_size;
-  data.remote_name_ = std::move(name);
+  data.remote_name_ = std::move(remote_name);
 
   auto file_id = register_file(std::move(data), file_location_source, "register_remote", false).move_as_ok();
   auto url = location.get_url();
@@ -1677,6 +1724,21 @@ void FileManager::change_files_source(FileSourceId file_source_id, const vector<
   for (auto file_id : new_main_file_ids) {
     add_file_source(file_id, file_source_id);
   }
+}
+
+void FileManager::on_file_reference_repaired(FileId file_id, FileSourceId file_source_id, Result<Unit> &&result,
+                                             Promise<Unit> &&promise) {
+  auto file_view = get_file_view(file_id);
+  CHECK(!file_view.empty());
+  if (result.is_ok() &&
+      (!file_view.has_active_upload_remote_location() || !file_view.has_active_download_remote_location())) {
+    result = Status::Error("No active remote location");
+  }
+  if (result.is_error() && result.error().code() != 429 && result.error().code() < 500) {
+    VLOG(file_references) << "Invalid " << file_source_id << " " << result.error();
+    remove_file_source(file_id, file_source_id);
+  }
+  promise.set_result(std::move(result));
 }
 
 std::unordered_set<FileId, FileIdHash> FileManager::get_main_file_ids(const vector<FileId> &file_ids) {
@@ -2731,36 +2793,11 @@ void FileManager::cancel_upload(FileId file_id) {
 
 static bool is_document_type(FileType type) {
   return type == FileType::Document || type == FileType::Sticker || type == FileType::Audio ||
-         type == FileType::Animation || type == FileType::Background;
+         type == FileType::Animation || type == FileType::Background || type == FileType::DocumentAsFile;
 }
 
 static bool is_background_type(FileType type) {
   return type == FileType::Wallpaper || type == FileType::Background;
-}
-
-string FileManager::get_unique_id(const FullGenerateFileLocation &location) {
-  return base64url_encode(zero_encode('\xff' + serialize(location)));
-}
-
-string FileManager::get_unique_id(const FullRemoteFileLocation &location) {
-  return base64url_encode(zero_encode(serialize(location.as_unique())));
-}
-
-string FileManager::get_persistent_id(const FullGenerateFileLocation &location) {
-  auto binary = serialize(location);
-
-  binary = zero_encode(binary);
-  binary.push_back(PERSISTENT_ID_VERSION_MAP);
-  return base64url_encode(binary);
-}
-
-string FileManager::get_persistent_id(const FullRemoteFileLocation &location) {
-  auto binary = serialize(location);
-
-  binary = zero_encode(binary);
-  binary.push_back(static_cast<char>(narrow_cast<uint8>(Version::Next) - 1));
-  binary.push_back(PERSISTENT_ID_VERSION);
-  return base64url_encode(binary);
 }
 
 Result<FileId> FileManager::from_persistent_id(CSlice persistent_id, FileType file_type) {
@@ -2781,13 +2818,13 @@ Result<FileId> FileManager::from_persistent_id(CSlice persistent_id, FileType fi
   if (binary.empty()) {
     return Status::Error(10, "Remote file identifier can't be empty");
   }
-  if (binary.back() == PERSISTENT_ID_VERSION_OLD) {
+  if (binary.back() == FileNode::PERSISTENT_ID_VERSION_OLD) {
     return from_persistent_id_v2(binary, file_type);
   }
-  if (binary.back() == PERSISTENT_ID_VERSION) {
+  if (binary.back() == FileNode::PERSISTENT_ID_VERSION) {
     return from_persistent_id_v3(binary, file_type);
   }
-  if (binary.back() == PERSISTENT_ID_VERSION_MAP) {
+  if (binary.back() == FileNode::PERSISTENT_ID_VERSION_MAP) {
     return from_persistent_id_map(binary, file_type);
   }
   return Status::Error(10, "Wrong remote file identifier specified: can't unserialize it. Wrong last symbol");
@@ -2882,21 +2919,9 @@ td_api::object_ptr<td_api::file> FileManager::get_file_object(FileId file_id, bo
                                              td_api::make_object<td_api::remoteFile>());
   }
 
-  string persistent_file_id;
-  string unique_file_id;
-  if (file_view.has_alive_remote_location()) {
-    persistent_file_id = get_persistent_id(file_view.remote_location());
-    if (!file_view.remote_location().is_web()) {
-      unique_file_id = get_unique_id(file_view.remote_location());
-    }
-  } else if (file_view.has_url()) {
-    persistent_file_id = file_view.url();
-  } else if (file_view.has_generate_location() && begins_with(file_view.generate_location().conversion_, "#map#")) {
-    persistent_file_id = get_persistent_id(file_view.generate_location());
-    unique_file_id = get_unique_id(file_view.generate_location());
-  }
+  string persistent_file_id = file_view.get_persistent_file_id();
+  string unique_file_id = file_view.get_unique_file_id();
   bool is_uploading_completed = !persistent_file_id.empty();
-
   int32 size = narrow_cast<int32>(file_view.size());
   int32 expected_size = narrow_cast<int32>(file_view.expected_size());
   int32 download_offset = narrow_cast<int32>(file_view.download_offset());
@@ -3553,6 +3578,7 @@ void FileManager::on_error_impl(FileNodePtr node, Query::Type type, bool was_act
       if (node->local_.type() == LocalFileLocation::Type::Partial &&
           !begins_with(status.message(), "FILE_UPLOAD_RESTART") &&
           !begins_with(status.message(), "FILE_DOWNLOAD_RESTART") &&
+          !begins_with(status.message(), "FILE_DOWNLOAD_ID_INVALID") &&
           !begins_with(status.message(), "FILE_DOWNLOAD_LIMIT")) {
         CSlice path = node->local_.partial().path_;
         if (begins_with(path, get_files_temp_dir(FileType::Encrypted)) ||

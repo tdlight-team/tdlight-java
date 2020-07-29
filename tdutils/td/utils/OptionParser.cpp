@@ -6,7 +6,7 @@
 //
 #include "td/utils/OptionParser.h"
 
-#include "td/utils/misc.h"
+#include "td/utils/logging.h"
 
 #include <cstring>
 #include <unordered_map>
@@ -19,22 +19,44 @@ void OptionParser::set_description(string description) {
 
 void OptionParser::add_option(Option::Type type, char short_key, Slice long_key, Slice description,
                               std::function<Status(Slice)> callback) {
+  for (auto &option : options_) {
+    if ((short_key != '\0' && option.short_key == short_key) || (!long_key.empty() && long_key == option.long_key)) {
+      LOG(ERROR) << "Ignore duplicated option '" << (short_key == '\0' ? '-' : short_key) << "' '" << long_key << "'";
+    }
+  }
   options_.push_back(Option{type, short_key, long_key.str(), description.str(), std::move(callback)});
 }
 
-void OptionParser::add_option(char short_key, Slice long_key, Slice description,
-                              std::function<Status(Slice)> callback) {
+void OptionParser::add_checked_option(char short_key, Slice long_key, Slice description,
+                                      std::function<Status(Slice)> callback) {
   add_option(Option::Type::Arg, short_key, long_key, description, std::move(callback));
 }
 
-void OptionParser::add_option(char short_key, Slice long_key, Slice description, std::function<Status(void)> callback) {
-  // Ouch. There must be some better way
+void OptionParser::add_checked_option(char short_key, Slice long_key, Slice description,
+                                      std::function<Status(void)> callback) {
   add_option(Option::Type::NoArg, short_key, long_key, description,
-             std::bind([](std::function<Status(void)> &func, Slice) { return func(); }, std::move(callback),
-                       std::placeholders::_1));
+             [callback = std::move(callback)](Slice) { return callback(); });
 }
 
-Result<vector<char *>> OptionParser::run(int argc, char *argv[]) {
+void OptionParser::add_option(char short_key, Slice long_key, Slice description, std::function<void(Slice)> callback) {
+  add_option(Option::Type::Arg, short_key, long_key, description, [callback = std::move(callback)](Slice parameter) {
+    callback(parameter);
+    return Status::OK();
+  });
+}
+
+void OptionParser::add_option(char short_key, Slice long_key, Slice description, std::function<void(void)> callback) {
+  add_option(Option::Type::NoArg, short_key, long_key, description, [callback = std::move(callback)](Slice) {
+    callback();
+    return Status::OK();
+  });
+}
+
+void OptionParser::add_check(std::function<Status()> check) {
+  checks_.push_back(std::move(check));
+}
+
+Result<vector<char *>> OptionParser::run(int argc, char *argv[], int expected_non_option_count) {
   std::unordered_map<char, const Option *> short_options;
   std::unordered_map<string, const Option *> long_options;
   for (auto &opt : options_) {
@@ -64,11 +86,11 @@ Result<vector<char *>> OptionParser::run(int argc, char *argv[]) {
     if (arg[1] == '-') {
       // long option
       Slice long_arg(arg + 2, std::strlen(arg + 2));
-      Slice param;
+      Slice parameter;
       auto equal_pos = long_arg.find('=');
       bool has_equal = equal_pos != Slice::npos;
       if (has_equal) {
-        param = long_arg.substr(equal_pos + 1);
+        parameter = long_arg.substr(equal_pos + 1);
         long_arg = long_arg.substr(0, equal_pos);
       }
 
@@ -89,14 +111,14 @@ Result<vector<char *>> OptionParser::run(int argc, char *argv[]) {
             if (++arg_pos == argc) {
               return Status::Error(PSLICE() << "Option " << long_arg << " must have argument");
             }
-            param = Slice(argv[arg_pos], std::strlen(argv[arg_pos]));
+            parameter = Slice(argv[arg_pos], std::strlen(argv[arg_pos]));
           }
           break;
         default:
           UNREACHABLE();
       }
 
-      TRY_STATUS(option->arg_callback(param));
+      TRY_STATUS(option->arg_callback(parameter));
       continue;
     }
 
@@ -107,7 +129,7 @@ Result<vector<char *>> OptionParser::run(int argc, char *argv[]) {
       }
 
       auto option = it->second;
-      Slice param;
+      Slice parameter;
       switch (option->type) {
         case Option::Type::NoArg:
           // nothing to do
@@ -117,18 +139,31 @@ Result<vector<char *>> OptionParser::run(int argc, char *argv[]) {
             if (++arg_pos == argc) {
               return Status::Error(PSLICE() << "Option " << arg[opt_pos] << " must have argument");
             }
-            param = Slice(argv[arg_pos], std::strlen(argv[arg_pos]));
+            parameter = Slice(argv[arg_pos], std::strlen(argv[arg_pos]));
           } else {
-            param = Slice(arg + opt_pos + 1, std::strlen(arg + opt_pos + 1));
-            opt_pos += param.size();
+            parameter = Slice(arg + opt_pos + 1, std::strlen(arg + opt_pos + 1));
+            opt_pos += parameter.size();
           }
           break;
         default:
           UNREACHABLE();
       }
 
-      TRY_STATUS(option->arg_callback(param));
+      TRY_STATUS(option->arg_callback(parameter));
     }
+  }
+  if (expected_non_option_count >= 0 && non_options.size() != static_cast<size_t>(expected_non_option_count)) {
+    if (expected_non_option_count == 0) {
+      return Status::Error("Unexpected non-option parameters specified");
+    }
+    if (non_options.size() > static_cast<size_t>(expected_non_option_count)) {
+      return Status::Error("Too much non-option parameters specified");
+    } else {
+      return Status::Error("Too few non-option parameters specified");
+    }
+  }
+  for (auto &check : checks_) {
+    TRY_STATUS(check());
   }
 
   return std::move(non_options);

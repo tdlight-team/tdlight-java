@@ -244,7 +244,7 @@ size_t IPAddress::get_sockaddr_len() const {
     case AF_INET:
       return sizeof(ipv4_addr_);
     default:
-      LOG(FATAL) << "Unknown address family";
+      UNREACHABLE();
       return 0;
   }
 }
@@ -284,7 +284,8 @@ IPAddress IPAddress::get_any_addr() const {
       res.init_ipv4_any();
       break;
     default:
-      LOG(FATAL) << "Unknown address family";
+      UNREACHABLE();
+      break;
   }
   return res;
 }
@@ -427,7 +428,7 @@ Status IPAddress::init_host_port(CSlice host, CSlice port, bool prefer_ipv6) {
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
-  LOG(DEBUG + 10) << "Try to init IP address of " << host << " with port " << port;
+  LOG(DEBUG + 10) << "Trying to init IP address of " << host << " with port " << port;
   auto err = getaddrinfo(host.c_str(), port.c_str(), &hints, &info);
   if (err != 0) {
 #if TD_WINDOWS
@@ -520,6 +521,17 @@ Status IPAddress::init_peer_address(const SocketFd &socket_fd) {
   return Status::OK();
 }
 
+void IPAddress::clear_ipv6_interface() {
+  if (!is_valid() || get_address_family() != AF_INET6) {
+    return;
+  }
+
+  auto *begin = ipv6_addr_.sin6_addr.s6_addr;
+  static_assert(sizeof(ipv6_addr_.sin6_addr.s6_addr) == 16, "expected 16 bytes buffer for ipv6");
+  static_assert(sizeof(*begin) == 1, "expected array of bytes");
+  std::memset(begin + 8, 0, 8 * sizeof(*begin));
+}
+
 string IPAddress::ipv4_to_str(uint32 ipv4) {
   ipv4 = ntohl(ipv4);
   return ::td::get_ip_str(AF_INET, &ipv4).str();
@@ -609,7 +621,7 @@ bool operator==(const IPAddress &a, const IPAddress &b) {
            std::memcmp(&a.ipv6_addr_.sin6_addr, &b.ipv6_addr_.sin6_addr, sizeof(a.ipv6_addr_.sin6_addr)) == 0;
   }
 
-  LOG(FATAL) << "Unknown address family";
+  UNREACHABLE();
   return false;
 }
 
@@ -633,7 +645,7 @@ bool operator<(const IPAddress &a, const IPAddress &b) {
     return std::memcmp(&a.ipv6_addr_.sin6_addr, &b.ipv6_addr_.sin6_addr, sizeof(a.ipv6_addr_.sin6_addr)) < 0;
   }
 
-  LOG(FATAL) << "Unknown address family";
+  UNREACHABLE();
   return false;
 }
 

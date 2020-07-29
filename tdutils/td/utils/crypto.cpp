@@ -465,21 +465,6 @@ void AesState::decrypt(const uint8 *src, uint8 *dst, int size) {
   impl_->evp.decrypt(src, dst, size);
 }
 
-static void aes_ige_xcrypt(Slice aes_key, MutableSlice aes_iv, Slice from, MutableSlice to, bool encrypt_flag) {
-  CHECK(aes_key.size() == 32);
-  CHECK(aes_iv.size() == 32);
-  AES_KEY key;
-  int err;
-  if (encrypt_flag) {
-    err = AES_set_encrypt_key(aes_key.ubegin(), 256, &key);
-  } else {
-    err = AES_set_decrypt_key(aes_key.ubegin(), 256, &key);
-  }
-  LOG_IF(FATAL, err != 0);
-  CHECK(from.size() <= to.size());
-  AES_ige_encrypt(from.ubegin(), to.ubegin(), from.size(), &key, aes_iv.ubegin(), encrypt_flag);
-}
-
 class AesIgeStateImpl {
  public:
   void init(Slice key, Slice iv, bool encrypt) {
@@ -587,18 +572,12 @@ void AesIgeState::decrypt(Slice from, MutableSlice to) {
 }
 
 void aes_ige_encrypt(Slice aes_key, MutableSlice aes_iv, Slice from, MutableSlice to) {
-  if (from.size() <= 128) {
-    return aes_ige_xcrypt(aes_key, aes_iv, from, to, true);
-  }
   AesIgeStateImpl state;
   state.init(aes_key, aes_iv, true);
   state.encrypt(from, to);
 }
 
 void aes_ige_decrypt(Slice aes_key, MutableSlice aes_iv, Slice from, MutableSlice to) {
-  if (from.size() <= 128) {
-    return aes_ige_xcrypt(aes_key, aes_iv, from, to, false);
-  }
   AesIgeStateImpl state;
   state.init(aes_key, aes_iv, false);
   state.decrypt(from, to);
@@ -627,16 +606,16 @@ void aes_cbc_decrypt(Slice aes_key, MutableSlice aes_iv, Slice from, MutableSlic
   aes_cbc_xcrypt(aes_key, aes_iv, from, to, false);
 }
 
-AesCbcState::AesCbcState(Slice key256, Slice iv128) : key_(key256), iv_(iv128) {
-  CHECK(key_.size() == 32);
-  CHECK(iv_.size() == 16);
+AesCbcState::AesCbcState(Slice key256, Slice iv128) : raw_{SecureString(key256), SecureString(iv128)} {
+  CHECK(raw_.key.size() == 32);
+  CHECK(raw_.iv.size() == 16);
 }
 
 void AesCbcState::encrypt(Slice from, MutableSlice to) {
-  ::td::aes_cbc_encrypt(key_.as_slice(), iv_.as_mutable_slice(), from, to);
+  ::td::aes_cbc_encrypt(raw_.key.as_slice(), raw_.iv.as_mutable_slice(), from, to);
 }
 void AesCbcState::decrypt(Slice from, MutableSlice to) {
-  ::td::aes_cbc_decrypt(key_.as_slice(), iv_.as_mutable_slice(), from, to);
+  ::td::aes_cbc_decrypt(raw_.key.as_slice(), raw_.iv.as_mutable_slice(), from, to);
 }
 
 class AesCtrState::Impl {

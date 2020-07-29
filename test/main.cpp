@@ -11,9 +11,6 @@
 #include "td/utils/logging.h"
 #include "td/utils/OptionParser.h"
 #include "td/utils/Slice.h"
-#include "td/utils/Status.h"
-
-#include <cstring>
 
 #if TD_EMSCRIPTEN
 #include <emscripten.h>
@@ -26,16 +23,12 @@ int main(int argc, char **argv) {
   SET_VERBOSITY_LEVEL(VERBOSITY_NAME(ERROR));
 
   td::OptionParser options;
-  options.add_option('\0', "filter", "Run only specified tests", [&](td::Slice filter) {
-    runner.add_substr_filter(filter.str());
-    return td::Status::OK();
-  });
-  options.add_option('\0', "stress", "Run tests infinitely", [&] {
-    runner.set_stress_flag(true);
-    return td::Status::OK();
-  });
-  auto result = options.run(argc, argv);
-  if (result.is_error() || !result.ok().empty()) {
+  options.add_option('f', "filter", "Run only specified tests",
+                     [&](td::Slice filter) { runner.add_substr_filter(filter.str()); });
+  options.add_option('s', "stress", "Run tests infinitely", [&] { runner.set_stress_flag(true); });
+  auto r_non_options = options.run(argc, argv, 0);
+  if (r_non_options.is_error()) {
+    LOG(PLAIN) << argv[0] << ": " << r_non_options.error().message();
     LOG(PLAIN) << options;
     return 1;
   }

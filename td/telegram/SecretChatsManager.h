@@ -6,13 +6,13 @@
 //
 #pragma once
 
-#include "td/telegram/secret_api.h"
-#include "td/telegram/telegram_api.h"
-
 #include "td/telegram/logevent/SecretChatEvent.h"
 #include "td/telegram/PtsManager.h"
 #include "td/telegram/SecretChatActor.h"
 #include "td/telegram/SecretChatId.h"
+
+#include "td/telegram/secret_api.h"
+#include "td/telegram/telegram_api.h"
 
 #include "td/actor/actor.h"
 #include "td/actor/PromiseFuture.h"
@@ -34,7 +34,6 @@ class SecretChatsManager : public Actor {
   // we can forget all pending_updates after start_get_difference they will be received after this point anyway
   // It is not necessary, but it will help.
   void before_get_difference(int32 qts);
-  void after_get_difference();
 
   // Proxy query to corrensponding SecretChatActor.
   // Look for more info in SecretChatActor.h

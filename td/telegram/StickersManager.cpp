@@ -1161,7 +1161,7 @@ void StickersManager::init() {
                                            animated_emoji_sticker_set.short_name_);
   }
 
-  dice_emojis_str_ = G()->shared_config().get_option_string("dice_emojis", "🎲\x01🎯\x01🏀");
+  dice_emojis_str_ = G()->shared_config().get_option_string("dice_emojis", "🎲\x01🎯\x01🏀\x01⚽\x01⚽️");
   dice_emojis_ = full_split(dice_emojis_str_, '\x01');
   for (auto &dice_emoji : dice_emojis_) {
     auto &animated_dice_sticker_set = add_special_sticker_set(SpecialStickerSetType::animated_dice(dice_emoji));
@@ -2126,8 +2126,8 @@ tl_object_ptr<telegram_api::InputMedia> StickersManager::get_input_media(
       }
     }
     return make_tl_object<telegram_api::inputMediaUploadedDocument>(
-        flags, false /*ignored*/, std::move(input_file), std::move(input_thumbnail), mime_type, std::move(attributes),
-        vector<tl_object_ptr<telegram_api::InputDocument>>(), 0);
+        flags, false /*ignored*/, false /*ignored*/, std::move(input_file), std::move(input_thumbnail), mime_type,
+        std::move(attributes), vector<tl_object_ptr<telegram_api::InputDocument>>(), 0);
   } else {
     CHECK(!file_view.has_remote_location());
   }
@@ -3468,7 +3468,7 @@ void StickersManager::on_update_dice_emojis() {
     return;
   }
 
-  auto dice_emojis_str = G()->shared_config().get_option_string("dice_emojis", "🎲\x01🎯\x01🏀");
+  auto dice_emojis_str = G()->shared_config().get_option_string("dice_emojis", "🎲\x01🎯\x01🏀\x01⚽\x01⚽️");
   if (dice_emojis_str == dice_emojis_str_) {
     return;
   }
@@ -3502,7 +3502,8 @@ void StickersManager::on_update_dice_success_values() {
     return;
   }
 
-  auto dice_success_values_str = G()->shared_config().get_option_string("dice_success_values", "0,0,0");
+  auto dice_success_values_str =
+      G()->shared_config().get_option_string("dice_success_values", "0,6:62,5:110,5:110,5:110");
   if (dice_success_values_str == dice_success_values_str_) {
     return;
   }

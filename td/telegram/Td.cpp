@@ -83,6 +83,7 @@
 #include "td/telegram/StickerSetId.h"
 #include "td/telegram/StickersManager.h"
 #include "td/telegram/StorageManager.h"
+#include "td/telegram/SuggestedAction.h"
 #include "td/telegram/TdDb.h"
 #include "td/telegram/TopDialogCategory.h"
 #include "td/telegram/TopDialogManager.h"
@@ -118,11 +119,13 @@
 #include "td/utils/port/IPAddress.h"
 #include "td/utils/port/path.h"
 #include "td/utils/port/SocketFd.h"
+#include "td/utils/port/uname.h"
 #include "td/utils/Random.h"
 #include "td/utils/Slice.h"
 #include "td/utils/Status.h"
 #include "td/utils/Timer.h"
 #include "td/utils/tl_parsers.h"
+#include "td/utils/TsList.h"
 #include "td/utils/utf8.h"
 
 #include <cmath>
@@ -265,9 +268,14 @@ class GetRecentMeUrlsQuery : public Td::ResultHandler {
         case telegram_api::recentMeUrlChatInvite::ID: {
           auto url = move_tl_object_as<telegram_api::recentMeUrlChatInvite>(url_ptr);
           result->url_ = std::move(url->url_);
-          td->contacts_manager_->on_get_dialog_invite_link_info(result->url_, std::move(url->chat_invite_));
-          result->type_ = make_tl_object<td_api::tMeUrlTypeChatInvite>(
-              td->contacts_manager_->get_chat_invite_link_info_object(result->url_));
+          td->contacts_manager_->on_get_dialog_invite_link_info(result->url_, std::move(url->chat_invite_),
+                                                                Promise<Unit>());
+          auto info_object = td->contacts_manager_->get_chat_invite_link_info_object(result->url_);
+          if (info_object == nullptr) {
+            result = nullptr;
+            break;
+          }
+          result->type_ = make_tl_object<td_api::tMeUrlTypeChatInvite>(std::move(info_object));
           break;
         }
         case telegram_api::recentMeUrlStickerSet::ID: {
@@ -1784,7 +1792,7 @@ class CreateNewSecretChatRequest : public RequestActor<SecretChatId> {
     // But since the update may still be on its way, we will update essential fields here.
     td->contacts_manager_->on_update_secret_chat(
         secret_chat_id_, 0 /* no access_hash */, user_id_, SecretChatState::Unknown, true /* it is outbound chat */,
-        -1 /* unknown ttl */, 0 /* unknown creation date */, "" /* no key_hash */, 0);
+        -1 /* unknown ttl */, 0 /* unknown creation date */, "" /* no key_hash */, 0, FolderId());
     DialogId dialog_id(secret_chat_id_);
     td->messages_manager_->force_create_dialog(dialog_id, "create new secret chat", true);
     send_result(td->messages_manager_->get_chat_object(dialog_id));
@@ -2240,10 +2248,12 @@ class GetUserProfilePhotosRequest : public RequestActor<> {
   void do_send_result() override {
     // TODO create function get_user_profile_photos_object
     auto result = transform(photos.second, [file_manager = td->file_manager_.get()](const Photo *photo) {
-      return get_user_profile_photo_object(file_manager, photo);
+      CHECK(photo != nullptr);
+      CHECK(!photo->is_empty());
+      return get_chat_photo_object(file_manager, *photo);
     });
 
-    send_result(make_tl_object<td_api::userProfilePhotos>(photos.first, std::move(result)));
+    send_result(make_tl_object<td_api::chatPhotos>(photos.first, std::move(result)));
   }
 
  public:
@@ -3169,7 +3179,6 @@ void Td::on_get_promo_data(Result<telegram_api::object_ptr<telegram_api::help_Pr
 }
 
 void Td::schedule_get_promo_data(int32 expires_in) {
-  LOG(INFO) << "Schedule getPromoData in " << expires_in;
   if (expires_in < 0) {
     LOG(ERROR) << "Receive wrong expires_in: " << expires_in;
     expires_in = 0;
@@ -3181,6 +3190,7 @@ void Td::schedule_get_promo_data(int32 expires_in) {
     expires_in = 86400;
   }
   if (!close_flag_ && !auth_manager_->is_bot()) {
+    LOG(INFO) << "Schedule getPromoData in " << expires_in;
     alarm_timeout_.set_timeout_in(PROMO_DATA_ALARM_ID, expires_in);
   }
 }
@@ -3726,6 +3736,8 @@ void Td::start_up() {
     LOG_IF(FATAL, symbol != c) << "TDLib requires little-endian platform";
   }
 
+  TsList<NetQueryDebug>::lock().unlock();  // initialize mutex before any NetQuery
+
   VLOG(td_init) << "Create Global";
   set_context(std::make_shared<Global>());
   inc_request_actor_refcnt();  // guard
@@ -3783,41 +3795,41 @@ void Td::dec_actor_refcnt() {
       LOG(WARNING) << "ON_ACTORS_CLOSED";
       Timer timer;
       animations_manager_.reset();
-      LOG(DEBUG) << "AnimationsManager was cleared " << timer;
+      LOG(DEBUG) << "AnimationsManager was cleared" << timer;
       audios_manager_.reset();
-      LOG(DEBUG) << "AudiosManager was cleared " << timer;
+      LOG(DEBUG) << "AudiosManager was cleared" << timer;
       auth_manager_.reset();
-      LOG(DEBUG) << "AuthManager was cleared " << timer;
+      LOG(DEBUG) << "AuthManager was cleared" << timer;
       background_manager_.reset();
-      LOG(DEBUG) << "BackgroundManager was cleared " << timer;
+      LOG(DEBUG) << "BackgroundManager was cleared" << timer;
       contacts_manager_.reset();
-      LOG(DEBUG) << "ContactsManager was cleared " << timer;
+      LOG(DEBUG) << "ContactsManager was cleared" << timer;
       documents_manager_.reset();
-      LOG(DEBUG) << "DocumentsManager was cleared " << timer;
+      LOG(DEBUG) << "DocumentsManager was cleared" << timer;
       file_manager_.reset();
-      LOG(DEBUG) << "FileManager was cleared " << timer;
+      LOG(DEBUG) << "FileManager was cleared" << timer;
       file_reference_manager_.reset();
-      LOG(DEBUG) << "FileReferenceManager was cleared " << timer;
+      LOG(DEBUG) << "FileReferenceManager was cleared" << timer;
       inline_queries_manager_.reset();
-      LOG(DEBUG) << "InlineQueriesManager was cleared " << timer;
+      LOG(DEBUG) << "InlineQueriesManager was cleared" << timer;
       messages_manager_.reset();
-      LOG(DEBUG) << "MessagesManager was cleared " << timer;
+      LOG(DEBUG) << "MessagesManager was cleared" << timer;
       notification_manager_.reset();
-      LOG(DEBUG) << "NotificationManager was cleared " << timer;
+      LOG(DEBUG) << "NotificationManager was cleared" << timer;
       poll_manager_.reset();
-      LOG(DEBUG) << "PollManager was cleared " << timer;
+      LOG(DEBUG) << "PollManager was cleared" << timer;
       stickers_manager_.reset();
-      LOG(DEBUG) << "StickersManager was cleared " << timer;
+      LOG(DEBUG) << "StickersManager was cleared" << timer;
       updates_manager_.reset();
-      LOG(DEBUG) << "UpdatesManager was cleared " << timer;
+      LOG(DEBUG) << "UpdatesManager was cleared" << timer;
       video_notes_manager_.reset();
-      LOG(DEBUG) << "VideoNotesManager was cleared " << timer;
+      LOG(DEBUG) << "VideoNotesManager was cleared" << timer;
       videos_manager_.reset();
-      LOG(DEBUG) << "VideosManager was cleared " << timer;
+      LOG(DEBUG) << "VideosManager was cleared" << timer;
       voice_notes_manager_.reset();
-      LOG(DEBUG) << "VoiceNotesManager was cleared " << timer;
+      LOG(DEBUG) << "VoiceNotesManager was cleared" << timer;
       web_pages_manager_.reset();
-      LOG(DEBUG) << "WebPagesManager was cleared " << timer;
+      LOG(DEBUG) << "WebPagesManager was cleared" << timer;
       Promise<> promise = PromiseCreator::lambda([actor_id = create_reference()](Unit) mutable { actor_id.reset(); });
 
       G()->set_shared_config(nullptr);
@@ -3909,15 +3921,15 @@ void Td::clear() {
       notification_manager_->flush_all_notifications();
     }
   }
-  LOG(DEBUG) << "Options was cleared " << timer;
+  LOG(DEBUG) << "Options was cleared" << timer;
 
   G()->net_query_creator().stop_check();
   clear_handlers();
-  LOG(DEBUG) << "Handlers was cleared " << timer;
+  LOG(DEBUG) << "Handlers was cleared" << timer;
   G()->net_query_dispatcher().stop();
-  LOG(DEBUG) << "NetQueryDispatcher was stopped " << timer;
+  LOG(DEBUG) << "NetQueryDispatcher was stopped" << timer;
   state_manager_.reset();
-  LOG(DEBUG) << "StateManager was cleared " << timer;
+  LOG(DEBUG) << "StateManager was cleared" << timer;
   clear_requests();
   if (is_online_) {
     is_online_ = false;
@@ -3926,70 +3938,72 @@ void Td::clear() {
   alarm_timeout_.cancel_timeout(PING_SERVER_ALARM_ID);
   alarm_timeout_.cancel_timeout(TERMS_OF_SERVICE_ALARM_ID);
   alarm_timeout_.cancel_timeout(PROMO_DATA_ALARM_ID);
-  LOG(DEBUG) << "Requests was answered " << timer;
+  LOG(DEBUG) << "Requests was answered" << timer;
 
   // close all pure actors
   call_manager_.reset();
-  LOG(DEBUG) << "CallManager was cleared " << timer;
+  LOG(DEBUG) << "CallManager was cleared" << timer;
   change_phone_number_manager_.reset();
-  LOG(DEBUG) << "ChangePhoneNumberManager was cleared " << timer;
+  LOG(DEBUG) << "ChangePhoneNumberManager was cleared" << timer;
   config_manager_.reset();
-  LOG(DEBUG) << "ConfigManager was cleared " << timer;
+  LOG(DEBUG) << "ConfigManager was cleared" << timer;
   confirm_phone_number_manager_.reset();
-  LOG(DEBUG) << "ConfirmPhoneNumberManager was cleared " << timer;
+  LOG(DEBUG) << "ConfirmPhoneNumberManager was cleared" << timer;
   device_token_manager_.reset();
-  LOG(DEBUG) << "DeviceTokenManager was cleared " << timer;
+  LOG(DEBUG) << "DeviceTokenManager was cleared" << timer;
   hashtag_hints_.reset();
-  LOG(DEBUG) << "HashtagHints was cleared " << timer;
+  LOG(DEBUG) << "HashtagHints was cleared" << timer;
   language_pack_manager_.reset();
-  LOG(DEBUG) << "LanguagePackManager was cleared " << timer;
+  LOG(DEBUG) << "LanguagePackManager was cleared" << timer;
   net_stats_manager_.reset();
-  LOG(DEBUG) << "NetStatsManager was cleared " << timer;
+  LOG(DEBUG) << "NetStatsManager was cleared" << timer;
   password_manager_.reset();
-  LOG(DEBUG) << "PasswordManager was cleared " << timer;
+  LOG(DEBUG) << "PasswordManager was cleared" << timer;
   privacy_manager_.reset();
-  LOG(DEBUG) << "PrivacyManager was cleared " << timer;
+  LOG(DEBUG) << "PrivacyManager was cleared" << timer;
   secure_manager_.reset();
-  LOG(DEBUG) << "SecureManager was cleared " << timer;
+  LOG(DEBUG) << "SecureManager was cleared" << timer;
   secret_chats_manager_.reset();
-  LOG(DEBUG) << "SecretChatsManager was cleared " << timer;
+  LOG(DEBUG) << "SecretChatsManager was cleared" << timer;
   storage_manager_.reset();
-  LOG(DEBUG) << "StorageManager was cleared " << timer;
+  LOG(DEBUG) << "StorageManager was cleared" << timer;
   top_dialog_manager_.reset();
-  LOG(DEBUG) << "TopDialogManager was cleared " << timer;
+  LOG(DEBUG) << "TopDialogManager was cleared" << timer;
   verify_phone_number_manager_.reset();
-  LOG(DEBUG) << "VerifyPhoneNumberManager was cleared " << timer;
+  LOG(DEBUG) << "VerifyPhoneNumberManager was cleared" << timer;
 
   G()->set_connection_creator(ActorOwn<ConnectionCreator>());
-  LOG(DEBUG) << "ConnectionCreator was cleared " << timer;
+  LOG(DEBUG) << "ConnectionCreator was cleared" << timer;
+  G()->set_temp_auth_key_watchdog(ActorOwn<TempAuthKeyWatchdog>());
+  LOG(DEBUG) << "TempAuthKeyWatchdog was cleared" << timer;
 
   // clear actors which are unique pointers
   animations_manager_actor_.reset();
-  LOG(DEBUG) << "AnimationsManager actor was cleared " << timer;
+  LOG(DEBUG) << "AnimationsManager actor was cleared" << timer;
   auth_manager_actor_.reset();
-  LOG(DEBUG) << "AuthManager actor was cleared " << timer;
+  LOG(DEBUG) << "AuthManager actor was cleared" << timer;
   background_manager_actor_.reset();
-  LOG(DEBUG) << "BackgroundManager actor was cleared " << timer;
+  LOG(DEBUG) << "BackgroundManager actor was cleared" << timer;
   contacts_manager_actor_.reset();
-  LOG(DEBUG) << "ContactsManager actor was cleared " << timer;
+  LOG(DEBUG) << "ContactsManager actor was cleared" << timer;
   file_manager_actor_.reset();
-  LOG(DEBUG) << "FileManager actor was cleared " << timer;
+  LOG(DEBUG) << "FileManager actor was cleared" << timer;
   file_reference_manager_actor_.reset();
-  LOG(DEBUG) << "FileReferenceManager actor was cleared " << timer;
+  LOG(DEBUG) << "FileReferenceManager actor was cleared" << timer;
   inline_queries_manager_actor_.reset();
-  LOG(DEBUG) << "InlineQueriesManager actor was cleared " << timer;
+  LOG(DEBUG) << "InlineQueriesManager actor was cleared" << timer;
   messages_manager_actor_.reset();  // TODO: Stop silent
-  LOG(DEBUG) << "MessagesManager actor was cleared " << timer;
+  LOG(DEBUG) << "MessagesManager actor was cleared" << timer;
   notification_manager_actor_.reset();
-  LOG(DEBUG) << "NotificationManager actor was cleared " << timer;
+  LOG(DEBUG) << "NotificationManager actor was cleared" << timer;
   poll_manager_actor_.reset();
-  LOG(DEBUG) << "PollManager actor was cleared " << timer;
+  LOG(DEBUG) << "PollManager actor was cleared" << timer;
   stickers_manager_actor_.reset();
-  LOG(DEBUG) << "StickersManager actor was cleared " << timer;
+  LOG(DEBUG) << "StickersManager actor was cleared" << timer;
   updates_manager_actor_.reset();
-  LOG(DEBUG) << "UpdatesManager actor was cleared " << timer;
+  LOG(DEBUG) << "UpdatesManager actor was cleared" << timer;
   web_pages_manager_actor_.reset();
-  LOG(DEBUG) << "WebPagesManager actor was cleared " << timer;
+  LOG(DEBUG) << "WebPagesManager actor was cleared" << timer;
 }
 
 void Td::close() {
@@ -4233,7 +4247,7 @@ void Td::init_options_and_network() {
    private:
     ActorShared<Td> td_;
   };
-  state_manager_ = create_actor<StateManager>("State manager");
+  state_manager_ = create_actor<StateManager>("State manager", create_reference());
   send_closure(state_manager_, &StateManager::add_callback, make_unique<StateManagerCallback>(create_reference()));
   G()->set_state_manager(state_manager_.get());
   connection_state_ = StateManager::State::Empty;
@@ -4265,7 +4279,7 @@ void Td::init_options_and_network() {
   init_connection_creator();
 
   VLOG(td_init) << "Create TempAuthKeyWatchdog";
-  auto temp_auth_key_watchdog = create_actor<TempAuthKeyWatchdog>("TempAuthKeyWatchdog");
+  auto temp_auth_key_watchdog = create_actor<TempAuthKeyWatchdog>("TempAuthKeyWatchdog", create_reference());
   G()->set_temp_auth_key_watchdog(std::move(temp_auth_key_watchdog));
 
   VLOG(td_init) << "Create ConfigManager";
@@ -4680,7 +4694,8 @@ Status Td::set_parameters(td_api::object_ptr<td_api::tdlibParameters> parameters
     return Status::Error(400, "Device model must be non-empty");
   }
   if (options_.system_version.empty()) {
-    return Status::Error(400, "System version must be non-empty");
+    options_.system_version = get_operating_system_version().str();
+    VLOG(td_init) << "Set system version to " << options_.system_version;
   }
   if (options_.application_version.empty()) {
     return Status::Error(400, "Application version must be non-empty");
@@ -4764,7 +4779,7 @@ void Td::on_request(uint64 id, td_api::recoverAuthenticationPassword &request) {
 
 void Td::on_request(uint64 id, const td_api::logOut &request) {
   // will call Td::destroy later
-  send_closure(auth_manager_actor_, &AuthManager::logout, id);
+  send_closure(auth_manager_actor_, &AuthManager::log_out, id);
 }
 
 void Td::on_request(uint64 id, const td_api::close &request) {
@@ -4825,6 +4840,8 @@ void Td::on_request(uint64 id, const td_api::getCurrentState &request) {
     messages_manager_->get_current_state(updates);
 
     notification_manager_->get_current_state(updates);
+
+    config_manager_->get_actor_unsafe()->get_current_state(updates);
 
     // TODO updateFileGenerationStart generation_id:int64 original_path:string destination_path:string conversion:string = Update;
     // TODO updateCall call:call = Update;
@@ -5107,7 +5124,7 @@ void Td::on_request(uint64 id, const td_api::getFile &request) {
 
 void Td::on_request(uint64 id, td_api::getRemoteFile &request) {
   CLEAN_INPUT_STRING(request.remote_file_id_);
-  auto file_type = request.file_type_ == nullptr ? FileType::Temp : from_td_api(*request.file_type_);
+  auto file_type = request.file_type_ == nullptr ? FileType::Temp : get_file_type(*request.file_type_);
   auto r_file_id = file_manager_->from_persistent_id(request.remote_file_id_, file_type);
   if (r_file_id.is_error()) {
     send_closure(actor_id(this), &Td::send_error, id, r_file_id.move_as_error());
@@ -5122,7 +5139,7 @@ void Td::on_request(uint64 id, td_api::getStorageStatistics &request) {
     if (result.is_error()) {
       promise.set_error(result.move_as_error());
     } else {
-      promise.set_value(result.ok().as_td_api());
+      promise.set_value(result.ok().get_storage_statistics_object());
     }
   });
   send_closure(storage_manager_, &StorageManager::get_storage_stats, false /*need_all_files*/, request.chat_limit_,
@@ -5135,7 +5152,7 @@ void Td::on_request(uint64 id, td_api::getStorageStatisticsFast &request) {
     if (result.is_error()) {
       promise.set_error(result.move_as_error());
     } else {
-      promise.set_value(result.ok().as_td_api());
+      promise.set_value(result.ok().get_storage_statistics_fast_object());
     }
   });
   send_closure(storage_manager_, &StorageManager::get_storage_stats_fast, std::move(query_promise));
@@ -5146,7 +5163,7 @@ void Td::on_request(uint64 id, td_api::getDatabaseStatistics &request) {
     if (result.is_error()) {
       promise.set_error(result.move_as_error());
     } else {
-      promise.set_value(result.ok().as_td_api());
+      promise.set_value(result.ok().get_database_statistics_object());
     }
   });
   send_closure(storage_manager_, &StorageManager::get_database_stats, std::move(query_promise));
@@ -5171,7 +5188,7 @@ void Td::on_request(uint64 id, td_api::optimizeStorage &request) {
       return send_error_raw(id, 400, "File type must be non-empty");
     }
 
-    file_types.push_back(from_td_api(*file_type));
+    file_types.push_back(get_file_type(*file_type));
   }
   std::vector<DialogId> owner_dialog_ids;
   for (auto chat_id : request.chat_ids_) {
@@ -5198,7 +5215,7 @@ void Td::on_request(uint64 id, td_api::optimizeStorage &request) {
     if (result.is_error()) {
       promise.set_error(result.move_as_error());
     } else {
-      promise.set_value(result.ok().as_td_api());
+      promise.set_value(result.ok().get_storage_statistics_object());
     }
   });
   send_closure(storage_manager_, &StorageManager::run_gc, std::move(parameters),
@@ -5207,11 +5224,14 @@ void Td::on_request(uint64 id, td_api::optimizeStorage &request) {
 
 void Td::on_request(uint64 id, td_api::getNetworkStatistics &request) {
   CREATE_REQUEST_PROMISE();
+  if (!request.only_current_ && G()->shared_config().get_option_boolean("disable_persistent_network_statistics")) {
+    return send_error_raw(id, 400, "Persistent network statistics is disabled");
+  }
   auto query_promise = PromiseCreator::lambda([promise = std::move(promise)](Result<NetworkStats> result) mutable {
     if (result.is_error()) {
       promise.set_error(result.move_as_error());
     } else {
-      promise.set_value(result.ok().as_td_api());
+      promise.set_value(result.ok().get_network_statistics_object());
     }
   });
   send_closure(net_stats_manager_, &NetStatsManager::get_network_stats, request.only_current_,
@@ -5235,9 +5255,9 @@ void Td::on_request(uint64 id, td_api::addNetworkStatistics &request) {
       auto file_entry = move_tl_object_as<td_api::networkStatisticsEntryFile>(request.entry_);
       entry.is_call = false;
       if (file_entry->file_type_ != nullptr) {
-        entry.file_type = from_td_api(*file_entry->file_type_);
+        entry.file_type = get_file_type(*file_entry->file_type_);
       }
-      entry.net_type = from_td_api(file_entry->network_type_);
+      entry.net_type = get_net_type(file_entry->network_type_);
       entry.rx = file_entry->received_bytes_;
       entry.tx = file_entry->sent_bytes_;
       break;
@@ -5245,7 +5265,7 @@ void Td::on_request(uint64 id, td_api::addNetworkStatistics &request) {
     case td_api::networkStatisticsEntryCall::ID: {
       auto call_entry = move_tl_object_as<td_api::networkStatisticsEntryCall>(request.entry_);
       entry.is_call = true;
-      entry.net_type = from_td_api(call_entry->network_type_);
+      entry.net_type = get_net_type(call_entry->network_type_);
       entry.rx = call_entry->received_bytes_;
       entry.tx = call_entry->sent_bytes_;
       entry.duration = call_entry->duration_;
@@ -5277,7 +5297,7 @@ void Td::on_request(uint64 id, td_api::addNetworkStatistics &request) {
 
 void Td::on_request(uint64 id, const td_api::setNetworkType &request) {
   CREATE_OK_REQUEST_PROMISE();
-  send_closure(state_manager_, &StateManager::on_network, from_td_api(request.type_));
+  send_closure(state_manager_, &StateManager::on_network, get_net_type(request.type_));
   promise.set_value(Unit());
 }
 
@@ -5293,7 +5313,7 @@ void Td::on_request(uint64 id, const td_api::setAutoDownloadSettings &request) {
   if (request.settings_ == nullptr) {
     return send_error_raw(id, 400, "New settings must be non-empty");
   }
-  set_auto_download_settings(this, from_td_api(request.type_), get_auto_download_settings(request.settings_),
+  set_auto_download_settings(this, get_net_type(request.type_), get_auto_download_settings(request.settings_),
                              std::move(promise));
 }
 
@@ -5313,9 +5333,8 @@ void Td::on_request(uint64 id, td_api::getTopChats &request) {
       promise.set_value(MessagesManager::get_chats_object(result.ok()));
     }
   });
-  send_closure(top_dialog_manager_, &TopDialogManager::get_top_dialogs,
-               top_dialog_category_from_td_api(*request.category_), narrow_cast<size_t>(request.limit_),
-               std::move(query_promise));
+  send_closure(top_dialog_manager_, &TopDialogManager::get_top_dialogs, get_top_dialog_category(*request.category_),
+               narrow_cast<size_t>(request.limit_), std::move(query_promise));
 }
 
 void Td::on_request(uint64 id, const td_api::removeTopChat &request) {
@@ -5328,9 +5347,8 @@ void Td::on_request(uint64 id, const td_api::removeTopChat &request) {
   if (!dialog_id.is_valid()) {
     return send_error_raw(id, 400, "Invalid chat identifier");
   }
-  send_closure(top_dialog_manager_, &TopDialogManager::remove_dialog,
-               top_dialog_category_from_td_api(*request.category_), dialog_id,
-               messages_manager_->get_input_peer(dialog_id, AccessRights::Read));
+  send_closure(top_dialog_manager_, &TopDialogManager::remove_dialog, get_top_dialog_category(*request.category_),
+               dialog_id, messages_manager_->get_input_peer(dialog_id, AccessRights::Read));
   send_closure(actor_id(this), &Td::send_result, id, td_api::make_object<td_api::ok>());
 }
 
@@ -5833,7 +5851,7 @@ void Td::on_request(uint64 id, td_api::createCall &request) {
     if (result.is_error()) {
       promise.set_error(result.move_as_error());
     } else {
-      promise.set_value(result.ok().as_td_api());
+      promise.set_value(result.ok().get_call_id_object());
     }
   });
 
@@ -5852,7 +5870,7 @@ void Td::on_request(uint64 id, td_api::createCall &request) {
   }
 
   send_closure(G()->call_manager(), &CallManager::create_call, user_id, std::move(input_user),
-               CallProtocol::from_td_api(*request.protocol_), false, std::move(query_promise));
+               CallProtocol(*request.protocol_), false, std::move(query_promise));
 }
 
 void Td::on_request(uint64 id, td_api::discardCall &request) {
@@ -5869,7 +5887,7 @@ void Td::on_request(uint64 id, td_api::acceptCall &request) {
     return promise.set_error(Status::Error(5, "Call protocol must be non-empty"));
   }
   send_closure(G()->call_manager(), &CallManager::accept_call, CallId(request.call_id_),
-               CallProtocol::from_td_api(*request.protocol_), std::move(promise));
+               CallProtocol(*request.protocol_), std::move(promise));
 }
 
 void Td::on_request(uint64 id, td_api::sendCallRating &request) {
@@ -6254,7 +6272,7 @@ void Td::on_request(uint64 id, td_api::uploadFile &request) {
     return send_error_raw(id, 5, "Upload priority must be in [1;32] range");
   }
 
-  auto file_type = request.file_type_ == nullptr ? FileType::Temp : from_td_api(*request.file_type_);
+  auto file_type = request.file_type_ == nullptr ? FileType::Temp : get_file_type(*request.file_type_);
   bool is_secret = file_type == FileType::Encrypted || file_type == FileType::EncryptedThumbnail;
   bool is_secure = file_type == FileType::Secure;
   auto r_file_id = file_manager_->get_input_file_id(file_type, request.file_, DialogId(), false, is_secret,
@@ -6848,6 +6866,17 @@ void Td::on_request(uint64 id, td_api::getOption &request) {
   bool is_bot = auth_manager_ != nullptr && auth_manager_->is_authorized() && auth_manager_->is_bot();
   switch (request.name_[0]) {
     // all these options should be added to getCurrentState
+    case 'a':
+      if (!is_bot && request.name_ == "archive_and_mute_new_chats_from_unknown_users") {
+        auto promise = PromiseCreator::lambda([actor_id = actor_id(this), id](Result<Unit> &&result) {
+          // the option is already updated on success, ignore errors
+          send_closure(actor_id, &Td::send_result, id,
+                       G()->shared_config().get_option_value("archive_and_mute_new_chats_from_unknown_users"));
+        });
+        send_closure_later(config_manager_, &ConfigManager::get_global_privacy_settings, std::move(promise));
+        return;
+      }
+      break;
     case 'c':
       if (!is_bot && request.name_ == "can_ignore_sensitive_content_restrictions") {
         auto promise = PromiseCreator::lambda([actor_id = actor_id(this), id](Result<Unit> &&result) {
@@ -6987,6 +7016,19 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
       if (set_boolean_option("always_parse_markdown")) {
         return;
       }
+      if (!is_bot && request.name_ == "archive_and_mute_new_chats_from_unknown_users") {
+        if (value_constructor_id != td_api::optionValueBoolean::ID &&
+            value_constructor_id != td_api::optionValueEmpty::ID) {
+          return send_error_raw(id, 3,
+                                "Option \"archive_and_mute_new_chats_from_unknown_users\" must have boolean value");
+        }
+
+        auto archive_and_mute = value_constructor_id == td_api::optionValueBoolean::ID &&
+                                static_cast<td_api::optionValueBoolean *>(request.value_.get())->value_;
+        CREATE_OK_REQUEST_PROMISE();
+        send_closure_later(config_manager_, &ConfigManager::set_archive_and_mute, archive_and_mute, std::move(promise));
+        return;
+      }
       break;
     case 'c':
       if (!is_bot && set_string_option("connection_parameters", [](Slice value) {
@@ -7022,7 +7064,12 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
         return;
       }
       // End custom-patches
-
+      if (set_boolean_option("disable_persistent_network_statistics")) {
+        return;
+      }
+      if (set_boolean_option("disable_time_adjustment_protection")) {
+        return;
+      }
       if (request.name_ == "drop_notification_ids") {
         G()->td_db()->get_binlog_pmc()->erase("notification_id_current");
         G()->td_db()->get_binlog_pmc()->erase("notification_group_id_current");
@@ -7077,7 +7124,7 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
                            std::move(promise));
         return;
       }
-      if (set_boolean_option("is_location_visible")) {
+      if (!is_bot && set_boolean_option("is_location_visible")) {
         contacts_manager_->set_location_visibility();
         return;
       }
@@ -7224,6 +7271,13 @@ void Td::on_request(uint64 id, td_api::stopPoll &request) {
   CREATE_OK_REQUEST_PROMISE();
   messages_manager_->stop_poll({DialogId(request.chat_id_), MessageId(request.message_id_)},
                                std::move(request.reply_markup_), std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::hideSuggestedAction &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  send_closure_later(config_manager_, &ConfigManager::dismiss_suggested_action, get_suggested_action(request.action_),
+                     std::move(promise));
 }
 
 void Td::on_request(uint64 id, const td_api::getLoginUrlInfo &request) {
@@ -8024,7 +8078,7 @@ void Td::on_request(uint64 id, const td_api::testNetwork &request) {
 }
 
 void Td::on_request(uint64 id, td_api::testProxy &request) {
-  auto r_proxy = Proxy::from_td_api(std::move(request.server_), request.port_, request.type_.get());
+  auto r_proxy = Proxy::create_proxy(std::move(request.server_), request.port_, request.type_.get());
   if (r_proxy.is_error()) {
     return send_closure(actor_id(this), &Td::send_error, id, r_proxy.move_as_error());
   }

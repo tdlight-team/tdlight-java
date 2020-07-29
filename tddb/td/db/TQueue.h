@@ -6,6 +6,8 @@
 //
 #pragma once
 
+#include "td/actor/PromiseFuture.h"
+
 #include "td/utils/common.h"
 #include "td/utils/Slice.h"
 #include "td/utils/Span.h"
@@ -81,6 +83,7 @@ class TQueue {
 
     virtual uint64 push(QueueId queue_id, const RawEvent &event) = 0;
     virtual void pop(uint64 logevent_id) = 0;
+    virtual void close(Promise<> promise) = 0;
   };
 
   static unique_ptr<TQueue> create();
@@ -108,7 +111,10 @@ class TQueue {
   virtual Result<size_t> get(QueueId queue_id, EventId from_id, bool forget_previous, double now,
                              MutableSpan<Event> &result_events) = 0;
 
-  virtual void run_gc(double now) = 0;
+  virtual size_t get_size(QueueId queue_id) = 0;
+
+  virtual std::pair<uint64, uint64> run_gc(double now) = 0;
+  virtual void close(Promise<> promise) = 0;
 };
 
 StringBuilder &operator<<(StringBuilder &string_builder, const TQueue::EventId id);
@@ -122,11 +128,12 @@ class TQueueBinlog : public TQueue::StorageCallback {
 
   uint64 push(QueueId queue_id, const RawEvent &event) override;
   void pop(uint64 logevent_id) override;
-  Status replay(const BinlogEvent &binlog_event, TQueue &q) const;
+  Status replay(const BinlogEvent &binlog_event, TQueue &q) const TD_WARN_UNUSED_RESULT;
 
   void set_binlog(std::shared_ptr<BinlogT> binlog) {
     binlog_ = std::move(binlog);
   }
+  virtual void close(Promise<> promise) override;
 
  private:
   std::shared_ptr<BinlogT> binlog_;
@@ -139,6 +146,7 @@ class TQueueMemoryStorage : public TQueue::StorageCallback {
   uint64 push(QueueId queue_id, const RawEvent &event) override;
   void pop(uint64 logevent_id) override;
   void replay(TQueue &q) const;
+  virtual void close(Promise<> promise) override;
 
  private:
   uint64 next_logevent_id_{1};

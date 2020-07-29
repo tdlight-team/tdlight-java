@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
 
-project(TDLib VERSION 1.6.6 LANGUAGES CXX C)
+project(TDLib VERSION 1.6.7 LANGUAGES CXX C)
 
 if (NOT DEFINED CMAKE_INSTALL_LIBDIR)
   set(CMAKE_INSTALL_LIBDIR "lib")
@@ -276,7 +276,7 @@ if (NOT CMAKE_CROSSCOMPILING)
 endif()
 
 if (NOT OPENSSL_FOUND)
-  message(WARNING "Not found OpenSSL: skip TDLib, tdactor, tdnet, tddb")
+  message(WARNING "Can't find OpenSSL: stop TDLib building")
   return()
 endif()
 
@@ -284,7 +284,12 @@ if (NOT ZLIB_FOUND)
   find_package(ZLIB)
 endif()
 if (NOT ZLIB_FOUND)
-  message(WARNING "Not found zlib: skip TDLib, tdactor, tdnet, tddb")
+  message(WARNING "Can't find zlib: stop TDLib building")
+  return()
+endif()
+
+if (NOT TDUTILS_MIME_TYPE)
+  message(WARNING "Option TDUTILS_MIME_TYPE must not be disabled: stop TDLib building")
   return()
 endif()
 
@@ -419,6 +424,7 @@ set(TDLIB_SOURCE
   td/telegram/files/FileManager.cpp
   td/telegram/files/FileStats.cpp
   td/telegram/files/FileStatsWorker.cpp
+  td/telegram/files/FileType.cpp
   td/telegram/files/FileUploader.cpp
   td/telegram/files/PartsManager.cpp
   td/telegram/files/ResourceManager.cpp
@@ -482,6 +488,7 @@ set(TDLIB_SOURCE
   td/telegram/StateManager.cpp
   td/telegram/StickersManager.cpp
   td/telegram/StorageManager.cpp
+  td/telegram/SuggestedAction.cpp
   td/telegram/Td.cpp
   td/telegram/TdDb.cpp
   td/telegram/TermsOfService.cpp
@@ -670,6 +677,7 @@ set(TDLIB_SOURCE
   td/telegram/StickerSetId.h
   td/telegram/StickersManager.h
   td/telegram/StorageManager.h
+  td/telegram/SuggestedAction.h
   td/telegram/Td.h
   td/telegram/TdCallback.h
   td/telegram/TdDb.h
@@ -732,7 +740,7 @@ set(MEMPROF_SOURCE
 
 file(MAKE_DIRECTORY auto)
 
-if (WIN32)
+if (CMAKE_HOST_WIN32)
   set(GIT_COMMIT_CMD powershell -ExecutionPolicy ByPass ./gen_git_commit_h.ps1)
 else()
   set(GIT_COMMIT_CMD ./gen_git_commit_h.sh)
@@ -784,6 +792,13 @@ add_library(tdcore STATIC ${TDLIB_SOURCE})
 target_include_directories(tdcore PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<BUILD_INTERFACE:${TL_TD_AUTO_INCLUDE_DIR}>)
 target_include_directories(tdcore SYSTEM PRIVATE ${OPENSSL_INCLUDE_DIR})
 target_link_libraries(tdcore PUBLIC tdapi tdactor tdutils tdnet tddb PRIVATE ${OPENSSL_CRYPTO_LIBRARY} ${CMAKE_DL_LIBS} ${ZLIB_LIBRARIES})
+if (WIN32)
+  if (MINGW)
+    target_link_libraries(tdcore PRIVATE ws2_32 mswsock)
+  else()
+    target_link_libraries(tdcore PRIVATE ws2_32 Mswsock)
+  endif()
+endif()
 
 if (NOT CMAKE_CROSSCOMPILING)
   add_dependencies(tdcore tl_generate_common)

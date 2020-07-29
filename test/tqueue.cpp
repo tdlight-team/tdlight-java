@@ -35,7 +35,7 @@ TEST(TQueue, hands) {
   ASSERT_EQ(head.next().ok(), tail);
   ASSERT_EQ(1u, tqueue->get(qid, head, true, 0, events_span).move_as_ok());
   ASSERT_EQ(1u, tqueue->get(qid, head, true, 0, events_span).move_as_ok());
-  ASSERT_EQ(0u, tqueue->get(qid, tail, false, 0, events_span).move_as_ok());
+  ASSERT_EQ(1u, tqueue->get(qid, tail, false, 0, events_span).move_as_ok());
   ASSERT_EQ(1u, tqueue->get(qid, head, true, 0, events_span).move_as_ok());
   ASSERT_EQ(0u, tqueue->get(qid, tail, true, 0, events_span).move_as_ok());
   ASSERT_EQ(0u, tqueue->get(qid, head, true, 0, events_span).move_as_ok());
@@ -88,7 +88,9 @@ class TestTQueue {
     binlog_ = td::TQueue::create();
     auto tqueue_binlog = td::make_unique<td::TQueueBinlog<td::Binlog>>();
     auto binlog = std::make_shared<td::Binlog>();
-    binlog->init(binlog_path().str(), [&](const td::BinlogEvent &event) { tqueue_binlog->replay(event, *binlog_); })
+    binlog
+        ->init(binlog_path().str(),
+               [&](const td::BinlogEvent &event) { tqueue_binlog->replay(event, *binlog_).ignore(); })
         .ensure();
     tqueue_binlog->set_binlog(std::move(binlog));
     binlog_->set_callback(std::move(tqueue_binlog));

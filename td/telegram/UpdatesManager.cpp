@@ -1100,7 +1100,6 @@ void UpdatesManager::on_get_difference(tl_object_ptr<telegram_api::updates_Diffe
 
 void UpdatesManager::after_get_difference() {
   CHECK(!running_get_difference_);
-  send_closure(td_->secret_chats_manager_, &SecretChatsManager::after_get_difference);
 
   retry_timeout_.cancel_timeout();
   retry_time_ = 1;
@@ -1442,10 +1441,9 @@ void UpdatesManager::set_seq_gap_timeout(double timeout) {
 }
 
 void UpdatesManager::on_pending_update(tl_object_ptr<telegram_api::Update> update, int32 seq, const char *source) {
-  vector<tl_object_ptr<telegram_api::Update>> v;
-  v.push_back(std::move(update));
-
-  on_pending_updates(std::move(v), seq, seq, 0, source);  // TODO can be optimized
+  vector<tl_object_ptr<telegram_api::Update>> updates;
+  updates.push_back(std::move(update));
+  on_pending_updates(std::move(updates), seq, seq, 0, source);
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateNewMessage> update, bool force_apply) {
@@ -2047,6 +2045,9 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateLoginToken> upd
 // unsupported updates
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateTheme> update, bool /*force_apply*/) {
+}
+
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChannelParticipant> update, bool /*force_apply*/) {
 }
 
 }  // namespace td

@@ -64,7 +64,7 @@ class UdpSocketReceiveHelper {
     message.error = Status::OK();
 
     if ((message_header.dwFlags & (MSG_TRUNC | MSG_CTRUNC)) != 0) {
-      message.error = Status::Error(501, "message too long");
+      message.error = Status::Error(501, "Message too long");
       message.data = BufferSlice();
       return;
     }
@@ -426,7 +426,7 @@ class UdpSocketReceiveHelper {
     }
     if (message_header.msg_flags & MSG_TRUNC) {
       if (message.error) {
-        *message.error = Status::Error(501, "message too long");
+        *message.error = Status::Error(501, "Message too long");
       }
       message.data.truncate(0);
       return;
@@ -477,7 +477,7 @@ class UdpSocketFdImpl {
     return info_.native_fd();
   }
   Status get_pending_error() {
-    if (!get_poll_info().get_flags().has_pending_error()) {
+    if (!get_poll_info().get_flags_local().has_pending_error()) {
       return Status::OK();
     }
     TRY_STATUS(detail::get_socket_pending_error(get_native_fd()));
@@ -487,7 +487,7 @@ class UdpSocketFdImpl {
   Status receive_message(UdpSocketFd::InboundMessage &message, bool &is_received) {
     is_received = false;
     int flags = 0;
-    if (get_poll_info().get_flags().has_pending_error()) {
+    if (get_poll_info().get_flags_local().has_pending_error()) {
 #ifdef MSG_ERRQUEUE
       flags = MSG_ERRQUEUE;
 #else
@@ -679,7 +679,7 @@ class UdpSocketFdImpl {
 #endif
   Status receive_messages_slow(MutableSpan<UdpSocketFd::InboundMessage> messages, size_t &cnt) {
     cnt = 0;
-    while (cnt < messages.size() && get_poll_info().get_flags().can_read()) {
+    while (cnt < messages.size() && get_poll_info().get_flags_local().can_read()) {
       auto &message = messages[cnt];
       CHECK(!message.data.empty());
       bool is_received;
@@ -694,7 +694,7 @@ class UdpSocketFdImpl {
   Status receive_messages_fast(MutableSpan<UdpSocketFd::InboundMessage> messages, size_t &cnt) {
     int flags = 0;
     cnt = 0;
-    if (get_poll_info().get_flags().has_pending_error()) {
+    if (get_poll_info().get_flags_local().has_pending_error()) {
 #ifdef MSG_ERRQUEUE
       flags = MSG_ERRQUEUE;
 #else

@@ -3262,7 +3262,6 @@ Status NotificationManager::process_push_notification_payload(string payload, bo
   }
 
   Photo attached_photo;
-  attached_photo.id = -2;
   Document attached_document;
   if (has_json_object_field(custom, "attachb64")) {
     TRY_RESULT(attachb64, get_json_object_string_field(custom, "attachb64", false));
@@ -3430,7 +3429,7 @@ class NotificationManager::AddMessagePushNotificationLogEvent {
     bool has_sender = sender_user_id_.is_valid();
     bool has_sender_name = !sender_name_.empty();
     bool has_arg = !arg_.empty();
-    bool has_photo = photo_.id != -2;
+    bool has_photo = !photo_.is_empty();
     bool has_document = !document_.empty();
     BEGIN_STORE_FLAGS();
     STORE_FLAG(contains_mention_);
@@ -3514,8 +3513,6 @@ class NotificationManager::AddMessagePushNotificationLogEvent {
     }
     if (has_photo) {
       td::parse(photo_, parser);
-    } else {
-      photo_.id = -2;
     }
     if (has_document) {
       td::parse(document_, parser);
@@ -3637,7 +3634,7 @@ class NotificationManager::EditMessagePushNotificationLogEvent {
   void store(StorerT &storer) const {
     bool has_message_id = message_id_.is_valid();
     bool has_arg = !arg_.empty();
-    bool has_photo = photo_.id != -2;
+    bool has_photo = !photo_.is_empty();
     bool has_document = !document_.empty();
     BEGIN_STORE_FLAGS();
     STORE_FLAG(has_message_id);
@@ -3685,8 +3682,6 @@ class NotificationManager::EditMessagePushNotificationLogEvent {
     }
     if (has_photo) {
       td::parse(photo_, parser);
-    } else {
-      photo_.id = -2;
     }
     if (has_document) {
       td::parse(document_, parser);

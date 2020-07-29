@@ -376,7 +376,7 @@ static Status check_mtime(std::string &conversion, CSlice original_path) {
     return Status::OK();
   }
   ConstParser parser(conversion);
-  if (!parser.skip_start_with("#mtime#")) {
+  if (!parser.try_skip("#mtime#")) {
     return Status::OK();
   }
   auto mtime_str = parser.read_till('#');
@@ -411,7 +411,7 @@ void FileGenerateManager::generate_file(uint64 query_id, FullGenerateFileLocatio
   }
 
   CHECK(query_id != 0);
-  auto it_flag = query_id_to_query_.insert(std::make_pair(query_id, Query{}));
+  auto it_flag = query_id_to_query_.emplace(query_id, Query{});
   LOG_CHECK(it_flag.second) << "Query id must be unique";
   auto parent = actor_shared(this, query_id);
 

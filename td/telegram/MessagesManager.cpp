@@ -625,10 +625,8 @@ class GetDialogListActor : public NetActorOnce {
   void send(FolderId folder_id, int32 offset_date, ServerMessageId offset_message_id, DialogId offset_dialog_id,
             int32 limit, uint64 sequence_id) {
     folder_id_ = folder_id;
-    auto input_peer = td->messages_manager_->get_input_peer(offset_dialog_id, AccessRights::Read);
-    if (input_peer == nullptr) {
-      input_peer = make_tl_object<telegram_api::inputPeerEmpty>();
-    }
+    auto input_peer = MessagesManager::get_input_peer_force(offset_dialog_id);
+    CHECK(input_peer != nullptr);
 
     int32 flags =
         telegram_api::messages_getDialogs::EXCLUDE_PINNED_MASK | telegram_api::messages_getDialogs::FOLDER_ID_MASK;
@@ -906,7 +904,7 @@ class EditDialogPhotoQuery : public Td::ResultHandler {
       if (file_id_.is_valid() && !was_uploaded_) {
         VLOG(file_references) << "Receive " << status << " for " << file_id_;
         td->file_manager_->delete_file_reference(file_id_, file_reference_);
-        td->messages_manager_->upload_dialog_photo(dialog_id_, file_id_, std::move(promise_));
+        td->messages_manager_->upload_dialog_photo(dialog_id_, file_id_, false, 0.0, false, std::move(promise_), {-1});
         return;
       } else {
         LOG(ERROR) << "Receive file reference error, but file_id = " << file_id_
@@ -1676,10 +1674,8 @@ class SearchMessagesGlobalQuery : public Td::ResultHandler {
     limit_ = limit;
     random_id_ = random_id;
 
-    auto input_peer = td->messages_manager_->get_input_peer(offset_dialog_id, AccessRights::Read);
-    if (input_peer == nullptr) {
-      input_peer = make_tl_object<telegram_api::inputPeerEmpty>();
-    }
+    auto input_peer = MessagesManager::get_input_peer_force(offset_dialog_id);
+    CHECK(input_peer != nullptr);
 
     int32 flags = 0;
     if (!ignore_folder_id) {
@@ -3627,7 +3623,8 @@ class UpdatePeerSettingsQuery : public Td::ResultHandler {
     td->messages_manager_->on_get_peer_settings(
         dialog_id_,
         make_tl_object<telegram_api::peerSettings>(0, false /*ignored*/, false /*ignored*/, false /*ignored*/,
-                                                   false /*ignored*/, false /*ignored*/, false /*ignored*/),
+                                                   false /*ignored*/, false /*ignored*/, false /*ignored*/,
+                                                   false /*ignored*/, 0),
         true);
 
     promise_.set_value(Unit());
@@ -3668,7 +3665,8 @@ class ReportEncryptedSpamQuery : public Td::ResultHandler {
     td->messages_manager_->on_get_peer_settings(
         dialog_id_,
         make_tl_object<telegram_api::peerSettings>(0, false /*ignored*/, false /*ignored*/, false /*ignored*/,
-                                                   false /*ignored*/, false /*ignored*/, false /*ignored*/),
+                                                   false /*ignored*/, false /*ignored*/, false /*ignored*/,
+                                                   false /*ignored*/, 0),
         true);
 
     promise_.set_value(Unit());
@@ -4492,6 +4490,7 @@ void MessagesManager::Dialog::store(StorerT &storer) const {
       max_notification_message_id.is_valid() && max_notification_message_id > last_new_message_id;
   bool has_folder_id = folder_id != FolderId();
   bool has_pending_read_channel_inbox = pending_read_channel_inbox_pts != 0;
+  bool has_distance = distance >= 0;
   BEGIN_STORE_FLAGS();
   STORE_FLAG(has_draft_message);
   STORE_FLAG(has_last_database_message);
@@ -4541,6 +4540,9 @@ void MessagesManager::Dialog::store(StorerT &storer) const {
     STORE_FLAG(has_scheduled_server_messages);
     STORE_FLAG(has_scheduled_database_messages);
     STORE_FLAG(need_repair_channel_server_unread_count);
+    STORE_FLAG(can_unarchive);
+    STORE_FLAG(has_distance);
+    STORE_FLAG(hide_distance);
     END_STORE_FLAGS();
   }
 
@@ -4622,6 +4624,9 @@ void MessagesManager::Dialog::store(StorerT &storer) const {
     store(pending_read_channel_inbox_max_message_id, storer);
     store(pending_read_channel_inbox_server_unread_count, storer);
   }
+  if (has_distance) {
+    store(distance, storer);
+  }
 }
 
 // do not forget to resolve dialog dependencies including dependencies of last_message
@@ -4650,6 +4655,7 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
   bool has_max_notification_message_id = false;
   bool has_folder_id = false;
   bool has_pending_read_channel_inbox = false;
+  bool has_distance = false;
   BEGIN_PARSE_FLAGS();
   PARSE_FLAG(has_draft_message);
   PARSE_FLAG(has_last_database_message);
@@ -4699,6 +4705,9 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
     PARSE_FLAG(has_scheduled_server_messages);
     PARSE_FLAG(has_scheduled_database_messages);
     PARSE_FLAG(need_repair_channel_server_unread_count);
+    PARSE_FLAG(can_unarchive);
+    PARSE_FLAG(has_distance);
+    PARSE_FLAG(hide_distance);
     END_PARSE_FLAGS();
   } else {
     is_folder_id_inited = false;
@@ -4707,6 +4716,11 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
     can_block_user = false;
     can_share_phone_number = false;
     can_report_location = false;
+    has_scheduled_server_messages = false;
+    has_scheduled_database_messages = false;
+    need_repair_channel_server_unread_count = false;
+    can_unarchive = false;
+    hide_distance = false;
   }
 
   parse(last_new_message_id, parser);
@@ -4819,6 +4833,9 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
     parse(pending_read_channel_inbox_pts, parser);
     parse(pending_read_channel_inbox_max_message_id, parser);
     parse(pending_read_channel_inbox_server_unread_count, parser);
+  }
+  if (has_distance) {
+    parse(distance, parser);
   }
 }
 
@@ -5267,6 +5284,29 @@ tl_object_ptr<telegram_api::InputPeer> MessagesManager::get_input_peer(DialogId 
     }
     case DialogType::SecretChat:
       return nullptr;
+    case DialogType::None:
+      return make_tl_object<telegram_api::inputPeerEmpty>();
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
+tl_object_ptr<telegram_api::InputPeer> MessagesManager::get_input_peer_force(DialogId dialog_id) {
+  switch (dialog_id.get_type()) {
+    case DialogType::User: {
+      UserId user_id = dialog_id.get_user_id();
+      return make_tl_object<telegram_api::inputPeerUser>(user_id.get(), 0);
+    }
+    case DialogType::Chat: {
+      ChatId chat_id = dialog_id.get_chat_id();
+      return make_tl_object<telegram_api::inputPeerChat>(chat_id.get());
+    }
+    case DialogType::Channel: {
+      ChannelId channel_id = dialog_id.get_channel_id();
+      return make_tl_object<telegram_api::inputPeerChannel>(channel_id.get(), 0);
+    }
+    case DialogType::SecretChat:
     case DialogType::None:
       return make_tl_object<telegram_api::inputPeerEmpty>();
     default:
@@ -7113,7 +7153,7 @@ void MessagesManager::hide_dialog_action_bar(Dialog *d) {
     return;
   }
   if (!d->can_report_spam && !d->can_add_contact && !d->can_block_user && !d->can_share_phone_number &&
-      !d->can_report_location) {
+      !d->can_report_location && !d->can_unarchive && d->distance < 0) {
     return;
   }
 
@@ -7122,6 +7162,8 @@ void MessagesManager::hide_dialog_action_bar(Dialog *d) {
   d->can_block_user = false;
   d->can_share_phone_number = false;
   d->can_report_location = false;
+  d->can_unarchive = false;
+  d->distance = -1;
   send_update_chat_action_bar(d);
 }
 
@@ -7151,7 +7193,7 @@ void MessagesManager::remove_dialog_action_bar(DialogId dialog_id, Promise<Unit>
   }
 
   if (!d->can_report_spam && !d->can_add_contact && !d->can_block_user && !d->can_share_phone_number &&
-      !d->can_report_location) {
+      !d->can_report_location && !d->can_unarchive && d->distance < 0) {
     return promise.set_value(Unit());
   }
 
@@ -7354,9 +7396,12 @@ void MessagesManager::on_get_peer_settings(DialogId dialog_id,
   auto can_block_user = (peer_settings->flags_ & telegram_api::peerSettings::BLOCK_CONTACT_MASK) != 0;
   auto can_share_phone_number = (peer_settings->flags_ & telegram_api::peerSettings::SHARE_CONTACT_MASK) != 0;
   auto can_report_location = (peer_settings->flags_ & telegram_api::peerSettings::REPORT_GEO_MASK) != 0;
+  auto can_unarchive = (peer_settings->flags_ & telegram_api::peerSettings::AUTOARCHIVED_MASK) != 0;
+  auto distance =
+      (peer_settings->flags_ & telegram_api::peerSettings::GEO_DISTANCE_MASK) != 0 ? peer_settings->geo_distance_ : -1;
   if (d->can_report_spam == can_report_spam && d->can_add_contact == can_add_contact &&
       d->can_block_user == can_block_user && d->can_share_phone_number == can_share_phone_number &&
-      d->can_report_location == can_report_location) {
+      d->can_report_location == can_report_location && d->can_unarchive == can_unarchive && d->distance == distance) {
     if (!d->know_action_bar || !d->know_can_report_spam) {
       d->know_can_report_spam = true;
       d->know_action_bar = true;
@@ -7372,6 +7417,8 @@ void MessagesManager::on_get_peer_settings(DialogId dialog_id,
   d->can_block_user = can_block_user;
   d->can_share_phone_number = can_share_phone_number;
   d->can_report_location = can_report_location;
+  d->can_unarchive = can_unarchive;
+  d->distance = distance < 0 ? -1 : distance;
 
   fix_dialog_action_bar(d);
 
@@ -7384,20 +7431,29 @@ void MessagesManager::fix_dialog_action_bar(Dialog *d) {
     return;
   }
 
+  auto dialog_type = d->dialog_id.get_type();
+  if (d->distance >= 0 && dialog_type != DialogType::User) {
+    LOG(ERROR) << "Receive distance " << d->distance << " to " << d->dialog_id;
+    d->distance = -1;
+  }
+
   if (d->can_report_location) {
-    if (d->dialog_id.get_type() != DialogType::Channel) {
+    if (dialog_type != DialogType::Channel) {
       LOG(ERROR) << "Receive can_report_location in " << d->dialog_id;
       d->can_report_location = false;
-    } else if (d->can_report_spam || d->can_add_contact || d->can_block_user || d->can_share_phone_number) {
+    } else if (d->can_report_spam || d->can_add_contact || d->can_block_user || d->can_share_phone_number ||
+               d->can_unarchive) {
       LOG(ERROR) << "Receive action bar " << d->can_report_spam << "/" << d->can_add_contact << "/" << d->can_block_user
-                 << "/" << d->can_share_phone_number << "/" << d->can_report_location;
+                 << "/" << d->can_share_phone_number << "/" << d->can_report_location << "/" << d->can_unarchive;
       d->can_report_spam = false;
       d->can_add_contact = false;
       d->can_block_user = false;
       d->can_share_phone_number = false;
+      d->can_unarchive = false;
+      CHECK(d->distance == -1);
     }
   }
-  if (d->dialog_id.get_type() == DialogType::User) {
+  if (dialog_type == DialogType::User) {
     auto user_id = d->dialog_id.get_user_id();
     bool is_me = user_id == td_->contacts_manager_->get_my_id();
     bool is_contact = td_->contacts_manager_->is_user_contact(user_id);
@@ -7405,6 +7461,7 @@ void MessagesManager::fix_dialog_action_bar(Dialog *d) {
     bool is_deleted = td_->contacts_manager_->is_user_deleted(user_id);
     if (is_me || is_blocked) {
       d->can_report_spam = false;
+      d->can_unarchive = false;
     }
     if (is_me || is_blocked || is_deleted) {
       d->can_share_phone_number = false;
@@ -7414,23 +7471,27 @@ void MessagesManager::fix_dialog_action_bar(Dialog *d) {
       d->can_add_contact = false;
     }
   }
+  if (d->folder_id != FolderId::archive()) {
+    d->can_unarchive = false;
+  }
   if (d->can_share_phone_number) {
     CHECK(!d->can_report_location);
-    if (d->dialog_id.get_type() != DialogType::User) {
+    if (dialog_type != DialogType::User) {
       LOG(ERROR) << "Receive can_share_phone_number in " << d->dialog_id;
       d->can_share_phone_number = false;
-    } else if (d->can_report_spam || d->can_add_contact || d->can_block_user) {
+    } else if (d->can_report_spam || d->can_add_contact || d->can_block_user || d->can_unarchive || d->distance >= 0) {
       LOG(ERROR) << "Receive action bar " << d->can_report_spam << "/" << d->can_add_contact << "/" << d->can_block_user
-                 << "/" << d->can_share_phone_number;
+                 << "/" << d->can_share_phone_number << "/" << d->can_unarchive << "/" << d->distance;
       d->can_report_spam = false;
       d->can_add_contact = false;
       d->can_block_user = false;
+      d->can_unarchive = false;
     }
   }
   if (d->can_block_user) {
     CHECK(!d->can_report_location);
     CHECK(!d->can_share_phone_number);
-    if (d->dialog_id.get_type() != DialogType::User) {
+    if (dialog_type != DialogType::User) {
       LOG(ERROR) << "Receive can_block_user in " << d->dialog_id;
       d->can_block_user = false;
     } else if (!d->can_report_spam || !d->can_add_contact) {
@@ -7443,7 +7504,7 @@ void MessagesManager::fix_dialog_action_bar(Dialog *d) {
   if (d->can_add_contact) {
     CHECK(!d->can_report_location);
     CHECK(!d->can_share_phone_number);
-    if (d->dialog_id.get_type() != DialogType::User) {
+    if (dialog_type != DialogType::User) {
       LOG(ERROR) << "Receive can_add_contact in " << d->dialog_id;
       d->can_add_contact = false;
     } else if (d->can_report_spam != d->can_block_user) {
@@ -7451,7 +7512,14 @@ void MessagesManager::fix_dialog_action_bar(Dialog *d) {
                  << d->can_block_user;
       d->can_report_spam = false;
       d->can_block_user = false;
+      d->can_unarchive = false;
     }
+  }
+  if (!d->can_block_user) {
+    d->distance = -1;
+  }
+  if (!d->can_report_spam) {
+    d->can_unarchive = false;
   }
 }
 
@@ -7820,26 +7888,57 @@ void MessagesManager::on_upload_dialog_photo(FileId file_id, tl_object_ptr<teleg
     return;
   }
 
-  Promise<Unit> promise = std::move(it->second.promise);
   DialogId dialog_id = it->second.dialog_id;
+  double main_frame_timestamp = it->second.main_frame_timestamp;
+  bool is_animation = it->second.is_animation;
+  bool is_reupload = it->second.is_reupload;
+  Promise<Unit> promise = std::move(it->second.promise);
 
   being_uploaded_dialog_photos_.erase(it);
 
-  tl_object_ptr<telegram_api::InputChatPhoto> input_chat_photo;
   FileView file_view = td_->file_manager_->get_file_view(file_id);
   CHECK(!file_view.is_encrypted());
   if (input_file == nullptr && file_view.has_remote_location()) {
     if (file_view.main_remote_location().is_web()) {
-      // TODO reupload
-      promise.set_error(Status::Error(400, "Can't use web photo as profile photo"));
-      return;
+      return promise.set_error(Status::Error(400, "Can't use web photo as profile photo"));
     }
-    auto input_photo = file_view.main_remote_location().as_input_photo();
-    input_chat_photo = make_tl_object<telegram_api::inputChatPhoto>(std::move(input_photo));
+    if (is_reupload) {
+      return promise.set_error(Status::Error(400, "Failed to reupload the file"));
+    }
+
+    if (is_animation) {
+      CHECK(file_view.get_type() == FileType::Animation);
+      // delete file reference and forcely reupload the file
+      auto file_reference = FileManager::extract_file_reference(file_view.main_remote_location().as_input_document());
+      td_->file_manager_->delete_file_reference(file_id, file_reference);
+      upload_dialog_photo(dialog_id, file_id, is_animation, main_frame_timestamp, true, std::move(promise), {-1});
+    } else {
+      CHECK(file_view.get_type() == FileType::Photo);
+      auto input_photo = file_view.main_remote_location().as_input_photo();
+      auto input_chat_photo = make_tl_object<telegram_api::inputChatPhoto>(std::move(input_photo));
+      send_edit_dialog_photo_query(dialog_id, file_id, std::move(input_chat_photo), std::move(promise));
+    }
+    return;
+  }
+  CHECK(input_file != nullptr);
+
+  int32 flags = 0;
+  tl_object_ptr<telegram_api::InputFile> photo_input_file;
+  tl_object_ptr<telegram_api::InputFile> video_input_file;
+  if (is_animation) {
+    flags |= telegram_api::inputChatUploadedPhoto::VIDEO_MASK;
+    video_input_file = std::move(input_file);
+
+    if (main_frame_timestamp != 0.0) {
+      flags |= telegram_api::inputChatUploadedPhoto::VIDEO_START_TS_MASK;
+    }
   } else {
-    input_chat_photo = make_tl_object<telegram_api::inputChatUploadedPhoto>(std::move(input_file));
+    flags |= telegram_api::inputChatUploadedPhoto::FILE_MASK;
+    photo_input_file = std::move(input_file);
   }
 
+  auto input_chat_photo = make_tl_object<telegram_api::inputChatUploadedPhoto>(
+      flags, std::move(photo_input_file), std::move(video_input_file), main_frame_timestamp);
   send_edit_dialog_photo_query(dialog_id, file_id, std::move(input_chat_photo), std::move(promise));
 }
 
@@ -9903,7 +10002,7 @@ void MessagesManager::read_history_inbox(DialogId dialog_id, MessageId max_messa
     }
 
     if (max_message_id != MessageId() && max_message_id.is_yet_unsent()) {
-      LOG(ERROR) << "Try to update last read inbox message in " << dialog_id << " with " << max_message_id << " from "
+      LOG(ERROR) << "Tried to update last read inbox message in " << dialog_id << " with " << max_message_id << " from "
                  << source;
       return;
     }
@@ -9982,7 +10081,7 @@ void MessagesManager::read_history_outbox(DialogId dialog_id, MessageId max_mess
     }
 
     if (max_message_id.is_yet_unsent()) {
-      LOG(ERROR) << "Try to update last read outbox message with " << max_message_id;
+      LOG(ERROR) << "Tried to update last read outbox message with " << max_message_id;
       return;
     }
 
@@ -10354,7 +10453,7 @@ void MessagesManager::set_dialog_max_unavailable_message_id(DialogId dialog_id, 
     }
 
     if (max_unavailable_message_id.is_valid() && max_unavailable_message_id.is_yet_unsent()) {
-      LOG(ERROR) << "Try to update " << dialog_id << " last read outbox message with " << max_unavailable_message_id
+      LOG(ERROR) << "Tried to update " << dialog_id << " last read outbox message with " << max_unavailable_message_id
                  << " from " << source;
       return;
     }
@@ -17350,7 +17449,8 @@ td_api::object_ptr<td_api::ChatType> MessagesManager::get_chat_type_object(Dialo
   }
 }
 
-td_api::object_ptr<td_api::ChatActionBar> MessagesManager::get_chat_action_bar_object(const Dialog *d) const {
+td_api::object_ptr<td_api::ChatActionBar> MessagesManager::get_chat_action_bar_object(const Dialog *d,
+                                                                                      bool hide_unarchive) const {
   CHECK(d != nullptr);
   if (d->dialog_id.get_type() == DialogType::SecretChat) {
     auto user_id = td_->contacts_manager_->get_secret_chat_user_id(d->dialog_id.get_secret_chat_id());
@@ -17361,12 +17461,12 @@ td_api::object_ptr<td_api::ChatActionBar> MessagesManager::get_chat_action_bar_o
     if (user_d == nullptr) {
       return nullptr;
     }
-    return get_chat_action_bar_object(user_d);
+    return get_chat_action_bar_object(user_d, d->folder_id != FolderId::archive());
   }
 
   if (!d->know_action_bar) {
     if (d->know_can_report_spam && d->dialog_id.get_type() != DialogType::SecretChat && d->can_report_spam) {
-      return td_api::make_object<td_api::chatActionBarReportSpam>();
+      return td_api::make_object<td_api::chatActionBarReportSpam>(false);
     }
     return nullptr;
   }
@@ -17381,10 +17481,18 @@ td_api::object_ptr<td_api::ChatActionBar> MessagesManager::get_chat_action_bar_o
     CHECK(!d->can_block_user && !d->can_add_contact && !d->can_report_spam);
     return td_api::make_object<td_api::chatActionBarSharePhoneNumber>();
   }
+  if (hide_unarchive) {
+    if (d->can_add_contact) {
+      return td_api::make_object<td_api::chatActionBarAddContact>();
+    } else {
+      return nullptr;
+    }
+  }
   if (d->can_block_user) {
     CHECK(d->dialog_id.get_type() == DialogType::User);
     CHECK(d->can_report_spam && d->can_add_contact);
-    return td_api::make_object<td_api::chatActionBarReportAddBlock>();
+    auto distance = d->hide_distance ? -1 : d->distance;
+    return td_api::make_object<td_api::chatActionBarReportAddBlock>(d->can_unarchive, distance);
   }
   if (d->can_add_contact) {
     CHECK(d->dialog_id.get_type() == DialogType::User);
@@ -17392,7 +17500,7 @@ td_api::object_ptr<td_api::ChatActionBar> MessagesManager::get_chat_action_bar_o
     return td_api::make_object<td_api::chatActionBarAddContact>();
   }
   if (d->can_report_spam) {
-    return td_api::make_object<td_api::chatActionBarReportSpam>();
+    return td_api::make_object<td_api::chatActionBarReportSpam>(d->can_unarchive);
   }
   return nullptr;
 }
@@ -17462,7 +17570,7 @@ td_api::object_ptr<td_api::chat> MessagesManager::get_chat_object(const Dialog *
 
   return make_tl_object<td_api::chat>(
       d->dialog_id.get(), get_chat_type_object(d->dialog_id), get_dialog_title(d->dialog_id),
-      get_chat_photo_object(td_->file_manager_.get(), get_dialog_photo(d->dialog_id)),
+      get_chat_photo_info_object(td_->file_manager_.get(), get_dialog_photo(d->dialog_id)),
       get_dialog_permissions(d->dialog_id).get_chat_permissions_object(),
       get_message_object(d->dialog_id, get_message(d, d->last_message_id)), get_chat_positions_object(d),
       d->is_marked_as_unread, get_dialog_has_scheduled_messages(d), can_delete_for_self, can_delete_for_all_users,
@@ -18318,7 +18426,7 @@ std::pair<int32, vector<FullMessageId>> MessagesManager::search_call_messages(Me
   auto filter_type = only_missed ? SearchMessagesFilter::MissedCall : SearchMessagesFilter::Call;
 
   if (use_db && G()->parameters().use_message_db) {
-    // Try to use database
+    // try to use database
     MessageId first_db_message_id =
         calls_db_state_.first_calls_database_message_id_by_index[search_calls_filter_index(filter_type)];
     int32 message_count = calls_db_state_.message_count_by_index[search_calls_filter_index(filter_type)];
@@ -23690,6 +23798,7 @@ MessagesManager::MessageNotificationGroup MessagesManager::get_message_notificat
       VLOG(notifications) << "Loaded " << r_value.ok() << " from database by " << group_id;
       d = get_dialog_force(r_value.ok().dialog_id);
     } else {
+      CHECK(r_value.error().message() == "Not found");
       VLOG(notifications) << "Failed to load " << group_id << " from database";
     }
     G()->td_db()->get_dialog_db_sync()->commit_transaction().ensure();
@@ -26032,8 +26141,7 @@ void MessagesManager::set_dialog_folder_id(Dialog *d, FolderId folder_id) {
   if (d->folder_id == folder_id) {
     if (!d->is_folder_id_inited) {
       LOG(INFO) << "Folder of " << d->dialog_id << " is still " << folder_id;
-      d->is_folder_id_inited = true;
-      on_dialog_updated(d->dialog_id, "set_dialog_folder_id");
+      do_set_dialog_folder_id(d, folder_id);
     }
     return;
   }
@@ -26052,14 +26160,44 @@ void MessagesManager::set_dialog_folder_id(Dialog *d, FolderId folder_id) {
     LOG_IF(ERROR, d->order != DEFAULT_ORDER) << d->dialog_id << " not found in the chat list";
   }
 
-  d->folder_id = folder_id;
-  d->is_folder_id_inited = true;
+  do_set_dialog_folder_id(d, folder_id);
 
   get_dialog_folder(d->folder_id)->ordered_dialogs_.insert(dialog_date);
 
   update_dialog_lists(d, std::move(dialog_positions), true, false, "set_dialog_folder_id");
+}
 
-  on_dialog_updated(d->dialog_id, "set_dialog_folder_id");
+void MessagesManager::do_set_dialog_folder_id(Dialog *d, FolderId folder_id) {
+  CHECK(!td_->auth_manager_->is_bot());
+  if (d->folder_id == folder_id && d->is_folder_id_inited) {
+    return;
+  }
+
+  d->folder_id = folder_id;
+  d->is_folder_id_inited = true;
+
+  if (d->dialog_id.get_type() == DialogType::User) {
+    if (d->can_unarchive && folder_id != FolderId::archive()) {
+      d->can_unarchive = false;
+      d->can_report_spam = false;
+      d->can_block_user = false;
+      // keep d->can_add_contact
+      send_update_chat_action_bar(d);
+    }
+  } else if (d->dialog_id.get_type() == DialogType::SecretChat) {
+    // need to change action bar only for the secret chat and keep unarchive for the main chat
+    auto user_id = td_->contacts_manager_->get_secret_chat_user_id(d->dialog_id.get_secret_chat_id());
+    if (d->is_update_new_chat_sent && user_id.is_valid()) {
+      const Dialog *user_d = get_dialog(DialogId(user_id));
+      if (user_d != nullptr && user_d->can_unarchive && user_d->know_action_bar) {
+        send_closure(
+            G()->td(), &Td::send_update,
+            td_api::make_object<td_api::updateChatActionBar>(d->dialog_id.get(), get_chat_action_bar_object(d)));
+      }
+    }
+  }
+
+  on_dialog_updated(d->dialog_id, "do_set_dialog_folder_id");
 }
 
 void MessagesManager::on_update_dialog_filters() {
@@ -26148,9 +26286,10 @@ void MessagesManager::on_dialog_bots_updated(DialogId dialog_id, vector<UserId> 
 void MessagesManager::on_dialog_photo_updated(DialogId dialog_id) {
   auto d = get_dialog(dialog_id);  // called from update_user, must not create the dialog
   if (d != nullptr && d->is_update_new_chat_sent) {
-    send_closure(G()->td(), &Td::send_update,
-                 make_tl_object<td_api::updateChatPhoto>(
-                     dialog_id.get(), get_chat_photo_object(td_->file_manager_.get(), get_dialog_photo(dialog_id))));
+    send_closure(
+        G()->td(), &Td::send_update,
+        make_tl_object<td_api::updateChatPhoto>(
+            dialog_id.get(), get_chat_photo_info_object(td_->file_manager_.get(), get_dialog_photo(dialog_id))));
   }
 }
 
@@ -26183,6 +26322,8 @@ void MessagesManager::on_dialog_user_is_contact_updated(DialogId dialog_id, bool
         if (d->can_block_user || d->can_add_contact) {
           d->can_block_user = false;
           d->can_add_contact = false;
+          // keep d->can_unarchive
+          d->distance = -1;
           send_update_chat_action_bar(d);
         }
       } else {
@@ -26210,11 +26351,14 @@ void MessagesManager::on_dialog_user_is_blocked_updated(DialogId dialog_id, bool
   if (d != nullptr && d->is_update_new_chat_sent) {
     if (d->know_action_bar) {
       if (is_blocked) {
-        if (d->can_report_spam || d->can_share_phone_number || d->can_block_user || d->can_add_contact) {
+        if (d->can_report_spam || d->can_share_phone_number || d->can_block_user || d->can_add_contact ||
+            d->can_unarchive || d->distance >= 0) {
           d->can_report_spam = false;
           d->can_share_phone_number = false;
           d->can_block_user = false;
           d->can_add_contact = false;
+          d->can_unarchive = false;
+          d->distance = -1;
           send_update_chat_action_bar(d);
         }
       } else {
@@ -26230,10 +26374,11 @@ void MessagesManager::on_dialog_user_is_deleted_updated(DialogId dialog_id, bool
   if (d != nullptr && d->is_update_new_chat_sent) {
     if (d->know_action_bar) {
       if (is_deleted) {
-        if (d->can_share_phone_number || d->can_block_user || d->can_add_contact) {
+        if (d->can_share_phone_number || d->can_block_user || d->can_add_contact || d->distance >= 0) {
           d->can_share_phone_number = false;
           d->can_block_user = false;
           d->can_add_contact = false;
+          d->distance = -1;
           send_update_chat_action_bar(d);
         }
       } else {
@@ -27132,7 +27277,7 @@ void MessagesManager::on_updated_dialog_folder_id(DialogId dialog_id, uint64 gen
   }
 }
 
-void MessagesManager::set_dialog_photo(DialogId dialog_id, const tl_object_ptr<td_api::InputFile> &photo,
+void MessagesManager::set_dialog_photo(DialogId dialog_id, const tl_object_ptr<td_api::InputChatPhoto> &input_photo,
                                        Promise<Unit> &&promise) {
   LOG(INFO) << "Receive setChatPhoto request to change photo of " << dialog_id;
 
@@ -27166,30 +27311,62 @@ void MessagesManager::set_dialog_photo(DialogId dialog_id, const tl_object_ptr<t
       UNREACHABLE();
   }
 
-  auto r_file_id = td_->file_manager_->get_input_file_id(FileType::Photo, photo, dialog_id, true, false);
+  const td_api::object_ptr<td_api::InputFile> *input_file = nullptr;
+  double main_frame_timestamp = 0.0;
+  bool is_animation = false;
+  if (input_photo != nullptr) {
+    switch (input_photo->get_id()) {
+      case td_api::inputChatPhotoPrevious::ID: {
+        auto photo = static_cast<const td_api::inputChatPhotoPrevious *>(input_photo.get());
+        auto file_id = td_->contacts_manager_->get_profile_photo_file_id(photo->chat_photo_id_);
+        if (!file_id.is_valid()) {
+          return promise.set_error(Status::Error(400, "Unknown profile photo ID specified"));
+        }
+
+        auto file_view = td_->file_manager_->get_file_view(file_id);
+        auto input_chat_photo =
+            make_tl_object<telegram_api::inputChatPhoto>(file_view.main_remote_location().as_input_photo());
+        send_edit_dialog_photo_query(dialog_id, file_id, std::move(input_chat_photo), std::move(promise));
+        return;
+      }
+      case td_api::inputChatPhotoStatic::ID: {
+        auto photo = static_cast<const td_api::inputChatPhotoStatic *>(input_photo.get());
+        input_file = &photo->photo_;
+        break;
+      }
+      case td_api::inputChatPhotoAnimation::ID: {
+        auto photo = static_cast<const td_api::inputChatPhotoAnimation *>(input_photo.get());
+        input_file = &photo->animation_;
+        main_frame_timestamp = photo->main_frame_timestamp_;
+        is_animation = true;
+        break;
+      }
+      default:
+        UNREACHABLE();
+        break;
+    }
+  }
+
+  const double MAX_ANIMATION_DURATION = 10.0;
+  if (main_frame_timestamp < 0.0 || main_frame_timestamp > MAX_ANIMATION_DURATION) {
+    return promise.set_error(Status::Error(400, "Wrong main frame timestamp specified"));
+  }
+
+  auto file_type = is_animation ? FileType::Animation : FileType::Photo;
+  auto r_file_id = td_->file_manager_->get_input_file_id(file_type, *input_file, dialog_id, true, false);
   if (r_file_id.is_error()) {
-    return promise.set_error(Status::Error(7, r_file_id.error().message()));
+    // TODO promise.set_error(std::move(status));
+    return promise.set_error(Status::Error(400, r_file_id.error().message()));
   }
   FileId file_id = r_file_id.ok();
-
   if (!file_id.is_valid()) {
     send_edit_dialog_photo_query(dialog_id, FileId(), make_tl_object<telegram_api::inputChatPhotoEmpty>(),
                                  std::move(promise));
     return;
   }
 
-  FileView file_view = td_->file_manager_->get_file_view(file_id);
-  CHECK(!file_view.is_encrypted());
-  if (file_view.has_remote_location() && !file_view.main_remote_location().is_web()) {
-    // file has already been uploaded, just send change photo request
-    auto input_photo = file_view.main_remote_location().as_input_photo();
-    send_edit_dialog_photo_query(
-        dialog_id, file_id, make_tl_object<telegram_api::inputChatPhoto>(std::move(input_photo)), std::move(promise));
-    return;
-  }
-
-  // need to upload file first
-  upload_dialog_photo(dialog_id, td_->file_manager_->dup_file_id(file_id), std::move(promise));
+  upload_dialog_photo(dialog_id, td_->file_manager_->dup_file_id(file_id), is_animation, main_frame_timestamp, false,
+                      std::move(promise));
 }
 
 void MessagesManager::send_edit_dialog_photo_query(DialogId dialog_id, FileId file_id,
@@ -27199,12 +27376,16 @@ void MessagesManager::send_edit_dialog_photo_query(DialogId dialog_id, FileId fi
   td_->create_handler<EditDialogPhotoQuery>(std::move(promise))->send(dialog_id, file_id, std::move(input_chat_photo));
 }
 
-void MessagesManager::upload_dialog_photo(DialogId dialog_id, FileId file_id, Promise<Unit> &&promise) {
+void MessagesManager::upload_dialog_photo(DialogId dialog_id, FileId file_id, bool is_animation,
+                                          double main_frame_timestamp, bool is_reupload, Promise<Unit> &&promise,
+                                          vector<int> bad_parts) {
   CHECK(file_id.is_valid());
   LOG(INFO) << "Ask to upload chat photo " << file_id;
   CHECK(being_uploaded_dialog_photos_.find(file_id) == being_uploaded_dialog_photos_.end());
-  being_uploaded_dialog_photos_[file_id] = {std::move(promise), dialog_id};
-  td_->file_manager_->upload(file_id, upload_dialog_photo_callback_, 32, 0);
+  being_uploaded_dialog_photos_.emplace(
+      file_id, UploadedDialogPhotoInfo{dialog_id, main_frame_timestamp, is_animation, is_reupload, std::move(promise)});
+  // TODO use force_reupload if is_reupload
+  td_->file_manager_->resume_upload(file_id, std::move(bad_parts), upload_dialog_photo_callback_, 32, 0);
 }
 
 void MessagesManager::set_dialog_title(DialogId dialog_id, const string &title, Promise<Unit> &&promise) {
@@ -27811,6 +27992,10 @@ tl_object_ptr<td_api::ChatEventAction> MessagesManager::get_chat_event_action_ob
     case telegram_api::channelAdminLogEventActionParticipantInvite::ID: {
       auto action = move_tl_object_as<telegram_api::channelAdminLogEventActionParticipantInvite>(action_ptr);
       auto member = td_->contacts_manager_->get_dialog_participant(channel_id, std::move(action->participant_));
+      if (!member.is_valid()) {
+        LOG(ERROR) << "Wrong invite: " << member;
+        return nullptr;
+      }
       return make_tl_object<td_api::chatEventMemberInvited>(
           td_->contacts_manager_->get_user_id_object(member.user_id, "chatEventMemberInvited"),
           member.status.get_chat_member_status_object());
@@ -27824,6 +28009,10 @@ tl_object_ptr<td_api::ChatEventAction> MessagesManager::get_chat_event_action_ob
         LOG(ERROR) << old_member.user_id << " VS " << new_member.user_id;
         return nullptr;
       }
+      if (!old_member.is_valid() || !new_member.is_valid()) {
+        LOG(ERROR) << "Wrong restrict: " << old_member << " -> " << new_member;
+        return nullptr;
+      }
       return make_tl_object<td_api::chatEventMemberRestricted>(
           td_->contacts_manager_->get_user_id_object(old_member.user_id, "chatEventMemberRestricted"),
           old_member.status.get_chat_member_status_object(), new_member.status.get_chat_member_status_object());
@@ -27835,6 +28024,10 @@ tl_object_ptr<td_api::ChatEventAction> MessagesManager::get_chat_event_action_ob
       auto new_member = td_->contacts_manager_->get_dialog_participant(channel_id, std::move(action->new_participant_));
       if (old_member.user_id != new_member.user_id) {
         LOG(ERROR) << old_member.user_id << " VS " << new_member.user_id;
+        return nullptr;
+      }
+      if (!old_member.is_valid() || !new_member.is_valid()) {
+        LOG(ERROR) << "Wrong edit administrator: " << old_member << " -> " << new_member;
         return nullptr;
       }
       return make_tl_object<td_api::chatEventMemberPromoted>(
@@ -27861,8 +28054,8 @@ tl_object_ptr<td_api::ChatEventAction> MessagesManager::get_chat_event_action_ob
       auto file_manager = td_->file_manager_.get();
       auto old_photo = get_photo(file_manager, std::move(action->prev_photo_), DialogId(channel_id));
       auto new_photo = get_photo(file_manager, std::move(action->new_photo_), DialogId(channel_id));
-      return make_tl_object<td_api::chatEventPhotoChanged>(get_photo_object(file_manager, &old_photo),
-                                                           get_photo_object(file_manager, &new_photo));
+      return make_tl_object<td_api::chatEventPhotoChanged>(get_chat_photo_object(file_manager, old_photo),
+                                                           get_chat_photo_object(file_manager, new_photo));
     }
     case telegram_api::channelAdminLogEventActionDefaultBannedRights::ID: {
       auto action = move_tl_object_as<telegram_api::channelAdminLogEventActionDefaultBannedRights>(action_ptr);
@@ -28873,6 +29066,31 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
     update_used_hashtags(dialog_id, m);
     update_top_dialogs(dialog_id, m);
     cancel_user_dialog_action(dialog_id, m);
+    try_hide_distance(dialog_id, m);
+
+    if (d->messages == nullptr && !m->is_outgoing && dialog_id != get_my_dialog_id()) {
+      switch (dialog_id.get_type()) {
+        case DialogType::User:
+          td_->contacts_manager_->invalidate_user_full(dialog_id.get_user_id());
+          td_->contacts_manager_->reload_user_full(dialog_id.get_user_id());
+          break;
+        case DialogType::Chat:
+        case DialogType::Channel:
+          // nothing to do
+          break;
+        case DialogType::SecretChat: {
+          auto user_id = td_->contacts_manager_->get_secret_chat_user_id(dialog_id.get_secret_chat_id());
+          if (user_id.is_valid()) {
+            td_->contacts_manager_->invalidate_user_full(user_id);
+            td_->contacts_manager_->reload_user_full(user_id);
+          }
+          break;
+        }
+        case DialogType::None:
+        default:
+          UNREACHABLE();
+      }
+    }
   }
 
   Message *result_message = treap_insert_message(&d->messages, std::move(message));
@@ -29034,6 +29252,7 @@ MessagesManager::Message *MessagesManager::add_scheduled_message_to_dialog(Dialo
   if (from_update) {
     update_sent_message_contents(dialog_id, m);
     update_used_hashtags(dialog_id, m);
+    try_hide_distance(dialog_id, m);
   }
 
   if (m->message_id.is_scheduled_server()) {
@@ -29747,6 +29966,7 @@ bool MessagesManager::update_message_content(DialogId dialog_id, Message *old_me
               case FileType::Animation:
               case FileType::Audio:
               case FileType::Document:
+              case FileType::DocumentAsFile:
               case FileType::Sticker:
               case FileType::Video:
               case FileType::VideoNote:
@@ -29990,8 +30210,7 @@ MessagesManager::Dialog *MessagesManager::add_new_dialog(unique_ptr<Dialog> &&d,
         d->last_new_message_id = MessageId::min();
       }
 
-      if (!d->notification_settings.is_secret_chat_show_preview_fixed &&
-          d->dialog_id.get_type() == DialogType::SecretChat) {
+      if (!d->notification_settings.is_secret_chat_show_preview_fixed) {
         d->notification_settings.use_default_show_preview = true;
         d->notification_settings.show_preview = false;
         d->notification_settings.is_secret_chat_show_preview_fixed = true;
@@ -30003,7 +30222,10 @@ MessagesManager::Dialog *MessagesManager::add_new_dialog(unique_ptr<Dialog> &&d,
       d->is_last_read_inbox_message_id_inited = true;
       d->is_last_read_outbox_message_id_inited = true;
       d->is_pinned_message_id_inited = true;
-      d->is_folder_id_inited = true;
+      if (!d->is_folder_id_inited && !td_->auth_manager_->is_bot()) {
+        do_set_dialog_folder_id(
+            d.get(), td_->contacts_manager_->get_secret_chat_initial_folder_id(dialog_id.get_secret_chat_id()));
+      }
       break;
     case DialogType::None:
     default:
@@ -30701,9 +30923,7 @@ void MessagesManager::update_dialog_lists(
 
     if (d->folder_id != FolderId::main()) {
       LOG(INFO) << "Change folder of " << dialog_id << " to " << FolderId::main();
-      d->folder_id = FolderId::main();
-      d->is_folder_id_inited = true;
-      on_dialog_updated(dialog_id, "update_dialog_lists");
+      do_set_dialog_folder_id(d, FolderId::main());
     }
   }
 
@@ -32077,6 +32297,42 @@ void MessagesManager::update_top_dialogs(DialogId dialog_id, const Message *m) {
   }
   if (category != TopDialogCategory::Size) {
     on_dialog_used(category, dialog_id, m->date);
+  }
+}
+
+void MessagesManager::try_hide_distance(DialogId dialog_id, const Message *m) {
+  CHECK(m != nullptr);
+  if (!m->is_outgoing && dialog_id != get_my_dialog_id()) {
+    return;
+  }
+
+  Dialog *d = nullptr;
+  switch (dialog_id.get_type()) {
+    case DialogType::User:
+      d = get_dialog(dialog_id);
+      break;
+    case DialogType::Chat:
+    case DialogType::Channel:
+      break;
+    case DialogType::SecretChat: {
+      auto user_id = td_->contacts_manager_->get_secret_chat_user_id(dialog_id.get_secret_chat_id());
+      if (user_id.is_valid()) {
+        d = get_dialog_force(DialogId(user_id));
+      }
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+  if (d == nullptr || d->hide_distance) {
+    return;
+  }
+
+  d->hide_distance = true;
+  on_dialog_updated(dialog_id, "try_hide_distance");
+
+  if (d->distance != -1) {
+    send_update_chat_action_bar(d);
   }
 }
 

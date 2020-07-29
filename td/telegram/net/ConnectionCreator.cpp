@@ -139,7 +139,7 @@ void ConnectionCreator::set_net_stats_callback(std::shared_ptr<NetStatsCallback>
 void ConnectionCreator::add_proxy(int32 old_proxy_id, string server, int32 port, bool enable,
                                   td_api::object_ptr<td_api::ProxyType> proxy_type,
                                   Promise<td_api::object_ptr<td_api::proxy>> promise) {
-  auto r_proxy = Proxy::from_td_api(std::move(server), port, proxy_type.get());
+  auto r_proxy = Proxy::create_proxy(std::move(server), port, proxy_type.get());
   if (r_proxy.is_error()) {
     return promise.set_error(r_proxy.move_as_error());
   }
@@ -413,6 +413,7 @@ void ConnectionCreator::set_active_proxy_id(int32 proxy_id, bool from_binlog) {
   if (!from_binlog) {
     if (proxy_id == 0) {
       G()->td_db()->get_binlog_pmc()->erase("proxy_active_id");
+      send_closure(G()->config_manager(), &ConfigManager::request_config);
     } else {
       G()->td_db()->get_binlog_pmc()->set("proxy_active_id", to_string(proxy_id));
     }
@@ -991,7 +992,7 @@ void ConnectionCreator::client_add_connection(size_t hash, Result<unique_ptr<mtp
     VLOG(connections) << "Add ready connection " << r_raw_connection.ok().get() << " for "
                       << tag("client", format::as_hex(hash));
     client.backoff.clear();
-    client.ready_connections.push_back(std::make_pair(r_raw_connection.move_as_ok(), Time::now_cached()));
+    client.ready_connections.emplace_back(r_raw_connection.move_as_ok(), Time::now_cached());
   } else {
     if (r_raw_connection.error().code() == -404 && client.auth_data &&
         client.auth_data_generation == auth_data_generation) {

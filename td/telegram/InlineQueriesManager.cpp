@@ -102,6 +102,8 @@ class GetInlineBotResultsQuery : public Td::ResultHandler {
   void on_error(uint64 id, Status status) override {
     if (status.code() == NetQuery::Cancelled) {
       status = Status::Error(406, "Request cancelled");
+    } else if (status.message() == "BOT_RESPONSE_TIMEOUT") {
+      status = Status::Error(502, "The bot is not responding");
     }
     LOG(INFO) << "Inline query returned error " << status;
 
@@ -879,6 +881,8 @@ tl_object_ptr<td_api::thumbnail> copy(const td_api::thumbnail &obj) {
         return td_api::make_object<td_api::thumbnailFormatTgs>();
       case td_api::thumbnailFormatMpeg4::ID:
         return td_api::make_object<td_api::thumbnailFormatMpeg4>();
+      case td_api::thumbnailFormatGif::ID:
+        return td_api::make_object<td_api::thumbnailFormatGif>();
       default:
         UNREACHABLE();
         return nullptr;
@@ -1165,6 +1169,10 @@ void InlineQueriesManager::on_get_inline_query_results(UserId bot_user_id, uint6
         bool has_photo = (flags & BOT_INLINE_MEDIA_RESULT_FLAG_HAS_PHOTO) != 0;
         bool is_photo = result->type_ == "photo";
         if (result->type_ == "game") {
+          if (!has_photo) {
+            LOG(ERROR) << "Receive game without photo in the result of inline query: " << to_string(result);
+            break;
+          }
           auto game = make_tl_object<td_api::inlineQueryResultGame>();
           Game inline_game(td_, std::move(result->title_), std::move(result->description_), std::move(result->photo_),
                            std::move(result->document_), DialogId());
@@ -1300,11 +1308,11 @@ void InlineQueriesManager::on_get_inline_query_results(UserId bot_user_id, uint6
           auto photo = make_tl_object<td_api::inlineQueryResultPhoto>();
           photo->id_ = std::move(result->id_);
           Photo p = get_photo(td_->file_manager_.get(), std::move(result->photo_), DialogId());
-          if (p.id == -2) {
+          if (p.is_empty()) {
             LOG(ERROR) << "Receive empty cached photo in the result of inline query";
             break;
           }
-          photo->photo_ = get_photo_object(td_->file_manager_.get(), &p);
+          photo->photo_ = get_photo_object(td_->file_manager_.get(), p);
           photo->title_ = std::move(result->title_);
           photo->description_ = std::move(result->description_);
 
@@ -1421,6 +1429,7 @@ void InlineQueriesManager::on_get_inline_query_results(UserId bot_user_id, uint6
           }
 
           Photo new_photo;
+          new_photo.id = 0;
           PhotoSize thumbnail = get_web_document_photo_size(td_->file_manager_.get(), FileType::Thumbnail, DialogId(),
                                                             std::move(result->thumb_));
           if (thumbnail.file_id.is_valid() && thumbnail.type != 'v' && thumbnail.type != 'g') {
@@ -1428,7 +1437,7 @@ void InlineQueriesManager::on_get_inline_query_results(UserId bot_user_id, uint6
           }
           new_photo.photos.push_back(std::move(photo_size));
 
-          photo->photo_ = get_photo_object(td_->file_manager_.get(), &new_photo);
+          photo->photo_ = get_photo_object(td_->file_manager_.get(), new_photo);
           photo->title_ = std::move(result->title_);
           photo->description_ = std::move(result->description_);
 

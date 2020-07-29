@@ -4,6 +4,7 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+#include "td/telegram/FolderId.h"
 #include "td/telegram/Global.h"
 #include "td/telegram/MessageId.h"
 #include "td/telegram/SecretChatActor.h"
@@ -528,7 +529,7 @@ class FakeSecretChatContext : public SecretChatActor::Context {
   void send_net_query(NetQueryPtr query, ActorShared<NetQueryCallback> callback, bool ordered) override;
 
   void on_update_secret_chat(int64 access_hash, UserId user_id, SecretChatState state, bool is_outbound, int32 ttl,
-                             int32 date, string key_hash, int32 layer) override {
+                             int32 date, string key_hash, int32 layer, FolderId initial_folder_id) override {
   }
 
   void on_inbound_message(UserId user_id, MessageId message_id, int32 date,
@@ -838,9 +839,9 @@ class Master : public Actor {
     CHECK(get_link_token() == 1);
     send_closure(alice_->get_actor_unsafe()->actor_, &SecretChatActor::update_chat,
                  make_tl_object<telegram_api::encryptedChatWaiting>(123, 321, 0, 1, 2));
-    send_closure(
-        bob_->get_actor_unsafe()->actor_, &SecretChatActor::update_chat,
-        make_tl_object<telegram_api::encryptedChatRequested>(123, 321, 0, 1, 2, request_encryption.g_a_.clone()));
+    send_closure(bob_->get_actor_unsafe()->actor_, &SecretChatActor::update_chat,
+                 make_tl_object<telegram_api::encryptedChatRequested>(0, false, 123, 321, 0, 1, 2,
+                                                                      request_encryption.g_a_.clone()));
     net_query->clear();
   }
   void process_net_query(my_api::messages_acceptEncryption &&request_encryption, NetQueryPtr net_query,
@@ -896,7 +897,7 @@ class Master : public Actor {
                                         ActorShared<NetQueryCallback> callback) {
     BufferSlice answer(8);
     answer.as_slice().fill(0);
-    as<int32>(answer.as_slice().begin()) = my_api::messages_sentEncryptedMessage::ID;
+    as<int32>(answer.as_slice().begin()) = static_cast<int32>(my_api::messages_sentEncryptedMessage::ID);
     net_query->set_ok(std::move(answer));
     send_closure(std::move(callback), &NetQueryCallback::on_result, std::move(net_query));
 

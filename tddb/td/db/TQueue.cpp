@@ -11,7 +11,6 @@
 #include "td/db/binlog/BinlogHelper.h"
 #include "td/db/binlog/BinlogInterface.h"
 
-#include "td/utils/format.h"
 #include "td/utils/misc.h"
 #include "td/utils/port/Clocks.h"
 #include "td/utils/Random.h"
@@ -20,9 +19,8 @@
 #include "td/utils/tl_helpers.h"
 #include "td/utils/tl_parsers.h"
 #include "td/utils/tl_storers.h"
-#include "td/utils/VectorQueue.h"
 
-#include <algorithm>
+#include <map>
 #include <unordered_map>
 
 namespace td {
@@ -85,8 +83,9 @@ bool EventId::is_valid_id(int32 id) {
 }
 
 class TQueueImpl : public TQueue {
-  static constexpr size_t MAX_EVENT_LEN = 65536 * 8;
+  static constexpr size_t MAX_EVENT_LENGTH = 65536 * 8;
   static constexpr size_t MAX_QUEUE_EVENTS = 1000000;
+  static constexpr size_t MAX_TOTAL_EVENT_LENGTH = 1 << 30;
 
  public:
   void set_callback(unique_ptr<StorageCallback> callback) override {
@@ -98,28 +97,53 @@ class TQueueImpl : public TQueue {
 
   bool do_push(QueueId queue_id, RawEvent &&raw_event) override {
     CHECK(raw_event.event_id.is_valid());
-    auto &q = queues_[queue_id];
-    if (q.events.empty() || q.events.back().event_id < raw_event.event_id) {
-      if (raw_event.logevent_id == 0 && callback_ != nullptr) {
-        raw_event.logevent_id = callback_->push(queue_id, raw_event);
-      }
-      q.tail_id = raw_event.event_id.next().move_as_ok();
-      q.events.push(std::move(raw_event));
-      return true;
+    // raw_event.data can be empty when replaying binlog
+    if (raw_event.data.size() > MAX_EVENT_LENGTH) {
+      return false;
     }
-    return false;
+    auto &q = queues_[queue_id];
+    if (q.events.size() >= MAX_QUEUE_EVENTS || q.total_event_length > MAX_TOTAL_EVENT_LENGTH - raw_event.data.size()) {
+      return false;
+    }
+    auto event_id = raw_event.event_id;
+    if (event_id < q.tail_id) {
+      return false;
+    }
+
+    if (!q.events.empty()) {
+      auto it = q.events.end();
+      --it;
+      if (it->second.data.empty()) {
+        if (callback_ != nullptr && it->second.logevent_id != 0) {
+          callback_->pop(it->second.logevent_id);
+        }
+        q.events.erase(it);
+      }
+    }
+
+    if (raw_event.logevent_id == 0 && callback_ != nullptr) {
+      raw_event.logevent_id = callback_->push(queue_id, raw_event);
+    }
+    q.tail_id = event_id.next().move_as_ok();
+    q.total_event_length += raw_event.data.size();
+    q.events.emplace(event_id, std::move(raw_event));
+    return true;
   }
 
   Result<EventId> push(QueueId queue_id, string data, double expires_at, int64 extra, EventId hint_new_id) override {
+    if (data.empty()) {
+      return Status::Error("Data is empty");
+    }
+    if (data.size() > MAX_EVENT_LENGTH) {
+      return Status::Error("Data is too big");
+    }
+
     auto &q = queues_[queue_id];
     if (q.events.size() >= MAX_QUEUE_EVENTS) {
       return Status::Error("Queue is full");
     }
-    if (data.empty()) {
-      return Status::Error("Data is empty");
-    }
-    if (data.size() > MAX_EVENT_LEN) {
-      return Status::Error("Data is too big");
+    if (q.total_event_length > MAX_TOTAL_EVENT_LENGTH - data.size()) {
+      return Status::Error("Queue size is too big");
     }
     EventId event_id;
     while (true) {
@@ -135,11 +159,10 @@ class TQueueImpl : public TQueue {
       if (event_id.next().is_ok()) {
         break;
       }
-      for (auto &event : q.events.as_mutable_span()) {
-        pop(queue_id, event, {});
+      for (auto it = q.events.begin(); it != q.events.end();) {
+        pop(q, queue_id, it, {});
       }
       q.tail_id = EventId();
-      q.events = {};
       CHECK(hint_new_id.next().is_ok());
     }
 
@@ -162,7 +185,7 @@ class TQueueImpl : public TQueue {
     if (q.events.empty()) {
       return q.tail_id;
     }
-    return q.events.front().event_id;
+    return q.events.begin()->first;
   }
 
   EventId get_tail(QueueId queue_id) const override {
@@ -180,13 +203,11 @@ class TQueueImpl : public TQueue {
       return;
     }
     auto &q = q_it->second;
-    auto from_events = q.events.as_mutable_span();
-    auto it = std::lower_bound(from_events.begin(), from_events.end(), event_id,
-                               [](auto &event, EventId event_id) { return event.event_id < event_id; });
-    if (it == from_events.end() || !(it->event_id == event_id)) {
+    auto it = q.events.find(event_id);
+    if (it == q.events.end()) {
       return;
     }
-    pop(queue_id, *it, q.tail_id);
+    pop(q, queue_id, it, q.tail_id);
   }
 
   Result<size_t> get(QueueId queue_id, EventId from_id, bool forget_previous, double now,
@@ -205,105 +226,127 @@ class TQueueImpl : public TQueue {
       return Status::Error("Specified from_id is in the past");
     }
 
-    MutableSpan<RawEvent> from_events;
-    size_t ready_n = 0;
-    size_t i = 0;
-
-    while (true) {
-      from_events = q.events.as_mutable_span();
-      ready_n = 0;
-      size_t first_i = 0;
-      if (!forget_previous) {
-        first_i = std::lower_bound(from_events.begin(), from_events.end(), from_id,
-                                   [](auto &event, EventId event_id) { return event.event_id < event_id; }) -
-                  from_events.begin();
-      }
-      for (i = first_i; i < from_events.size(); i++) {
-        auto &from = from_events[i];
-        try_pop(queue_id, from, forget_previous ? from_id : EventId{}, q.tail_id, now);
-        if (from.data.empty()) {
-          continue;
-        }
-
-        if (ready_n == result_events.size()) {
-          break;
-        }
-
-        CHECK(!(from.event_id < from_id));
-
-        auto &to = result_events[ready_n];
-        to.data = from.data;
-        to.id = from.event_id;
-        to.expires_at = from.expires_at;
-        to.extra = from.extra;
-        ready_n++;
-      }
-
-      // compactify skipped events
-      if ((ready_n + 1) * 2 < i + first_i) {
-        compactify(q.events, i);
-        continue;
-      }
-
-      break;
-    }
-
-    result_events.truncate(ready_n);
-    size_t left_n = from_events.size() - i;
-    return ready_n + left_n;
+    return do_get(queue_id, q, from_id, forget_previous, now, result_events);
   }
 
-  void run_gc(double now) override {
-    for (auto &it : queues_) {
-      for (auto &e : it.second.events.as_mutable_span()) {
-        try_pop(it.first, e, EventId(), it.second.tail_id, now);
+  std::pair<uint64, uint64> run_gc(double now) override {
+    uint64 total_deleted_events = 0;
+    uint64 deleted_queues = 0;
+    for (auto queue_it = queues_.begin(); queue_it != queues_.end();) {
+      size_t deleted_events = 0;
+      for (auto it = queue_it->second.events.begin(); it != queue_it->second.events.end();) {
+        auto &e = it->second;
+        if (e.expires_at < now) {
+          if (!it->second.data.empty()) {
+            deleted_events++;
+          }
+          pop(queue_it->second, queue_it->first, it,
+              e.expires_at < now - 7 * 86400 ? EventId() : queue_it->second.tail_id);
+        } else {
+          ++it;
+        }
       }
+      if (callback_ != nullptr && queue_it->second.events.empty()) {
+        deleted_queues++;
+        queue_it = queues_.erase(queue_it);
+      } else {
+        ++queue_it;
+      }
+      total_deleted_events += deleted_events;
+    }
+    return {deleted_queues, total_deleted_events};
+  }
+
+  size_t get_size(QueueId queue_id) override {
+    auto it = queues_.find(queue_id);
+    if (it == queues_.end()) {
+      return 0;
+    }
+    auto &q = it->second;
+    if (q.events.empty()) {
+      return 0;
+    }
+
+    return q.events.size() - (q.events.rbegin()->second.data.empty() ? 1 : 0);
+  }
+
+  void close(Promise<> promise) override {
+    if (callback_ != nullptr) {
+      callback_->close(std::move(promise));
+      callback_ = nullptr;
     }
   }
 
  private:
   struct Queue {
     EventId tail_id;
-    VectorQueue<RawEvent> events;
+    std::map<EventId, RawEvent> events;
+    size_t total_event_length = 0;
   };
 
   std::unordered_map<QueueId, Queue> queues_;
   unique_ptr<StorageCallback> callback_;
 
-  static void compactify(VectorQueue<RawEvent> &events, size_t prefix) {
-    if (prefix == events.size()) {
-      CHECK(!events.empty());
-      prefix--;
-    }
-    auto processed = events.as_mutable_span().substr(0, prefix);
-    auto removed_n =
-        processed.rend() - std::remove_if(processed.rbegin(), processed.rend(), [](auto &e) { return e.data.empty(); });
-    events.pop_n(removed_n);
-  }
-
-  void try_pop(QueueId queue_id, RawEvent &event, EventId from_id, EventId tail_id, double now) {
-    if (event.expires_at < now || event.event_id < from_id || event.data.empty()) {
-      pop(queue_id, event, tail_id);
-    }
-  }
-
-  void pop(QueueId queue_id, RawEvent &event, EventId tail_id) {
+  void pop(Queue &q, QueueId queue_id, std::map<EventId, RawEvent>::iterator &it, EventId tail_id) {
+    auto &event = it->second;
     if (callback_ == nullptr || event.logevent_id == 0) {
-      event.logevent_id = 0;
-      event.data = {};
+      remove_event(q, it);
       return;
     }
 
     if (event.event_id.next().ok() == tail_id) {
       if (!event.data.empty()) {
-        event.data = {};
+        clear_event_data(q, event);
         callback_->push(queue_id, event);
       }
+      ++it;
     } else {
       callback_->pop(event.logevent_id);
-      event.logevent_id = 0;
-      event.data = {};
+      remove_event(q, it);
     }
+  }
+
+  static void remove_event(Queue &q, std::map<EventId, RawEvent>::iterator &it) {
+    q.total_event_length -= it->second.data.size();
+    it = q.events.erase(it);
+  }
+
+  static void clear_event_data(Queue &q, RawEvent &event) {
+    q.total_event_length -= event.data.size();
+    event.data = {};
+  }
+
+  size_t do_get(QueueId queue_id, Queue &q, EventId from_id, bool forget_previous, double now,
+                MutableSpan<Event> &result_events) {
+    if (forget_previous) {
+      for (auto it = q.events.begin(); it != q.events.end() && it->first < from_id;) {
+        pop(q, queue_id, it, q.tail_id);
+      }
+    }
+
+    size_t ready_n = 0;
+    for (auto it = q.events.lower_bound(from_id); it != q.events.end();) {
+      auto &event = it->second;
+      if (event.expires_at < now || event.data.empty()) {
+        pop(q, queue_id, it, q.tail_id);
+      } else {
+        CHECK(!(event.event_id < from_id));
+        if (ready_n == result_events.size()) {
+          break;
+        }
+
+        auto &to = result_events[ready_n];
+        to.data = event.data;
+        to.id = event.event_id;
+        to.expires_at = event.expires_at;
+        to.extra = event.extra;
+        ready_n++;
+        ++it;
+      }
+    }
+
+    result_events.truncate(ready_n);
+    return get_size(queue_id);
   }
 };
 
@@ -407,6 +450,11 @@ Status TQueueBinlog<BinlogT>::replay(const BinlogEvent &binlog_event, TQueue &q)
   return Status::OK();
 }
 
+template <class BinlogT>
+void TQueueBinlog<BinlogT>::close(Promise<> promise) {
+  binlog_->close(std::move(promise));
+}
+
 template class TQueueBinlog<BinlogInterface>;
 template class TQueueBinlog<Binlog>;
 
@@ -427,6 +475,9 @@ void TQueueMemoryStorage::replay(TQueue &q) const {
     bool is_added = q.do_push(x.first, std::move(x.second));
     CHECK(is_added);
   }
+}
+void TQueueMemoryStorage::close(Promise<> promise) {
+  promise.set_value({});
 }
 
 }  // namespace td

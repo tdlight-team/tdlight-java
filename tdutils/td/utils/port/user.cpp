@@ -9,6 +9,8 @@
 #include "td/utils/port/config.h"
 
 #if TD_PORT_POSIX
+#include "td/utils/logging.h"
+
 #include <grp.h>
 #include <pwd.h>
 #if TD_DARWIN || TD_FREEBSD || TD_NETBSD

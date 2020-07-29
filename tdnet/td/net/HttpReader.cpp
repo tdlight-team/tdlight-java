@@ -60,7 +60,7 @@ void HttpReader::init(ChainBufferReader *input, size_t max_post_size, size_t max
   total_headers_length_ = 0;
 }
 
-Result<size_t> HttpReader::read_next(HttpQuery *query) {
+Result<size_t> HttpReader::read_next(HttpQuery *query, bool can_be_slow) {
   if (query_ != query) {
     CHECK(query_ == nullptr);
     query_ = query;
@@ -68,6 +68,7 @@ Result<size_t> HttpReader::read_next(HttpQuery *query) {
   size_t need_size = input_->size() + 1;
   while (true) {
     if (state_ != State::ReadHeaders) {
+      gzip_flow_.wakeup();
       flow_source_.wakeup();
       if (flow_sink_.is_ready() && flow_sink_.status().is_error()) {
         if (!temp_file_.empty()) {
@@ -108,7 +109,11 @@ Result<size_t> HttpReader::read_next(HttpQuery *query) {
         if (content_encoding_.empty()) {
         } else if (content_encoding_ == "gzip" || content_encoding_ == "deflate") {
           gzip_flow_ = GzipByteFlow(Gzip::Mode::Decode);
-          gzip_flow_.set_max_output_size(MAX_FILE_SIZE);
+          GzipByteFlow::Options options;
+          options.write_watermark.low = 0;
+          options.write_watermark.high = max(max_post_size_, static_cast<size_t>(1 << 16));
+          gzip_flow_.set_options(options);
+          gzip_flow_.set_max_output_size(MAX_CONTENT_SIZE);
           *source >> gzip_flow_;
           source = &gzip_flow_;
         } else {
@@ -170,6 +175,10 @@ Result<size_t> HttpReader::read_next(HttpQuery *query) {
       case State::ReadContent: {
         if (content_->size() > max_post_size_) {
           state_ = State::ReadContentToFile;
+          GzipByteFlow::Options options;
+          options.write_watermark.low = 4 << 20;
+          options.write_watermark.high = 8 << 20;
+          gzip_flow_.set_options(options);
           continue;
         }
         if (flow_sink_.is_ready()) {
@@ -182,6 +191,9 @@ Result<size_t> HttpReader::read_next(HttpQuery *query) {
         return need_size;
       }
       case State::ReadContentToFile: {
+        if (!can_be_slow) {
+          return Status::Error("SLOW");
+        }
         // save content to a file
         if (temp_file_.empty()) {
           auto file = open_temp_file("file");
@@ -191,13 +203,18 @@ Result<size_t> HttpReader::read_next(HttpQuery *query) {
         }
 
         auto size = content_->size();
-        if (size) {
+        bool restart = false;
+        if (size > (1 << 20) || flow_sink_.is_ready()) {
           TRY_STATUS(save_file_part(content_->cut_head(size).move_as_buffer_slice()));
+          restart = true;
         }
         if (flow_sink_.is_ready()) {
           query_->files_.emplace_back("file", "", content_type_.str(), file_size_, temp_file_name_);
           close_temp_file();
           break;
+        }
+        if (restart) {
+          continue;
         }
 
         return need_size;
@@ -229,9 +246,11 @@ Result<size_t> HttpReader::read_next(HttpQuery *query) {
         return need_size;
       }
       case State::ReadMultipartFormData: {
-        TRY_RESULT(result, parse_multipart_form_data());
-        if (result) {
-          break;
+        if (!content_->empty()) {
+          TRY_RESULT(result, parse_multipart_form_data(can_be_slow));
+          if (result) {
+            break;
+          }
         }
         return need_size;
       }
@@ -248,9 +267,10 @@ Result<size_t> HttpReader::read_next(HttpQuery *query) {
 // returns Status on wrong request
 // returns true if parsing has finished
 // returns false if need more data
-Result<bool> HttpReader::parse_multipart_form_data() {
+Result<bool> HttpReader::parse_multipart_form_data(bool can_be_slow) {
   while (true) {
-    LOG(DEBUG) << "Parsing multipart form data in state " << static_cast<int32>(form_data_parse_state_);
+    LOG(DEBUG) << "Parsing multipart form data in state " << static_cast<int32>(form_data_parse_state_)
+               << " with already read length " << form_data_read_length_;
     switch (form_data_parse_state_) {
       case FormDataParseState::SkipPrologue:
         if (find_boundary(content_->clone(), {boundary_.c_str() + 2, boundary_.size() - 2}, form_data_read_length_)) {
@@ -432,6 +452,9 @@ Result<bool> HttpReader::parse_multipart_form_data() {
         }
         return false;
       case FormDataParseState::ReadFile: {
+        if (!can_be_slow) {
+          return Status::Error("SLOW");
+        }
         if (find_boundary(content_->clone(), boundary_, form_data_read_length_)) {
           auto file_part = content_->cut_head(form_data_read_length_).move_as_buffer_slice();
           content_->advance(boundary_.size());

@@ -46,7 +46,6 @@
 #include <clocale>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <ctime>
 #include <iostream>
 #include <limits>
@@ -68,13 +67,14 @@ static void dump_memory_usage() {
   if (is_memprof_on()) {
     LOG(WARNING) << "Memory dump:";
     clear_thread_locals();
-    std::vector<AllocInfo> v;
-    dump_alloc([&](const AllocInfo &info) { v.push_back(info); });
-    std::sort(v.begin(), v.end(), [](const AllocInfo &a, const AllocInfo &b) { return a.size > b.size; });
+    std::vector<AllocInfo> alloc_info;
+    dump_alloc([&](const AllocInfo &info) { alloc_info.push_back(info); });
+    std::sort(alloc_info.begin(), alloc_info.end(),
+              [](const AllocInfo &lhs, const AllocInfo &rhs) { return lhs.size > rhs.size; });
     size_t total_size = 0;
     size_t other_size = 0;
     int cnt = 0;
-    for (auto &info : v) {
+    for (auto &info : alloc_info) {
       if (cnt++ < 50) {
         LOG(WARNING) << format::as_size(info.size) << format::as_array(info.backtrace);
       } else {
@@ -378,7 +378,7 @@ class CliClient final : public Actor {
     auto r_stat = stat(file_generation.source);
     if (r_stat.is_ok()) {
       auto size = r_stat.ok().size_;
-      if (size <= 0 || size > 1500000000) {
+      if (size <= 0 || size > (2000 << 20)) {
         r_stat = Status::Error(400, size == 0 ? Slice("File is empty") : Slice("File is too big"));
       }
     }
@@ -407,7 +407,6 @@ class CliClient final : public Actor {
         parameters->api_hash_ = api_hash_;
         parameters->system_language_code_ = "en";
         parameters->device_model_ = "Desktop";
-        parameters->system_version_ = "Unknown";
         parameters->application_version_ = "1.0";
         send_request(td_api::make_object<td_api::setTdlibParameters>(std::move(parameters)));
         break;
@@ -1193,6 +1192,16 @@ class CliClient final : public Actor {
     }
     if (type == "other") {
       return td_api::make_object<td_api::networkTypeOther>();
+    }
+    return nullptr;
+  }
+
+  static td_api::object_ptr<td_api::SuggestedAction> as_suggested_action(Slice action) {
+    if (action == "unarchive") {
+      return td_api::make_object<td_api::suggestedActionEnableArchiveAndMuteNewChats>();
+    }
+    if (action == "number") {
+      return td_api::make_object<td_api::suggestedActionCheckPhoneNumber>();
     }
     return nullptr;
   }
@@ -2030,7 +2039,7 @@ class CliClient final : public Actor {
 
       send_request(td_api::make_object<td_api::getChatMessageCount>(
           as_chat_id(chat_id), get_search_messages_filter(filter), as_bool(return_local)));
-    } else if (op == "gup" || op == "gupf") {
+    } else if (op == "gup" || op == "gupp") {
       string user_id;
       string offset;
       string limit;
@@ -2994,7 +3003,7 @@ class CliClient final : public Actor {
       std::tie(message_id, document) = split(args);
       send_request(td_api::make_object<td_api::editMessageMedia>(
           as_chat_id(chat_id), as_message_id(message_id), nullptr,
-          td_api::make_object<td_api::inputMessageDocument>(as_input_file(document), nullptr, as_caption(""))));
+          td_api::make_object<td_api::inputMessageDocument>(as_input_file(document), nullptr, false, as_caption(""))));
     } else if (op == "emp") {
       string chat_id;
       string message_id;
@@ -3191,22 +3200,22 @@ class CliClient final : public Actor {
       std::tie(chat_id, emoji) = split(args);
 
       send_message(chat_id, td_api::make_object<td_api::inputMessageDice>(emoji, op == "sdicecd"));
-    } else if (op == "sd") {
+    } else if (op == "sd" || op == "sdf") {
       string chat_id;
       string document_path;
       std::tie(chat_id, document_path) = split(args);
       send_message(chat_id, td_api::make_object<td_api::inputMessageDocument>(
-                                as_input_file(document_path), nullptr,
+                                as_input_file(document_path), nullptr, op == "sdf",
                                 as_caption(u8"\u1680\u180Etest \u180E\n\u180E\n\u180E\n cap\ttion\u180E\u180E")));
-    } else if (op == "sdt") {
+    } else if (op == "sdt" || op == "sdtf") {
       string chat_id;
       string document_path;
       string thumbnail_path;
       std::tie(chat_id, args) = split(args);
       std::tie(document_path, thumbnail_path) = split(args);
-      send_message(chat_id,
-                   td_api::make_object<td_api::inputMessageDocument>(
-                       as_input_file(document_path), as_input_thumbnail(thumbnail_path), as_caption("test caption")));
+      send_message(chat_id, td_api::make_object<td_api::inputMessageDocument>(
+                                as_input_file(document_path), as_input_thumbnail(thumbnail_path), op == "sdtf",
+                                as_caption("test caption")));
     } else if (op == "sdg" || op == "sdgu") {
       string chat_id;
       string document_path;
@@ -3217,9 +3226,9 @@ class CliClient final : public Actor {
         send_request(
             td_api::make_object<td_api::uploadFile>(as_generated_file(document_path, document_conversion), nullptr, 1));
       }
-      send_message(chat_id,
-                   td_api::make_object<td_api::inputMessageDocument>(
-                       as_generated_file(document_path, document_conversion), nullptr, as_caption("test caption")));
+      send_message(chat_id, td_api::make_object<td_api::inputMessageDocument>(
+                                as_generated_file(document_path, document_conversion), nullptr, false,
+                                as_caption("test caption")));
     } else if (op == "sdtg") {
       string chat_id;
       string document_path;
@@ -3230,7 +3239,7 @@ class CliClient final : public Actor {
       std::tie(thumbnail_path, thumbnail_conversion) = split(args);
       send_message(chat_id, td_api::make_object<td_api::inputMessageDocument>(
                                 as_input_file(document_path), as_input_thumbnail(thumbnail_path, thumbnail_conversion),
-                                as_caption("test caption")));
+                                false, as_caption("test caption")));
     } else if (op == "sdgtg") {
       string chat_id;
       string document_path;
@@ -3241,22 +3250,23 @@ class CliClient final : public Actor {
       std::tie(document_path, args) = split(args);
       std::tie(document_conversion, args) = split(args);
       std::tie(thumbnail_path, thumbnail_conversion) = split(args);
-      send_message(chat_id, td_api::make_object<td_api::inputMessageDocument>(
-                                as_generated_file(document_path, document_conversion),
-                                as_input_thumbnail(thumbnail_path, thumbnail_conversion), as_caption("test caption")));
+      send_message(chat_id,
+                   td_api::make_object<td_api::inputMessageDocument>(
+                       as_generated_file(document_path, document_conversion),
+                       as_input_thumbnail(thumbnail_path, thumbnail_conversion), false, as_caption("test caption")));
     } else if (op == "sdid") {
       string chat_id;
       string file_id;
       std::tie(chat_id, file_id) = split(args);
-      send_message(chat_id, td_api::make_object<td_api::inputMessageDocument>(as_input_file_id(file_id), nullptr,
+      send_message(chat_id, td_api::make_object<td_api::inputMessageDocument>(as_input_file_id(file_id), nullptr, false,
                                                                               as_caption("")));
     } else if (op == "sdurl") {
       string chat_id;
       string url;
       std::tie(chat_id, url) = split(args);
 
-      send_message(chat_id,
-                   td_api::make_object<td_api::inputMessageDocument>(as_remote_file(url), nullptr, as_caption("")));
+      send_message(chat_id, td_api::make_object<td_api::inputMessageDocument>(as_remote_file(url), nullptr, false,
+                                                                              as_caption("")));
     } else if (op == "sg") {
       string chat_id;
       string bot_user_id;
@@ -3551,12 +3561,30 @@ class CliClient final : public Actor {
 
       std::tie(chat_id, title) = split(args);
       send_request(td_api::make_object<td_api::setChatTitle>(as_chat_id(chat_id), title));
+    } else if (op == "scpp") {
+      string chat_id;
+      string photo_id;
+
+      std::tie(chat_id, photo_id) = split(args);
+      send_request(td_api::make_object<td_api::setChatPhoto>(
+          as_chat_id(chat_id), td_api::make_object<td_api::inputChatPhotoPrevious>(to_integer<int64>(photo_id))));
     } else if (op == "scp") {
       string chat_id;
       string photo_path;
 
       std::tie(chat_id, photo_path) = split(args);
-      send_request(td_api::make_object<td_api::setChatPhoto>(as_chat_id(chat_id), as_input_file(photo_path)));
+      send_request(td_api::make_object<td_api::setChatPhoto>(
+          as_chat_id(chat_id), td_api::make_object<td_api::inputChatPhotoStatic>(as_input_file(photo_path))));
+    } else if (op == "scpa" || op == "scpv") {
+      string chat_id;
+      string animation;
+      string main_frame_timestamp;
+
+      std::tie(chat_id, args) = split(args);
+      std::tie(animation, main_frame_timestamp) = split(args);
+      send_request(td_api::make_object<td_api::setChatPhoto>(
+          as_chat_id(chat_id), td_api::make_object<td_api::inputChatPhotoAnimation>(as_input_file(animation),
+                                                                                    to_double(main_frame_timestamp))));
     } else if (op == "scperm") {
       string chat_id;
       string permissions;
@@ -3571,12 +3599,6 @@ class CliClient final : public Actor {
       } else {
         LOG(ERROR) << "Wrong permissions size, expected 8";
       }
-    } else if (op == "scpid") {
-      string chat_id;
-      string file_id;
-
-      std::tie(chat_id, file_id) = split(args);
-      send_request(td_api::make_object<td_api::setChatPhoto>(as_chat_id(chat_id), as_input_file_id(file_id)));
     } else if (op == "sccd") {
       string chat_id;
       string client_data;
@@ -3842,13 +3864,19 @@ class CliClient final : public Actor {
       std::tie(url, force_full) = split(args);
 
       send_request(td_api::make_object<td_api::getWebPageInstantView>(url, as_bool(force_full)));
+    } else if (op == "sppp") {
+      send_request(td_api::make_object<td_api::setProfilePhoto>(
+          td_api::make_object<td_api::inputChatPhotoPrevious>(to_integer<int64>(args))));
     } else if (op == "spp") {
-      send_request(td_api::make_object<td_api::setProfilePhoto>(as_input_file(args)));
-    } else if (op == "sppg") {
-      string path;
-      string conversion;
-      std::tie(path, conversion) = split(args);
-      send_request(td_api::make_object<td_api::setProfilePhoto>(as_generated_file(path, conversion)));
+      send_request(td_api::make_object<td_api::setProfilePhoto>(
+          td_api::make_object<td_api::inputChatPhotoStatic>(as_input_file(args))));
+    } else if (op == "sppa" || op == "sppv") {
+      string animation;
+      string main_frame_timestamp;
+      std::tie(animation, main_frame_timestamp) = split(args);
+
+      send_request(td_api::make_object<td_api::setProfilePhoto>(td_api::make_object<td_api::inputChatPhotoAnimation>(
+          as_input_file(animation), to_double(main_frame_timestamp))));
     } else if (op == "sh") {
       auto prefix = std::move(args);
       send_request(td_api::make_object<td_api::searchHashtags>(prefix, 10));
@@ -3980,6 +4008,8 @@ class CliClient final : public Actor {
 
       send_request(
           td_api::make_object<td_api::getChatStatisticsGraph>(as_chat_id(chat_id), token, to_integer<int64>(x)));
+    } else if (op == "hsa" || op == "glu" || op == "glua") {
+      send_request(td_api::make_object<td_api::hideSuggestedAction>(as_suggested_action(args)));
     } else if (op == "glui" || op == "glu" || op == "glua") {
       string chat_id;
       string message_id;
@@ -4331,12 +4361,9 @@ void main(int argc, char **argv) {
     return std::string();
   }(std::getenv("TD_API_HASH"));
 
-  td::OptionParser options;
+  OptionParser options;
   options.set_description("TDLib test client");
-  options.add_option('\0', "test", "Use test DC", [&] {
-    use_test_dc = true;
-    return Status::OK();
-  });
+  options.add_option('\0', "test", "Use test DC", [&] { use_test_dc = true; });
   options.add_option('v', "verbosity", "Set verbosity level", [&](Slice level) {
     int new_verbosity = 1;
     while (begins_with(level, "v")) {
@@ -4347,53 +4374,30 @@ void main(int argc, char **argv) {
       new_verbosity += to_integer<int>(level) - (new_verbosity == 1);
     }
     new_verbosity_level = VERBOSITY_NAME(FATAL) + new_verbosity;
-    return Status::OK();
   });
   options.add_option('l', "log", "Log to file", [&](Slice file_name) {
     if (file_log.init(file_name.str()).is_ok() && file_log.init(file_name.str()).is_ok() &&
         file_log.init(file_name.str(), 1000 << 20).is_ok()) {
       log_interface = &ts_log;
     }
+  });
+  options.add_option('W', "", "Preload chat list", [&] { get_chat_list = true; });
+  options.add_option('n', "disable-network", "Disable network", [&] { disable_network = true; });
+  options.add_option('\0', "api-id", "Set Telegram API ID",
+                     [&](Slice parameter) { api_id = to_integer<int32>(parameter); });
+  options.add_option('\0', "api_id", "Set Telegram API ID",
+                     [&](Slice parameter) { api_id = to_integer<int32>(parameter); });
+  options.add_option('\0', "api-hash", "Set Telegram API hash", [&](Slice parameter) { api_hash = parameter.str(); });
+  options.add_option('\0', "api_hash", "Set Telegram API hash", [&](Slice parameter) { api_hash = parameter.str(); });
+  options.add_check([&] {
+    if (api_id == 0 || api_hash.empty()) {
+      return Status::Error("You must provide valid api-id and api-hash obtained at https://my.telegram.org");
+    }
     return Status::OK();
   });
-  options.add_option('W', "", "Preload chat list", [&] {
-    get_chat_list = true;
-    return Status::OK();
-  });
-  options.add_option('n', "disable-network", "Disable network", [&] {
-    disable_network = true;
-    return Status::OK();
-  });
-  options.add_option('\0', "api-id", "Set Telegram API ID", [&](Slice parameter) {
-    api_id = to_integer<int32>(parameter);
-    return Status::OK();
-  });
-  options.add_option('\0', "api_id", "Set Telegram API ID", [&](Slice parameter) {
-    api_id = to_integer<int32>(parameter);
-    return Status::OK();
-  });
-  options.add_option('\0', "api-hash", "Set Telegram API hash", [&](Slice parameter) {
-    api_hash = parameter.str();
-    return Status::OK();
-  });
-  options.add_option('\0', "api_hash", "Set Telegram API hash", [&](Slice parameter) {
-    api_hash = parameter.str();
-    return Status::OK();
-  });
-  auto res = options.run(argc, argv);
-  if (res.is_error()) {
-    LOG(PLAIN) << "tg_cli: " << res.error().message();
-    LOG(PLAIN) << options;
-    return;
-  }
-  if (!res.ok().empty()) {
-    LOG(PLAIN) << "tg_cli: " << "Have unexpected non-option parameters";
-    LOG(PLAIN) << options;
-    return;
-  }
-
-  if (api_id == 0 || api_hash.empty()) {
-    LOG(PLAIN) << "tg_cli: " << "You should provide some valid api_id and api_hash";
+  auto r_non_options = options.run(argc, argv, 0);
+  if (r_non_options.is_error()) {
+    LOG(PLAIN) << argv[0] << ": " << r_non_options.error().message();
     LOG(PLAIN) << options;
     return;
   }

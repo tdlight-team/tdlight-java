@@ -24,6 +24,7 @@
 #include "td/utils/port/sleep.h"
 #include "td/utils/port/Stat.h"
 #include "td/utils/port/thread.h"
+#include "td/utils/port/uname.h"
 #include "td/utils/port/wstring_convert.h"
 #include "td/utils/Random.h"
 #include "td/utils/Slice.h"
@@ -126,14 +127,14 @@ TEST(Misc, errno_tls_bug) {
       event.release();
     }
     for (auto &event : events) {
-      threads.push_back(td::thread([&] {
+      threads.emplace_back([&] {
         {
           EventFd tmp;
           tmp.init();
           tmp.acquire();
         }
         event.acquire();
-      }));
+      });
     }
     for (auto &thread : threads) {
       thread.join();
@@ -347,6 +348,26 @@ TEST(Misc, contains) {
   ASSERT_TRUE(td::contains(str, 'c'));
 }
 
+TEST(Misc, base32) {
+  ASSERT_EQ("", base32_encode(""));
+  ASSERT_EQ("me", base32_encode("a"));
+  base32_decode("me").ensure();
+  ASSERT_EQ("mfra", base32_encode("ab"));
+  ASSERT_EQ("mfrgg", base32_encode("abc"));
+  ASSERT_EQ("mfrggza", base32_encode("abcd"));
+  ASSERT_EQ("mfrggzdg", base32_encode("abcdf"));
+  ASSERT_EQ("mfrggzdgm4", base32_encode("abcdfg"));
+  for (int l = 0; l < 300000; l += l / 20 + l / 1000 * 500 + 1) {
+    for (int t = 0; t < 10; t++) {
+      string s = rand_string(std::numeric_limits<char>::min(), std::numeric_limits<char>::max(), l);
+      auto encoded = base32_encode(s);
+      auto decoded = base32_decode(encoded);
+      ASSERT_TRUE(decoded.is_ok());
+      ASSERT_TRUE(decoded.ok() == s);
+    }
+  }
+}
+
 TEST(Misc, to_integer) {
   ASSERT_EQ(to_integer<int32>("-1234567"), -1234567);
   ASSERT_EQ(to_integer<int64>("-1234567"), -1234567);
@@ -411,7 +432,8 @@ static void test_to_double() {
 
 TEST(Misc, to_double) {
   test_to_double();
-  const char *locale_name = (std::setlocale(LC_ALL, "fr-FR") == nullptr ? "" : "fr-FR");
+  const char *locale_name = (std::setlocale(LC_ALL, "fr-FR") == nullptr ? "C" : "fr-FR");
+  LOG(ERROR) << locale_name;
   std::locale new_locale(locale_name);
   auto host_locale = std::locale::global(new_locale);
   test_to_double();
@@ -698,6 +720,14 @@ TEST(Misc, IPAddress_is_reserved) {
   test_is_reserved("255.255.255.255", true);
 }
 
+TEST(Misc, ipv6_clear) {
+  IPAddress ip_address;
+  ip_address.init_host_port("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 123).ensure();
+  ASSERT_EQ("2001:db8:85a3::8a2e:370:7334", ip_address.get_ip_str());
+  ip_address.clear_ipv6_interface();
+  ASSERT_EQ("2001:db8:85a3::", ip_address.get_ip_str());
+}
+
 static void test_split(Slice str, std::pair<Slice, Slice> expected) {
   ASSERT_EQ(expected, td::split(str));
 }
@@ -720,6 +750,10 @@ static void test_full_split(Slice str, vector<Slice> expected) {
   ASSERT_EQ(expected, td::full_split(str));
 }
 
+static void test_full_split(Slice str, char c, size_t max_parts, vector<Slice> expected) {
+  ASSERT_EQ(expected, td::full_split(str, c, max_parts));
+}
+
 TEST(Misc, full_split) {
   test_full_split("", {});
   test_full_split(" ", {"", ""});
@@ -735,6 +769,7 @@ TEST(Misc, full_split) {
   test_full_split(" abcdef ", {"", "abcdef", ""});
   test_full_split(" ab cd ef ", {"", "ab", "cd", "ef", ""});
   test_full_split("  ab  cd  ef  ", {"", "", "ab", "", "cd", "", "ef", "", ""});
+  test_full_split("ab cd ef gh", ' ', 3, {"ab", "cd", "ef gh"});
 }
 
 TEST(Misc, StringBuilder) {
@@ -841,6 +876,43 @@ TEST(Misc, Bits) {
   ASSERT_EQ(0, count_bits64(0));
   ASSERT_EQ(4, count_bits32((1u << 31) | 7));
   ASSERT_EQ(4, count_bits64((1ull << 63) | 7));
+}
+
+TEST(Misc, BitsRange) {
+  auto to_vec_a = [](td::uint64 x) {
+    td::vector<td::int32> bits;
+    for (auto i : td::BitsRange(x)) {
+      bits.push_back(i);
+    }
+    return bits;
+  };
+
+  auto to_vec_b = [](td::uint64 x) {
+    td::vector<td::int32> bits;
+    td::int32 pos = 0;
+    while (x != 0) {
+      if ((x & 1) != 0) {
+        bits.push_back(pos);
+      }
+      x >>= 1;
+      pos++;
+    }
+    return bits;
+  };
+
+  auto do_check = [](const td::vector<td::int32> &a, const td::vector<td::int32> &b) {
+    ASSERT_EQ(b, a);
+  };
+  auto check = [&](td::uint64 x) {
+    do_check(to_vec_a(x), to_vec_b(x));
+  };
+
+  do_check(to_vec_a(21), {0, 2, 4});
+  for (int x = 0; x < 100; x++) {
+    check(x);
+    check(std::numeric_limits<td::uint32>::max() - x);
+    check(std::numeric_limits<td::uint64>::max() - x);
+  }
 }
 
 #if !TD_THREAD_UNSUPPORTED
@@ -1080,6 +1152,7 @@ TEST(Misc, Hasher) {
   test_hash<AbslHash>();
 #endif
 }
+
 TEST(Misc, CancellationToken) {
   CancellationTokenSource source;
   source.cancel();
@@ -1098,4 +1171,19 @@ TEST(Misc, CancellationToken) {
   CHECK(!token4);
   source = CancellationTokenSource{};
   CHECK(token4);
+}
+
+TEST(Misc, Xorshift128plus) {
+  Random::Xorshift128plus rnd(123);
+  ASSERT_EQ(11453256657207062272ull, rnd());
+  ASSERT_EQ(14917490455889357332ull, rnd());
+  ASSERT_EQ(5645917797309401285ull, rnd());
+  ASSERT_EQ(13554822455746959330ull, rnd());
+}
+TEST(Misc, uname) {
+  auto first_version = get_operating_system_version();
+  auto second_version = get_operating_system_version();
+  ASSERT_STREQ(first_version, second_version);
+  ASSERT_EQ(first_version.begin(), second_version.begin());
+  ASSERT_TRUE(!first_version.empty());
 }

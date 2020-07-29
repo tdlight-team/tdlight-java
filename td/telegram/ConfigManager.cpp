@@ -55,6 +55,7 @@
 #include "td/utils/tl_parsers.h"
 #include "td/utils/UInt.h"
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <unordered_map>
@@ -264,11 +265,11 @@ static ActorOwn<> get_simple_config_dns(Slice address, Slice host, Promise<Simpl
     TRY_RESULT(answer, get_json_object_field(answer_object, "Answer", JsonValue::Type::Array, false));
     auto &answer_array = answer.get_array();
     vector<string> parts;
-    for (auto &v : answer_array) {
-      if (v.type() != JsonValue::Type::Object) {
+    for (auto &answer_part : answer_array) {
+      if (answer_part.type() != JsonValue::Type::Object) {
         return Status::Error("Expected JSON object");
       }
-      auto &data_object = v.get_object();
+      auto &data_object = answer_part.get_object();
       TRY_RESULT(part, get_json_object_string_field(data_object, "data", false));
       parts.push_back(std::move(part));
     }
@@ -544,6 +545,7 @@ ActorOwn<> get_full_config(DcOption option, Promise<FullConfig> promise, ActorSh
 class ConfigRecoverer : public Actor {
  public:
   explicit ConfigRecoverer(ActorShared<> parent) : parent_(std::move(parent)) {
+    connecting_since_ = Time::now();
   }
 
   void on_dc_options_update(DcOptions dc_options) {
@@ -862,10 +864,11 @@ class ConfigRecoverer : public Actor {
   }
 
   void update_dc_options() {
-    auto v = simple_config_.dc_options;
-    v.insert(v.begin(), dc_options_update_.dc_options.begin(), dc_options_update_.dc_options.end());
-    if (v != dc_options_.dc_options) {
-      dc_options_.dc_options = std::move(v);
+    auto new_dc_options = simple_config_.dc_options;
+    new_dc_options.insert(new_dc_options.begin(), dc_options_update_.dc_options.begin(),
+                          dc_options_update_.dc_options.end());
+    if (new_dc_options != dc_options_.dc_options) {
+      dc_options_.dc_options = std::move(new_dc_options);
       dc_options_i_ = 0;
       dc_options_at_ = Time::now();
     }
@@ -873,6 +876,7 @@ class ConfigRecoverer : public Actor {
 };
 
 ConfigManager::ConfigManager(ActorShared<> parent) : parent_(std::move(parent)) {
+  lazy_request_flood_countrol_.add_limit(20, 1);
 }
 
 void ConfigManager::start_up() {
@@ -881,7 +885,7 @@ void ConfigManager::start_up() {
   send_closure(config_recoverer_, &ConfigRecoverer::on_dc_options_update, load_dc_options_update());
 
   auto expire_time = load_config_expire_time();
-  if (expire_time.is_in_past()) {
+  if (expire_time.is_in_past() || true) {
     request_config();
   } else {
     expire_time_ = expire_time;
@@ -921,7 +925,22 @@ void ConfigManager::request_config() {
   if (config_sent_cnt_ != 0) {
     return;
   }
+
+  lazy_request_flood_countrol_.add_event(static_cast<int32>(Timestamp::now().at()));
   request_config_from_dc_impl(DcId::main());
+}
+
+void ConfigManager::lazy_request_config() {
+  if (G()->close_flag()) {
+    return;
+  }
+
+  if (config_sent_cnt_ != 0) {
+    return;
+  }
+
+  expire_time_.relax(Timestamp::at(lazy_request_flood_countrol_.get_wakeup_at()));
+  set_timeout_at(expire_time_.at());
 }
 
 void ConfigManager::get_app_config(Promise<td_api::object_ptr<td_api::JsonValue>> &&promise) {
@@ -979,6 +998,44 @@ void ConfigManager::set_content_settings(bool ignore_sensitive_content_restricti
   }
 }
 
+void ConfigManager::get_global_privacy_settings(Promise<Unit> &&promise) {
+  if (G()->close_flag()) {
+    return promise.set_error(Status::Error(500, "Request aborted"));
+  }
+
+  auto auth_manager = G()->td().get_actor_unsafe()->auth_manager_.get();
+  if (auth_manager == nullptr || !auth_manager->is_authorized() || auth_manager->is_bot()) {
+    return promise.set_value(Unit());
+  }
+
+  get_global_privacy_settings_queries_.push_back(std::move(promise));
+  if (get_global_privacy_settings_queries_.size() == 1) {
+    G()->net_query_dispatcher().dispatch_with_callback(
+        G()->net_query_creator().create(telegram_api::account_getGlobalPrivacySettings()), actor_shared(this, 5));
+  }
+}
+
+void ConfigManager::set_archive_and_mute(bool archive_and_mute, Promise<Unit> &&promise) {
+  if (G()->close_flag()) {
+    return promise.set_error(Status::Error(500, "Request aborted"));
+  }
+  if (archive_and_mute) {
+    do_dismiss_suggested_action(SuggestedAction::EnableArchiveAndMuteNewChats);
+  }
+
+  last_set_archive_and_mute_ = archive_and_mute;
+  auto &queries = set_archive_and_mute_queries_[archive_and_mute];
+  queries.push_back(std::move(promise));
+  if (!is_set_archive_and_mute_request_sent_) {
+    is_set_archive_and_mute_request_sent_ = true;
+    int32 flags = telegram_api::globalPrivacySettings::ARCHIVE_AND_MUTE_NEW_NONCONTACT_PEERS_MASK;
+    auto settings = make_tl_object<telegram_api::globalPrivacySettings>(flags, archive_and_mute);
+    G()->net_query_dispatcher().dispatch_with_callback(
+        G()->net_query_creator().create(telegram_api::account_setGlobalPrivacySettings(std::move(settings))),
+        actor_shared(this, 6 + static_cast<uint64>(archive_and_mute)));
+  }
+}
+
 void ConfigManager::on_dc_options_update(DcOptions dc_options) {
   save_dc_options_update(dc_options);
   send_closure(config_recoverer_, &ConfigRecoverer::on_dc_options_update, std::move(dc_options));
@@ -997,7 +1054,7 @@ void ConfigManager::request_config_from_dc_impl(DcId dc_id) {
   G()->net_query_dispatcher().dispatch_with_callback(std::move(query), actor_shared(this, 0));
 }
 
-void ConfigManager::set_ignore_sensitive_content_restrictions(bool ignore_sensitive_content_restrictions) {
+void ConfigManager::do_set_ignore_sensitive_content_restrictions(bool ignore_sensitive_content_restrictions) {
   G()->shared_config().set_option_boolean("ignore_sensitive_content_restrictions",
                                           ignore_sensitive_content_restrictions);
   bool have_ignored_restriction_reasons = G()->shared_config().have_option("ignored_restriction_reasons");
@@ -1006,8 +1063,131 @@ void ConfigManager::set_ignore_sensitive_content_restrictions(bool ignore_sensit
   }
 }
 
+void ConfigManager::do_set_archive_and_mute(bool archive_and_mute) {
+  if (archive_and_mute) {
+    do_dismiss_suggested_action(SuggestedAction::EnableArchiveAndMuteNewChats);
+  }
+  G()->shared_config().set_option_boolean("archive_and_mute_new_chats_from_unknown_users", archive_and_mute);
+}
+
+td_api::object_ptr<td_api::updateSuggestedActions> ConfigManager::get_update_suggested_actions(
+    const vector<SuggestedAction> &added_actions, const vector<SuggestedAction> &removed_actions) {
+  return td_api::make_object<td_api::updateSuggestedActions>(transform(added_actions, get_suggested_action_object),
+                                                             transform(removed_actions, get_suggested_action_object));
+}
+
+void ConfigManager::dismiss_suggested_action(SuggestedAction suggested_action, Promise<Unit> &&promise) {
+  if (suggested_action == SuggestedAction::Empty) {
+    return promise.set_error(Status::Error(400, "Action must be non-empty"));
+  }
+  auto action_str = get_suggested_action_str(suggested_action);
+  if (action_str.empty()) {
+    return promise.set_value(Unit());
+  }
+
+  if (!td::contains(suggested_actions_, suggested_action)) {
+    return promise.set_value(Unit());
+  }
+
+  dismiss_suggested_action_request_count_++;
+  auto &queries = dismiss_suggested_action_queries_[suggested_action];
+  queries.push_back(std::move(promise));
+  if (queries.size() == 1) {
+    G()->net_query_dispatcher().dispatch_with_callback(
+        G()->net_query_creator().create(telegram_api::help_dismissSuggestion(action_str)),
+        actor_shared(this, 100 + static_cast<int32>(suggested_action)));
+  }
+}
+
+void ConfigManager::do_dismiss_suggested_action(SuggestedAction suggested_action) {
+  if (td::remove(suggested_actions_, suggested_action)) {
+    send_closure(G()->td(), &Td::send_update, get_update_suggested_actions({}, {suggested_action}));
+  }
+}
+
 void ConfigManager::on_result(NetQueryPtr res) {
   auto token = get_link_token();
+  if (token >= 100 && token <= 200) {
+    SuggestedAction suggested_action = static_cast<SuggestedAction>(static_cast<int32>(token - 100));
+    auto promises = std::move(dismiss_suggested_action_queries_[suggested_action]);
+    dismiss_suggested_action_queries_.erase(suggested_action);
+    CHECK(!promises.empty());
+    CHECK(dismiss_suggested_action_request_count_ >= promises.size());
+    dismiss_suggested_action_request_count_ -= promises.size();
+
+    auto result_ptr = fetch_result<telegram_api::help_dismissSuggestion>(std::move(res));
+    if (result_ptr.is_error()) {
+      for (auto &promise : promises) {
+        promise.set_error(result_ptr.error().clone());
+      }
+      return;
+    }
+    do_dismiss_suggested_action(suggested_action);
+    get_app_config(Auto());
+
+    for (auto &promise : promises) {
+      promise.set_value(Unit());
+    }
+    return;
+  }
+  if (token == 6 || token == 7) {
+    is_set_archive_and_mute_request_sent_ = false;
+    bool archive_and_mute = (token == 7);
+    auto promises = std::move(set_archive_and_mute_queries_[archive_and_mute]);
+    set_archive_and_mute_queries_[archive_and_mute].clear();
+    CHECK(!promises.empty());
+    auto result_ptr = fetch_result<telegram_api::account_setGlobalPrivacySettings>(std::move(res));
+    if (result_ptr.is_error()) {
+      for (auto &promise : promises) {
+        promise.set_error(result_ptr.error().clone());
+      }
+    } else {
+      if (last_set_archive_and_mute_ == archive_and_mute) {
+        do_set_archive_and_mute(archive_and_mute);
+      }
+
+      for (auto &promise : promises) {
+        promise.set_value(Unit());
+      }
+    }
+
+    if (!set_archive_and_mute_queries_[!archive_and_mute].empty()) {
+      if (archive_and_mute == last_set_archive_and_mute_) {
+        promises = std::move(set_archive_and_mute_queries_[!archive_and_mute]);
+        set_archive_and_mute_queries_[!archive_and_mute].clear();
+        for (auto &promise : promises) {
+          promise.set_value(Unit());
+        }
+      } else {
+        set_archive_and_mute(!archive_and_mute, Auto());
+      }
+    }
+    return;
+  }
+  if (token == 5) {
+    auto promises = std::move(get_global_privacy_settings_queries_);
+    get_global_privacy_settings_queries_.clear();
+    CHECK(!promises.empty());
+    auto result_ptr = fetch_result<telegram_api::account_getGlobalPrivacySettings>(std::move(res));
+    if (result_ptr.is_error()) {
+      for (auto &promise : promises) {
+        promise.set_error(result_ptr.error().clone());
+      }
+      return;
+    }
+
+    auto result = result_ptr.move_as_ok();
+    if ((result->flags_ & telegram_api::globalPrivacySettings::ARCHIVE_AND_MUTE_NEW_NONCONTACT_PEERS_MASK) != 0) {
+      do_set_archive_and_mute(result->archive_and_mute_new_noncontact_peers_);
+    } else {
+      LOG(ERROR) << "Receive wrong response: " << to_string(result);
+    }
+
+    for (auto &promise : promises) {
+      promise.set_value(Unit());
+    }
+    return;
+  }
   if (token == 3 || token == 4) {
     is_set_content_settings_request_sent_ = false;
     bool ignore_sensitive_content_restrictions = (token == 4);
@@ -1022,7 +1202,7 @@ void ConfigManager::on_result(NetQueryPtr res) {
     } else {
       if (G()->shared_config().get_option_boolean("can_ignore_sensitive_content_restrictions") &&
           last_set_content_settings_ == ignore_sensitive_content_restrictions) {
-        set_ignore_sensitive_content_restrictions(ignore_sensitive_content_restrictions);
+        do_set_ignore_sensitive_content_restrictions(ignore_sensitive_content_restrictions);
       }
 
       for (auto &promise : promises) {
@@ -1056,7 +1236,7 @@ void ConfigManager::on_result(NetQueryPtr res) {
     }
 
     auto result = result_ptr.move_as_ok();
-    set_ignore_sensitive_content_restrictions(result->sensitive_enabled_);
+    do_set_ignore_sensitive_content_restrictions(result->sensitive_enabled_);
     G()->shared_config().set_option_boolean("can_ignore_sensitive_content_restrictions", result->sensitive_can_change_);
 
     for (auto &promise : promises) {
@@ -1136,8 +1316,7 @@ Timestamp ConfigManager::load_config_expire_time() {
 }
 
 void ConfigManager::save_config_expire(Timestamp timestamp) {
-  G()->td_db()->get_binlog_pmc()->set("config_expire",
-                                      to_string(static_cast<int>(Clocks::system() + expire_time_.in())));
+  G()->td_db()->get_binlog_pmc()->set("config_expire", to_string(static_cast<int>(Clocks::system() + timestamp.in())));
 }
 
 void ConfigManager::process_config(tl_object_ptr<telegram_api::config> config) {
@@ -1279,12 +1458,18 @@ void ConfigManager::process_config(tl_object_ptr<telegram_api::config> config) {
         !shared_config.have_option("ignore_sensitive_content_restrictions")) {
       get_content_settings(Auto());
     }
+    if (!shared_config.have_option("archive_and_mute_new_chats_from_unknown_users")) {
+      get_global_privacy_settings(Auto());
+    }
   }
 }
 
 void ConfigManager::process_app_config(tl_object_ptr<telegram_api::JSONValue> &config) {
   CHECK(config != nullptr);
   LOG(INFO) << "Receive app config " << to_string(config);
+
+  const bool archive_and_mute =
+      G()->shared_config().get_option_boolean("archive_and_mute_new_chats_from_unknown_users");
 
   vector<tl_object_ptr<telegram_api::jsonObjectValue>> new_values;
   string ignored_restriction_reasons;
@@ -1293,6 +1478,7 @@ void ConfigManager::process_app_config(tl_object_ptr<telegram_api::JSONValue> &c
   std::unordered_map<string, string> dice_emoji_success_value;
   string animation_search_provider;
   string animation_search_emojis;
+  vector<SuggestedAction> suggested_actions;
   if (config->get_id() == telegram_api::jsonObject::ID) {
     for (auto &key_value : static_cast<telegram_api::jsonObject *>(config.get())->value_) {
       Slice key = key_value->key_;
@@ -1414,6 +1600,32 @@ void ConfigManager::process_app_config(tl_object_ptr<telegram_api::JSONValue> &c
         }
         continue;
       }
+      if (key == "pending_suggestions") {
+        if (value->get_id() == telegram_api::jsonArray::ID) {
+          auto actions = std::move(static_cast<telegram_api::jsonArray *>(value)->value_);
+          for (auto &action : actions) {
+            CHECK(action != nullptr);
+            if (action->get_id() == telegram_api::jsonString::ID) {
+              Slice action_str = static_cast<telegram_api::jsonString *>(action.get())->value_;
+              auto suggested_action = get_suggested_action(action_str);
+              if (suggested_action != SuggestedAction::Empty) {
+                if (archive_and_mute && suggested_action == SuggestedAction::EnableArchiveAndMuteNewChats) {
+                  LOG(INFO) << "Skip SuggestedAction::EnableArchiveAndMuteNewChats";
+                } else {
+                  suggested_actions.push_back(suggested_action);
+                }
+              } else {
+                LOG(ERROR) << "Receive unsupported suggested action " << action_str;
+              }
+            } else {
+              LOG(ERROR) << "Receive unexpected suggested action " << to_string(action);
+            }
+          }
+        } else {
+          LOG(ERROR) << "Receive unexpected pending_suggestions " << to_string(*value);
+        }
+        continue;
+      }
 
       new_values.push_back(std::move(key_value));
     }
@@ -1464,6 +1676,39 @@ void ConfigManager::process_app_config(tl_object_ptr<telegram_api::JSONValue> &c
 
   shared_config.set_option_empty("default_ton_blockchain_config");
   shared_config.set_option_empty("default_ton_blockchain_name");
+
+  // do not update suggested actions while changing content settings or dismissing an action
+  if (!is_set_content_settings_request_sent_ && dismiss_suggested_action_request_count_ == 0) {
+    std::sort(suggested_actions.begin(), suggested_actions.end());
+    suggested_actions.erase(std::unique(suggested_actions.begin(), suggested_actions.end()), suggested_actions.end());
+    if (suggested_actions != suggested_actions_) {
+      vector<SuggestedAction> added_actions;
+      vector<SuggestedAction> removed_actions;
+      auto old_it = suggested_actions_.begin();
+      auto new_it = suggested_actions.begin();
+      while (old_it != suggested_actions_.end() || new_it != suggested_actions.end()) {
+        if (old_it != suggested_actions_.end() &&
+            (new_it == suggested_actions.end() || std::less<SuggestedAction>()(*old_it, *new_it))) {
+          removed_actions.push_back(*old_it++);
+        } else if (old_it == suggested_actions_.end() || std::less<SuggestedAction>()(*new_it, *old_it)) {
+          added_actions.push_back(*new_it++);
+        } else {
+          old_it++;
+          new_it++;
+        }
+      }
+      CHECK(!added_actions.empty() || !removed_actions.empty());
+      suggested_actions_ = std::move(suggested_actions);
+      send_closure(G()->td(), &Td::send_update,
+                   get_update_suggested_actions(std::move(added_actions), std::move(removed_actions)));
+    }
+  }
+}
+
+void ConfigManager::get_current_state(vector<td_api::object_ptr<td_api::Update>> &updates) const {
+  if (!suggested_actions_.empty()) {
+    updates.push_back(get_update_suggested_actions(suggested_actions_, {}));
+  }
 }
 
 }  // namespace td

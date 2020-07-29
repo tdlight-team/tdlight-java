@@ -231,7 +231,7 @@ class Td final : public NetQueryCallback {
   static td_api::object_ptr<td_api::Object> static_request(td_api::object_ptr<td_api::Function> function);
 
  private:
-  static constexpr const char *TDLIB_VERSION = "1.6.6";
+  static constexpr const char *TDLIB_VERSION = "1.6.7";
   static constexpr int64 ONLINE_ALARM_ID = 0;
   static constexpr int64 PING_SERVER_ALARM_ID = -1;
   static constexpr int32 PING_SERVER_TIMEOUT = 300;
@@ -942,6 +942,8 @@ class Td final : public NetQueryCallback {
 
   void on_request(uint64 id, td_api::stopPoll &request);
 
+  void on_request(uint64 id, const td_api::hideSuggestedAction &request);
+
   void on_request(uint64 id, const td_api::getLoginUrlInfo &request);
 
   void on_request(uint64 id, const td_api::getLoginUrl &request);
@@ -1123,7 +1125,7 @@ class Td final : public NetQueryCallback {
 
   template <class T>
   static td_api::object_ptr<td_api::Object> do_static_request(const T &request) {
-    return td_api::make_object<td_api::error>(400, "Function can't be executed synchronously");
+    return td_api::make_object<td_api::error>(400, "The method can't be executed synchronously");
   }
   static td_api::object_ptr<td_api::Object> do_static_request(const td_api::getTextEntities &request);
   static td_api::object_ptr<td_api::Object> do_static_request(td_api::parseTextEntities &request);

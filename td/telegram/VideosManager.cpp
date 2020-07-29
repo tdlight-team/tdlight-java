@@ -147,7 +147,7 @@ void VideosManager::delete_video_thumbnail(FileId file_id) {
       return;
   }
   video->thumbnail = PhotoSize();
-  video->animated_thumbnail = PhotoSize();
+  video->animated_thumbnail = AnimationSize();
 }
 
 FileId VideosManager::dup_video(FileId new_id, FileId old_id) {
@@ -206,7 +206,7 @@ bool VideosManager::merge_videos(FileId new_id, FileId old_id, bool can_delete_o
 }
 
 void VideosManager::create_video(FileId file_id, string minithumbnail, PhotoSize thumbnail,
-                                 PhotoSize animated_thumbnail, bool has_stickers, vector<FileId> &&sticker_file_ids,
+                                 AnimationSize animated_thumbnail, bool has_stickers, vector<FileId> &&sticker_file_ids,
                                  string file_name, string mime_type, int32 duration, Dimensions dimensions,
                                  bool supports_streaming, bool replace) {
   auto v = make_unique<Video>();
@@ -311,8 +311,8 @@ tl_object_ptr<telegram_api::InputMedia> VideosManager::get_input_media(
       flags |= telegram_api::inputMediaUploadedDocument::THUMB_MASK;
     }
     return make_tl_object<telegram_api::inputMediaUploadedDocument>(
-        flags, false /*ignored*/, std::move(input_file), std::move(input_thumbnail), mime_type, std::move(attributes),
-        std::move(added_stickers), ttl);
+        flags, false /*ignored*/, false /*ignored*/, std::move(input_file), std::move(input_thumbnail), mime_type,
+        std::move(attributes), std::move(added_stickers), ttl);
   } else {
     CHECK(!file_view.has_remote_location());
   }

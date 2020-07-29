@@ -276,7 +276,7 @@ void AnimationsManager::delete_animation_thumbnail(FileId file_id) {
       return;
   }
   animation->thumbnail = PhotoSize();
-  animation->animated_thumbnail = PhotoSize();
+  animation->animated_thumbnail = AnimationSize();
 }
 
 FileId AnimationsManager::dup_animation(FileId new_id, FileId old_id) {
@@ -333,7 +333,7 @@ bool AnimationsManager::merge_animations(FileId new_id, FileId old_id, bool can_
 }
 
 void AnimationsManager::create_animation(FileId file_id, string minithumbnail, PhotoSize thumbnail,
-                                         PhotoSize animated_thumbnail, bool has_stickers,
+                                         AnimationSize animated_thumbnail, bool has_stickers,
                                          vector<FileId> &&sticker_file_ids, string file_name, string mime_type,
                                          int32 duration, Dimensions dimensions, bool replace) {
   auto a = make_unique<Animation>();
@@ -396,8 +396,8 @@ tl_object_ptr<telegram_api::InputMedia> AnimationsManager::get_input_media(
       flags |= telegram_api::inputMediaUploadedDocument::THUMB_MASK;
     }
     return make_tl_object<telegram_api::inputMediaUploadedDocument>(
-        flags, false /*ignored*/, std::move(input_file), std::move(input_thumbnail), mime_type, std::move(attributes),
-        vector<tl_object_ptr<telegram_api::InputDocument>>(), 0);
+        flags, false /*ignored*/, false /*ignored*/, std::move(input_file), std::move(input_thumbnail), mime_type,
+        std::move(attributes), vector<tl_object_ptr<telegram_api::InputDocument>>(), 0);
   } else {
     CHECK(!file_view.has_remote_location());
   }

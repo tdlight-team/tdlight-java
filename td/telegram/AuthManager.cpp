@@ -84,8 +84,12 @@ bool AuthManager::is_bot() const {
   if (net_query_id_ != 0 && net_query_type_ == NetQueryType::BotAuthentication) {
     return true;
   }
-  return is_bot_ && (state_ == State::Ok || state_ == State::LoggingOut || state_ == State::DestroyingKeys ||
-                     state_ == State::Closing);
+  return is_bot_ && was_authorized();
+}
+
+bool AuthManager::was_authorized() const {
+  return state_ == State::Ok || state_ == State::LoggingOut || state_ == State::DestroyingKeys ||
+         state_ == State::Closing;
 }
 
 bool AuthManager::is_authorized() const {
@@ -343,7 +347,7 @@ void AuthManager::recover_password(uint64 query_id, string code) {
                   G()->net_query_creator().create_unauth(telegram_api::auth_recoverPassword(code)));
 }
 
-void AuthManager::logout(uint64 query_id) {
+void AuthManager::log_out(uint64 query_id) {
   if (state_ == State::Closing) {
     return on_query_error(query_id, Status::Error(8, "Already logged out"));
   }
@@ -625,7 +629,7 @@ void AuthManager::on_log_out_result(NetQueryPtr &result) {
     status = std::move(result->error());
   }
   LOG_IF(ERROR, status.is_error()) << "Receive error for auth.logOut: " << status;
-  // state_ will stay logout, so no queries will work.
+  // state_ will stay LoggingOut, so no queries will work.
   destroy_auth_keys();
   if (query_id_ != 0) {
     on_query_ok();
@@ -714,7 +718,7 @@ void AuthManager::on_get_authorization(tl_object_ptr<telegram_api::auth_Authoriz
     if (query_id_ != 0) {
       on_query_error(Status::Error(500, "Server doesn't send proper authorization"));
     }
-    logout(0);
+    log_out(0);
     return;
   }
   if ((auth->flags_ & telegram_api::auth_authorization::TMP_SESSIONS_MASK) != 0) {
@@ -726,9 +730,9 @@ void AuthManager::on_get_authorization(tl_object_ptr<telegram_api::auth_Authoriz
   send_closure(td->top_dialog_manager_, &TopDialogManager::do_start_up);
   td->updates_manager_->get_difference("on_get_authorization");
   td->on_online_updated(false, true);
-  td->schedule_get_terms_of_service(0);
-  td->schedule_get_promo_data(0);
   if (!is_bot()) {
+    td->schedule_get_terms_of_service(0);
+    td->schedule_get_promo_data(0);
     G()->td_db()->get_binlog_pmc()->set("fetched_marks_as_unread", "1");
   }
   send_closure(G()->config_manager(), &ConfigManager::request_config);

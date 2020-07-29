@@ -126,6 +126,10 @@ class FileNode {
   friend class FileView;
   friend class FileManager;
 
+  static constexpr char PERSISTENT_ID_VERSION_OLD = 2;
+  static constexpr char PERSISTENT_ID_VERSION_MAP = 3;
+  static constexpr char PERSISTENT_ID_VERSION = 4;
+
   LocalFileLocation local_;
   FileLoadManager::QueryId upload_id_ = 0;
   int64 download_offset_ = 0;
@@ -322,11 +326,20 @@ class FileView {
     auto type = remote_location().get_source().get_type();
     return type == PhotoSizeSource::Type::DialogPhotoBig || type == PhotoSizeSource::Type::DialogPhotoSmall ||
            type == PhotoSizeSource::Type::StickerSetThumbnail;
-    return false;
   }
+
+  string get_persistent_file_id() const;
+
+  string get_unique_file_id() const;
 
  private:
   ConstFileNodePtr node_{};
+
+  static string get_unique_id(const FullGenerateFileLocation &location);
+  static string get_unique_id(const FullRemoteFileLocation &location);
+
+  static string get_persistent_id(const FullGenerateFileLocation &location);
+  static string get_persistent_id(const FullRemoteFileLocation &location);
 };
 
 class FileManager : public FileLoadManager::Callback {
@@ -413,7 +426,8 @@ class FileManager : public FileLoadManager::Callback {
                                 bool get_by_hash = false, bool force = false,
                                 bool skip_file_size_checks = false) TD_WARN_UNUSED_RESULT;
   FileId register_remote(const FullRemoteFileLocation &location, FileLocationSource file_location_source,
-                         DialogId owner_dialog_id, int64 size, int64 expected_size, string name) TD_WARN_UNUSED_RESULT;
+                         DialogId owner_dialog_id, int64 size, int64 expected_size,
+                         string remote_name) TD_WARN_UNUSED_RESULT;
   Result<FileId> register_generate(FileType file_type, FileLocationSource file_location_source, string original_path,
                                    string conversion, DialogId owner_dialog_id,
                                    int64 expected_size) TD_WARN_UNUSED_RESULT;
@@ -426,6 +440,9 @@ class FileManager : public FileLoadManager::Callback {
 
   void change_files_source(FileSourceId file_source_id, const vector<FileId> &old_file_ids,
                            const vector<FileId> &new_file_ids);
+
+  void on_file_reference_repaired(FileId file_id, FileSourceId file_source_id, Result<Unit> &&result,
+                                  Promise<Unit> &&promise);
 
   bool set_encryption_key(FileId file_id, FileEncryptionKey key);
   bool set_content(FileId file_id, BufferSlice bytes);
@@ -484,12 +501,6 @@ class FileManager : public FileLoadManager::Callback {
   FileId parse_file(ParserT &parser);
 
  private:
-  static constexpr char PERSISTENT_ID_VERSION_OLD = 2;
-  static constexpr char PERSISTENT_ID_VERSION_MAP = 3;
-  static constexpr char PERSISTENT_ID_VERSION = 4;
-
-  void destroy_query(int32 file_id);
-
   Result<FileId> check_input_file_id(FileType type, Result<FileId> result, bool is_encrypted, bool allow_zero,
                                      bool is_secure) TD_WARN_UNUSED_RESULT;
 
@@ -601,12 +612,6 @@ class FileManager : public FileLoadManager::Callback {
   void clear_from_pmc(FileNodePtr node);
   void flush_to_pmc(FileNodePtr node, bool new_remote, bool new_local, bool new_generate, const char *source);
   void load_from_pmc(FileNodePtr node, bool new_remote, bool new_local, bool new_generate);
-
-  string get_unique_id(const FullGenerateFileLocation &location);
-  string get_unique_id(const FullRemoteFileLocation &location);
-
-  string get_persistent_id(const FullGenerateFileLocation &location);
-  string get_persistent_id(const FullRemoteFileLocation &location);
 
   Result<FileId> from_persistent_id_map(Slice binary, FileType file_type);
   Result<FileId> from_persistent_id_v2(Slice binary, FileType file_type);

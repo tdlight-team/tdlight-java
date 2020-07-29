@@ -13,4 +13,4 @@ namespace td {
 
 Status change_user(CSlice username, CSlice groupname = CSlice());
 
-}
+}  // namespace td

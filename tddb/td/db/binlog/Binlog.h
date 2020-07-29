@@ -9,6 +9,8 @@
 #include "td/db/binlog/BinlogEvent.h"
 #include "td/db/DbKey.h"
 
+#include "td/actor/PromiseFuture.h"
+
 #include "td/utils/AesCtrByteFlow.h"
 #include "td/utils/buffer.h"
 #include "td/utils/BufferedFd.h"
@@ -103,6 +105,7 @@ class Binlog {
   void change_key(DbKey new_db_key);
 
   Status close(bool need_sync = true) TD_WARN_UNUSED_RESULT;
+  void close(Promise<> promise);
   Status close_and_destroy() TD_WARN_UNUSED_RESULT;
   static Status destroy(Slice path) TD_WARN_UNUSED_RESULT;
 

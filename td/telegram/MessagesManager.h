@@ -194,6 +194,8 @@ class MessagesManager : public Actor {
 
   tl_object_ptr<telegram_api::InputPeer> get_input_peer(DialogId dialog_id, AccessRights access_rights) const;
 
+  static tl_object_ptr<telegram_api::InputPeer> get_input_peer_force(DialogId dialog_id);
+
   vector<tl_object_ptr<telegram_api::InputPeer>> get_input_peers(const vector<DialogId> &dialog_ids,
                                                                  AccessRights access_rights) const;
 
@@ -453,7 +455,8 @@ class MessagesManager : public Actor {
 
   void add_dialog_to_list(DialogId dialog_id, DialogListId dialog_list_id, Promise<Unit> &&promise);
 
-  void set_dialog_photo(DialogId dialog_id, const tl_object_ptr<td_api::InputFile> &photo, Promise<Unit> &&promise);
+  void set_dialog_photo(DialogId dialog_id, const tl_object_ptr<td_api::InputChatPhoto> &input_photo,
+                        Promise<Unit> &&promise);
 
   void set_dialog_title(DialogId dialog_id, const string &title, Promise<Unit> &&promise);
 
@@ -830,7 +833,8 @@ class MessagesManager : public Actor {
   void remove_message_notifications(DialogId dialog_id, NotificationGroupId group_id,
                                     NotificationId max_notification_id, MessageId max_message_id);
 
-  void upload_dialog_photo(DialogId dialog_id, FileId file_id, Promise<Unit> &&promise);
+  void upload_dialog_photo(DialogId dialog_id, FileId file_id, bool is_animation, double main_frame_timestamp,
+                           bool is_reupload, Promise<Unit> &&promise, vector<int> bad_parts = {});
 
   void on_binlog_events(vector<BinlogEvent> &&events);
 
@@ -1113,6 +1117,8 @@ class MessagesManager : public Actor {
     NotificationId new_secret_chat_notification_id;  // secret chats only
     MessageId pinned_message_notification_message_id;
 
+    int32 distance = -1;  // distance to the peer
+
     bool has_contact_registered_message = false;
 
     bool is_last_message_deleted_locally = false;
@@ -1124,6 +1130,8 @@ class MessagesManager : public Actor {
     bool can_block_user = false;
     bool can_share_phone_number = false;
     bool can_report_location = false;
+    bool can_unarchive = false;
+    bool hide_distance = false;
 
     bool is_opened = false;
 
@@ -2148,6 +2156,8 @@ class MessagesManager : public Actor {
 
   void set_dialog_folder_id(Dialog *d, FolderId folder_id);
 
+  void do_set_dialog_folder_id(Dialog *d, FolderId folder_id);
+
   void toggle_dialog_is_pinned_on_server(DialogId dialog_id, bool is_pinned, uint64 logevent_id);
 
   void toggle_dialog_is_marked_as_unread_on_server(DialogId dialog_id, bool is_marked_as_unread, uint64 logevent_id);
@@ -2222,7 +2232,8 @@ class MessagesManager : public Actor {
 
   td_api::object_ptr<td_api::ChatType> get_chat_type_object(DialogId dialog_id) const;
 
-  td_api::object_ptr<td_api::ChatActionBar> get_chat_action_bar_object(const Dialog *d) const;
+  td_api::object_ptr<td_api::ChatActionBar> get_chat_action_bar_object(const Dialog *d,
+                                                                       bool hide_unarchive = false) const;
 
   td_api::object_ptr<td_api::chat> get_chat_object(const Dialog *d, int64 real_order = DEFAULT_ORDER) const;
 
@@ -2671,6 +2682,8 @@ class MessagesManager : public Actor {
 
   void update_top_dialogs(DialogId dialog_id, const Message *m);
 
+  void try_hide_distance(DialogId dialog_id, const Message *m);
+
   string get_search_text(const Message *m) const;
 
   unique_ptr<Message> parse_message(DialogId dialog_id, const BufferSlice &value, bool is_scheduled);
@@ -2815,8 +2828,20 @@ class MessagesManager : public Actor {
   const char *debug_add_message_to_dialog_fail_reason_ = "";
 
   struct UploadedDialogPhotoInfo {
-    Promise<Unit> promise;
     DialogId dialog_id;
+    double main_frame_timestamp;
+    bool is_animation;
+    bool is_reupload;
+    Promise<Unit> promise;
+
+    UploadedDialogPhotoInfo(DialogId dialog_id, double main_frame_timestamp, bool is_animation, bool is_reupload,
+                            Promise<Unit> promise)
+        : dialog_id(dialog_id)
+        , main_frame_timestamp(main_frame_timestamp)
+        , is_animation(is_animation)
+        , is_reupload(is_reupload)
+        , promise(std::move(promise)) {
+    }
   };
   std::unordered_map<FileId, UploadedDialogPhotoInfo, FileIdHash> being_uploaded_dialog_photos_;  // file_id -> ...
 

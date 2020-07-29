@@ -63,6 +63,7 @@ select.large { font-size: large; }
         <option>Ubuntu 14</option>
         <option>Ubuntu 16</option>
         <option>Ubuntu 18</option>
+        <option>Ubuntu 20</option>
         <option>Other</option>
       </select>
       <p></p>
@@ -317,11 +318,12 @@ function onOsChanged() {
 
   if (target === 'WebAssembly') {
     text = 'TDLib is available in a prebuilt form as an <a href="https://www.npmjs.com/">NPM</a> package <a href="https://www.npmjs.com/package/tdweb">tdweb</a>.<br>' +
-           'If you want to build it manually, take a look at our <a href="https://github.com/tdlib/td/tree/master/example/web">example</a>';
+           'If you want to build it manually, take a look at our <a href="https://github.com/tdlib/td/tree/master/example/web">example</a>.';
     target = '';
   }
   if (target === 'Android') {
-    text = 'TDLib for Android is available in a prebuilt form and can be downloaded from <a href="https://core.telegram.org/tdlib/tdlib.zip">there</a>.';
+    text = 'TDLib for Android is available in a prebuilt form and can be downloaded from <a href="https://core.telegram.org/tdlib/tdlib.zip">there</a>.<br>' +
+           'See <a href="https://github.com/tdlib/td/issues/77#issuecomment-640719893">build instructions</a> if you want to build the latest TDLib version or want to build TDLib with different interface.';
     target = '';
   }
   if (target === 'iOS') {
@@ -411,7 +413,7 @@ function onOptionsChanged() {
   var use_vcpkg = os_windows;
 
   var use_lto = false;
-  if (!use_msvc && language !== 'Java' && language !== 'Kotlin' && (os_mac || (os_linux && (linux_distro === 'Ubuntu 18' || linux_distro === 'Other')))) {
+  if (!use_msvc && language !== 'Java' && language !== 'Kotlin' && (os_mac || (os_linux && (linux_distro === 'Ubuntu 18' || linux_distro === 'Ubuntu 20' || linux_distro === 'Other')))) {
     document.getElementById('buildLtoDiv').style.display = 'block';
     use_lto = document.getElementById('buildLtoCheckbox').checked;
   } else {
@@ -586,6 +588,7 @@ function onOptionsChanged() {
       case 'Ubuntu 14':
       case 'Ubuntu 16':
       case 'Ubuntu 18':
+      case 'Ubuntu 20':
         if (linux_distro.includes('Debian') && !use_root) {
           commands.push('su -');
         }
@@ -609,7 +612,7 @@ function onOptionsChanged() {
           packages += ' default-jdk';
         }
         if (use_clang) {
-          if (linux_distro === 'Ubuntu 18') {
+          if (linux_distro === 'Ubuntu 18' || linux_distro === 'Ubuntu 20') {
             packages += ' clang-6.0 libc++-dev libc++abi-dev';
           } else {
             if (linux_distro === 'Ubuntu 14') {
@@ -783,7 +786,7 @@ function onOptionsChanged() {
       var prefix = '';
       if (os_linux) {
         if (use_clang) {
-          if (linux_distro === 'Ubuntu 18') {
+          if (linux_distro === 'Ubuntu 18' || linux_distro === 'Ubuntu 20') {
             prefix = 'CC=/usr/bin/clang-6.0 CXX=/usr/bin/clang++-6.0 ';
             options.push('-DCMAKE_AR=/usr/bin/llvm-ar-6.0');
             options.push('-DCMAKE_NM=/usr/bin/llvm-nm-6.0');

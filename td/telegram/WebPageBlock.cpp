@@ -369,7 +369,7 @@ class RelatedArticle {
     using ::td::store;
     bool has_title = !title.empty();
     bool has_description = !description.empty();
-    bool has_photo = photo.id != -2;
+    bool has_photo = !photo.is_empty();
     bool has_author = !author.empty();
     bool has_date = published_date != 0;
     BEGIN_STORE_FLAGS();
@@ -423,8 +423,6 @@ class RelatedArticle {
     }
     if (has_photo) {
       parse(photo, parser);
-    } else {
-      photo.id = -2;
     }
     if (has_author) {
       parse(author, parser);
@@ -1050,7 +1048,7 @@ class WebPageBlockPhoto : public WebPageBlock {
   }
 
   td_api::object_ptr<td_api::PageBlock> get_page_block_object(Context *context) const override {
-    return make_tl_object<td_api::pageBlockPhoto>(get_photo_object(context->td_->file_manager_.get(), &photo),
+    return make_tl_object<td_api::pageBlockPhoto>(get_photo_object(context->td_->file_manager_.get(), photo),
                                                   caption.get_page_block_caption_object(context), url);
   }
 
@@ -1213,7 +1211,7 @@ class WebPageBlockEmbedded : public WebPageBlock {
 
   td_api::object_ptr<td_api::PageBlock> get_page_block_object(Context *context) const override {
     return make_tl_object<td_api::pageBlockEmbedded>(
-        url, html, get_photo_object(context->td_->file_manager_.get(), &poster_photo), dimensions.width,
+        url, html, get_photo_object(context->td_->file_manager_.get(), poster_photo), dimensions.width,
         dimensions.height, caption.get_page_block_caption_object(context), is_full_width, allow_scrolling);
   }
 
@@ -1282,7 +1280,7 @@ class WebPageBlockEmbeddedPost : public WebPageBlock {
 
   td_api::object_ptr<td_api::PageBlock> get_page_block_object(Context *context) const override {
     return make_tl_object<td_api::pageBlockEmbeddedPost>(
-        url, author, get_photo_object(context->td_->file_manager_.get(), &author_photo), date,
+        url, author, get_photo_object(context->td_->file_manager_.get(), author_photo), date,
         get_page_block_objects(page_blocks, context), caption.get_page_block_caption_object(context));
   }
 
@@ -1412,7 +1410,7 @@ class WebPageBlockChatLink : public WebPageBlock {
 
   td_api::object_ptr<td_api::PageBlock> get_page_block_object(Context *context) const override {
     return make_tl_object<td_api::pageBlockChatLink>(
-        title, get_chat_photo_object(context->td_->file_manager_.get(), &photo), username);
+        title, get_chat_photo_info_object(context->td_->file_manager_.get(), &photo), username);
   }
 
   template <class StorerT>
@@ -1624,7 +1622,7 @@ class WebPageBlockRelatedArticles : public WebPageBlock {
   void append_file_ids(const Td *td, vector<FileId> &file_ids) const override {
     header.append_file_ids(td, file_ids);
     for (auto &article : related_articles) {
-      if (article.photo.id != -2) {
+      if (!article.photo.is_empty()) {
         append(file_ids, photo_get_file_ids(article.photo));
       }
     }
@@ -1634,7 +1632,7 @@ class WebPageBlockRelatedArticles : public WebPageBlock {
     auto related_article_objects = transform(related_articles, [context](const RelatedArticle &article) {
       return td_api::make_object<td_api::pageBlockRelatedArticle>(
           article.url, article.title, article.description,
-          get_photo_object(context->td_->file_manager_.get(), &article.photo), article.author, article.published_date);
+          get_photo_object(context->td_->file_manager_.get(), article.photo), article.author, article.published_date);
     });
     return make_tl_object<td_api::pageBlockRelatedArticles>(header.get_rich_text_object(context),
                                                             std::move(related_article_objects));
@@ -2019,9 +2017,7 @@ unique_ptr<WebPageBlock> get_web_page_block(Td *td, tl_object_ptr<telegram_api::
       auto page_block = move_tl_object_as<telegram_api::pageBlockPhoto>(page_block_ptr);
       auto it = photos.find(page_block->photo_id_);
       Photo photo;
-      if (it == photos.end()) {
-        photo.id = -2;
-      } else {
+      if (it != photos.end()) {
         photo = it->second;
       }
       string url;
@@ -2071,9 +2067,7 @@ unique_ptr<WebPageBlock> get_web_page_block(Td *td, tl_object_ptr<telegram_api::
                     ? photos.find(page_block->poster_photo_id_)
                     : photos.end();
       Photo poster_photo;
-      if (it == photos.end()) {
-        poster_photo.id = -2;
-      } else {
+      if (it != photos.end()) {
         poster_photo = it->second;
       }
       Dimensions dimensions;
@@ -2088,9 +2082,7 @@ unique_ptr<WebPageBlock> get_web_page_block(Td *td, tl_object_ptr<telegram_api::
       auto page_block = move_tl_object_as<telegram_api::pageBlockEmbedPost>(page_block_ptr);
       auto it = photos.find(page_block->author_photo_id_);
       Photo author_photo;
-      if (it == photos.end()) {
-        author_photo.id = -2;
-      } else {
+      if (it != photos.end()) {
         author_photo = it->second;
       }
       return td::make_unique<WebPageBlockEmbeddedPost>(
@@ -2215,9 +2207,7 @@ unique_ptr<WebPageBlock> get_web_page_block(Td *td, tl_object_ptr<telegram_api::
             auto it = (related_article->flags_ & telegram_api::pageRelatedArticle::PHOTO_ID_MASK) != 0
                           ? photos.find(related_article->photo_id_)
                           : photos.end();
-            if (it == photos.end()) {
-              article.photo.id = -2;
-            } else {
+            if (it != photos.end()) {
               article.photo = it->second;
             }
             article.author = std::move(related_article->author_);

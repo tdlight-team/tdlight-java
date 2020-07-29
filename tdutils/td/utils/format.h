@@ -11,6 +11,7 @@
 #include "td/utils/Slice.h"
 #include "td/utils/StringBuilder.h"
 
+#include <set>
 #include <tuple>
 #include <utility>
 
@@ -332,6 +333,10 @@ StringBuilder &operator<<(StringBuilder &sb, const std::pair<A, B> &p) {
 
 template <class T>
 StringBuilder &operator<<(StringBuilder &stream, const vector<T> &vec) {
+  return stream << format::as_array(vec);
+}
+template <class T>
+StringBuilder &operator<<(StringBuilder &stream, const std::set<T> &vec) {
   return stream << format::as_array(vec);
 }
 

@@ -578,7 +578,7 @@ class MessagesDbImpl : public MessagesDbSyncInterface {
       while (get_expiring_messages_stmt_.has_row()) {
         DialogId dialog_id(get_expiring_messages_stmt_.view_int64(0));
         BufferSlice data(get_expiring_messages_stmt_.view_blob(1));
-        messages.push_back(std::make_pair(dialog_id, std::move(data)));
+        messages.emplace_back(dialog_id, std::move(data));
         get_expiring_messages_stmt_.step().ensure();
       }
     }
@@ -1053,6 +1053,8 @@ class MessagesDbAsync : public MessagesDbAsyncInterface {
       });
     }
     void on_write_result(Promise<> promise, Status status) {
+      // We are inside a transaction and don't know how to handle the error
+      status.ensure();
       pending_write_results_.emplace_back(std::move(promise), std::move(status));
     }
     void delete_all_dialog_messages(DialogId dialog_id, MessageId from_message_id, Promise<> promise) {

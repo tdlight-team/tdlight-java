@@ -605,6 +605,71 @@ RestrictedRights get_restricted_rights(const td_api::object_ptr<td_api::chatPerm
                           permissions->can_pin_messages_);
 }
 
+DialogParticipant::DialogParticipant(UserId user_id, UserId inviter_user_id, int32 joined_date,
+                                     DialogParticipantStatus status)
+    : user_id(user_id), inviter_user_id(inviter_user_id), joined_date(joined_date), status(status) {
+  if (!inviter_user_id.is_valid() && inviter_user_id != UserId()) {
+    LOG(ERROR) << "Receive inviter " << inviter_user_id;
+    inviter_user_id = UserId();
+  }
+  if (joined_date < 0) {
+    LOG(ERROR) << "Receive date " << joined_date;
+    joined_date = 0;
+  }
+}
+
+DialogParticipant::DialogParticipant(tl_object_ptr<telegram_api::ChannelParticipant> &&participant_ptr,
+                                     DialogParticipantStatus my_status) {
+  CHECK(participant_ptr != nullptr);
+  switch (participant_ptr->get_id()) {
+    case telegram_api::channelParticipant::ID: {
+      auto participant = move_tl_object_as<telegram_api::channelParticipant>(participant_ptr);
+      *this = {UserId(participant->user_id_), UserId(), participant->date_, DialogParticipantStatus::Member()};
+      break;
+    }
+    case telegram_api::channelParticipantSelf::ID: {
+      auto participant = move_tl_object_as<telegram_api::channelParticipantSelf>(participant_ptr);
+      *this = {UserId(participant->user_id_), UserId(participant->inviter_id_), participant->date_,
+               std::move(my_status)};
+      break;
+    }
+    case telegram_api::channelParticipantCreator::ID: {
+      auto participant = move_tl_object_as<telegram_api::channelParticipantCreator>(participant_ptr);
+      *this = {UserId(participant->user_id_), UserId(), 0,
+               DialogParticipantStatus::Creator(true, std::move(participant->rank_))};
+      break;
+    }
+    case telegram_api::channelParticipantAdmin::ID: {
+      auto participant = move_tl_object_as<telegram_api::channelParticipantAdmin>(participant_ptr);
+      bool can_be_edited = (participant->flags_ & telegram_api::channelParticipantAdmin::CAN_EDIT_MASK) != 0;
+      *this = {UserId(participant->user_id_), UserId(participant->promoted_by_), participant->date_,
+               get_dialog_participant_status(can_be_edited, std::move(participant->admin_rights_),
+                                             std::move(participant->rank_))};
+      break;
+    }
+    case telegram_api::channelParticipantBanned::ID: {
+      auto participant = move_tl_object_as<telegram_api::channelParticipantBanned>(participant_ptr);
+      auto is_member = (participant->flags_ & telegram_api::channelParticipantBanned::LEFT_MASK) == 0;
+      *this = {UserId(participant->user_id_), UserId(participant->kicked_by_), participant->date_,
+               get_dialog_participant_status(is_member, std::move(participant->banned_rights_))};
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+bool DialogParticipant::is_valid() const {
+  if (!user_id.is_valid() || joined_date < 0) {
+    return false;
+  }
+  if (status.is_restricted() || status.is_banned() || (status.is_administrator() && !status.is_creator())) {
+    return inviter_user_id.is_valid();
+  }
+  return true;
+}
+
 StringBuilder &operator<<(StringBuilder &string_builder, const DialogParticipant &dialog_participant) {
   return string_builder << '[' << dialog_participant.user_id << " invited by " << dialog_participant.inviter_user_id
                         << " at " << dialog_participant.joined_date << " with status " << dialog_participant.status

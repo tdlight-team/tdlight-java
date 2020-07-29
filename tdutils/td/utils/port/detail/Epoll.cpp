@@ -100,8 +100,7 @@ void Epoll::run(int timeout_ms) {
 #ifdef EPOLLRDHUP
     if (event->events & EPOLLRDHUP) {
       event->events &= ~EPOLLRDHUP;
-      //      flags |= Fd::Close;
-      // TODO
+      flags = flags | PollFlags::Close();
     }
 #endif
     if (event->events & EPOLLHUP) {

@@ -27,6 +27,36 @@
 
 namespace td {
 
+class RandomSteps {
+ public:
+  struct Step {
+    std::function<void()> func;
+    uint32 weight;
+  };
+
+  explicit RandomSteps(vector<Step> steps) : steps_(std::move(steps)) {
+    for (const auto &step : steps_) {
+      steps_sum_ += step.weight;
+    }
+  }
+
+  template <class Random>
+  void step(Random &rnd) const {
+    auto w = rnd() % steps_sum_;
+    for (const auto &step : steps_) {
+      if (w < step.weight) {
+        step.func();
+        break;
+      }
+      w -= step.weight;
+    }
+  }
+
+ private:
+  vector<Step> steps_;
+  int32 steps_sum_ = 0;
+};
+
 class RegressionTester {
  public:
   virtual ~RegressionTester() = default;
@@ -78,6 +108,7 @@ class TestsRunner : public TestContext {
     size_t it{0};
     bool is_running = false;
     double start{0};
+    double start_unadjusted{0};
     size_t end{0};
   };
   bool stress_flag_{false};
@@ -134,36 +165,6 @@ inline vector<string> rand_split(Slice str) {
   }
   return res;
 }
-
-struct Step {
-  std::function<void()> func;
-  uint32 weight;
-};
-
-class RandomSteps {
- public:
-  explicit RandomSteps(vector<Step> steps) : steps_(std::move(steps)) {
-    for (const auto &step : steps_) {
-      steps_sum_ += step.weight;
-    }
-  }
-
-  template <class Random>
-  void step(Random &rnd) const {
-    auto w = rnd() % steps_sum_;
-    for (const auto &step : steps_) {
-      if (w < step.weight) {
-        step.func();
-        break;
-      }
-      w -= step.weight;
-    }
-  }
-
- private:
-  vector<Step> steps_;
-  int32 steps_sum_ = 0;
-};
 
 template <class T1, class T2>
 void assert_eq_impl(const T1 &expected, const T2 &got, const char *file, int line) {
