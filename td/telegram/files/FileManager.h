@@ -501,6 +501,8 @@ class FileManager : public FileLoadManager::Callback {
   FileId parse_file(ParserT &parser);
 
  private:
+  void destroy_query(int32 file_id);
+
   Result<FileId> check_input_file_id(FileType type, Result<FileId> result, bool is_encrypted, bool allow_zero,
                                      bool is_secure) TD_WARN_UNUSED_RESULT;
 
