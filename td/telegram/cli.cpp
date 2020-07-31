@@ -400,9 +400,10 @@ class CliClient final : public Actor {
       case td_api::authorizationStateWaitTdlibParameters::ID: {
         auto parameters = td_api::make_object<td_api::tdlibParameters>();
         parameters->use_test_dc_ = use_test_dc_;
-        parameters->use_message_database_ = true;
-        parameters->use_chat_info_database_ = true;
-        parameters->use_secret_chats_ = true;
+        parameters->use_message_database_ = false;
+        parameters->use_chat_info_database_ = false;
+        parameters->use_file_database_ = false;
+        parameters->use_secret_chats_ = false;
         parameters->api_id_ = api_id_;
         parameters->api_hash_ = api_hash_;
         parameters->system_language_code_ = "en";

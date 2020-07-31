@@ -1203,6 +1203,9 @@ tl_object_ptr<td_api::webPage> WebPagesManager::get_web_page_object(WebPageId we
   if (web_page == nullptr) {
     return nullptr;
   }
+  if (&web_page->url == nullptr) {
+    return nullptr;
+  }
   int32 instant_view_version = [web_page] {
     if (web_page->instant_view.is_empty) {
       return 0;
