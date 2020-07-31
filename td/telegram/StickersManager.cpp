@@ -6302,16 +6302,6 @@ void StickersManager::memory_cleanup() {
     found_sticker_sets_.rehash(0);
     special_sticker_sets_.clear();
     special_sticker_sets_.rehash(0);
-    sticker_set_load_requests_.clear();
-    sticker_set_load_requests_.rehash(0);
-    emoji_language_codes_.clear();
-    emoji_language_codes_.rehash(0);
-    emoji_language_code_versions_.clear();
-    emoji_language_code_versions_.rehash(0);
-    emoji_language_code_last_difference_times_.clear();
-    emoji_language_code_last_difference_times_.rehash(0);
-    emoji_suggestions_urls_.clear();
-    emoji_suggestions_urls_.rehash(0);
     dice_messages_.clear();
     dice_messages_.rehash(0);
 }

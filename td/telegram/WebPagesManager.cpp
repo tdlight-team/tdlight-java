@@ -540,7 +540,11 @@ void WebPagesManager::update_web_page(unique_ptr<WebPage> web_page, WebPageId we
       return;
   }
 
-  auto &page = web_pages_[web_page_id];
+  // Start custom-patches
+  auto find_page = web_pages_.find(web_page_id);
+  if (find_page == web_pages_.end()) { return; }
+  auto &page = find_page->second;
+  // End custom-patches
   auto old_file_ids = get_web_page_file_ids(page.get());
   WebPageInstantView old_instant_view;
   bool is_changed = true;
@@ -660,7 +664,12 @@ void WebPagesManager::on_get_web_page_instant_view_view_count(WebPageId web_page
     return;
   }
 
-  auto *instant_view = &web_pages_[web_page_id]->instant_view;
+  // Start custom-patches
+  auto find_web_page_val = web_pages_.find(web_page_id);
+  if (find_web_page_val == web_pages_.end()) { return; }
+  auto &web_page_val = find_web_page_val->second;
+  // End custom-patches
+  auto *instant_view = web_page_val->instant_view;
   if (instant_view->is_empty) { return; }
   if (instant_view->view_count >= view_count) {
     return;
@@ -674,7 +683,11 @@ void WebPagesManager::on_get_web_page_instant_view_view_count(WebPageId web_page
 }
 
 void WebPagesManager::on_get_web_page_by_url(const string &url, WebPageId web_page_id, bool from_database) {
-  auto &cached_web_page_id = url_to_web_page_id_[url];
+  // Start custom-patches
+  auto find_cached_web_page_id = url_to_web_page_id_.find(url);
+  if (find_cached_web_page_id == url_to_web_page_id_.end()) { return; }
+  auto &cached_web_page_id = find_cached_web_page_id->second;
+  // End custom-patches
   if (!from_database && G()->parameters().use_message_db) {
     if (web_page_id.is_valid()) {
       if (cached_web_page_id != web_page_id) {  // not already saved
@@ -698,7 +711,12 @@ void WebPagesManager::register_web_page(WebPageId web_page_id, FullMessageId ful
   }
 
   LOG(INFO) << "Register " << web_page_id << " from " << full_message_id << " from " << source;
-  bool is_inserted = web_page_messages_[web_page_id].insert(full_message_id).second;
+  // Start custom-patches
+  auto find_web_page_message_ids = web_page_messages_.find(web_page_id);
+  if (find_web_page_message_ids == web_page_messages_.end()) { return; }
+  auto &web_page_message_ids = find_web_page_message_ids->second;
+  // End custom-patches
+  bool is_inserted = web_page_message_ids.insert(full_message_id).second;
   if (!is_inserted) { return; }
 
   if (!td_->auth_manager_->is_bot() && !have_web_page_force(web_page_id)) {
@@ -713,7 +731,11 @@ void WebPagesManager::unregister_web_page(WebPageId web_page_id, FullMessageId f
   }
 
   LOG(INFO) << "Unregister " << web_page_id << " from " << full_message_id << " from " << source;
-  auto &message_ids = web_page_messages_[web_page_id];
+  // Start custom-patches
+  auto find_message_ids = web_page_messages_.find(web_page_id);
+  if (find_message_ids == web_page_messages_.end()) { return; }
+  auto &message_ids = find_message_ids->second;
+  // End custom-patches
   auto is_deleted = message_ids.erase(full_message_id);
   if (!is_deleted) {
     return;
@@ -1326,7 +1348,12 @@ void WebPagesManager::on_web_page_changed(WebPageId web_page_id, bool have_web_p
       }
     }
     if (have_web_page) {
-      if (!(web_page_messages_[web_page_id].size() == full_message_ids.size())) { return; }
+      // Start custom-patches
+      auto find_web_page_message_ids = web_page_messages_.find(web_page_id);
+      if (find_web_page_message_ids == web_page_messages_.end()) { return; }
+      auto &web_page_message_ids = find_web_page_message_ids->second;
+      // End custom-patches
+      if (!(web_page_message_ids.size() == full_message_ids.size())) { return; }
     } else {
       if (!(web_page_messages_.count(web_page_id) == 0)) { return; }
     }
@@ -1683,8 +1710,16 @@ FileSourceId WebPagesManager::get_url_file_source_id(const string &url) {
     const WebPage *web_page = get_web_page(web_page_id);
     if (web_page != nullptr) {
       if (!web_page->file_source_id.is_valid()) {
+        // Start custom-patches
+        auto find_web_page_val = web_pages_.find(web_page_id);
+        if (find_web_page_val != web_pages_.end()) {
+          auto &web_page_val = find_web_page_val->second;
+        // End custom-patches
         web_pages_[web_page_id]->file_source_id =
             td_->file_reference_manager_->create_web_page_file_source(web_page->url);
+        // Start custom-patches
+        }
+        // End custom-patches
       }
       return web_page->file_source_id;
     }
@@ -1723,6 +1758,8 @@ vector<FileId> WebPagesManager::get_web_page_file_ids(const WebPage *web_page) c
 void WebPagesManager::memory_cleanup() {
     web_pages_.clear();
     web_pages_.rehash(0);
+    loaded_from_database_web_pages_.clear();
+    loaded_from_database_web_pages_.rehash(0);
     web_page_messages_.clear();
     web_page_messages_.rehash(0);
     got_web_page_previews_.clear();
