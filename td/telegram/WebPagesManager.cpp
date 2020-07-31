@@ -669,7 +669,7 @@ void WebPagesManager::on_get_web_page_instant_view_view_count(WebPageId web_page
   if (find_web_page_val == web_pages_.end()) { return; }
   auto &web_page_val = find_web_page_val->second;
   // End custom-patches
-  auto *instant_view = web_page_val->instant_view;
+  auto *instant_view = &web_page_val->instant_view;
   if (instant_view->is_empty) { return; }
   if (instant_view->view_count >= view_count) {
     return;
@@ -1715,7 +1715,7 @@ FileSourceId WebPagesManager::get_url_file_source_id(const string &url) {
         if (find_web_page_val != web_pages_.end()) {
           auto &web_page_val = find_web_page_val->second;
         // End custom-patches
-        web_pages_[web_page_id]->file_source_id =
+        web_page_val->file_source_id =
             td_->file_reference_manager_->create_web_page_file_source(web_page->url);
         // Start custom-patches
         }
