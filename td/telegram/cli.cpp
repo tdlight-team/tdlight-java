@@ -923,8 +923,6 @@ class CliClient final : public Actor {
     if (disable_network_) {
       send_request(td_api::make_object<td_api::setNetworkType>(td_api::make_object<td_api::networkTypeNone>()));
     }
-
-    on_cmd("v0");
   }
 #ifndef USE_READLINE
   size_t buffer_pos_ = 0;

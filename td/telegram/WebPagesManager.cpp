@@ -427,6 +427,11 @@ WebPageId WebPagesManager::on_get_web_page(tl_object_ptr<telegram_api::WebPage> 
       LOG(INFO) << "Got empty " << web_page_id;
       const WebPage *web_page_to_delete = get_web_page(web_page_id);
       if (web_page_to_delete != nullptr) {
+        if (web_page_to_delete->logevent_id != 0) {
+          LOG(INFO) << "Erase " << web_page_id << " from binlog";
+          binlog_erase(G()->td_db()->get_binlog(), web_page_to_delete->logevent_id);
+          web_page_to_delete->logevent_id = 0;
+        }
         if (web_page_to_delete->file_source_id.is_valid()) {
           td_->file_manager_->change_files_source(web_page_to_delete->file_source_id,
                                                   get_web_page_file_ids(web_page_to_delete), vector<FileId>());
@@ -737,9 +742,6 @@ void WebPagesManager::unregister_web_page(WebPageId web_page_id, FullMessageId f
   auto &message_ids = find_message_ids->second;
   // End custom-patches
   auto is_deleted = message_ids.erase(full_message_id);
-  if (!is_deleted) {
-    return;
-  }
   if (!is_deleted) { return; }
 
   if (message_ids.empty()) {
@@ -1375,7 +1377,7 @@ const WebPagesManager::WebPage *WebPagesManager::get_web_page(WebPageId web_page
 
   if (p == web_pages_.end() ||
       p->second == nullptr) {
-    return make_unique<WebPage>().get();
+    return nullptr;
   }
 
   return p->second.get();

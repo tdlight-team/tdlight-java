@@ -3041,7 +3041,7 @@ void ContactsManager::on_user_online_timeout(UserId user_id) {
   }
 
   auto u = get_user(user_id);
-  CHECK(u != nullptr);
+  if (u == nullptr) { return; }
   CHECK(u->is_update_user_sent);
 
   LOG(INFO) << "Update " << user_id << " online status to offline";
