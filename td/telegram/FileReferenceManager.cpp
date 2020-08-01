@@ -366,10 +366,13 @@ void FileReferenceManager::reload_photo(PhotoSizeSource source, Promise<Unit> pr
 }
 
 void FileReferenceManager::memory_cleanup(FileId file_id) {
-  auto &node = nodes_[file_id];
-  node.query.reset();
-  node.file_source_ids.reset_position();
-  nodes_.erase(file_id);
+  auto find_node = nodes_.find(file_id);
+  if (find_node != nodes_.end()) {
+    auto &node = find_node->second;
+    node.query.reset();
+    node.file_source_ids.reset_position();
+    nodes_.erase(file_id);
+  }
 }
 
 }  // namespace td
