@@ -47,6 +47,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <shared_mutex>
 
 namespace td {
 
@@ -469,12 +470,14 @@ class ContactsManager : public Actor {
   bool get_channel(ChannelId channel_id, int left_tries, Promise<Unit> &&promise);
   void reload_channel(ChannelId chnanel_id, Promise<Unit> &&promise);
   bool get_channel_full(ChannelId channel_id, bool force, Promise<Unit> &&promise);
+  bool get_channel_full_internal(ChannelId channel_id, bool force, Promise<Unit> &&promise);
   FileSourceId get_channel_full_file_source_id(ChannelId channel_id);
   void reload_channel_full(ChannelId channel_id, Promise<Unit> &&promise, const char *source);
 
   bool is_channel_public(ChannelId channel_id) const;
 
   bool have_secret_chat(SecretChatId secret_chat_id) const;
+  bool have_secret_chat_internal(SecretChatId secret_chat_id) const;
   bool have_secret_chat_force(SecretChatId secret_chat_id);
   bool get_secret_chat(SecretChatId secret_chat_id, bool force, Promise<Unit> &&promise);
   bool get_secret_chat_full(SecretChatId secret_chat_id, Promise<Unit> &&promise);
@@ -488,6 +491,8 @@ class ContactsManager : public Actor {
   int32 get_channel_slow_mode_delay(ChannelId channel_id);
 
   std::pair<int32, vector<UserId>> search_among_users(const vector<UserId> &user_ids, const string &query, int32 limit);
+
+  std::pair<int32, vector<UserId>> search_among_users_internal(const vector<UserId> &user_ids, const string &query, int32 limit);
 
   DialogParticipant get_chat_participant(ChatId chat_id, UserId user_id, bool force, Promise<Unit> &&promise);
 
@@ -513,21 +518,31 @@ class ContactsManager : public Actor {
 
   int32 get_user_id_object(UserId user_id, const char *source) const;
 
+  int32 get_user_id_object_internal(UserId user_id, const char *source) const;
+
   tl_object_ptr<td_api::user> get_user_object(UserId user_id) const;
 
   vector<int32> get_user_ids_object(const vector<UserId> &user_ids, const char *source) const;
 
+  vector<int32> get_user_ids_object_internal(const vector<UserId> &user_ids, const char *source) const;
+
   tl_object_ptr<td_api::users> get_users_object(int32 total_count, const vector<UserId> &user_ids) const;
+
+  tl_object_ptr<td_api::users> get_users_object_internal(int32 total_count, const vector<UserId> &user_ids) const;
 
   tl_object_ptr<td_api::userFullInfo> get_user_full_info_object(UserId user_id) const;
 
   int32 get_basic_group_id_object(ChatId chat_id, const char *source) const;
+
+  int32 get_basic_group_id_object_internal(ChatId chat_id, const char *source) const;
 
   tl_object_ptr<td_api::basicGroup> get_basic_group_object(ChatId chat_id);
 
   tl_object_ptr<td_api::basicGroupFullInfo> get_basic_group_full_info_object(ChatId chat_id) const;
 
   int32 get_supergroup_id_object(ChannelId channel_id, const char *source) const;
+
+  int32 get_supergroup_id_object_internal(ChannelId channel_id, const char *source) const;
 
   tl_object_ptr<td_api::supergroup> get_supergroup_object(ChannelId channel_id) const;
 
@@ -1086,7 +1101,9 @@ class ContactsManager : public Actor {
   Channel *add_channel(ChannelId channel_id, const char *source);
 
   const ChannelFull *get_channel_full(ChannelId channel_id) const;
+  const ChannelFull *get_channel_full_internal(ChannelId channel_id) const;
   ChannelFull *get_channel_full(ChannelId channel_id, const char *source);
+  ChannelFull *get_channel_full_internal(ChannelId channel_id, const char *source);
   ChannelFull *get_channel_full_force(ChannelId channel_id, const char *source);
 
   ChannelFull *add_channel_full(ChannelId channel_id);
@@ -1587,6 +1604,8 @@ class ContactsManager : public Actor {
   MultiTimeout user_nearby_timeout_{"UserNearbyTimeout"};
   MultiTimeout slow_mode_delay_timeout_{"SlowModeDelayTimeout"};
   MultiTimeout invite_link_info_expire_timeout_{"InviteLinkInfoExpireTimeout"};
+
+  mutable std::shared_timed_mutex memory_cleanup_mutex;
 };
 
 }  // namespace td
