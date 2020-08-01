@@ -41,6 +41,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <shared_mutex>
 
 namespace td {
 
@@ -72,7 +73,8 @@ class FileNode {
   FileNode(LocalFileLocation local, NewRemoteFileLocation remote, unique_ptr<FullGenerateFileLocation> generate,
            int64 size, int64 expected_size, string remote_name, string url, DialogId owner_dialog_id,
            FileEncryptionKey key, FileId main_file_id, int8 main_file_id_priority)
-      : local_(std::move(local))
+      : empty(false)
+      , local_(std::move(local))
       , remote_(std::move(remote))
       , generate_(std::move(generate))
       , size_(size)
@@ -93,6 +95,7 @@ class FileNode {
   void set_partial_remote_location(const PartialRemoteFileLocation &remote, int64 ready_size);
 
   bool delete_file_reference(Slice file_reference);
+  bool delete_file_reference_internal(Slice file_reference);
   void set_generate_location(unique_ptr<FullGenerateFileLocation> &&generate);
   void set_size(int64 size);
   void set_expected_size(int64 expected_size);
@@ -419,22 +422,37 @@ class FileManager : public FileLoadManager::Callback {
 
   FileId dup_file_id(FileId file_id);
 
+  FileId dup_file_id_internal(FileId file_id);
+
   void on_file_unlink(const FullLocalFileLocation &location);
 
   FileId register_empty(FileType type);
   Result<FileId> register_local(FullLocalFileLocation location, DialogId owner_dialog_id, int64 size,
                                 bool get_by_hash = false, bool force = false,
                                 bool skip_file_size_checks = false) TD_WARN_UNUSED_RESULT;
+  Result<FileId> register_local_internal(FullLocalFileLocation location, DialogId owner_dialog_id, int64 size,
+                                bool get_by_hash = false, bool force = false,
+                                bool skip_file_size_checks = false) TD_WARN_UNUSED_RESULT;
   FileId register_remote(const FullRemoteFileLocation &location, FileLocationSource file_location_source,
+                         DialogId owner_dialog_id, int64 size, int64 expected_size,
+                         string remote_name) TD_WARN_UNUSED_RESULT;
+  FileId register_remote_internal(const FullRemoteFileLocation &location, FileLocationSource file_location_source,
                          DialogId owner_dialog_id, int64 size, int64 expected_size,
                          string remote_name) TD_WARN_UNUSED_RESULT;
   Result<FileId> register_generate(FileType file_type, FileLocationSource file_location_source, string original_path,
                                    string conversion, DialogId owner_dialog_id,
                                    int64 expected_size) TD_WARN_UNUSED_RESULT;
+  Result<FileId> register_generate_internal(FileType file_type, FileLocationSource file_location_source, string original_path,
+                                   string conversion, DialogId owner_dialog_id,
+                                   int64 expected_size) TD_WARN_UNUSED_RESULT;
 
   Result<FileId> merge(FileId x_file_id, FileId y_file_id, bool no_sync = false) TD_WARN_UNUSED_RESULT;
 
+  Result<FileId> merge_internal(FileId x_file_id, FileId y_file_id, bool no_sync = false) TD_WARN_UNUSED_RESULT;
+
   void add_file_source(FileId file_id, FileSourceId file_source_id);
+
+  void add_file_source_internal(FileId file_id, FileSourceId file_source_id);
 
   void remove_file_source(FileId file_id, FileSourceId file_source_id);
 
@@ -455,6 +473,7 @@ class FileManager : public FileLoadManager::Callback {
   void cancel_upload(FileId file_id);
   bool delete_partial_remote_location(FileId file_id);
   void delete_file_reference(FileId file_id, std::string file_reference);
+  void delete_file_reference_internal(FileId file_id, std::string file_reference);
   void get_content(FileId file_id, Promise<BufferSlice> promise);
 
   void read_file_part(FileId file_id, int32 offset, int32 count, int left_tries,
@@ -580,7 +599,7 @@ class FileManager : public FileLoadManager::Callback {
   std::map<FileDbId, int32> pmc_id_to_file_node_id_;
 
   std::unordered_map<int32, FileIdInfo> file_id_info_;
-  std::unordered_map<FileNodeId, FileNode> file_nodes_;
+  std::unordered_map<FileNodeId, unique_ptr<FileNode>> file_nodes_;
   ActorOwn<FileLoadManager> file_load_manager_;
   ActorOwn<FileGenerateManager> file_generate_manager_;
 
@@ -667,6 +686,8 @@ class FileManager : public FileLoadManager::Callback {
 
   void hangup() override;
   void tear_down() override;
+
+  mutable std::shared_timed_mutex memory_cleanup_mutex;
 
   friend class FileNodePtr;
 };
