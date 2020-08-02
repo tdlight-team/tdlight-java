@@ -1486,6 +1486,8 @@ Result<FileId> FileManager::merge_internal(FileId x_file_id, FileId y_file_id, b
       x_node->remote_.full_source == FileLocationSource::FromServer &&
       y_node->remote_.full_source == FileLocationSource::FromServer &&
       x_node->remote_.full.value().get_dc_id() != y_node->remote_.full.value().get_dc_id()) {
+    LOG(ERROR) << "File remote location was changed from " << y_node->remote_.full.value() << " to "
+               << x_node->remote_.full.value();
   }
 
   bool drop_last_successful_force_reupload_time = x_node->last_successful_force_reupload_time_ <= 0 &&
@@ -1723,7 +1725,6 @@ void FileManager::add_file_source_internal(FileId file_id, FileSourceId file_sou
     node->on_pmc_changed();
     try_flush_node_pmc(node, "add_file_source");
   }
-  
 }
 
 void FileManager::remove_file_source(FileId file_id, FileSourceId file_source_id) {
@@ -1923,7 +1924,7 @@ FileNode *FileManager::get_file_node_raw(FileId file_id, FileNodeId *file_node_i
 FileNodePtr FileManager::get_sync_file_node(FileId file_id) {
   auto file_node = get_file_node(file_id);
   if (!file_node) {
-    return {this};
+    return {};
   }
   load_from_pmc(file_node, true, true, true);
   return file_node;
@@ -3289,7 +3290,9 @@ FileId FileManager::next_file_id() {
 }
 
 FileManager::FileNodeId FileManager::next_file_node_id() {
-  auto res = static_cast<FileNodeId>(file_node_seqno++);
+  auto id = file_node_seqno++;
+  auto res = static_cast<FileNodeId>(id);
+  file_nodes_[id] = nullptr;
   return res;
 }
 
