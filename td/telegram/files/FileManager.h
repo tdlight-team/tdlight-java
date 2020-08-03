@@ -589,8 +589,8 @@ class FileManager : public FileLoadManager::Callback {
   };
   Enumerator<RemoteInfo> remote_location_info_;
 
-  FileNodeId file_node_seqno = 0;
-  int32 file_id_seqno = 0;
+  FileNodeId file_node_seqno = 1;
+  int32 file_id_seqno = 1;
 
   std::unordered_map<string, FileId> file_hash_to_file_id_;
 

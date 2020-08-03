@@ -803,8 +803,6 @@ FileManager::FileManager(unique_ptr<Context> context) : context_(std::move(conte
   }
 
   parent_ = context_->create_reference();
-  next_file_id();
-  next_file_node_id();
 
   std::unordered_set<string> dir_paths;
   for (int32 i = 0; i < MAX_FILE_TYPE; i++) {
@@ -3836,7 +3834,7 @@ void FileManager::memory_cleanup() {
   LOG(ERROR) << "Initial registered ids: " << file_id_info_.size() << " registered nodes: " << file_nodes_.size();
 
   /* DESTROY OLD file_id_info_ */
-  {
+  if (true) {
     std::lock_guard<std::shared_timed_mutex> writerLock(memory_cleanup_mutex);
     auto it = file_id_info_.begin();
     auto time = std::time(nullptr);
@@ -3844,52 +3842,62 @@ void FileManager::memory_cleanup() {
 
     while (it != file_id_info_.end()) {
       if (it->second.node_id_ != 0) {
-        auto &node = file_nodes_[it->second.node_id_];
+        auto find_node = file_nodes_.find(it->second.node_id_);
+        if (find_node != file_nodes_.end()) {
+          auto &node = find_node->second;
 
-        if (time - node->main_file_id_.get_time() > FILE_TTL) {
-          auto can_reset = node->download_priority_ == 0;
-          can_reset &= node->generate_download_priority_ == 0;
-          can_reset &= node->download_id_ == 0;
+          if (time - node->main_file_id_.get_time() > FILE_TTL) {
+            auto can_reset = node->download_priority_ == 0;
+            can_reset &= node->generate_download_priority_ == 0;
+            can_reset &= node->download_id_ == 0;
 
-          if (can_reset) {
-            auto file_ids_it = node->file_ids_.begin();
+            if (can_reset) {
+              auto file_ids_it = node->file_ids_.begin();
 
-            while (file_ids_it != node->file_ids_.end() && can_reset) {
-              auto &file = file_id_info_[file_ids_it->fast_get()];
-              can_reset &= file.download_priority_ == 0;
-              can_reset &= time - file_ids_it->get_time() > FILE_TTL;
-              ++file_ids_it;
-            }
-          }
-
-          if (can_reset) {
-            node->main_file_id_.reset_time();
-
-            for (auto &file_id : node->file_ids_) {
-              file_id.reset_time();
-
-              /* DESTROY ASSOCIATED QUERIES */
-              destroy_query(file_id.fast_get());
-
-              /* DESTROY ASSOCIATED LATE */
-              file_to_be_deleted.push_back(file_id.fast_get());
+              while (file_ids_it != node->file_ids_.end() && can_reset) {
+                auto find_file = file_id_info_.find(file_ids_it->fast_get());
+                if (find_file != file_id_info_.end()) {
+                  auto &file = find_file->second;
+                  can_reset &= file.download_priority_ == 0;
+                  can_reset &= time - file_ids_it->get_time() > FILE_TTL;
+                }
+                file_ids_it++;
+              }
             }
 
-            /* DESTROY MAIN QUERY */
-            destroy_query(it->first);
+            if (can_reset) {
+              node->main_file_id_.reset_time();
 
-            /* DESTROY MAIN NODE */
-            file_nodes_.erase(it->first);
+              for (auto &file_id : node->file_ids_) {
+                file_id.reset_time();
 
-            /* DESTROY MAIN FILE LATE */
-            file_to_be_deleted.push_back(it->first);
+                /* DESTROY ASSOCIATED QUERIES */
+                destroy_query(file_id.fast_get());
+
+                /* DESTROY ASSOCIATED LATE */
+                file_to_be_deleted.push_back(file_id.fast_get());
+              }
+
+              /* DESTROY MAIN QUERY */
+              destroy_query(it->first);
+
+              /* DESTROY MAIN NODE */
+              file_nodes_.erase(it->first);
+
+              /* DESTROY MAIN FILE LATE */
+              file_to_be_deleted.push_back(it->first);
+            }
           }
+        } else {
+          /* The file has a nonexistent node associated */
+          file_to_be_deleted.push_back(it->first);
         }
       } else {
-        file_to_be_deleted.push_back(it->first);
+        // todo: When the program starts there is a file that points to the node 0. It shouldn't happen but it happens, so don't delete it, maybe that file is used by tdlib for some reason.
+        // file_to_be_deleted.push_back(it->first);
       }
 
-      ++it;
+      it++;
     }
 
     for (auto file_id : file_to_be_deleted) {
@@ -3899,34 +3907,42 @@ void FileManager::memory_cleanup() {
   }
 
   /* DESTROY INVALID FILES */
-  {
+  if (true) {
     auto it = file_id_info_.begin();
     while (it != file_id_info_.end()) {
+      auto is_invalid = false;
+
       if (it->second.node_id_ != 0) {
         auto find_file_node = file_nodes_.find(it->second.node_id_);
         if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
+          is_invalid = true;
           destroy_query(it->first);
           context_->destroy_file_source({it->first, 0});
           file_nodes_.erase(it->second.node_id_);
-          file_id_info_.erase(it++);
-        } else {
-          ++it;
         }
       } else {
-        ++it;
+        is_invalid = true;
+      }
+
+      if (is_invalid) {
+        it = file_id_info_.erase(it);
+      } else {
+        it++;
       }
     }
   }
 
   /* DESTROY INVALID file_nodes_ */
-  {
+  if (true) {
     auto it = file_nodes_.begin();
     while (it != file_nodes_.end()) {
+      auto is_invalid = false;
+
       if (it->second == nullptr || it->second->empty) {
-        file_nodes_.erase(it++);
+        is_invalid = true;
       } else {
         if (it->second->main_file_id_.empty()) {
-          file_nodes_.erase(it++);
+          is_invalid = true;
         } else {
           if (file_id_info_[it->second->main_file_id_.get()].node_id_ == 0) {
             for (auto &file_id : it->second->file_ids_) {
@@ -3934,107 +3950,147 @@ void FileManager::memory_cleanup() {
               file_id_info_.erase(file_id.get());
             }
             file_id_info_.erase(it->second->main_file_id_.get());
-            file_nodes_.erase(it++);
-          } else {
-            ++it;
+            is_invalid = true;
           }
         }
+      }
+
+      if (is_invalid) {
+        it = file_nodes_.erase(it);
+      } else {
+        it++;
       }
     }
   }
 
   /* DESTROY INVALID file_hash_to_file_id_ */
-  {
+  if (true) {
     auto it = file_hash_to_file_id_.begin();
     while (it != file_hash_to_file_id_.end()) {
+      auto is_invalid = false;
+
       auto find_file = file_id_info_.find(it->second.fast_get());
       if (find_file != file_id_info_.end()) {
         auto &file = find_file->second;
         auto find_file_node = file_nodes_.find(file.node_id_);
         if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
-          file_hash_to_file_id_.erase(it++);
+          is_invalid = true;
           file_nodes_.erase(file.node_id_);
-        } else {
-          ++it;
         }
       } else {
-        ++it;
+        is_invalid = true;
+      }
+
+      if (is_invalid) {
+        it = file_hash_to_file_id_.erase(it);
+      } else {
+        it++;
       }
     }
   }
 
   /* DESTROY INVALID local_location_to_file_id_ */
-  {
+  if (true) {
     auto it = local_location_to_file_id_.begin();
     while (it != local_location_to_file_id_.end()) {
+      auto is_invalid = false;
+
       auto find_file = file_id_info_.find(it->second.fast_get());
       if (find_file != file_id_info_.end()) {
         auto &file = find_file->second;
         auto find_file_node = file_nodes_.find(file.node_id_);
         if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
-          it = local_location_to_file_id_.erase(it++);
+          is_invalid = true;
           file_nodes_.erase(file.node_id_);
-        } else {
-          ++it;
         }
       } else {
-        ++it;
+        is_invalid = true;
+      }
+
+      if (is_invalid) {
+        it = local_location_to_file_id_.erase(it);
+      } else {
+        it++;
       }
     }
   }
 
   /* DESTROY INVALID generate_location_to_file_id_ */
-  {
+  if (true) {
     auto it = generate_location_to_file_id_.begin();
     while (it != generate_location_to_file_id_.end()) {
+      auto is_invalid = false;
+
       auto find_file = file_id_info_.find(it->second.fast_get());
       if (find_file != file_id_info_.end()) {
         auto &file = find_file->second;
         auto find_file_node = file_nodes_.find(file.node_id_);
         if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
-          it = generate_location_to_file_id_.erase(it++);
+          is_invalid = true;
           file_nodes_.erase(file.node_id_);
-        } else {
-          ++it;
         }
       } else {
-        ++it;
+        is_invalid = true;
+      }
+
+      if (is_invalid) {
+        it = generate_location_to_file_id_.erase(it);
+      } else {
+        it++;
       }
     }
   }
 
   /* DESTROY INVALID remote_location_info_ */
-  {
+  if (true) {
     auto map = remote_location_info_.get_map();
     auto it = map.begin();
     while (it != map.end()) {
+      auto is_invalid = false;
+
       auto find_file = file_id_info_.find(it->first.file_id_.fast_get());
       if (find_file != file_id_info_.end()) {
         auto &file = find_file->second;
         auto find_file_node = file_nodes_.find(file.node_id_);
         if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
-          remote_location_info_.erase(it->second);
-          map.erase(it++);
+          is_invalid = true;
           file_nodes_.erase(file.node_id_);
-        } else {
-          ++it;
         }
       } else {
-        ++it;
+        is_invalid = true;
+      }
+
+      if (is_invalid) {
+        remote_location_info_.erase(it->second);
+        // Todo: check if if the map must be emptied, or if it's ok to just add the emptied id with Enumerator erase
+        // it = map.erase(it);
+        it++;
+      } else {
+        it++;
       }
     }
   }
 
   /* DESTROY NULL file_id_info_ */
-  {
+  if (true) {
     auto it = file_id_info_.begin();
     while (it != file_id_info_.end()) {
-      auto find_file_node = file_nodes_.find(it->second.node_id_);
-      if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
-        context_->destroy_file_source({it->first, 0});
-        file_id_info_.erase(it++);
+      auto is_invalid = false;
+
+      if (it->second.node_id_ != 0) {
+        auto find_file_node = file_nodes_.find(it->second.node_id_);
+        if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
+          is_invalid = true;
+          context_->destroy_file_source({it->first, 0});
+        }
       } else {
-        ++it;
+        is_invalid = true;
+      }
+
+      if (is_invalid) {
+        it = file_id_info_.erase(it);
+      } else {
+        it++;
       }
     }
   }
