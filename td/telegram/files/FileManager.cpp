@@ -49,7 +49,7 @@
 #include <unordered_set>
 #include <utility>
 
-#define FILE_TTL 120
+#define FILE_TTL 30
 
 namespace td {
 namespace {
@@ -1032,7 +1032,7 @@ bool FileManager::try_fix_partial_local_location(FileNodePtr node) {
 
 FileManager::FileIdInfo *FileManager::get_file_id_info(FileId file_id) {
   file_id.set_time();
-  return &file_id_info_[file_id.get()];
+  return &file_id_info_.at(file_id.get());
 }
 
 FileId FileManager::dup_file_id(FileId file_id) {
@@ -1073,6 +1073,9 @@ void FileManager::try_forget_file_id(FileId file_id) {
   CHECK(is_removed);
   *info = FileIdInfo();
   file_id_info_.erase(file_id.get());
+  // Start custom-patches
+  context_->destroy_file_source(file_id);
+  // End custom-patches
 }
 
 FileId FileManager::register_empty(FileType type) {
@@ -1909,14 +1912,22 @@ FileNode *FileManager::get_file_node_raw(FileId file_id, FileNodeId *file_node_i
   if (file_id.get() <= 0) {
     return nullptr;
   }
-  FileNodeId node_id = file_id_info_[file_id.get()].node_id_;
+  auto find_file_id_info = file_id_info_.find(file_id.get());
+  if (find_file_id_info == file_id_info_.end()) {
+    return nullptr;
+  }
+  FileNodeId node_id = find_file_id_info->second.node_id_;
   if (node_id == 0) {
+    return nullptr;
+  }
+  auto find_file_nodes = file_nodes_.find(node_id);
+  if (find_file_nodes == file_nodes_.end()) {
     return nullptr;
   }
   if (file_node_id != nullptr) {
     *file_node_id = node_id;
   }
-  return file_nodes_[node_id].get();
+  return find_file_nodes->second.get();
 }
 
 FileNodePtr FileManager::get_sync_file_node(FileId file_id) {

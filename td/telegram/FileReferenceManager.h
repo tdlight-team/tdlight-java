@@ -38,8 +38,6 @@ class FileReferenceManager : public Actor {
   static bool is_file_reference_error(const Status &error);
   static size_t get_file_reference_error_pos(const Status &error);
 
-  void memory_cleanup(FileId file_id);
-
   FileSourceId create_message_file_source(FullMessageId full_message_id);
   FileSourceId create_user_photo_file_source(UserId user_id, int64 photo_id);
   // file reference aren't used for chat/channel photo download and the photos can't be reused
@@ -73,6 +71,8 @@ class FileReferenceManager : public Actor {
 
   template <class ParserT>
   FileSourceId parse_file_source(Td *td, ParserT &parser);
+
+  void memory_cleanup(NodeId node_id);
 
  private:
   struct Destination {
