@@ -3833,6 +3833,8 @@ void FileManager::destroy_query(int32 file_id) {
 
 
 void FileManager::memory_cleanup() {
+  LOG(ERROR) << "Initial registered ids: " << file_id_info_.size() << " registered nodes: " << file_nodes_.size();
+
   /* DESTROY OLD file_id_info_ */
   {
     std::lock_guard<std::shared_timed_mutex> writerLock(memory_cleanup_mutex);
@@ -3920,7 +3922,7 @@ void FileManager::memory_cleanup() {
   {
     auto it = file_nodes_.begin();
     while (it != file_nodes_.end()) {
-      if (it->second->empty) {
+      if (it->second == nullptr || it->second->empty) {
         file_nodes_.erase(it++);
       } else {
         if (it->second->main_file_id_.empty()) {
@@ -3945,11 +3947,16 @@ void FileManager::memory_cleanup() {
   {
     auto it = file_hash_to_file_id_.begin();
     while (it != file_hash_to_file_id_.end()) {
-      auto &file = file_id_info_[it->second.fast_get()];
-      auto find_file_node = file_nodes_.find(file.node_id_);
-      if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
-        file_hash_to_file_id_.erase(it++);
-        file_nodes_.erase(file.node_id_);
+      auto find_file = file_id_info_.find(it->second.fast_get());
+      if (find_file != file_id_info_.end()) {
+        auto &file = find_file->second;
+        auto find_file_node = file_nodes_.find(file.node_id_);
+        if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
+          file_hash_to_file_id_.erase(it++);
+          file_nodes_.erase(file.node_id_);
+        } else {
+          ++it;
+        }
       } else {
         ++it;
       }
@@ -3960,11 +3967,16 @@ void FileManager::memory_cleanup() {
   {
     auto it = local_location_to_file_id_.begin();
     while (it != local_location_to_file_id_.end()) {
-      auto &file = file_id_info_[it->second.fast_get()];
-      auto find_file_node = file_nodes_.find(file.node_id_);
-      if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
-        it = local_location_to_file_id_.erase(it++);
-        file_nodes_.erase(file.node_id_);
+      auto find_file = file_id_info_.find(it->second.fast_get());
+      if (find_file != file_id_info_.end()) {
+        auto &file = find_file->second;
+        auto find_file_node = file_nodes_.find(file.node_id_);
+        if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
+          it = local_location_to_file_id_.erase(it++);
+          file_nodes_.erase(file.node_id_);
+        } else {
+          ++it;
+        }
       } else {
         ++it;
       }
@@ -3975,11 +3987,16 @@ void FileManager::memory_cleanup() {
   {
     auto it = generate_location_to_file_id_.begin();
     while (it != generate_location_to_file_id_.end()) {
-      auto &file = file_id_info_[it->second.fast_get()];
-      auto find_file_node = file_nodes_.find(file.node_id_);
-      if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
-        it = generate_location_to_file_id_.erase(it++);
-        file_nodes_.erase(file.node_id_);
+      auto find_file = file_id_info_.find(it->second.fast_get());
+      if (find_file != file_id_info_.end()) {
+        auto &file = find_file->second;
+        auto find_file_node = file_nodes_.find(file.node_id_);
+        if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
+          it = generate_location_to_file_id_.erase(it++);
+          file_nodes_.erase(file.node_id_);
+        } else {
+          ++it;
+        }
       } else {
         ++it;
       }
@@ -3991,12 +4008,17 @@ void FileManager::memory_cleanup() {
     auto map = remote_location_info_.get_map();
     auto it = map.begin();
     while (it != map.end()) {
-      auto &file = file_id_info_[it->first.file_id_.fast_get()];
-      auto find_file_node = file_nodes_.find(file.node_id_);
-      if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
-        remote_location_info_.erase(it->second);
-        map.erase(it++);
-        file_nodes_.erase(file.node_id_);
+      auto find_file = file_id_info_.find(it->first.file_id_.fast_get());
+      if (find_file != file_id_info_.end()) {
+        auto &file = find_file->second;
+        auto find_file_node = file_nodes_.find(file.node_id_);
+        if (find_file_node == file_nodes_.end() || find_file_node->second->empty) {
+          remote_location_info_.erase(it->second);
+          map.erase(it++);
+          file_nodes_.erase(file.node_id_);
+        } else {
+          ++it;
+        }
       } else {
         ++it;
       }
@@ -4021,7 +4043,7 @@ void FileManager::memory_cleanup() {
   file_hash_to_file_id_.rehash(file_hash_to_file_id_.size() + 1);
   file_id_info_.rehash(file_id_info_.size() + 1);
 
-  LOG(ERROR) << "registered ids: " << file_id_info_.size() << " registered nodes: " << file_nodes_.size();
+  LOG(ERROR) << "Final registered ids: " << file_id_info_.size() << " registered nodes: " << file_nodes_.size();
 }
 
 void FileManager::tear_down() {
