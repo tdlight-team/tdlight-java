@@ -1074,6 +1074,8 @@ void FileManager::try_forget_file_id(FileId file_id) {
   *info = FileIdInfo();
   file_id_info_.erase(file_id.get());
   // Start custom-patches
+  file_id.reset_time();
+  destroy_query(file_id.get());
   context_->destroy_file_source(file_id);
   // End custom-patches
 }
