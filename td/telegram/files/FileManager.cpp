@@ -3894,7 +3894,7 @@ void FileManager::memory_cleanup() {
             destroy_query(it->first);
 
             /* DESTROY MAIN NODE */
-            file_nodes_.erase(it->first);
+            file_nodes_.erase(it->second.node_id_);
 
             /* DESTROY MAIN FILE LATE */
             file_to_be_deleted.push_back(it->first);
