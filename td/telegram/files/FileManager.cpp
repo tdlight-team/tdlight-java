@@ -3841,60 +3841,55 @@ void FileManager::memory_cleanup() {
     std::vector<int32> file_to_be_deleted = {};
 
     while (it != file_id_info_.end()) {
-      if (it->second.node_id_ != 0) {
-        auto find_node = file_nodes_.find(it->second.node_id_);
-        if (find_node != file_nodes_.end()) {
-          auto &node = find_node->second;
+      auto find_node = file_nodes_.find(it->second.node_id_);
+      if (find_node != file_nodes_.end()) {
+        auto &node = find_node->second;
 
-          if (time - node->main_file_id_.get_time() > FILE_TTL) {
-            auto can_reset = node->download_priority_ == 0;
-            can_reset &= node->generate_download_priority_ == 0;
-            can_reset &= node->download_id_ == 0;
+        if (time - node->main_file_id_.get_time() > FILE_TTL) {
+          auto can_reset = node->download_priority_ == 0;
+          can_reset &= node->generate_download_priority_ == 0;
+          can_reset &= node->download_id_ == 0;
 
-            if (can_reset) {
-              auto file_ids_it = node->file_ids_.begin();
+          if (can_reset) {
+            auto file_ids_it = node->file_ids_.begin();
 
-              while (file_ids_it != node->file_ids_.end() && can_reset) {
-                auto find_file = file_id_info_.find(file_ids_it->fast_get());
-                if (find_file != file_id_info_.end()) {
-                  auto &file = find_file->second;
-                  can_reset &= file.download_priority_ == 0;
-                  can_reset &= time - file_ids_it->get_time() > FILE_TTL;
-                }
-                file_ids_it++;
+            while (file_ids_it != node->file_ids_.end() && can_reset) {
+              auto find_file = file_id_info_.find(file_ids_it->fast_get());
+              if (find_file != file_id_info_.end()) {
+                auto &file = find_file->second;
+                can_reset &= file.download_priority_ == 0;
+                can_reset &= time - file_ids_it->get_time() > FILE_TTL;
               }
-            }
-
-            if (can_reset) {
-              node->main_file_id_.reset_time();
-
-              for (auto &file_id : node->file_ids_) {
-                file_id.reset_time();
-
-                /* DESTROY ASSOCIATED QUERIES */
-                destroy_query(file_id.fast_get());
-
-                /* DESTROY ASSOCIATED LATE */
-                file_to_be_deleted.push_back(file_id.fast_get());
-              }
-
-              /* DESTROY MAIN QUERY */
-              destroy_query(it->first);
-
-              /* DESTROY MAIN NODE */
-              file_nodes_.erase(it->first);
-
-              /* DESTROY MAIN FILE LATE */
-              file_to_be_deleted.push_back(it->first);
+              file_ids_it++;
             }
           }
-        } else {
-          /* The file has a nonexistent node associated */
-          file_to_be_deleted.push_back(it->first);
+
+          if (can_reset) {
+            node->main_file_id_.reset_time();
+
+            for (auto &file_id : node->file_ids_) {
+              file_id.reset_time();
+
+              /* DESTROY ASSOCIATED QUERIES */
+              destroy_query(file_id.fast_get());
+
+              /* DESTROY ASSOCIATED LATE */
+              file_to_be_deleted.push_back(file_id.fast_get());
+            }
+
+            /* DESTROY MAIN QUERY */
+            destroy_query(it->first);
+
+            /* DESTROY MAIN NODE */
+            file_nodes_.erase(it->first);
+
+            /* DESTROY MAIN FILE LATE */
+            file_to_be_deleted.push_back(it->first);
+          }
         }
       } else {
-        // todo: When the program starts there is a file that points to the node 0. It shouldn't happen but it happens, so don't delete it, maybe that file is used by tdlib for some reason.
-        // file_to_be_deleted.push_back(it->first);
+        /* The file has a nonexistent node associated */
+        file_to_be_deleted.push_back(it->first);
       }
 
       it++;
@@ -3944,12 +3939,18 @@ void FileManager::memory_cleanup() {
         if (it->second->main_file_id_.empty()) {
           is_invalid = true;
         } else {
-          if (file_id_info_[it->second->main_file_id_.get()].node_id_ == 0) {
-            for (auto &file_id : it->second->file_ids_) {
-              context_->destroy_file_source(file_id);
-              file_id_info_.erase(file_id.get());
+          auto find_file_id_info = file_id_info_.find(it->second->main_file_id_.get());
+          if (find_file_id_info != file_id_info_.end()) {
+            if (find_file_id_info->second.node_id_ == 0) {
+              for (auto &file_id : it->second->file_ids_) {
+                context_->destroy_file_source(file_id);
+                file_id_info_.erase(file_id.get());
+              }
+              file_id_info_.erase(it->second->main_file_id_.get());
+              is_invalid = true;
             }
-            file_id_info_.erase(it->second->main_file_id_.get());
+          } else {
+            // todo: is it invalid or not here?
             is_invalid = true;
           }
         }
