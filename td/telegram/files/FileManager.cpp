@@ -1243,8 +1243,8 @@ Result<FileId> FileManager::register_file(FileData &&data, FileLocationSource fi
   int32 remote_key = 0;
   if (file_view.has_remote_location()) {
     RemoteInfo info{file_view.remote_location(), file_location_source, file_id};
-    remote_key = remote_location_info_.add(info);
-    auto &stored_info = remote_location_info_.get(remote_key);
+    RemoteInfo stored_info;
+    std::tie(remote_key, stored_info) = remote_location_info_.add_and_get(info);
     if (stored_info.file_id_ == file_id) {
       get_file_id_info(file_id)->pin_flag_ = true;
       new_remote = true;
@@ -3068,8 +3068,9 @@ Result<FileId> FileManager::check_input_file_id(FileType type, Result<FileId> re
   int32 remote_id = file_id.get_remote();
   if (remote_id == 0) {
     RemoteInfo info{file_view.remote_location(), FileLocationSource::FromUser, file_id};
-    remote_id = remote_location_info_.add(info);
-    if (remote_location_info_.get(remote_id).file_id_ == file_id) {
+    RemoteInfo stored_info;
+    std::tie(remote_id, stored_info) = remote_location_info_.add_and_get(info);
+    if (stored_info.file_id_ == file_id) {
       get_file_id_info(file_id)->pin_flag_ = true;
     }
   }
@@ -4059,20 +4060,27 @@ void FileManager::memory_cleanup() {
 
   /* DESTROY INVALID remote_location_info_ */
   if (true) {
-    std::set<int32> empty_remote_ids = {};
-    for (auto empty_remote_id : remote_location_info_.get_empty_id()) {
-      empty_remote_ids.insert(empty_remote_id);
+    remote_location_info_.lock_access_mutex();
+
+    std::unordered_map<int32, RemoteInfo> old_remote_info = {};
+    {
+      auto map = remote_location_info_.get_map();
+
+      auto mapSize = map.size();
+      auto mapMaxSize = map.max_size();
+
+      auto it = map.begin();
+      while (it != map.end()) {
+        old_remote_info[it->second] = it->first;
+        it++;
+      }
     }
-    auto map = remote_location_info_.get_map();
 
-    auto emptyIdsSize = empty_remote_ids.size();
-    auto mapSize = map.size();
-
-    auto it = map.begin();
-    while (it != map.end() && (empty_remote_ids.find(it->second) == empty_remote_ids.end())) {
+    auto it = old_remote_info.begin();
+    while (it != old_remote_info.end()) {
       auto is_invalid = false;
 
-      auto find_file = file_id_info_.find(it->first.file_id_.fast_get());
+      auto find_file = file_id_info_.find(it->second.file_id_.fast_get());
       if (find_file != file_id_info_.end()) {
         auto &file = find_file->second;
         auto find_file_node = file_nodes_.find(file.node_id_);
@@ -4085,10 +4093,12 @@ void FileManager::memory_cleanup() {
       }
 
       if (is_invalid) {
-        remote_location_info_.erase(it->second);
+        remote_location_info_.erase_unsafe(it->first);
       }
       it++;
     }
+
+    remote_location_info_.unlock_access_mutex();
   }
 
   /* DESTROY NULL file_id_info_ */

@@ -11,6 +11,7 @@
 #include <limits>
 #include <map>
 #include <tuple>
+#include <shared_mutex>
 
 namespace td {
 
@@ -23,44 +24,74 @@ class Enumerator {
     return map_;
   }
 
-  std::pair<Key, bool> next() {
-    if (!empty_id_.empty()) {
-      auto res = empty_id_.back();
-      empty_id_.pop_back();
-      return std::make_pair(res, true);
-    }
-
-    return std::make_pair((Key) (arr_.size() + 1), false);
+  void lock_access_mutex() const {
+    access_mutex.lock();
   }
 
-  void erase(Key key_y) {
-    empty_id_.push_back(key_y);
+  void unlock_access_mutex() const {
+    access_mutex.unlock();
+  }
+
+  /**
+   *
+   * @return true if the key is new
+   */
+  Key next() {
+    auto id = next_id++;
+
+    return id;
+  }
+
+  void erase_unsafe(Key key_y) {
+    auto find_val = arr_.find(key_y);
+    if (find_val != arr_.end()) {
+      // Erase this
+      map_.erase(find_val->second);
+      // TODO: Not sure about erasing this, instead
+      arr_.erase(key_y);
+    }
   }
 
   Key add(ValueT v) {
-    auto next_id = next();
+    std::lock_guard<std::shared_timed_mutex> writerLock(access_mutex);
+
+    return add_internal(v);
+  }
+
+  Key add_internal(ValueT v) {
+    auto id = next();
     bool was_inserted;
     decltype(map_.begin()) it;
-    std::tie(it, was_inserted) = map_.emplace(std::move(v), next_id.first);
-    if (was_inserted && next_id.second) {
-      arr_[next_id.first - 1] = &it->first;
-    } else if (was_inserted) {
-      arr_.push_back(&it->first);
-    } else if (next_id.second) {
-      empty_id_.push_back(next_id.first);
+    std::tie(it, was_inserted) = map_.emplace(std::move(v), id);
+    if (was_inserted) {
+      arr_[id] = it->first;
     }
     return it->second;
   }
 
   const ValueT &get(Key key) const {
-    auto pos = static_cast<Key>(key - 1);
-    return *arr_[pos];
+    std::shared_lock<std::shared_timed_mutex> readerLock(access_mutex);
+
+    return get_internal(key);
+  }
+
+  const ValueT &get_internal(Key key) const {
+    return arr_.at(key);
+  }
+
+  std::pair<Key,ValueT> add_and_get(ValueT v) {
+    std::lock_guard<std::shared_timed_mutex> writerLock(access_mutex);
+
+    auto remote_key = add_internal(v);
+    auto &stored_info = get_internal(remote_key);
+    return std::make_pair(remote_key, stored_info);
   }
 
  private:
-  std::vector<Key> empty_id_;
+  mutable int32 next_id = 1;
   std::map<ValueT, int32> map_;
-  std::vector<const ValueT *> arr_;
+  std::unordered_map<int32, ValueT> arr_;
+  mutable std::shared_timed_mutex access_mutex;
 };
 
 }  // namespace td
