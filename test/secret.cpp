@@ -588,11 +588,10 @@ class Master : public Actor {
     void add_inbound_message(int32 chat_id, BufferSlice data, uint64 crc) {
       CHECK(crc64(data.as_slice()) == crc);
       auto event = make_unique<logevent::InboundSecretMessage>();
-      event->qts = 0;
       event->chat_id = chat_id;
       event->date = 0;
       event->encrypted_message = std::move(data);
-      event->qts_ack = PromiseCreator::lambda(
+      event->promise = PromiseCreator::lambda(
           [actor_id = actor_id(this), chat_id, data = event->encrypted_message.copy(), crc](Result<> result) mutable {
             if (result.is_ok()) {
               LOG(INFO) << "FINISH add_inbound_message " << tag("crc", crc);

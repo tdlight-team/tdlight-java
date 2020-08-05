@@ -50,6 +50,7 @@
 #include <iostream>
 #include <limits>
 #include <locale>
+#include <memory>
 #include <queue>
 #include <tuple>
 #include <unordered_map>
@@ -847,7 +848,10 @@ class CliClient final : public Actor {
       uint64 generation_;
     };
 
-    td_client_ = create_actor<ClientActor>(name, make_unique<TdCallbackImpl>(this, ++generation_));
+    ClientActor::Options options;
+    options.net_query_stats = net_query_stats_;
+
+    td_client_ = create_actor<ClientActor>(name, make_unique<TdCallbackImpl>(this, ++generation_), std::move(options));
   }
 
   void init_td() {
@@ -4165,7 +4169,7 @@ class CliClient final : public Actor {
     } else if (op == "q" || op == "Quit") {
       quit();
     } else if (op == "dnq" || op == "DumpNetQueries") {
-      dump_pending_network_queries();
+      dump_pending_network_queries(*net_query_stats_);
     } else if (op == "fatal") {
       LOG(FATAL) << "Fatal!";
     } else if (op == "unreachable") {
@@ -4290,6 +4294,7 @@ class CliClient final : public Actor {
   ConcurrentScheduler *scheduler_{nullptr};
 
   bool use_test_dc_ = false;
+  std::shared_ptr<NetQueryStats> net_query_stats_ = create_net_query_stats();
   ActorOwn<ClientActor> td_client_;
   std::queue<string> cmd_queue_;
   bool close_flag_ = false;

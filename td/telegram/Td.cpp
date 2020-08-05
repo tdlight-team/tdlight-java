@@ -125,7 +125,6 @@
 #include "td/utils/Status.h"
 #include "td/utils/Timer.h"
 #include "td/utils/tl_parsers.h"
-#include "td/utils/TsList.h"
 #include "td/utils/utf8.h"
 
 #include <cmath>
@@ -3005,7 +3004,8 @@ class SetBackgroundRequest : public RequestActor<> {
   }
 };
 
-Td::Td(unique_ptr<TdCallback> callback) : callback_(std::move(callback)) {
+Td::Td(unique_ptr<TdCallback> callback, Options options)
+    : callback_(std::move(callback)), td_options_(std::move(options)) {
 }
 
 Td::~Td() = default;
@@ -3520,22 +3520,6 @@ void Td::send(NetQueryPtr &&query) {
   G()->net_query_dispatcher().dispatch(std::move(query));
 }
 
-void Td::update_qts(int32 qts) {
-  if (close_flag_ > 1) {
-    return;
-  }
-
-  updates_manager_->set_qts(qts);
-}
-
-void Td::force_get_difference() {
-  if (close_flag_) {
-    return;
-  }
-
-  updates_manager_->get_difference("force_get_difference");
-}
-
 void Td::on_result(NetQueryPtr query) {
   query->debug("Td: received from DcManager");
   VLOG(net_query) << "Receive result of " << query;
@@ -3736,10 +3720,9 @@ void Td::start_up() {
     LOG_IF(FATAL, symbol != c) << "TDLib requires little-endian platform";
   }
 
-  TsList<NetQueryDebug>::lock().unlock();  // initialize mutex before any NetQuery
-
   VLOG(td_init) << "Create Global";
   set_context(std::make_shared<Global>());
+  G()->set_net_query_stats(td_options_.net_query_stats);
   inc_request_actor_refcnt();  // guard
   inc_actor_refcnt();          // guard
 
@@ -3781,6 +3764,7 @@ ActorShared<Td> Td::create_reference() {
   inc_actor_refcnt();
   return actor_shared(this, ActorIdType);
 }
+
 void Td::inc_actor_refcnt() {
   actor_refcnt_++;
 }

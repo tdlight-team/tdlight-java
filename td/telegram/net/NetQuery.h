@@ -8,6 +8,7 @@
 
 #include "td/telegram/net/DcId.h"
 #include "td/telegram/net/NetQueryCounter.h"
+#include "td/telegram/net/NetQueryStats.h"
 
 #include "td/actor/actor.h"
 #include "td/actor/PromiseFuture.h"
@@ -38,18 +39,6 @@ class NetQueryCallback : public Actor {
  public:
   virtual void on_result(NetQueryPtr query);
   virtual void on_result_resendable(NetQueryPtr query, Promise<NetQueryPtr> promise);
-};
-
-struct NetQueryDebug {
-  double start_timestamp_ = 0;
-  int32 my_id_ = 0;
-  int32 resend_count_ = 0;
-  string state_ = "empty";
-  double state_timestamp_ = 0;
-  int32 state_change_count_ = 0;
-  int32 send_failed_count_ = 0;
-  int ack_state_ = 0;
-  bool unknown_state_ = false;
 };
 
 class NetQuery : public TsListNode<NetQueryDebug> {
@@ -235,7 +224,7 @@ class NetQuery : public TsListNode<NetQueryDebug> {
     *this = NetQuery();
   }
   bool empty() const {
-    return state_ == State::Empty || nq_counter_.empty() || may_be_lost_;
+    return state_ == State::Empty || !nq_counter_ || may_be_lost_;
   }
 
   void stop_track() {
@@ -250,14 +239,14 @@ class NetQuery : public TsListNode<NetQueryDebug> {
 
   void debug(string state, bool may_be_lost = false) {
     may_be_lost_ = may_be_lost;
+    VLOG(net_query) << *this << " " << tag("state", state);
     {
       auto guard = lock();
       auto &data = get_data_unsafe();
-      data.state_ = state;
+      data.state_ = std::move(state);
       data.state_timestamp_ = Time::now();
       data.state_change_count_++;
     }
-    VLOG(net_query) << *this << " " << tag("state", state);
   }
 
   void set_callback(ActorShared<NetQueryCallback> callback) {
@@ -276,10 +265,6 @@ class NetQuery : public TsListNode<NetQueryDebug> {
     using ::td::finish_migrate;
     finish_migrate(cancel_slot_);
   }
-
-  static int32 tl_magic(const BufferSlice &buffer_slice);
-
-  static TsList<NetQueryDebug> &get_net_query_list();
 
  private:
   State state_ = State::Empty;
@@ -332,6 +317,8 @@ class NetQuery : public TsListNode<NetQueryDebug> {
 
   static int32 get_my_id();
 
+  static int32 tl_magic(const BufferSlice &buffer_slice);
+
  public:
   double next_timeout_ = 1;          // for NetQueryDelayer
   double total_timeout_ = 0;         // for NetQueryDelayer/SequenceDispatcher
@@ -345,13 +332,12 @@ class NetQuery : public TsListNode<NetQueryDebug> {
   int32 file_type_ = -1;             // to be set by caller
 
   NetQuery(State state, uint64 id, BufferSlice &&query, BufferSlice &&answer, DcId dc_id, Type type, AuthFlag auth_flag,
-           GzipFlag gzip_flag, int32 tl_constructor, double total_timeout_limit)
+           GzipFlag gzip_flag, int32 tl_constructor, double total_timeout_limit, NetQueryStats *stats)
       : state_(state)
       , type_(type)
       , auth_flag_(auth_flag)
       , gzip_flag_(gzip_flag)
       , dc_id_(dc_id)
-      , nq_counter_(true)
       , status_()
       , id_(id)
       , query_(std::move(query))
@@ -361,7 +347,9 @@ class NetQuery : public TsListNode<NetQueryDebug> {
     get_data_unsafe().my_id_ = get_my_id();
     get_data_unsafe().start_timestamp_ = Time::now();
     LOG(INFO) << *this;
-    get_net_query_list().put(this);
+    if (stats) {
+      nq_counter_ = stats->register_query(this);
+    }
   }
 };
 

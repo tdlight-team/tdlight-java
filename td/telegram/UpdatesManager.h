@@ -63,15 +63,13 @@ class UpdatesManager : public Actor {
     return pts_manager_.mem_pts();
   }
   int32 get_qts() const {
-    return qts_;
+    return qts_manager_.mem_pts();
   }
   int32 get_date() const {
     return date_;
   }
 
   Promise<> set_pts(int32 pts, const char *source) TD_WARN_UNUSED_RESULT;
-
-  void set_qts(int32 qts);
 
   static const double MAX_UNFILLED_GAP_TIME;
 
@@ -102,7 +100,7 @@ class UpdatesManager : public Actor {
   ActorShared<> parent_;
 
   PtsManager pts_manager_;
-  int32 qts_ = 0;
+  PtsManager qts_manager_;
   int32 date_ = 0;
   int32 seq_ = 0;
   string date_source_ = "nowhere";
@@ -112,7 +110,11 @@ class UpdatesManager : public Actor {
   std::multimap<int32, PendingUpdates> postponed_updates_;    // updates received during getDifference
   std::multimap<int32, PendingUpdates> pending_seq_updates_;  // updates with too big seq
 
+  std::map<int32, tl_object_ptr<telegram_api::Update>> pending_qts_updates_;  // updates with too big qts
+
   Timeout seq_gap_timeout_;
+
+  Timeout qts_gap_timeout_;
 
   int32 retry_time_ = 1;
   Timeout retry_timeout_;
@@ -126,6 +128,10 @@ class UpdatesManager : public Actor {
   void on_pts_ack(PtsManager::PtsId ack_token);
   void save_pts(int32 pts);
 
+  Promise<> add_qts(int32 qts);
+  void on_qts_ack(PtsManager::PtsId ack_token);
+  void save_qts(int32 qts);
+
   void set_date(int32 date, bool from_update, string date_source);
 
   int32 get_short_update_date() const;
@@ -135,9 +141,11 @@ class UpdatesManager : public Actor {
 
   void process_get_difference_updates(vector<tl_object_ptr<telegram_api::Message>> &&new_messages,
                                       vector<tl_object_ptr<telegram_api::EncryptedMessage>> &&new_encrypted_messages,
-                                      int32 qts, vector<tl_object_ptr<telegram_api::Update>> &&other_updates);
+                                      vector<tl_object_ptr<telegram_api::Update>> &&other_updates);
 
   void on_pending_update(tl_object_ptr<telegram_api::Update> update, int32 seq, const char *source);
+
+  void add_pending_qts_update(tl_object_ptr<telegram_api::Update> &&update, int32 qts);
 
   void on_pending_updates(vector<tl_object_ptr<telegram_api::Update>> &&updates, int32 seq_begin, int32 seq_end,
                           int32 date, const char *source);
@@ -146,15 +154,23 @@ class UpdatesManager : public Actor {
 
   void process_seq_updates(int32 seq_end, int32 date, vector<tl_object_ptr<telegram_api::Update>> &&updates);
 
+  void process_qts_update(tl_object_ptr<telegram_api::Update> &&update_ptr, int32 qts);
+
   void process_pending_seq_updates();
 
+  void process_pending_qts_updates();
+
   static void fill_seq_gap(void *td);
+
+  static void fill_qts_gap(void *td);
 
   static void fill_get_difference_gap(void *td);
 
   static void fill_gap(void *td, const char *source);
 
   void set_seq_gap_timeout(double timeout);
+
+  void set_qts_gap_timeout(double timeout);
 
   void on_failed_get_difference();
 
@@ -260,7 +276,7 @@ class UpdatesManager : public Actor {
   void on_update(tl_object_ptr<telegram_api::updatePrivacy> update, bool /*force_apply*/);
 
   void on_update(tl_object_ptr<telegram_api::updateEncryption> update, bool /*force_apply*/);
-  void on_update(tl_object_ptr<telegram_api::updateNewEncryptedMessage> update, bool /*force_apply*/);
+  void on_update(tl_object_ptr<telegram_api::updateNewEncryptedMessage> update, bool force_apply);
   void on_update(tl_object_ptr<telegram_api::updateEncryptedMessagesRead> update, bool /*force_apply*/);
 
   void on_update(tl_object_ptr<telegram_api::updateNewStickerSet> update, bool /*force_apply*/);
@@ -293,11 +309,11 @@ class UpdatesManager : public Actor {
 
   void on_update(tl_object_ptr<telegram_api::updateLoginToken> update, bool /*force_apply*/);
 
+  void on_update(tl_object_ptr<telegram_api::updateChannelParticipant> update, bool /*force_apply*/);
+
   // unsupported updates
 
   void on_update(tl_object_ptr<telegram_api::updateTheme> update, bool /*force_apply*/);
-
-  void on_update(tl_object_ptr<telegram_api::updateChannelParticipant> update, bool /*force_apply*/);
 };
 
 }  // namespace td

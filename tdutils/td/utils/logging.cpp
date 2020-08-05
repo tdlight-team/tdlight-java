@@ -56,21 +56,34 @@ Logger::Logger(LogInterface &log, const LogOptions &options, int log_level, Slic
 
   // log level
   sb_ << '[';
-  if (log_level < 10) {
-    sb_ << ' ';
+  if (static_cast<unsigned int>(log_level) < 10) {
+    sb_ << ' ' << static_cast<char>('0' + log_level);
+  } else {
+    sb_ << log_level;
   }
-  sb_ << log_level << ']';
+  sb_ << ']';
 
   // thread id
   auto thread_id = get_thread_id();
   sb_ << "[t";
-  if (thread_id < 10) {
-    sb_ << ' ';
+  if (static_cast<unsigned int>(thread_id) < 10) {
+    sb_ << ' ' << static_cast<char>('0' + thread_id);
+  } else {
+    sb_ << thread_id;
   }
-  sb_ << thread_id << ']';
+  sb_ << ']';
 
   // timestamp
-  sb_ << '[' << StringBuilder::FixedDouble(Clocks::system(), 9) << ']';
+  auto time = Clocks::system();
+  auto unix_time = static_cast<uint32>(time);
+  auto nanoseconds = static_cast<uint32>((time - unix_time) * 1e9);
+  sb_ << '[' << unix_time << '.';
+  uint32 limit = 100000000;
+  while (nanoseconds < limit && limit > 1) {
+    sb_ << '0';
+    limit /= 10;
+  }
+  sb_ << nanoseconds << ']';
 
   // file : line
   if (!file_name.empty()) {
@@ -79,7 +92,7 @@ Logger::Logger(LogInterface &log, const LogOptions &options, int log_level, Slic
       last_slash_--;
     }
     file_name = file_name.substr(last_slash_ + 1);
-    sb_ << "[" << file_name << ':' << line_num << ']';
+    sb_ << '[' << file_name << ':' << static_cast<unsigned int>(line_num) << ']';
   }
 
   // context from tag_

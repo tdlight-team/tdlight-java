@@ -182,6 +182,10 @@ void UpdatesManager::fill_seq_gap(void *td) {
   fill_gap(td, "seq");
 }
 
+void UpdatesManager::fill_qts_gap(void *td) {
+  fill_gap(td, "qts");
+}
+
 void UpdatesManager::fill_get_difference_gap(void *td) {
   fill_gap(td, "getDifference");
 }
@@ -227,15 +231,18 @@ void UpdatesManager::before_get_difference(bool is_initial) {
   send_closure(G()->state_manager(), &StateManager::on_synchronized, false);
 
   td_->messages_manager_->before_get_difference();
-  if (!is_initial) {
-    send_closure(td_->secret_chats_manager_, &SecretChatsManager::before_get_difference, get_qts());
-  }
+
   send_closure_later(td_->notification_manager_actor_, &NotificationManager::before_get_difference);
 }
 
 Promise<> UpdatesManager::add_pts(int32 pts) {
   auto id = pts_manager_.add_pts(pts);
   return PromiseCreator::event(self_closure(this, &UpdatesManager::on_pts_ack, id));
+}
+
+Promise<> UpdatesManager::add_qts(int32 qts) {
+  auto id = qts_manager_.add_pts(qts);
+  return PromiseCreator::event(self_closure(this, &UpdatesManager::on_qts_ack, id));
 }
 
 void UpdatesManager::on_pts_ack(PtsManager::PtsId ack_token) {
@@ -246,11 +253,25 @@ void UpdatesManager::on_pts_ack(PtsManager::PtsId ack_token) {
   }
 }
 
+void UpdatesManager::on_qts_ack(PtsManager::PtsId ack_token) {
+  auto old_qts = qts_manager_.db_pts();
+  auto new_qts = qts_manager_.finish(ack_token);
+  if (old_qts != new_qts) {
+    save_qts(new_qts);
+  }
+}
+
 void UpdatesManager::save_pts(int32 pts) {
   if (pts == std::numeric_limits<int32>::max()) {
     G()->td_db()->get_binlog_pmc()->erase("updates.pts");
   } else if (!G()->ignore_backgrond_updates()) {
     G()->td_db()->get_binlog_pmc()->set("updates.pts", to_string(pts));
+  }
+}
+
+void UpdatesManager::save_qts(int32 qts) {
+  if (!G()->ignore_backgrond_updates()) {
+    G()->td_db()->get_binlog_pmc()->set("updates.qts", to_string(qts));
   }
 }
 
@@ -279,19 +300,6 @@ Promise<> UpdatesManager::set_pts(int32 pts, const char *source) {
     LOG(ERROR) << "Receive wrong pts = " << pts << " from " << source << ". Current pts = " << get_pts();
   }
   return result;
-}
-
-void UpdatesManager::set_qts(int32 qts) {
-  if (qts > qts_) {
-    LOG(INFO) << "Update qts to " << qts;
-
-    qts_ = qts;
-    if (!G()->ignore_backgrond_updates()) {
-      G()->td_db()->get_binlog_pmc()->set("updates.qts", to_string(qts));
-    }
-  } else if (qts < qts_) {
-    LOG(ERROR) << "Receive wrong qts = " << qts << ". Current qts = " << qts_;
-  }
 }
 
 void UpdatesManager::set_date(int32 date, bool from_update, string date_source) {
@@ -791,7 +799,7 @@ void UpdatesManager::on_get_updates_state(tl_object_ptr<telegram_api::updates_st
     string full_source = "on_get_updates_state " + oneline(to_string(state)) + " from " + source;
     set_pts(state->pts_, full_source.c_str()).set_value(Unit());
     set_date(state->date_, false, std::move(full_source));
-    // set_qts(state->qts_);
+    add_qts(state->qts_).set_value(Unit());
 
     seq_ = state->seq_;
   }
@@ -952,11 +960,10 @@ void UpdatesManager::init_state() {
   }
   pts_manager_.init(to_integer<int32>(pts_str));
   last_get_difference_pts_ = get_pts();
-  qts_ = to_integer<int32>(pmc->get("updates.qts"));
+  qts_manager_.init(to_integer<int32>(pmc->get("updates.qts")));
   date_ = to_integer<int32>(pmc->get("updates.date"));
   date_source_ = "database";
-  LOG(DEBUG) << "Init: " << get_pts() << " " << qts_ << " " << date_;
-  send_closure(td_->secret_chats_manager_, &SecretChatsManager::init_qts, qts_);
+  LOG(DEBUG) << "Init: " << get_pts() << " " << get_qts() << " " << date_;
 
   get_difference("init_state");
 }
@@ -974,7 +981,7 @@ void UpdatesManager::on_server_pong(tl_object_ptr<telegram_api::updates_state> &
 
 void UpdatesManager::process_get_difference_updates(
     vector<tl_object_ptr<telegram_api::Message>> &&new_messages,
-    vector<tl_object_ptr<telegram_api::EncryptedMessage>> &&new_encrypted_messages, int32 qts,
+    vector<tl_object_ptr<telegram_api::EncryptedMessage>> &&new_encrypted_messages,
     vector<tl_object_ptr<telegram_api::Update>> &&other_updates) {
   VLOG(get_difference) << "In get difference receive " << new_messages.size() << " messages, "
                        << new_encrypted_messages.size() << " encrypted messages and " << other_updates.size()
@@ -1014,9 +1021,9 @@ void UpdatesManager::process_get_difference_updates(
   }
 
   for (auto &encrypted_message : new_encrypted_messages) {
-    on_update(make_tl_object<telegram_api::updateNewEncryptedMessage>(std::move(encrypted_message), 0), true);
+    send_closure(td_->secret_chats_manager_, &SecretChatsManager::on_new_message, std::move(encrypted_message),
+                 Promise<Unit>());
   }
-  send_closure(td_->secret_chats_manager_, &SecretChatsManager::update_qts, qts);
 
   process_updates(std::move(other_updates), true);
 }
@@ -1047,7 +1054,7 @@ void UpdatesManager::on_get_difference(tl_object_ptr<telegram_api::updates_Diffe
       td_->contacts_manager_->on_get_chats(std::move(difference->chats_), "updates.difference");
 
       process_get_difference_updates(std::move(difference->new_messages_),
-                                     std::move(difference->new_encrypted_messages_), difference->state_->qts_,
+                                     std::move(difference->new_encrypted_messages_),
                                      std::move(difference->other_updates_));
       if (running_get_difference_) {
         LOG(ERROR) << "Get difference has run while processing get difference updates";
@@ -1060,7 +1067,7 @@ void UpdatesManager::on_get_difference(tl_object_ptr<telegram_api::updates_Diffe
     case telegram_api::updates_differenceSlice::ID: {
       auto difference = move_tl_object_as<telegram_api::updates_differenceSlice>(difference_ptr);
       if (difference->intermediate_state_->pts_ >= get_pts() && get_pts() != std::numeric_limits<int32>::max() &&
-          difference->intermediate_state_->date_ >= date_ && difference->intermediate_state_->qts_ == qts_) {
+          difference->intermediate_state_->date_ >= date_ && difference->intermediate_state_->qts_ == get_qts()) {
         // TODO send new getDifference request and apply difference slice only after that
       }
 
@@ -1071,7 +1078,7 @@ void UpdatesManager::on_get_difference(tl_object_ptr<telegram_api::updates_Diffe
 
       process_get_difference_updates(std::move(difference->new_messages_),
                                      std::move(difference->new_encrypted_messages_),
-                                     difference->intermediate_state_->qts_, std::move(difference->other_updates_));
+                                     std::move(difference->other_updates_));
       if (running_get_difference_) {
         LOG(ERROR) << "Get difference has run while processing get difference updates";
         break;
@@ -1104,8 +1111,10 @@ void UpdatesManager::after_get_difference() {
   retry_timeout_.cancel_timeout();
   retry_time_ = 1;
 
-  process_pending_seq_updates();  // cancels seq_gap_timeout_, may apply some updates coming before getDifference, but
-                                  // not returned in getDifference
+  process_pending_qts_updates();
+
+  process_pending_seq_updates();  // cancels seq_gap_timeout_, may apply some updates received before getDifference,
+                                  // but not returned in getDifference
   if (running_get_difference_) {
     return;
   }
@@ -1279,6 +1288,11 @@ void UpdatesManager::on_pending_updates(vector<tl_object_ptr<telegram_api::Updat
         processed_updates++;
         update = nullptr;
       }
+      if (id == telegram_api::updateEncryption::ID) {
+        on_update(move_tl_object_as<telegram_api::updateEncryption>(update), false);
+        processed_updates++;
+        update = nullptr;
+      }
       CHECK(!running_get_difference_);
     }
   }
@@ -1289,7 +1303,8 @@ void UpdatesManager::on_pending_updates(vector<tl_object_ptr<telegram_api::Updat
       if (id == telegram_api::updateNewMessage::ID || id == telegram_api::updateReadMessagesContents::ID ||
           id == telegram_api::updateEditMessage::ID || id == telegram_api::updateDeleteMessages::ID ||
           id == telegram_api::updateReadHistoryInbox::ID || id == telegram_api::updateReadHistoryOutbox::ID ||
-          id == telegram_api::updateWebPage::ID) {
+          id == telegram_api::updateWebPage::ID || id == telegram_api::updateNewEncryptedMessage::ID ||
+          id == telegram_api::updateChannelParticipant::ID) {
         if (!downcast_call(*update, OnUpdate(this, update, false))) {
           LOG(ERROR) << "Can't call on some update received from " << source;
         }
@@ -1342,6 +1357,46 @@ void UpdatesManager::on_pending_updates(vector<tl_object_ptr<telegram_api::Updat
 
   pending_seq_updates_.emplace(seq_begin, PendingUpdates(seq_begin, seq_end, date, std::move(updates)));
   set_seq_gap_timeout(MAX_UNFILLED_GAP_TIME);
+}
+
+void UpdatesManager::add_pending_qts_update(tl_object_ptr<telegram_api::Update> &&update, int32 qts) {
+  CHECK(update != nullptr);
+  if (qts <= 1) {
+    LOG(ERROR) << "Receive wrong qts " << qts << " in " << oneline(to_string(update));
+    return;
+  }
+
+  int32 old_qts = get_qts();
+  LOG(INFO) << "Process update with qts = " << qts << ", current qts = " << old_qts;
+  if (qts < old_qts - 1000001) {
+    LOG(WARNING) << "Restore qts after qts overflow from " << old_qts << " to " << qts << " by "
+                 << oneline(to_string(update));
+    add_qts(qts - 1).set_value(Unit());
+    CHECK(get_qts() == qts - 1);
+    old_qts = qts - 1;
+  }
+
+  if (qts <= old_qts) {
+    LOG(INFO) << "Skip already applied update with qts = " << qts;
+    return;
+  }
+
+  CHECK(!running_get_difference_);
+
+  if (qts > old_qts + 1) {
+    LOG(INFO) << "Postpone update with qts = " << qts;
+    if (pending_qts_updates_.empty()) {
+      set_qts_gap_timeout(MAX_UNFILLED_GAP_TIME);
+    }
+    bool is_inserted = pending_qts_updates_.emplace(qts, std::move(update)).second;
+    if (!is_inserted) {
+      LOG(INFO) << "Receive duplicate update with qts = " << qts;
+    }
+    return;
+  }
+
+  process_qts_update(std::move(update), qts);
+  process_pending_qts_updates();
 }
 
 void UpdatesManager::process_updates(vector<tl_object_ptr<telegram_api::Update>> &&updates, bool force_apply) {
@@ -1409,6 +1464,28 @@ void UpdatesManager::process_seq_updates(int32 seq_end, int32 date,
   }
 }
 
+void UpdatesManager::process_qts_update(tl_object_ptr<telegram_api::Update> &&update_ptr, int32 qts) {
+  LOG(DEBUG) << "Process " << to_string(update_ptr);
+  switch (update_ptr->get_id()) {
+    case telegram_api::updateNewEncryptedMessage::ID: {
+      auto update = move_tl_object_as<telegram_api::updateNewEncryptedMessage>(update_ptr);
+      send_closure(td_->secret_chats_manager_, &SecretChatsManager::on_new_message, std::move(update->message_),
+                   add_qts(qts));
+      break;
+    }
+    case telegram_api::updateChannelParticipant::ID: {
+      auto update = move_tl_object_as<telegram_api::updateChannelParticipant>(update_ptr);
+      td_->contacts_manager_->on_update_channel_participant(ChannelId(update->channel_id_), UserId(update->user_id_),
+                                                            update->date_, std::move(update->prev_participant_),
+                                                            std::move(update->new_participant_));
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
 void UpdatesManager::process_pending_seq_updates() {
   while (!pending_seq_updates_.empty() && !running_get_difference_) {
     auto update_it = pending_seq_updates_.begin();
@@ -1429,6 +1506,34 @@ void UpdatesManager::process_pending_seq_updates() {
   }
   if (pending_seq_updates_.empty()) {
     seq_gap_timeout_.cancel_timeout();
+  } else {
+    // if after getDifference still have a gap
+    set_seq_gap_timeout(MAX_UNFILLED_GAP_TIME);
+  }
+}
+
+void UpdatesManager::process_pending_qts_updates() {
+  if (pending_qts_updates_.empty()) {
+    return;
+  }
+  LOG(DEBUG) << "Process " << pending_qts_updates_.size() << " pending qts updates";
+  while (!pending_qts_updates_.empty()) {
+    CHECK(!running_get_difference_);
+    auto update_it = pending_qts_updates_.begin();
+    auto qts = update_it->first;
+    if (qts > get_qts() + 1) {
+      break;
+    }
+    if (qts == get_qts() + 1) {
+      process_qts_update(std::move(update_it->second), qts);
+    }
+    pending_qts_updates_.erase(update_it);
+  }
+  if (pending_qts_updates_.empty()) {
+    qts_gap_timeout_.cancel_timeout();
+  } else {
+    // if after getDifference still have a gap
+    set_qts_gap_timeout(MAX_UNFILLED_GAP_TIME);
   }
 }
 
@@ -1437,6 +1542,14 @@ void UpdatesManager::set_seq_gap_timeout(double timeout) {
     seq_gap_timeout_.set_callback(std::move(fill_seq_gap));
     seq_gap_timeout_.set_callback_data(static_cast<void *>(td_));
     seq_gap_timeout_.set_timeout_in(timeout);
+  }
+}
+
+void UpdatesManager::set_qts_gap_timeout(double timeout) {
+  if (!qts_gap_timeout_.has_timeout()) {
+    qts_gap_timeout_.set_callback(std::move(fill_qts_gap));
+    qts_gap_timeout_.set_callback_data(static_cast<void *>(td_));
+    qts_gap_timeout_.set_timeout_in(timeout);
   }
 }
 
@@ -1915,7 +2028,12 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateEncryption> upd
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateNewEncryptedMessage> update, bool force_apply) {
-  send_closure(td_->secret_chats_manager_, &SecretChatsManager::on_update_message, std::move(update), force_apply);
+  if (force_apply) {
+    return process_qts_update(std::move(update), 0);
+  }
+
+  auto qts = update->qts_;
+  add_pending_qts_update(std::move(update), qts);
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateEncryptedMessagesRead> update, bool /*force_apply*/) {
@@ -2039,15 +2157,21 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDeleteScheduled
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateLoginToken> update, bool /*force_apply*/) {
-  LOG(INFO) << "Receive updateLoginToken after authorization";
+  LOG(INFO) << "Ignore updateLoginToken after authorization";
+}
+
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChannelParticipant> update, bool force_apply) {
+  if (force_apply) {
+    return process_qts_update(std::move(update), 0);
+  }
+
+  auto qts = update->qts_;
+  add_pending_qts_update(std::move(update), qts);
 }
 
 // unsupported updates
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateTheme> update, bool /*force_apply*/) {
-}
-
-void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChannelParticipant> update, bool /*force_apply*/) {
 }
 
 }  // namespace td

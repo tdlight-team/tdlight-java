@@ -180,9 +180,8 @@ class TsList : public TsListNode<DataT> {
     }
     this->parent = nullptr;
   }
-  static std::unique_lock<std::mutex> lock() TD_WARN_UNUSED_RESULT {
-    static std::mutex mutex;
-    return std::unique_lock<std::mutex>(mutex);
+  std::unique_lock<std::mutex> lock() TD_WARN_UNUSED_RESULT {
+    return std::unique_lock<std::mutex>(mutex_);
   }
   TsListNode<DataT> *begin() {
     return this->get_next();
@@ -198,10 +197,16 @@ class TsList : public TsListNode<DataT> {
     }
     return res;
   }
+
+ private:
+  std::mutex mutex_;
 };
 
 template <class DataT>
 std::unique_lock<std::mutex> TsListNode<DataT>::lock() {
+  if (parent == nullptr) {
+    return {};
+  }
   CHECK(parent != nullptr);
   return parent->lock();
 }
