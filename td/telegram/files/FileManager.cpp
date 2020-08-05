@@ -3844,14 +3844,16 @@ void FileManager::destroy_query(int32 file_id) {
 
 
 void FileManager::memory_cleanup() {
+  std::lock_guard<std::shared_timed_mutex> writerLock(memory_cleanup_mutex);
+
   LOG(ERROR) << "Initial registered ids: " << file_id_info_.size() << " registered nodes: " << file_nodes_.size();
+
+  std::unordered_set<int32> file_to_be_deleted = {};
 
   /* DESTROY OLD file_id_info_ */
   if (true) {
-    std::lock_guard<std::shared_timed_mutex> writerLock(memory_cleanup_mutex);
     auto it = file_id_info_.begin();
     auto time = std::time(nullptr);
-    std::vector<int32> file_to_be_deleted = {};
 
     while (it != file_id_info_.end()) {
       auto find_node = file_nodes_.find(it->second.node_id_);
@@ -3887,7 +3889,7 @@ void FileManager::memory_cleanup() {
               destroy_query(file_id.fast_get());
 
               /* DESTROY ASSOCIATED LATE */
-              file_to_be_deleted.push_back(file_id.fast_get());
+              file_to_be_deleted.insert(file_id.fast_get());
             }
 
             /* DESTROY MAIN QUERY */
@@ -3897,12 +3899,12 @@ void FileManager::memory_cleanup() {
             file_nodes_.erase(it->second.node_id_);
 
             /* DESTROY MAIN FILE LATE */
-            file_to_be_deleted.push_back(it->first);
+            file_to_be_deleted.insert(it->first);
           }
         }
       } else {
         /* The file has a nonexistent node associated */
-        file_to_be_deleted.push_back(it->first);
+        file_to_be_deleted.insert(it->first);
       }
 
       it++;
@@ -4057,9 +4059,17 @@ void FileManager::memory_cleanup() {
 
   /* DESTROY INVALID remote_location_info_ */
   if (true) {
+    std::set<int32> empty_remote_ids = {};
+    for (auto empty_remote_id : remote_location_info_.get_empty_id()) {
+      empty_remote_ids.insert(empty_remote_id);
+    }
     auto map = remote_location_info_.get_map();
+
+    auto emptyIdsSize = empty_remote_ids.size();
+    auto mapSize = map.size();
+
     auto it = map.begin();
-    while (it != map.end()) {
+    while (it != map.end() && (empty_remote_ids.find(it->second) == empty_remote_ids.end())) {
       auto is_invalid = false;
 
       auto find_file = file_id_info_.find(it->first.file_id_.fast_get());
@@ -4076,12 +4086,8 @@ void FileManager::memory_cleanup() {
 
       if (is_invalid) {
         remote_location_info_.erase(it->second);
-        // Todo: check if if the map must be emptied, or if it's ok to just add the emptied id with Enumerator erase
-        // it = map.erase(it);
-        it++;
-      } else {
-        it++;
       }
+      it++;
     }
   }
 
