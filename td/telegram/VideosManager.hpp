@@ -54,12 +54,29 @@ FileId VideosManager::parse_video(ParserT &parser) {
   PARSE_FLAG(video->supports_streaming);
   PARSE_FLAG(has_animated_thumbnail);
   END_PARSE_FLAGS();
-  parse(video->file_name, parser);
+
+  string tmp_filename;
+  parse(tmp_filename, parser);
+
   parse(video->mime_type, parser);
+
+  if ( G()->shared_config().get_option_boolean("disable_document_filenames") && (
+      video->mime_type.rfind("image/") == 0 ||
+      video->mime_type.rfind("video/") == 0 ||
+      video->mime_type.rfind("audio/") == 0)) {
+    video->file_name = "0";
+  } else {
+    video->file_name = tmp_filename;
+  }
+
   parse(video->duration, parser);
   parse(video->dimensions, parser);
   if (parser.version() >= static_cast<int32>(Version::SupportMinithumbnails)) {
-    parse(video->minithumbnail, parser);
+    string tmp_minithumbnail;
+    parse(tmp_minithumbnail, parser);
+    if (!G()->shared_config().get_option_boolean("disable_minithumbnails")) {
+      video->minithumbnail = tmp_minithumbnail;
+    }
   }
   parse(video->thumbnail, parser);
   parse(video->file_id, parser);

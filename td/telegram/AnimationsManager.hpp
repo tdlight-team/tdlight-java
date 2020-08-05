@@ -15,6 +15,8 @@
 #include "td/utils/common.h"
 #include "td/utils/tl_helpers.h"
 
+#include "td/telegram/ConfigShared.h"
+
 namespace td {
 
 template <class StorerT>
@@ -58,10 +60,27 @@ FileId AnimationsManager::parse_animation(ParserT &parser) {
     parse(animation->duration, parser);
   }
   parse(animation->dimensions, parser);
-  parse(animation->file_name, parser);
+
+  string tmp_filename;
+  parse(tmp_filename, parser);
+
   parse(animation->mime_type, parser);
+
+  if ( G()->shared_config().get_option_boolean("disable_document_filenames") && (
+      animation->mime_type.rfind("image/") == 0 ||
+      animation->mime_type.rfind("video/") == 0 ||
+      animation->mime_type.rfind("audio/") == 0)) {
+    animation->file_name = "0";
+  } else {
+    animation->file_name = tmp_filename;
+  }
+
   if (parser.version() >= static_cast<int32>(Version::SupportMinithumbnails)) {
-    parse(animation->minithumbnail, parser);
+    string tmp_minithumbnail;
+    parse(tmp_minithumbnail, parser);
+    if (!G()->shared_config().get_option_boolean("disable_minithumbnails")) {
+      animation->minithumbnail = tmp_minithumbnail;
+    }
   }
   parse(animation->thumbnail, parser);
   parse(animation->file_id, parser);
