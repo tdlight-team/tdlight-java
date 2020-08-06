@@ -1,2 +1,8 @@
 jdk:
    - openjdk11
+before_install:
+   - git submodule update --remote --init --recursive
+   - cd common-utils
+   - mvn clean install -DskipTests
+   - cd ..
+
