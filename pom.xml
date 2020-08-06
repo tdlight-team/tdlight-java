@@ -18,6 +18,11 @@
             <name>GitHub TDLight Team Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/tdlight-team/tdlight-java</url>
         </repository>
+        <repository>
+            <id>github-alternative</id>
+            <name>GitHub Cavallium Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/Cavallium/common-utils</url>
+        </repository>
     </repositories>
 
     <distributionManagement>
