@@ -1,6 +1,6 @@
 # TDLight
-TDLight is a fork of tdlib focused on memory footprint and performance.
-TDLib and TDLight are interchangeable, so switching to TDLight or switching back to TDLib doesn't require changes in your code.
+TDLight is a fork of tdlib, focused on memory footprint and performance.
+TDLight is 100% compatible with tdlib, if you don't use the sqlite database.
 
 ## Added features
 ### Memory cleanup
