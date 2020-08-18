@@ -29,6 +29,7 @@
 #include "td/telegram/Global.h"
 #include "td/telegram/InputDialogId.h"
 #include "td/telegram/MessageContentType.h"
+#include "td/telegram/MessageCopyOptions.h"
 #include "td/telegram/MessageId.h"
 #include "td/telegram/MessagesDb.h"
 #include "td/telegram/net/NetQuery.h"
@@ -367,26 +368,27 @@ class MessagesManager : public Actor {
   DialogId search_public_dialog(const string &username_to_search, bool force, Promise<Unit> &&promise);
 
   Result<MessageId> send_message(
-      DialogId dialog_id, MessageId reply_to_message_id, tl_object_ptr<td_api::sendMessageOptions> &&options,
+      DialogId dialog_id, MessageId reply_to_message_id, tl_object_ptr<td_api::messageSendOptions> &&options,
       tl_object_ptr<td_api::ReplyMarkup> &&reply_markup,
       tl_object_ptr<td_api::InputMessageContent> &&input_message_content) TD_WARN_UNUSED_RESULT;
 
   Result<vector<MessageId>> send_message_group(
-      DialogId dialog_id, MessageId reply_to_message_id, tl_object_ptr<td_api::sendMessageOptions> &&options,
+      DialogId dialog_id, MessageId reply_to_message_id, tl_object_ptr<td_api::messageSendOptions> &&options,
       vector<tl_object_ptr<td_api::InputMessageContent>> &&input_message_contents) TD_WARN_UNUSED_RESULT;
 
   Result<MessageId> send_bot_start_message(UserId bot_user_id, DialogId dialog_id,
                                            const string &parameter) TD_WARN_UNUSED_RESULT;
 
   Result<MessageId> send_inline_query_result_message(DialogId dialog_id, MessageId reply_to_message_id,
-                                                     tl_object_ptr<td_api::sendMessageOptions> &&options,
+                                                     tl_object_ptr<td_api::messageSendOptions> &&options,
                                                      int64 query_id, const string &result_id,
                                                      bool hide_via_bot) TD_WARN_UNUSED_RESULT;
 
   Result<vector<MessageId>> forward_messages(DialogId to_dialog_id, DialogId from_dialog_id,
                                              vector<MessageId> message_ids,
-                                             tl_object_ptr<td_api::sendMessageOptions> &&options, bool in_game_share,
-                                             bool as_album, bool send_copy, bool remove_caption) TD_WARN_UNUSED_RESULT;
+                                             tl_object_ptr<td_api::messageSendOptions> &&options, bool in_game_share,
+                                             bool as_album,
+                                             vector<MessageCopyOptions> &&copy_options) TD_WARN_UNUSED_RESULT;
 
   Result<vector<MessageId>> resend_messages(DialogId dialog_id, vector<MessageId> message_ids) TD_WARN_UNUSED_RESULT;
 
@@ -1153,6 +1155,7 @@ class MessagesManager : public Actor {
     bool is_has_scheduled_database_messages_checked = false;
     bool has_loaded_scheduled_messages_from_database = false;
     bool sent_scheduled_messages = false;
+    bool had_last_yet_unsent_message = false;  // whether the dialog was stored to database without last message
 
     bool increment_view_counter = false;
 
@@ -1504,13 +1507,13 @@ class MessagesManager : public Actor {
     Promise<> success_promise;
   };
 
-  struct SendMessageOptions {
+  struct MessageSendOptions {
     bool disable_notification = false;
     bool from_background = false;
     int32 schedule_date = 0;
 
-    SendMessageOptions() = default;
-    SendMessageOptions(bool disable_notification, bool from_background, int32 schedule_date)
+    MessageSendOptions() = default;
+    MessageSendOptions(bool disable_notification, bool from_background, int32 schedule_date)
         : disable_notification(disable_notification), from_background(from_background), schedule_date(schedule_date) {
     }
   };
@@ -1648,14 +1651,17 @@ class MessagesManager : public Actor {
   Result<InputMessageContent> process_input_message_content(
       DialogId dialog_id, tl_object_ptr<td_api::InputMessageContent> &&input_message_content);
 
-  Result<SendMessageOptions> process_send_message_options(DialogId dialog_id,
-                                                          tl_object_ptr<td_api::sendMessageOptions> &&options) const;
+  Result<MessageCopyOptions> process_message_copy_options(DialogId dialog_id,
+                                                          tl_object_ptr<td_api::messageCopyOptions> &&options) const;
 
-  static Status can_use_send_message_options(const SendMessageOptions &options,
+  Result<MessageSendOptions> process_message_send_options(DialogId dialog_id,
+                                                          tl_object_ptr<td_api::messageSendOptions> &&options) const;
+
+  static Status can_use_message_send_options(const MessageSendOptions &options,
                                              const unique_ptr<MessageContent> &content, int32 ttl);
-  static Status can_use_send_message_options(const SendMessageOptions &options, const InputMessageContent &content);
+  static Status can_use_message_send_options(const MessageSendOptions &options, const InputMessageContent &content);
 
-  Message *get_message_to_send(Dialog *d, MessageId reply_to_message_id, const SendMessageOptions &options,
+  Message *get_message_to_send(Dialog *d, MessageId reply_to_message_id, const MessageSendOptions &options,
                                unique_ptr<MessageContent> &&content, bool *need_update_dialog_pos,
                                unique_ptr<MessageForwardInfo> forward_info = nullptr, bool is_copy = false);
 
@@ -1702,8 +1708,8 @@ class MessagesManager : public Actor {
                            const vector<MessageId> &message_ids, uint64 logevent_id);
 
   Result<MessageId> forward_message(DialogId to_dialog_id, DialogId from_dialog_id, MessageId message_id,
-                                    tl_object_ptr<td_api::sendMessageOptions> &&options, bool in_game_share,
-                                    bool send_copy, bool remove_caption) TD_WARN_UNUSED_RESULT;
+                                    tl_object_ptr<td_api::messageSendOptions> &&options, bool in_game_share,
+                                    MessageCopyOptions &&copy_options) TD_WARN_UNUSED_RESULT;
 
   void do_send_media(DialogId dialog_id, Message *m, FileId file_id, FileId thumbnail_file_id,
                      tl_object_ptr<telegram_api::InputFile> input_file,
@@ -2130,6 +2136,8 @@ class MessagesManager : public Actor {
 
   void set_dialog_last_clear_history_date(Dialog *d, int32 date, MessageId last_clear_history_message_id,
                                           const char *source, bool is_loaded_from_database = false);
+
+  static void set_dialog_unread_mention_count(Dialog *d, int32 unread_mention_count);
 
   void set_dialog_is_empty(Dialog *d, const char *source);
 

@@ -22,6 +22,7 @@
 #include "td/utils/Time.h"
 
 #include <functional>
+#include <iterator>
 #include <utility>
 
 namespace td {
@@ -285,7 +286,7 @@ void Scheduler::do_event(ActorInfo *actor_info, Event &&event) {
       UNREACHABLE();
       break;
   }
-  // can't clear event here. It may be already destroyed during destory_actor
+  // can't clear event here. It may be already destroyed during destroy_actor
 }
 
 void Scheduler::register_migrated_actor(ActorInfo *actor_info) {
@@ -302,8 +303,8 @@ void Scheduler::register_migrated_actor(ActorInfo *actor_info) {
   }
   auto it = pending_events_.find(actor_info);
   if (it != pending_events_.end()) {
-    actor_info->mailbox_.insert(actor_info->mailbox_.end(), make_move_iterator(begin(it->second)),
-                                make_move_iterator(end(it->second)));
+    actor_info->mailbox_.insert(actor_info->mailbox_.end(), std::make_move_iterator(it->second.begin()),
+                                std::make_move_iterator(it->second.end()));
     pending_events_.erase(it);
   }
   if (actor_info->mailbox_.empty()) {

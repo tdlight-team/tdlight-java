@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
 
-project(TDLib VERSION 1.6.7 LANGUAGES CXX C)
+project(TDLib VERSION 1.6.8 LANGUAGES CXX C)
 
 if (NOT DEFINED CMAKE_INSTALL_LIBDIR)
   set(CMAKE_INSTALL_LIBDIR "lib")
@@ -610,6 +610,7 @@ set(TDLIB_SOURCE
   td/telegram/Logging.h
   td/telegram/MessageContent.h
   td/telegram/MessageContentType.h
+  td/telegram/MessageCopyOptions.h
   td/telegram/MessageEntity.h
   td/telegram/MessageId.h
   td/telegram/MessagesDb.h

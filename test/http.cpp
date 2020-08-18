@@ -4,7 +4,7 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-#include "td/utils/tests.h"
+#include "data.h"
 
 #include "td/net/HttpChunkedByteFlow.h"
 #include "td/net/HttpHeaderCreator.h"
@@ -31,9 +31,8 @@
 #include "td/utils/Random.h"
 #include "td/utils/Slice.h"
 #include "td/utils/Status.h"
+#include "td/utils/tests.h"
 #include "td/utils/UInt.h"
-
-#include "data.h"
 
 #include <algorithm>
 #include <limits>
@@ -133,6 +132,19 @@ TEST(Http, reader) {
   clear_thread_locals();
   SET_VERBOSITY_LEVEL(VERBOSITY_NAME(ERROR));
   auto start_mem = BufferAllocator::get_buffer_mem();
+  auto start_size = BufferAllocator::get_buffer_slice_size();
+  {
+    BufferSlice a("test test");
+    BufferSlice b = std::move(a);
+    a = std::move(a);
+    b = std::move(b);
+    a = std::move(b);
+    BufferSlice c = a.from_slice(a);
+    CHECK(c.size() == a.size());
+  }
+  clear_thread_locals();
+  ASSERT_EQ(start_mem, BufferAllocator::get_buffer_mem());
+  ASSERT_EQ(start_size, BufferAllocator::get_buffer_slice_size());
   for (int i = 0; i < 20; i++) {
     td::ChainBufferWriter input_writer;
     auto input = input_writer.extract_reader();
@@ -184,6 +196,7 @@ TEST(Http, reader) {
   }
   clear_thread_locals();
   ASSERT_EQ(start_mem, BufferAllocator::get_buffer_mem());
+  ASSERT_EQ(start_size, BufferAllocator::get_buffer_slice_size());
 }
 
 TEST(Http, gzip_bomb) {

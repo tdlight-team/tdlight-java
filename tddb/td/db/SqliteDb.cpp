@@ -19,30 +19,7 @@
 namespace td {
 
 namespace {
-string db_key_to_sqlcipher_key(const DbKey &db_key) {
-  if (db_key.is_empty()) {
-    return "''";
-  }
-  if (db_key.is_password()) {
-    return PSTRING() << "'" << db_key.data().str() << "'";
-  }
-  CHECK(db_key.is_raw_key());
-  Slice raw_key = db_key.data();
-  CHECK(raw_key.size() == 32);
-  size_t expected_size = 64 + 5;
-  string res(expected_size + 50, ' ');
-  StringBuilder sb(res);
-  sb << '"';
-  sb << 'x';
-  sb << '\'';
-  sb << format::as_hex_dump<0>(raw_key);
-  sb << '\'';
-  sb << '"';
-  CHECK(!sb.is_error());
-  CHECK(sb.as_cslice().size() == expected_size);
-  res.resize(expected_size);
-  return res;
-}
+
 }  // namespace
 
 SqliteDb::~SqliteDb() = default;
@@ -134,6 +111,15 @@ Result<string> SqliteDb::get_pragma(Slice name) {
   CHECK(!stmt.can_step());
   return std::move(res);
 }
+Result<string> SqliteDb::get_pragma_string(Slice name) {
+  TRY_RESULT(stmt, get_statement(PSLICE() << "PRAGMA " << name));
+  TRY_STATUS(stmt.step());
+  CHECK(stmt.has_row());
+  auto res = stmt.view_string(0).str();
+  TRY_STATUS(stmt.step());
+  CHECK(!stmt.can_step());
+  return std::move(res);
+}
 
 Result<int32> SqliteDb::user_version() {
   TRY_RESULT(get_version_stmt, get_statement("PRAGMA user_version"));
@@ -167,14 +153,30 @@ Status SqliteDb::check_encryption() {
   return Status::OK();
 }
 
-Result<SqliteDb> SqliteDb::open_with_key(CSlice path, const DbKey &db_key) {
+Result<SqliteDb> SqliteDb::open_with_key(CSlice path, const DbKey &db_key, optional<int32> cipher_version) {
+  auto res = do_open_with_key(path, db_key, cipher_version ? cipher_version.value() : 0);
+  if (res.is_error() && !cipher_version) {
+    return do_open_with_key(path, db_key, 3);
+  }
+  return res;
+}
+
+Result<SqliteDb> SqliteDb::do_open_with_key(CSlice path, const DbKey &db_key, int32 cipher_version) {
   SqliteDb db;
   TRY_STATUS(db.init(path));
   return std::move(db);
 }
 
-Status SqliteDb::change_key(CSlice path, const DbKey &new_db_key, const DbKey &old_db_key) {
-  return Status::OK();
+void SqliteDb::set_cipher_version(int32 cipher_version) {
+}
+optional<int32> SqliteDb::get_cipher_version() const {
+  return optional<int32>{3};
+}
+Result<SqliteDb> SqliteDb::change_key(CSlice path, const DbKey &new_db_key, const DbKey &old_db_key) {
+  SqliteDb db;
+  TRY_STATUS(db.init(path));
+
+  return std::move(db);
 }
 
 Status SqliteDb::destroy(Slice path) {

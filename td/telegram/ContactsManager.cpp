@@ -3365,6 +3365,7 @@ void ContactsManager::UserFull::store(StorerT &storer) const {
   STORE_FLAG(can_pin_messages);
   STORE_FLAG(need_phone_number_privacy_exception);
   STORE_FLAG(has_photo);
+  STORE_FLAG(supports_video_calls);
   END_STORE_FLAGS();
   if (has_about) {
     store(about, storer);
@@ -3389,6 +3390,7 @@ void ContactsManager::UserFull::parse(ParserT &parser) {
   PARSE_FLAG(can_pin_messages);
   PARSE_FLAG(need_phone_number_privacy_exception);
   PARSE_FLAG(has_photo);
+  PARSE_FLAG(supports_video_calls);
   END_PARSE_FLAGS();
   if (has_about) {
     parse(about, parser);
@@ -9190,10 +9192,12 @@ void ContactsManager::on_get_user_full(tl_object_ptr<telegram_api::userFull> &&u
   }
 
   bool can_be_called = user_full->phone_calls_available_ && !user_full->phone_calls_private_;
+  bool supports_video_calls = user_full->video_calls_available_ && !user_full->phone_calls_private_;
   bool has_private_calls = user_full->phone_calls_private_;
-  if (user->can_be_called != can_be_called || user->has_private_calls != has_private_calls ||
-      user->about != user_full->about_) {
+  if (user->can_be_called != can_be_called || user->supports_video_calls != supports_video_calls ||
+      user->has_private_calls != has_private_calls || user->about != user_full->about_) {
     user->can_be_called = can_be_called;
+    user->supports_video_calls = supports_video_calls;
     user->has_private_calls = has_private_calls;
     user->about = std::move(user_full->about_);
 
@@ -10252,6 +10256,7 @@ void ContactsManager::drop_user_full(UserId user_id) {
   user_full->photo = Photo();
   user_full->is_blocked = false;
   user_full->can_be_called = false;
+  user_full->supports_video_calls = false;
   user_full->has_private_calls = false;
   user_full->need_phone_number_privacy_exception = false;
   user_full->about = string();
@@ -10594,7 +10599,7 @@ void ContactsManager::on_get_channel_participants_success(
                << channel_id;
     total_count = static_cast<int32>(result.size());
   } else if (is_full && total_count > static_cast<int32>(result.size())) {
-    LOG(ERROR) << "Fix total member count from " << total_count << " to " << result.size();
+    LOG(ERROR) << "Fix total number of members from " << total_count << " to " << result.size() << " in " << channel_id;
     total_count = static_cast<int32>(result.size());
   }
 
@@ -11474,7 +11479,7 @@ void ContactsManager::on_update_chat_add_user(ChatId chat_id, UserId inviter_use
     // Chat is already updated
     if (chat_full->version == c->version &&
         narrow_cast<int32>(chat_full->participants.size()) != c->participant_count) {
-      LOG(ERROR) << "Number of members of " << chat_id << " with version " << c->version << " is "
+      LOG(ERROR) << "Number of members in " << chat_id << " with version " << c->version << " is "
                  << c->participant_count << " but there are " << chat_full->participants.size()
                  << " members in the ChatFull";
       repair_chat_participants(chat_id);
@@ -11748,7 +11753,7 @@ void ContactsManager::on_update_chat_participant_count(Chat *c, ChatId chat_id, 
 
   if (version < c->version) {
     // some outdated data
-    LOG(INFO) << "Receive member count of " << chat_id << " with version " << version << debug_str
+    LOG(INFO) << "Receive number of members in " << chat_id << " with version " << version << debug_str
               << ", but current version is " << c->version;
     return;
   }
@@ -11757,7 +11762,7 @@ void ContactsManager::on_update_chat_participant_count(Chat *c, ChatId chat_id, 
     if (version == c->version && participant_count != 0) {
       // version is not changed when deleted user is removed from the chat
       LOG_IF(ERROR, c->participant_count != participant_count + 1)
-          << "Member count of " << chat_id << " has changed from " << c->participant_count << " to "
+          << "Number of members in " << chat_id << " has changed from " << c->participant_count << " to "
           << participant_count << ", but version " << c->version << " remains unchanged" << debug_str;
       repair_chat_participants(chat_id);
     }
@@ -11844,7 +11849,7 @@ bool ContactsManager::on_update_chat_full_participants_short(ChatFull *chat_full
     return true;
   }
 
-  LOG(INFO) << "Member count of " << chat_id << " with version " << chat_full->version
+  LOG(INFO) << "Number of members in " << chat_id << " with version " << chat_full->version
             << " has changed, but new version is " << version;
   repair_chat_participants(chat_id);
   return false;
@@ -14118,8 +14123,9 @@ tl_object_ptr<td_api::userFullInfo> ContactsManager::get_user_full_info_object(U
   bool is_bot = is_user_bot(user_id);
   return make_tl_object<td_api::userFullInfo>(
       get_chat_photo_object(td_->file_manager_.get(), user_full->photo), user_full->is_blocked,
-      user_full->can_be_called, user_full->has_private_calls, user_full->need_phone_number_privacy_exception,
-      is_bot ? string() : user_full->about, is_bot ? user_full->about : string(), user_full->common_chat_count,
+      user_full->can_be_called, user_full->supports_video_calls, user_full->has_private_calls,
+      user_full->need_phone_number_privacy_exception, is_bot ? string() : user_full->about,
+      is_bot ? user_full->about : string(), user_full->common_chat_count,
       is_bot ? get_bot_info_object(user_id) : nullptr);
 }
 

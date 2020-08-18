@@ -47,6 +47,7 @@
 #include "td/telegram/LanguagePackManager.h"
 #include "td/telegram/Location.h"
 #include "td/telegram/Logging.h"
+#include "td/telegram/MessageCopyOptions.h"
 #include "td/telegram/MessageEntity.h"
 #include "td/telegram/MessageId.h"
 #include "td/telegram/MessagesManager.h"
@@ -3189,7 +3190,7 @@ void Td::schedule_get_promo_data(int32 expires_in) {
   if (expires_in > 86400) {
     expires_in = 86400;
   }
-  if (!close_flag_ && !auth_manager_->is_bot()) {
+  if (!close_flag_ && auth_manager_->is_authorized() && !auth_manager_->is_bot()) {
     LOG(INFO) << "Schedule getPromoData in " << expires_in;
     alarm_timeout_.set_timeout_in(PROMO_DATA_ALARM_ID, expires_in);
   }
@@ -5761,9 +5762,13 @@ void Td::on_request(uint64 id, td_api::sendChatScreenshotTakenNotification &requ
 
 void Td::on_request(uint64 id, td_api::forwardMessages &request) {
   DialogId dialog_id(request.chat_id_);
-  auto r_message_ids = messages_manager_->forward_messages(
-      dialog_id, DialogId(request.from_chat_id_), MessagesManager::get_message_ids(request.message_ids_),
-      std::move(request.options_), false, request.as_album_, request.send_copy_, request.remove_caption_);
+  auto input_message_ids = MessagesManager::get_message_ids(request.message_ids_);
+  auto message_copy_options =
+      transform(input_message_ids, [send_copy = request.send_copy_, remove_caption = request.remove_caption_](
+                                       MessageId) { return MessageCopyOptions(send_copy, remove_caption); });
+  auto r_message_ids = messages_manager_->forward_messages(dialog_id, DialogId(request.from_chat_id_),
+                                                           std::move(input_message_ids), std::move(request.options_),
+                                                           false, request.as_album_, std::move(message_copy_options));
   if (r_message_ids.is_error()) {
     return send_closure(actor_id(this), &Td::send_error, id, r_message_ids.move_as_error());
   }
@@ -5828,7 +5833,7 @@ void Td::on_request(uint64 id, td_api::createNewSecretChat &request) {
   CREATE_REQUEST(CreateNewSecretChatRequest, request.user_id_);
 }
 
-void Td::on_request(uint64 id, td_api::createCall &request) {
+void Td::on_request(uint64 id, const td_api::createCall &request) {
   CHECK_IS_USER();
   CREATE_REQUEST_PROMISE();
   auto query_promise = PromiseCreator::lambda([promise = std::move(promise)](Result<CallId> result) mutable {
@@ -5854,17 +5859,10 @@ void Td::on_request(uint64 id, td_api::createCall &request) {
   }
 
   send_closure(G()->call_manager(), &CallManager::create_call, user_id, std::move(input_user),
-               CallProtocol(*request.protocol_), false, std::move(query_promise));
+               CallProtocol(*request.protocol_), request.is_video_, std::move(query_promise));
 }
 
-void Td::on_request(uint64 id, td_api::discardCall &request) {
-  CHECK_IS_USER();
-  CREATE_OK_REQUEST_PROMISE();
-  send_closure(G()->call_manager(), &CallManager::discard_call, CallId(request.call_id_), request.is_disconnected_,
-               request.duration_, false, request.connection_id_, std::move(promise));
-}
-
-void Td::on_request(uint64 id, td_api::acceptCall &request) {
+void Td::on_request(uint64 id, const td_api::acceptCall &request) {
   CHECK_IS_USER();
   CREATE_OK_REQUEST_PROMISE();
   if (!request.protocol_) {
@@ -5872,6 +5870,20 @@ void Td::on_request(uint64 id, td_api::acceptCall &request) {
   }
   send_closure(G()->call_manager(), &CallManager::accept_call, CallId(request.call_id_),
                CallProtocol(*request.protocol_), std::move(promise));
+}
+
+void Td::on_request(uint64 id, td_api::sendCallSignalingData &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  send_closure(G()->call_manager(), &CallManager::send_call_signaling_data, CallId(request.call_id_),
+               std::move(request.data_), std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::discardCall &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  send_closure(G()->call_manager(), &CallManager::discard_call, CallId(request.call_id_), request.is_disconnected_,
+               request.duration_, request.is_video_, request.connection_id_, std::move(promise));
 }
 
 void Td::on_request(uint64 id, td_api::sendCallRating &request) {

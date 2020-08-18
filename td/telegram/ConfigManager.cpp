@@ -515,7 +515,6 @@ ActorOwn<> get_full_config(DcOption option, Promise<FullConfig> promise, ActorSh
     }
     void on_result(NetQueryPtr query) override {
       promise_.set_result(fetch_result<telegram_api::help_getConfig>(std::move(query)));
-      stop();
     }
     void hangup_shared() override {
       if (get_link_token() == 1) {
@@ -880,8 +879,7 @@ ConfigManager::ConfigManager(ActorShared<> parent) : parent_(std::move(parent)) 
 }
 
 void ConfigManager::start_up() {
-  ref_cnt_++;
-  config_recoverer_ = create_actor<ConfigRecoverer>("Recoverer", actor_shared());
+  config_recoverer_ = create_actor<ConfigRecoverer>("Recoverer", create_reference());
   send_closure(config_recoverer_, &ConfigRecoverer::on_dc_options_update, load_dc_options_update());
 
   auto expire_time = load_config_expire_time();
@@ -893,7 +891,13 @@ void ConfigManager::start_up() {
   }
 }
 
+ActorShared<> ConfigManager::create_reference() {
+  ref_cnt_++;
+  return actor_shared(this, REFCNT_TOKEN);
+}
+
 void ConfigManager::hangup_shared() {
+  LOG_CHECK(get_link_token() == REFCNT_TOKEN) << "Expected REFCNT_TOKEN, got " << get_link_token();
   ref_cnt_--;
   try_stop();
 }

@@ -18,6 +18,7 @@
 #include "td/utils/base64.h"
 #include "td/utils/buffer.h"
 #include "td/utils/common.h"
+#include "td/utils/crypto.h"
 #include "td/utils/FileLog.h"
 #include "td/utils/format.h"
 #include "td/utils/JsonBuilder.h"
@@ -1391,14 +1392,14 @@ class CliClient final : public Actor {
     auto chat = as_chat_id(chat_id);
     auto id = send_request(td_api::make_object<td_api::sendMessage>(
         chat, reply_to_message_id,
-        td_api::make_object<td_api::sendMessageOptions>(disable_notification, from_background,
+        td_api::make_object<td_api::messageSendOptions>(disable_notification, from_background,
                                                         as_message_scheduling_state(schedule_date_)),
         nullptr, std::move(input_message_content)));
     query_id_to_send_message_info_[id].start_time = Time::now();
   }
 
-  td_api::object_ptr<td_api::sendMessageOptions> default_send_message_options() const {
-    return td_api::make_object<td_api::sendMessageOptions>(false, false, as_message_scheduling_state(schedule_date_));
+  td_api::object_ptr<td_api::messageSendOptions> default_message_send_options() const {
+    return td_api::make_object<td_api::messageSendOptions>(false, false, as_message_scheduling_state(schedule_date_));
   }
 
   void send_get_background_url(td_api::object_ptr<td_api::BackgroundType> &&background_type) {
@@ -2706,7 +2707,7 @@ class CliClient final : public Actor {
 
       auto chat = as_chat_id(chat_id);
       send_request(td_api::make_object<td_api::forwardMessages>(
-          chat, as_chat_id(from_chat_id), as_message_ids(message_ids), default_send_message_options(), op[2] == 'g',
+          chat, as_chat_id(from_chat_id), as_message_ids(message_ids), default_message_send_options(), op[2] == 'g',
           op[0] == 'c', Random::fast(0, 1) == 1));
     } else if (op == "resend") {
       string chat_id;
@@ -2730,16 +2731,21 @@ class CliClient final : public Actor {
       send_request(td_api::make_object<td_api::closeSecretChat>(as_secret_chat_id(args)));
     } else if (op == "cc" || op == "CreateCall") {
       send_request(td_api::make_object<td_api::createCall>(
-          as_user_id(args), td_api::make_object<td_api::callProtocol>(true, true, 65, 65, vector<string>{"2.6"})));
+          as_user_id(args), td_api::make_object<td_api::callProtocol>(true, true, 65, 65, vector<string>{"2.6", "3.0"}),
+          Random::fast(0, 1) == 1));
+    } else if (op == "ac" || op == "AcceptCall") {
+      send_request(td_api::make_object<td_api::acceptCall>(
+          as_call_id(args),
+          td_api::make_object<td_api::callProtocol>(true, true, 65, 65, vector<string>{"2.6", "3.0"})));
+    } else if (op == "scsd") {
+      send_request(td_api::make_object<td_api::sendCallSignalingData>(as_call_id(args), "abacaba"));
     } else if (op == "dc" || op == "DiscardCall") {
       string call_id;
       string is_disconnected;
       std::tie(call_id, is_disconnected) = split(args);
 
-      send_request(td_api::make_object<td_api::discardCall>(as_call_id(call_id), as_bool(is_disconnected), 0, 0));
-    } else if (op == "ac" || op == "AcceptCall") {
-      send_request(td_api::make_object<td_api::acceptCall>(
-          as_call_id(args), td_api::make_object<td_api::callProtocol>(true, true, 65, 65, vector<string>{"2.6"})));
+      send_request(td_api::make_object<td_api::discardCall>(as_call_id(call_id), as_bool(is_disconnected), 0,
+                                                            Random::fast(0, 1) == 1, 0));
     } else if (op == "scr" || op == "SendCallRating") {
       string call_id;
       string rating;
@@ -2965,7 +2971,7 @@ class CliClient final : public Actor {
       photos = full_split(args);
 
       send_request(td_api::make_object<td_api::sendMessageAlbum>(
-          as_chat_id(chat_id), as_message_id(reply_to_message_id), default_send_message_options(),
+          as_chat_id(chat_id), as_message_id(reply_to_message_id), default_message_send_options(),
           transform(photos, [](const string &photo_path) {
             td_api::object_ptr<td_api::InputMessageContent> content = td_api::make_object<td_api::inputMessagePhoto>(
                 as_input_file(photo_path), nullptr, Auto(), 0, 0, as_caption(""), 0);
@@ -3094,7 +3100,7 @@ class CliClient final : public Actor {
 
       auto chat = as_chat_id(chat_id);
       send_request(td_api::make_object<td_api::sendInlineQueryResultMessage>(
-          chat, 0, default_send_message_options(), to_integer<int64>(query_id), result_id, op == "siqrh"));
+          chat, 0, default_message_send_options(), to_integer<int64>(query_id), result_id, op == "siqrh"));
     } else if (op == "gcqr") {
       string chat_id;
       string message_id;
@@ -3194,9 +3200,15 @@ class CliClient final : public Actor {
       std::tie(chat_id, args) = split(args);
       std::tie(from_chat_id, from_message_id) = split(args);
 
-      send_message(chat_id, td_api::make_object<td_api::inputMessageForwarded>(as_chat_id(from_chat_id),
-                                                                               as_message_id(from_message_id), true,
-                                                                               op == "scopy", Random::fast(0, 1) == 0));
+      td_api::object_ptr<td_api::messageCopyOptions> copy_options;
+      if (op == "scopy") {
+        copy_options =
+            td_api::make_object<td_api::messageCopyOptions>(true, Random::fast(0, 1) == 0, as_caption("_as_d"));
+      }
+
+      send_message(chat_id,
+                   td_api::make_object<td_api::inputMessageForwarded>(
+                       as_chat_id(from_chat_id), as_message_id(from_message_id), true, std::move(copy_options)));
     } else if (op == "sdice" || op == "sdicecd") {
       string chat_id;
       string emoji;
@@ -4332,8 +4344,9 @@ void main(int argc, char **argv) {
   set_signal_handler(SignalType::Error, fail_signal).ensure();
   set_signal_handler(SignalType::Abort, fail_signal).ensure();
   Log::set_fatal_error_callback(on_fatal_error);
+  init_openssl_threads();
 
-  const char *locale_name = (std::setlocale(LC_ALL, "fr-FR") == nullptr ? "" : "fr-FR");
+  const char *locale_name = (std::setlocale(LC_ALL, "fr-FR") == nullptr ? "C" : "fr-FR");
   std::locale new_locale(locale_name);
   std::locale::global(new_locale);
   SCOPE_EXIT {

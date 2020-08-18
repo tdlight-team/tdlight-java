@@ -46,17 +46,25 @@ struct CallProtocol {
 };
 
 struct CallConnection {
+  enum class Type : int32 { Telegram, Webrtc };
+  Type type;
   int64 id;
   string ip;
   string ipv6;
   int32 port;
+
+  // Telegram
   string peer_tag;
 
-  explicit CallConnection(const telegram_api::phoneConnection &connection);
+  // WebRTC
+  string username;
+  string password;
+  bool supports_turn = false;
+  bool supports_stun = false;
 
-  tl_object_ptr<telegram_api::phoneConnection> get_input_phone_connection() const;
+  explicit CallConnection(const telegram_api::PhoneConnection &connection);
 
-  tl_object_ptr<td_api::callConnection> get_call_connection_object() const;
+  tl_object_ptr<td_api::callServer> get_call_server_object() const;
 };
 
 struct CallState {
@@ -87,9 +95,10 @@ class CallActor : public NetQueryCallback {
 
   void create_call(UserId user_id, tl_object_ptr<telegram_api::InputUser> &&input_user, CallProtocol &&protocol,
                    bool is_video, Promise<CallId> &&promise);
-  void update_call_signaling_data(string data);
-  void discard_call(bool is_disconnected, int32 duration, bool is_video, int64 connection_id, Promise<> promise);
   void accept_call(CallProtocol &&protocol, Promise<> promise);
+  void update_call_signaling_data(string data);
+  void send_call_signaling_data(string &&data, Promise<> promise);
+  void discard_call(bool is_disconnected, int32 duration, bool is_video, int64 connection_id, Promise<> promise);
   void rate_call(int32 rating, string comment, vector<td_api::object_ptr<td_api::CallProblem>> &&problems,
                  Promise<> promise);
   void send_call_debug_information(string data, Promise<> promise);

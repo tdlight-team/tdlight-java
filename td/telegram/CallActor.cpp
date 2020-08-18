@@ -64,12 +64,34 @@ CallProtocol::CallProtocol(const td_api::callProtocol &protocol)
     , library_versions(protocol.library_versions_) {
 }
 
-CallConnection::CallConnection(const telegram_api::phoneConnection &connection)
-    : id(connection.id_)
-    , ip(connection.ip_)
-    , ipv6(connection.ipv6_)
-    , port(connection.port_)
-    , peer_tag(connection.peer_tag_.as_slice().str()) {
+CallConnection::CallConnection(const telegram_api::PhoneConnection &connection) {
+  switch (connection.get_id()) {
+    case telegram_api::phoneConnection::ID: {
+      auto &conn = static_cast<const telegram_api::phoneConnection &>(connection);
+      type = Type::Telegram;
+      id = conn.id_;
+      ip = conn.ip_;
+      ipv6 = conn.ipv6_;
+      port = conn.port_;
+      peer_tag = conn.peer_tag_.as_slice().str();
+      break;
+    }
+    case telegram_api::phoneConnectionWebrtc::ID: {
+      auto &conn = static_cast<const telegram_api::phoneConnectionWebrtc &>(connection);
+      type = Type::Webrtc;
+      id = conn.id_;
+      ip = conn.ip_;
+      ipv6 = conn.ipv6_;
+      port = conn.port_;
+      username = conn.username_;
+      password = conn.password_;
+      supports_turn = conn.turn_;
+      supports_stun = conn.stun_;
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
 }
 
 tl_object_ptr<td_api::callProtocol> CallProtocol::get_call_protocol_object() const {
@@ -77,12 +99,19 @@ tl_object_ptr<td_api::callProtocol> CallProtocol::get_call_protocol_object() con
                                               vector<string>(library_versions));
 }
 
-tl_object_ptr<telegram_api::phoneConnection> CallConnection::get_input_phone_connection() const {
-  return make_tl_object<telegram_api::phoneConnection>(id, ip, ipv6, port, BufferSlice(peer_tag));
-}
-
-tl_object_ptr<td_api::callConnection> CallConnection::get_call_connection_object() const {
-  return make_tl_object<td_api::callConnection>(id, ip, ipv6, port, peer_tag);
+tl_object_ptr<td_api::callServer> CallConnection::get_call_server_object() const {
+  auto server_type = [&]() -> tl_object_ptr<td_api::CallServerType> {
+    switch (type) {
+      case Type::Telegram:
+        return make_tl_object<td_api::callServerTypeTelegramReflector>(peer_tag);
+      case Type::Webrtc:
+        return make_tl_object<td_api::callServerTypeWebrtc>(username, password, supports_turn, supports_stun);
+      default:
+        UNREACHABLE();
+        return nullptr;
+    }
+  }();
+  return make_tl_object<td_api::callServer>(id, ip, ipv6, port, std::move(server_type));
 }
 
 tl_object_ptr<td_api::CallState> CallState::get_call_state_object() const {
@@ -92,7 +121,7 @@ tl_object_ptr<td_api::CallState> CallState::get_call_state_object() const {
     case Type::ExchangingKey:
       return make_tl_object<td_api::callStateExchangingKeys>();
     case Type::Ready: {
-      auto call_connections = transform(connections, [](auto &c) { return c.get_call_connection_object(); });
+      auto call_connections = transform(connections, [](auto &c) { return c.get_call_server_object(); });
       return make_tl_object<td_api::callStateReady>(protocol.get_call_protocol_object(), std::move(call_connections),
                                                     config, key, vector<string>(emojis_fingerprint), allow_p2p);
     }
@@ -131,8 +160,43 @@ void CallActor::create_call(UserId user_id, tl_object_ptr<telegram_api::InputUse
   promise.set_value(CallId(local_call_id_));
 }
 
+void CallActor::accept_call(CallProtocol &&protocol, Promise<> promise) {
+  if (state_ != State::SendAcceptQuery) {
+    return promise.set_error(Status::Error(400, "Unexpected acceptCall"));
+  }
+  is_accepted_ = true;
+  call_state_.protocol = std::move(protocol);
+  promise.set_value(Unit());
+  loop();
+}
+
 void CallActor::update_call_signaling_data(string data) {
-  // nothing to do
+  if (call_state_.type != CallState::Type::Ready) {
+    return;
+  }
+
+  auto update = td_api::make_object<td_api::updateNewCallSignalingData>();
+  update->call_id_ = local_call_id_.get();
+  update->data_ = std::move(data);
+  send_closure(G()->td(), &Td::send_update, std::move(update));
+}
+
+void CallActor::send_call_signaling_data(string &&data, Promise<> promise) {
+  if (call_state_.type != CallState::Type::Ready) {
+    return promise.set_error(Status::Error(400, "Call is not active"));
+  }
+
+  auto query = G()->net_query_creator().create(
+      telegram_api::phone_sendSignalingData(get_input_phone_call("send_call_signaling_data"), BufferSlice(data)));
+  send_with_promise(std::move(query),
+                    PromiseCreator::lambda([promise = std::move(promise)](NetQueryPtr net_query) mutable {
+                      auto res = fetch_result<telegram_api::phone_sendSignalingData>(std::move(net_query));
+                      if (res.is_error()) {
+                        promise.set_error(res.move_as_error());
+                      } else {
+                        promise.set_value(Unit());
+                      }
+                    }));
 }
 
 void CallActor::discard_call(bool is_disconnected, int32 duration, bool is_video, int64 connection_id,
@@ -177,16 +241,6 @@ void CallActor::discard_call(bool is_disconnected, int32 duration, bool is_video
   call_state_need_flush_ = true;
 
   state_ = State::SendDiscardQuery;
-  loop();
-}
-
-void CallActor::accept_call(CallProtocol &&protocol, Promise<> promise) {
-  if (state_ != State::SendAcceptQuery) {
-    return promise.set_error(Status::Error(400, "Unexpected acceptCall"));
-  }
-  is_accepted_ = true;
-  call_state_.protocol = std::move(protocol);
-  promise.set_value(Unit());
   loop();
 }
 
@@ -406,6 +460,8 @@ Status CallActor::do_update_call(telegram_api::phoneCall &call) {
     return Status::Error(500, PSLICE() << "Drop unexpected " << to_string(call));
   }
   cancel_timeout();
+
+  is_video_ |= (call.flags_ & telegram_api::phoneCall::VIDEO_MASK) != 0;
 
   LOG(DEBUG) << "Do update call to Ready from state " << static_cast<int32>(state_);
   if (state_ == State::WaitAcceptResult) {
@@ -701,7 +757,7 @@ void CallActor::flush_call_state() {
     send_closure(G()->td(), &Td::send_update,
                  make_tl_object<td_api::updateCall>(
                      make_tl_object<td_api::call>(local_call_id_.get(), is_outgoing_ ? user_id_.get() : call_admin_id_,
-                                                  is_outgoing_, call_state_.get_call_state_object())));
+                                                  is_outgoing_, is_video_, call_state_.get_call_state_object())));
   }
 }
 

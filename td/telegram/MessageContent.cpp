@@ -3937,8 +3937,11 @@ unique_ptr<MessageContent> get_message_content(Td *td, FormattedText message,
 }
 
 unique_ptr<MessageContent> dup_message_content(Td *td, DialogId dialog_id, const MessageContent *content,
-                                               MessageContentDupType type) {
+                                               MessageContentDupType type, MessageCopyOptions &&copy_options) {
   CHECK(content != nullptr);
+  if (copy_options.send_copy) {
+    CHECK(type == MessageContentDupType::Copy);
+  }
   if (type != MessageContentDupType::Forward && type != MessageContentDupType::SendViaBot &&
       !can_have_input_media(td, content)) {
     return nullptr;
@@ -3961,12 +3964,12 @@ unique_ptr<MessageContent> dup_message_content(Td *td, DialogId dialog_id, const
   if (to_secret) {
     thumbnail_file_id = get_message_content_thumbnail_file_id(content, td);
   }
-  auto remove_caption = type == MessageContentDupType::CopyWithoutCaption;
+  auto replace_caption = type == MessageContentDupType::Copy && copy_options.replace_caption;
   switch (content->get_type()) {
     case MessageContentType::Animation: {
       auto result = make_unique<MessageAnimation>(*static_cast<const MessageAnimation *>(content));
-      if (remove_caption) {
-        result->caption = FormattedText();
+      if (replace_caption) {
+        result->caption = std::move(copy_options.new_caption);
       }
       if (td->documents_manager_->has_input_media(result->file_id, thumbnail_file_id, to_secret)) {
         return std::move(result);
@@ -3977,8 +3980,8 @@ unique_ptr<MessageContent> dup_message_content(Td *td, DialogId dialog_id, const
     }
     case MessageContentType::Audio: {
       auto result = make_unique<MessageAudio>(*static_cast<const MessageAudio *>(content));
-      if (remove_caption) {
-        result->caption = FormattedText();
+      if (replace_caption) {
+        result->caption = std::move(copy_options.new_caption);
       }
       if (td->documents_manager_->has_input_media(result->file_id, thumbnail_file_id, to_secret)) {
         return std::move(result);
@@ -3998,8 +4001,8 @@ unique_ptr<MessageContent> dup_message_content(Td *td, DialogId dialog_id, const
     }
     case MessageContentType::Document: {
       auto result = make_unique<MessageDocument>(*static_cast<const MessageDocument *>(content));
-      if (remove_caption) {
-        result->caption = FormattedText();
+      if (replace_caption) {
+        result->caption = std::move(copy_options.new_caption);
       }
       if (td->documents_manager_->has_input_media(result->file_id, thumbnail_file_id, to_secret)) {
         return std::move(result);
@@ -4022,8 +4025,8 @@ unique_ptr<MessageContent> dup_message_content(Td *td, DialogId dialog_id, const
       return make_unique<MessageLocation>(*static_cast<const MessageLocation *>(content));
     case MessageContentType::Photo: {
       auto result = make_unique<MessagePhoto>(*static_cast<const MessagePhoto *>(content));
-      if (remove_caption) {
-        result->caption = FormattedText();
+      if (replace_caption) {
+        result->caption = std::move(copy_options.new_caption);
       }
 
       CHECK(!result->photo.photos.empty());
@@ -4103,8 +4106,8 @@ unique_ptr<MessageContent> dup_message_content(Td *td, DialogId dialog_id, const
       return make_unique<MessageVenue>(*static_cast<const MessageVenue *>(content));
     case MessageContentType::Video: {
       auto result = make_unique<MessageVideo>(*static_cast<const MessageVideo *>(content));
-      if (remove_caption) {
-        result->caption = FormattedText();
+      if (replace_caption) {
+        result->caption = std::move(copy_options.new_caption);
       }
       if (td->documents_manager_->has_input_media(result->file_id, thumbnail_file_id, to_secret)) {
         return std::move(result);
@@ -4125,8 +4128,8 @@ unique_ptr<MessageContent> dup_message_content(Td *td, DialogId dialog_id, const
     }
     case MessageContentType::VoiceNote: {
       auto result = make_unique<MessageVoiceNote>(*static_cast<const MessageVoiceNote *>(content));
-      if (remove_caption) {
-        result->caption = FormattedText();
+      if (replace_caption) {
+        result->caption = std::move(copy_options.new_caption);
       }
       result->is_listened = false;
       if (td->documents_manager_->has_input_media(result->file_id, thumbnail_file_id, to_secret)) {
@@ -4491,7 +4494,8 @@ tl_object_ptr<td_api::MessageContent> get_message_content_object(const MessageCo
     }
     case MessageContentType::Call: {
       const MessageCall *m = static_cast<const MessageCall *>(content);
-      return make_tl_object<td_api::messageCall>(get_call_discard_reason_object(m->discard_reason), m->duration);
+      return make_tl_object<td_api::messageCall>(m->is_video, get_call_discard_reason_object(m->discard_reason),
+                                                 m->duration);
     }
     case MessageContentType::PaymentSuccessful: {
       const MessagePaymentSuccessful *m = static_cast<const MessagePaymentSuccessful *>(content);

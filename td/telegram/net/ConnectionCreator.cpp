@@ -90,6 +90,8 @@ class StatsCallback final : public mtproto::RawConnection::StatsCallback {
 }  // namespace detail
 
 ConnectionCreator::ClientInfo::ClientInfo() {
+  sanity_flood_control.add_limit(5, 10);
+
   flood_control.add_limit(1, 1);
   flood_control.add_limit(4, 2);
   flood_control.add_limit(8, 3);
@@ -549,6 +551,7 @@ void ConnectionCreator::on_network(bool network_flag, uint32 network_generation)
 
     for (auto &client : clients_) {
       client.second.backoff.clear();
+      client.second.sanity_flood_control.clear_events();
       client.second.flood_control.clear_events();
       client.second.flood_control_online.clear_events();
       client_loop(client.second);
@@ -567,9 +570,24 @@ void ConnectionCreator::on_online(bool online_flag) {
   if (need_drop_flood_control) {
     for (auto &client : clients_) {
       client.second.backoff.clear();
+      client.second.sanity_flood_control.clear_events();
       client.second.flood_control_online.clear_events();
       client_loop(client.second);
     }
+  }
+}
+void ConnectionCreator::on_logging_out(bool is_logging_out) {
+  if (is_logging_out_ == is_logging_out) {
+    return;
+  }
+
+  VLOG(connections) << "Receive logging out flag " << is_logging_out;
+  is_logging_out_ = is_logging_out;
+  for (auto &client : clients_) {
+    client.second.backoff.clear();
+    client.second.sanity_flood_control.clear_events();
+    client.second.flood_control_online.clear_events();
+    client_loop(client.second);
   }
 }
 
@@ -852,17 +870,20 @@ void ConnectionCreator::client_loop(ClientInfo &client) {
       }
     }
 
+    bool act_as_if_online = online_flag_ || is_logging_out_;
     // Check flood
-    auto &flood_control = online_flag_ ? client.flood_control_online : client.flood_control;
+    auto &flood_control = act_as_if_online ? client.flood_control_online : client.flood_control;
     auto wakeup_at = max(flood_control.get_wakeup_at(), client.mtproto_error_flood_control.get_wakeup_at());
-    if (!online_flag_) {
+    wakeup_at = max(client.sanity_flood_control.get_wakeup_at(), wakeup_at);
+
+    if (!act_as_if_online) {
       wakeup_at = max(wakeup_at, client.backoff.get_wakeup_at());
     }
     if (wakeup_at > Time::now()) {
       return client_set_timeout_at(client, wakeup_at);
     }
-    flood_control.add_event(static_cast<int32>(Time::now()));
-    if (!online_flag_) {
+    client.sanity_flood_control.add_event(static_cast<int32>(Time::now()));
+    if (!act_as_if_online) {
       client.backoff.add_event(static_cast<int32>(Time::now()));
     }
 
@@ -878,6 +899,9 @@ void ConnectionCreator::client_loop(ClientInfo &client) {
       }
       return client_set_timeout_at(client, Time::now() + 0.1);
     }
+
+    // Events with failed socket creation are ignored
+    flood_control.add_event(static_cast<int32>(Time::now()));
 
     auto socket_fd = r_socket_fd.move_as_ok();
     IPAddress debug_ip;
@@ -1055,6 +1079,10 @@ void ConnectionCreator::start_up() {
     }
     bool on_online(bool online_flag) override {
       send_closure(connection_creator_, &ConnectionCreator::on_online, online_flag);
+      return connection_creator_.is_alive();
+    }
+    bool on_logging_out(bool is_logging_out) override {
+      send_closure(connection_creator_, &ConnectionCreator::on_logging_out, is_logging_out);
       return connection_creator_.is_alive();
     }
 

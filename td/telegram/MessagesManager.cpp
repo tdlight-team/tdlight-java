@@ -4491,6 +4491,7 @@ void MessagesManager::Dialog::store(StorerT &storer) const {
   bool has_folder_id = folder_id != FolderId();
   bool has_pending_read_channel_inbox = pending_read_channel_inbox_pts != 0;
   bool has_distance = distance >= 0;
+  bool has_last_yet_unsent_message = last_message_id.is_valid() && last_message_id.is_yet_unsent();
   BEGIN_STORE_FLAGS();
   STORE_FLAG(has_draft_message);
   STORE_FLAG(has_last_database_message);
@@ -4543,6 +4544,7 @@ void MessagesManager::Dialog::store(StorerT &storer) const {
     STORE_FLAG(can_unarchive);
     STORE_FLAG(has_distance);
     STORE_FLAG(hide_distance);
+    STORE_FLAG(has_last_yet_unsent_message);
     END_STORE_FLAGS();
   }
 
@@ -4708,6 +4710,7 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
     PARSE_FLAG(can_unarchive);
     PARSE_FLAG(has_distance);
     PARSE_FLAG(hide_distance);
+    PARSE_FLAG(had_last_yet_unsent_message);
     END_PARSE_FLAGS();
   } else {
     is_folder_id_inited = false;
@@ -4721,6 +4724,7 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
     need_repair_channel_server_unread_count = false;
     can_unarchive = false;
     hide_distance = false;
+    had_last_yet_unsent_message = false;
   }
 
   parse(last_new_message_id, parser);
@@ -5234,15 +5238,15 @@ int32 MessagesManager::get_message_index_mask(DialogId dialog_id, const Message 
   if (m->is_content_secret || (m->ttl > 0 && !is_secret)) {
     return 0;
   }
-  int32 mentions_mask = get_message_content_index_mask(m->content.get(), td_, is_secret, m->is_outgoing);
+  int32 index_mask = get_message_content_index_mask(m->content.get(), td_, is_secret, m->is_outgoing);
   if (m->contains_mention) {
-    mentions_mask |= search_messages_filter_index_mask(SearchMessagesFilter::Mention);
+    index_mask |= search_messages_filter_index_mask(SearchMessagesFilter::Mention);
     if (m->contains_unread_mention) {
-      mentions_mask |= search_messages_filter_index_mask(SearchMessagesFilter::UnreadMention);
+      index_mask |= search_messages_filter_index_mask(SearchMessagesFilter::UnreadMention);
     }
   }
-  LOG(INFO) << "Have index mask " << mentions_mask << " for " << m->message_id << " in " << dialog_id;
-  return mentions_mask;
+  LOG(INFO) << "Have index mask " << index_mask << " for " << m->message_id << " in " << dialog_id;
+  return index_mask;
 }
 
 vector<MessageId> MessagesManager::get_message_ids(const vector<int64> &input_message_ids) {
@@ -6061,13 +6065,11 @@ bool MessagesManager::update_message_contains_unread_mention(Dialog *d, Message 
 
     m->contains_unread_mention = false;
     if (d->unread_mention_count == 0) {
-      if (d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] != -1) {
+      if (is_dialog_inited(d)) {
         LOG(ERROR) << "Unread mention count of " << d->dialog_id << " became negative from " << source;
       }
     } else {
-      d->unread_mention_count--;
-      d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] =
-          d->unread_mention_count;
+      set_dialog_unread_mention_count(d, d->unread_mention_count - 1);
       on_dialog_updated(d->dialog_id, "update_message_contains_unread_mention");
     }
     LOG(INFO) << "Update unread mention message count in " << d->dialog_id << " to " << d->unread_mention_count
@@ -6157,18 +6159,18 @@ void MessagesManager::on_update_dialog_online_member_count(DialogId dialog_id, i
   }
 
   if (!dialog_id.is_valid()) {
-    LOG(ERROR) << "Receive online member count in invalid " << dialog_id;
+    LOG(ERROR) << "Receive number of online members in invalid " << dialog_id;
     return;
   }
 
   if (is_broadcast_channel(dialog_id)) {
     LOG_IF(ERROR, online_member_count != 0)
-        << "Receive online member count " << online_member_count << " in a broadcast " << dialog_id;
+        << "Receive " << online_member_count << " as a number of online members in a channel " << dialog_id;
     return;
   }
 
   if (online_member_count < 0) {
-    LOG(ERROR) << "Receive online member count " << online_member_count << " in a " << dialog_id;
+    LOG(ERROR) << "Receive " << online_member_count << " as a number of online members in a " << dialog_id;
     return;
   }
 
@@ -6409,7 +6411,7 @@ void MessagesManager::add_pending_channel_update(DialogId dialog_id, tl_object_p
       auto channel_id = dialog_id.get_channel_id();
       if (!td_->contacts_manager_->have_channel(channel_id)) {
         // do not create dialog if there is no info about the channel
-        LOG(WARNING) << "There is no info about " << channel_id << ", so ignore " << to_string(update);
+        LOG(WARNING) << "There is no info about " << channel_id << ", so ignore " << oneline(to_string(update));
         return;
       }
 
@@ -9617,8 +9619,7 @@ void MessagesManager::delete_all_dialog_messages(Dialog *d, bool remove_from_dia
   }
 
   if (d->unread_mention_count > 0) {
-    d->unread_mention_count = 0;
-    d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] = 0;
+    set_dialog_unread_mention_count(d, 0);
     send_update_chat_unread_mention_count(d);
   }
 
@@ -9742,8 +9743,7 @@ void MessagesManager::read_all_dialog_mentions(DialogId dialog_id, Promise<Unit>
   }
 
   if (d->unread_mention_count != 0) {
-    d->unread_mention_count = 0;
-    d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] = 0;
+    set_dialog_unread_mention_count(d, 0);
     if (!is_update_sent) {
       send_update_chat_unread_mention_count(d);
     } else {
@@ -10515,8 +10515,8 @@ void MessagesManager::set_dialog_online_member_count(DialogId dialog_id, int32 o
   }
 
   auto &info = dialog_online_member_counts_[dialog_id];
-  LOG(INFO) << "Change online member count from " << info.online_member_count << " to " << online_member_count << " in "
-            << dialog_id << " from " << source;
+  LOG(INFO) << "Change number of online members from " << info.online_member_count << " to " << online_member_count
+            << " in " << dialog_id << " from " << source;
   bool need_update = d->is_opened && (!info.is_update_sent || info.online_member_count != online_member_count);
   info.online_member_count = online_member_count;
   info.updated_time = Time::now();
@@ -10539,7 +10539,7 @@ void MessagesManager::on_update_dialog_online_member_count_timeout(DialogId dial
     return;
   }
 
-  LOG(INFO) << "Expired timeout for online member count for " << dialog_id;
+  LOG(INFO) << "Expired timeout for number of online members in " << dialog_id;
   Dialog *d = get_dialog(dialog_id);
   CHECK(d != nullptr);
   if (!d->is_opened) {
@@ -12386,6 +12386,14 @@ void MessagesManager::set_dialog_last_clear_history_date(Dialog *d, int32 date, 
   }
 }
 
+void MessagesManager::set_dialog_unread_mention_count(Dialog *d, int32 unread_mention_count) {
+  CHECK(d->unread_mention_count != unread_mention_count);
+  CHECK(unread_mention_count >= 0);
+
+  d->unread_mention_count = unread_mention_count;
+  d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] = unread_mention_count;
+}
+
 void MessagesManager::set_dialog_is_empty(Dialog *d, const char *source) {
   LOG(INFO) << "Set " << d->dialog_id << " is_empty to true from " << source;
   d->is_empty = true;
@@ -12401,8 +12409,7 @@ void MessagesManager::set_dialog_is_empty(Dialog *d, const char *source) {
     }
   }
   if (d->unread_mention_count > 0) {
-    d->unread_mention_count = 0;
-    d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] = 0;
+    set_dialog_unread_mention_count(d, 0);
     send_update_chat_unread_mention_count(d);
   }
   if (d->reply_markup_message_id != MessageId()) {
@@ -13025,10 +13032,8 @@ void MessagesManager::on_get_dialogs(FolderId folder_id, vector<tl_object_ptr<te
 
     if (!G()->parameters().use_message_db || is_new) {
       if (d->unread_mention_count != dialog->unread_mentions_count_) {
-        d->unread_mention_count = dialog->unread_mentions_count_;
+        set_dialog_unread_mention_count(d, dialog->unread_mentions_count_);
         update_dialog_mention_notification_count(d);
-        d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] =
-            d->unread_mention_count;
         send_update_chat_unread_mention_count(d);
       }
     }
@@ -13637,13 +13642,12 @@ unique_ptr<MessagesManager::Message> MessagesManager::do_delete_message(Dialog *
     }
     if (result->contains_unread_mention) {
       if (d->unread_mention_count == 0) {
-        LOG_IF(ERROR,
-               d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] != -1)
-            << "Unread mention count became negative in " << d->dialog_id << " after deletion of " << message_id;
+        if (is_dialog_inited(d)) {
+          LOG(ERROR) << "Unread mention count became negative in " << d->dialog_id << " after deletion of "
+                     << message_id;
+        }
       } else {
-        d->unread_mention_count--;
-        d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] =
-            d->unread_mention_count;
+        set_dialog_unread_mention_count(d, d->unread_mention_count - 1);
         send_update_chat_unread_mention_count(d);
       }
     }
@@ -20013,7 +20017,7 @@ tl_object_ptr<td_api::messages> MessagesManager::get_messages_object(
 }
 
 MessagesManager::Message *MessagesManager::get_message_to_send(
-    Dialog *d, MessageId reply_to_message_id, const SendMessageOptions &options, unique_ptr<MessageContent> &&content,
+    Dialog *d, MessageId reply_to_message_id, const MessageSendOptions &options, unique_ptr<MessageContent> &&content,
     bool *need_update_dialog_pos, unique_ptr<MessageForwardInfo> forward_info, bool is_copy) {
   CHECK(d != nullptr);
   CHECK(!reply_to_message_id.is_scheduled());
@@ -20542,7 +20546,7 @@ class MessagesManager::SendMessageLogEvent {
 };
 
 Result<MessageId> MessagesManager::send_message(DialogId dialog_id, MessageId reply_to_message_id,
-                                                tl_object_ptr<td_api::sendMessageOptions> &&options,
+                                                tl_object_ptr<td_api::messageSendOptions> &&options,
                                                 tl_object_ptr<td_api::ReplyMarkup> &&reply_markup,
                                                 tl_object_ptr<td_api::InputMessageContent> &&input_message_content) {
   if (input_message_content == nullptr) {
@@ -20551,10 +20555,11 @@ Result<MessageId> MessagesManager::send_message(DialogId dialog_id, MessageId re
 
   LOG(INFO) << "Begin to send message to " << dialog_id << " in reply to " << reply_to_message_id;
   if (input_message_content->get_id() == td_api::inputMessageForwarded::ID) {
-    auto input_message = static_cast<const td_api::inputMessageForwarded *>(input_message_content.get());
+    auto input_message = td_api::move_object_as<td_api::inputMessageForwarded>(input_message_content);
+    TRY_RESULT(copy_options, process_message_copy_options(dialog_id, std::move(input_message->copy_options_)));
+    TRY_RESULT_ASSIGN(copy_options.reply_markup, get_dialog_reply_markup(dialog_id, std::move(reply_markup)));
     return forward_message(dialog_id, DialogId(input_message->from_chat_id_), MessageId(input_message->message_id_),
-                           std::move(options), input_message->in_game_share_, input_message->send_copy_,
-                           input_message->remove_caption_);
+                           std::move(options), input_message->in_game_share_, std::move(copy_options));
   }
 
   Dialog *d = get_dialog_force(dialog_id);
@@ -20565,16 +20570,16 @@ Result<MessageId> MessagesManager::send_message(DialogId dialog_id, MessageId re
   TRY_STATUS(can_send_message(dialog_id));
   TRY_RESULT(message_reply_markup, get_dialog_reply_markup(dialog_id, std::move(reply_markup)));
   TRY_RESULT(message_content, process_input_message_content(dialog_id, std::move(input_message_content)));
-  TRY_RESULT(send_message_options, process_send_message_options(dialog_id, std::move(options)));
-  TRY_STATUS(can_use_send_message_options(send_message_options, message_content));
+  TRY_RESULT(message_send_options, process_message_send_options(dialog_id, std::move(options)));
+  TRY_STATUS(can_use_message_send_options(message_send_options, message_content));
 
   // there must be no errors after get_message_to_send call
 
   bool need_update_dialog_pos = false;
-  Message *m = get_message_to_send(
-      d, get_reply_to_message_id(d, reply_to_message_id), send_message_options,
-      dup_message_content(td_, dialog_id, message_content.content.get(), MessageContentDupType::Send),
-      &need_update_dialog_pos, nullptr, message_content.via_bot_user_id.is_valid());
+  Message *m = get_message_to_send(d, get_reply_to_message_id(d, reply_to_message_id), message_send_options,
+                                   dup_message_content(td_, dialog_id, message_content.content.get(),
+                                                       MessageContentDupType::Send, MessageCopyOptions()),
+                                   &need_update_dialog_pos, nullptr, message_content.via_bot_user_id.is_valid());
   m->reply_markup = std::move(message_reply_markup);
   m->via_bot_user_id = message_content.via_bot_user_id;
   m->disable_web_page_preview = message_content.disable_web_page_preview;
@@ -20606,8 +20611,9 @@ Result<InputMessageContent> MessagesManager::process_input_message_content(
   }
 
   if (input_message_content->get_id() == td_api::inputMessageForwarded::ID) {
-    auto input_message = static_cast<const td_api::inputMessageForwarded *>(input_message_content.get());
-    if (!input_message->send_copy_) {
+    auto input_message = td_api::move_object_as<td_api::inputMessageForwarded>(input_message_content);
+    TRY_RESULT(copy_options, process_message_copy_options(dialog_id, std::move(input_message->copy_options_)));
+    if (!copy_options.send_copy) {
       return Status::Error(400, "Can't use forwarded message");
     }
 
@@ -20632,9 +20638,8 @@ Result<InputMessageContent> MessagesManager::process_input_message_content(
       return Status::Error(400, "Can't copy message");
     }
 
-    unique_ptr<MessageContent> content = dup_message_content(
-        td_, dialog_id, copied_message->content.get(),
-        input_message->remove_caption_ ? MessageContentDupType::CopyWithoutCaption : MessageContentDupType::Copy);
+    unique_ptr<MessageContent> content = dup_message_content(td_, dialog_id, copied_message->content.get(),
+                                                             MessageContentDupType::Copy, std::move(copy_options));
     if (content == nullptr) {
       return Status::Error(400, "Can't copy message content");
     }
@@ -20659,9 +20664,25 @@ Result<InputMessageContent> MessagesManager::process_input_message_content(
   return std::move(content);
 }
 
-Result<MessagesManager::SendMessageOptions> MessagesManager::process_send_message_options(
-    DialogId dialog_id, tl_object_ptr<td_api::sendMessageOptions> &&options) const {
-  SendMessageOptions result;
+Result<MessageCopyOptions> MessagesManager::process_message_copy_options(
+    DialogId dialog_id, tl_object_ptr<td_api::messageCopyOptions> &&options) const {
+  if (options == nullptr || !options->send_copy_) {
+    return MessageCopyOptions();
+  }
+  MessageCopyOptions result;
+  result.send_copy = true;
+  result.replace_caption = options->replace_caption_;
+  if (result.replace_caption) {
+    TRY_RESULT_ASSIGN(result.new_caption,
+                      process_input_caption(td_->contacts_manager_.get(), dialog_id, std::move(options->new_caption_),
+                                            td_->auth_manager_->is_bot()));
+  }
+  return std::move(result);
+}
+
+Result<MessagesManager::MessageSendOptions> MessagesManager::process_message_send_options(
+    DialogId dialog_id, tl_object_ptr<td_api::messageSendOptions> &&options) const {
+  MessageSendOptions result;
   if (options != nullptr) {
     result.disable_notification = options->disable_notification_;
     result.from_background = options->from_background_;
@@ -20693,7 +20714,7 @@ Result<MessagesManager::SendMessageOptions> MessagesManager::process_send_messag
   return result;
 }
 
-Status MessagesManager::can_use_send_message_options(const SendMessageOptions &options,
+Status MessagesManager::can_use_message_send_options(const MessageSendOptions &options,
                                                      const unique_ptr<MessageContent> &content, int32 ttl) {
   if (options.schedule_date != 0) {
     if (ttl > 0) {
@@ -20707,9 +20728,9 @@ Status MessagesManager::can_use_send_message_options(const SendMessageOptions &o
   return Status::OK();
 }
 
-Status MessagesManager::can_use_send_message_options(const SendMessageOptions &options,
+Status MessagesManager::can_use_message_send_options(const MessageSendOptions &options,
                                                      const InputMessageContent &content) {
-  return can_use_send_message_options(options, content.content, content.ttl);
+  return can_use_message_send_options(options, content.content, content.ttl);
 }
 
 int64 MessagesManager::generate_new_media_album_id() {
@@ -20721,7 +20742,7 @@ int64 MessagesManager::generate_new_media_album_id() {
 }
 
 Result<vector<MessageId>> MessagesManager::send_message_group(
-    DialogId dialog_id, MessageId reply_to_message_id, tl_object_ptr<td_api::sendMessageOptions> &&options,
+    DialogId dialog_id, MessageId reply_to_message_id, tl_object_ptr<td_api::messageSendOptions> &&options,
     vector<tl_object_ptr<td_api::InputMessageContent>> &&input_message_contents) {
   if (input_message_contents.size() > MAX_GROUPED_MESSAGES) {
     return Status::Error(4, "Too much messages to send as an album");
@@ -20736,12 +20757,12 @@ Result<vector<MessageId>> MessagesManager::send_message_group(
   }
 
   TRY_STATUS(can_send_message(dialog_id));
-  TRY_RESULT(send_message_options, process_send_message_options(dialog_id, std::move(options)));
+  TRY_RESULT(message_send_options, process_message_send_options(dialog_id, std::move(options)));
 
   vector<std::pair<unique_ptr<MessageContent>, int32>> message_contents;
   for (auto &input_message_content : input_message_contents) {
     TRY_RESULT(message_content, process_input_message_content(dialog_id, std::move(input_message_content)));
-    TRY_STATUS(can_use_send_message_options(send_message_options, message_content));
+    TRY_STATUS(can_use_message_send_options(message_send_options, message_content));
     if (!is_allowed_media_group_content(message_content.content->get_type())) {
       return Status::Error(5, "Wrong message content type");
     }
@@ -20761,10 +20782,10 @@ Result<vector<MessageId>> MessagesManager::send_message_group(
   vector<MessageId> result;
   bool need_update_dialog_pos = false;
   for (auto &message_content : message_contents) {
-    Message *m = get_message_to_send(
-        d, reply_to_message_id, send_message_options,
-        dup_message_content(td_, dialog_id, message_content.first.get(), MessageContentDupType::Send),
-        &need_update_dialog_pos);
+    Message *m = get_message_to_send(d, reply_to_message_id, message_send_options,
+                                     dup_message_content(td_, dialog_id, message_content.first.get(),
+                                                         MessageContentDupType::Send, MessageCopyOptions()),
+                                     &need_update_dialog_pos);
     result.push_back(m->message_id);
     auto ttl = message_content.second;
     if (ttl > 0) {
@@ -21391,7 +21412,7 @@ Result<MessageId> MessagesManager::send_bot_start_message(UserId bot_user_id, Di
   vector<MessageEntity> text_entities;
   text_entities.emplace_back(MessageEntity::Type::BotCommand, 0, narrow_cast<int32>(text.size()));
   bool need_update_dialog_pos = false;
-  Message *m = get_message_to_send(d, MessageId(), SendMessageOptions(),
+  Message *m = get_message_to_send(d, MessageId(), MessageSendOptions(),
                                    create_text_message_content(text, std::move(text_entities), WebPageId()),
                                    &need_update_dialog_pos);
   m->is_bot_start_message = true;
@@ -21476,7 +21497,7 @@ void MessagesManager::do_send_bot_start_message(UserId bot_user_id, DialogId dia
 }
 
 Result<MessageId> MessagesManager::send_inline_query_result_message(DialogId dialog_id, MessageId reply_to_message_id,
-                                                                    tl_object_ptr<td_api::sendMessageOptions> &&options,
+                                                                    tl_object_ptr<td_api::messageSendOptions> &&options,
                                                                     int64 query_id, const string &result_id,
                                                                     bool hide_via_bot) {
   LOG(INFO) << "Begin to send inline query result message to " << dialog_id << " in reply to " << reply_to_message_id;
@@ -21487,7 +21508,7 @@ Result<MessageId> MessagesManager::send_inline_query_result_message(DialogId dia
   }
 
   TRY_STATUS(can_send_message(dialog_id));
-  TRY_RESULT(send_message_options, process_send_message_options(dialog_id, std::move(options)));
+  TRY_RESULT(message_send_options, process_message_send_options(dialog_id, std::move(options)));
   bool to_secret = false;
   switch (dialog_id.get_type()) {
     case DialogType::User:
@@ -21515,14 +21536,14 @@ Result<MessageId> MessagesManager::send_inline_query_result_message(DialogId dia
     return Status::Error(5, "Inline query result not found");
   }
 
-  TRY_STATUS(can_use_send_message_options(send_message_options, content->message_content, 0));
+  TRY_STATUS(can_use_message_send_options(message_send_options, content->message_content, 0));
   TRY_STATUS(can_send_message_content(dialog_id, content->message_content.get(), false));
 
   bool need_update_dialog_pos = false;
-  Message *m = get_message_to_send(
-      d, get_reply_to_message_id(d, reply_to_message_id), send_message_options,
-      dup_message_content(td_, dialog_id, content->message_content.get(), MessageContentDupType::SendViaBot),
-      &need_update_dialog_pos, nullptr, true);
+  Message *m = get_message_to_send(d, get_reply_to_message_id(d, reply_to_message_id), message_send_options,
+                                   dup_message_content(td_, dialog_id, content->message_content.get(),
+                                                       MessageContentDupType::SendViaBot, MessageCopyOptions()),
+                                   &need_update_dialog_pos, nullptr, true);
   m->hide_via_bot = hide_via_bot;
   if (!hide_via_bot) {
     m->via_bot_user_id = td_->inline_queries_manager_->get_inline_bot_user_id(query_id);
@@ -22091,7 +22112,8 @@ void MessagesManager::edit_message_media(FullMessageId full_message_id,
 
   cancel_edit_message_media(dialog_id, m, "Cancelled by new editMessageMedia request");
 
-  m->edited_content = dup_message_content(td_, dialog_id, content.content.get(), MessageContentDupType::Send);
+  m->edited_content =
+      dup_message_content(td_, dialog_id, content.content.get(), MessageContentDupType::Send, MessageCopyOptions());
   CHECK(m->edited_content != nullptr);
   m->edited_reply_markup = r_new_reply_markup.move_as_ok();
   m->edit_generation = ++current_message_edit_generation_;
@@ -22928,10 +22950,12 @@ void MessagesManager::do_forward_messages(DialogId to_dialog_id, DialogId from_d
 }
 
 Result<MessageId> MessagesManager::forward_message(DialogId to_dialog_id, DialogId from_dialog_id, MessageId message_id,
-                                                   tl_object_ptr<td_api::sendMessageOptions> &&options,
-                                                   bool in_game_share, bool send_copy, bool remove_caption) {
+                                                   tl_object_ptr<td_api::messageSendOptions> &&options,
+                                                   bool in_game_share, MessageCopyOptions &&copy_options) {
+  vector<MessageCopyOptions> all_copy_options;
+  all_copy_options.push_back(std::move(copy_options));
   TRY_RESULT(result, forward_messages(to_dialog_id, from_dialog_id, {message_id}, std::move(options), in_game_share,
-                                      false, send_copy, remove_caption));
+                                      false, std::move(all_copy_options)));
   CHECK(result.size() == 1);
   auto sent_message_id = result[0];
   if (sent_message_id == MessageId()) {
@@ -22942,9 +22966,10 @@ Result<MessageId> MessagesManager::forward_message(DialogId to_dialog_id, Dialog
 
 Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_id, DialogId from_dialog_id,
                                                             vector<MessageId> message_ids,
-                                                            tl_object_ptr<td_api::sendMessageOptions> &&options,
-                                                            bool in_game_share, bool as_album, bool send_copy,
-                                                            bool remove_caption) {
+                                                            tl_object_ptr<td_api::messageSendOptions> &&options,
+                                                            bool in_game_share, bool as_album,
+                                                            vector<MessageCopyOptions> &&copy_options) {
+  CHECK(copy_options.size() == message_ids.size());
   if (message_ids.size() > 100) {  // TODO replace with const from config or implement mass-forward
     return Status::Error(4, "Too much messages to forward");
   }
@@ -22969,7 +22994,7 @@ Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_i
   }
 
   TRY_STATUS(can_send_message(to_dialog_id));
-  TRY_RESULT(send_message_options, process_send_message_options(to_dialog_id, std::move(options)));
+  TRY_RESULT(message_send_options, process_message_send_options(to_dialog_id, std::move(options)));
 
   for (auto message_id : message_ids) {
     if (message_id.is_valid_scheduled()) {
@@ -22989,6 +23014,7 @@ Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_i
 
   struct CopiedMessage {
     unique_ptr<MessageContent> content;
+    unique_ptr<ReplyMarkup> reply_markup;
     bool disable_web_page_preview;
     size_t index;
   };
@@ -23012,10 +23038,11 @@ Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_i
       continue;
     }
 
-    bool need_copy = !message_id.is_server() || to_secret || send_copy;
-    auto type = need_copy ? (remove_caption ? MessageContentDupType::CopyWithoutCaption : MessageContentDupType::Copy)
-                          : MessageContentDupType::Forward;
-    unique_ptr<MessageContent> content = dup_message_content(td_, to_dialog_id, forwarded_message->content.get(), type);
+    bool need_copy = !message_id.is_server() || to_secret || copy_options[i].send_copy;
+    auto type = need_copy ? MessageContentDupType::Copy : MessageContentDupType::Forward;
+    auto reply_markup = std::move(copy_options[i].reply_markup);
+    unique_ptr<MessageContent> content =
+        dup_message_content(td_, to_dialog_id, forwarded_message->content.get(), type, std::move(copy_options[i]));
     if (content == nullptr) {
       LOG(INFO) << "Can't forward " << message_id;
       continue;
@@ -23027,14 +23054,15 @@ Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_i
       continue;
     }
 
-    auto can_use_options_status = can_use_send_message_options(send_message_options, content, 0);
+    auto can_use_options_status = can_use_message_send_options(message_send_options, content, 0);
     if (can_use_options_status.is_error()) {
       LOG(INFO) << "Can't forward " << message_id << ": " << can_send_status.message();
       continue;
     }
 
     if (need_copy) {
-      copied_messages.push_back({std::move(content), get_message_disable_web_page_preview(forwarded_message), i});
+      copied_messages.push_back(
+          {std::move(content), std::move(reply_markup), get_message_disable_web_page_preview(forwarded_message), i});
       continue;
     }
 
@@ -23077,14 +23105,14 @@ Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_i
       }
     }
 
-    Message *m = get_message_to_send(to_dialog, MessageId(), send_message_options, std::move(content),
+    Message *m = get_message_to_send(to_dialog, MessageId(), message_send_options, std::move(content),
                                      &need_update_dialog_pos, std::move(forward_info));
     m->real_forward_from_dialog_id = from_dialog_id;
     m->real_forward_from_message_id = message_id;
     m->via_bot_user_id = forwarded_message->via_bot_user_id;
     m->in_game_share = in_game_share;
     if (forwarded_message->views > 0 && m->forward_info != nullptr) {
-      m->views = forwarded_message->views;
+      m->views = 1;
     }
 
     if (is_game) {
@@ -23175,10 +23203,11 @@ Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_i
     }
 
     for (auto &copied_message : copied_messages) {
-      Message *m = get_message_to_send(to_dialog, MessageId(), send_message_options, std::move(copied_message.content),
+      Message *m = get_message_to_send(to_dialog, MessageId(), message_send_options, std::move(copied_message.content),
                                        &need_update_dialog_pos, nullptr, true);
       m->disable_web_page_preview = copied_message.disable_web_page_preview;
       m->media_album_id = media_album_id;
+      m->reply_markup = std::move(copied_message.reply_markup);
 
       save_send_message_logevent(to_dialog_id, m);
       do_send_message(to_dialog_id, m);
@@ -23242,7 +23271,7 @@ Result<vector<MessageId>> MessagesManager::resend_messages(DialogId dialog_id, v
     CHECK(m != nullptr);
 
     unique_ptr<MessageContent> content =
-        dup_message_content(td_, dialog_id, m->content.get(), MessageContentDupType::Send);
+        dup_message_content(td_, dialog_id, m->content.get(), MessageContentDupType::Send, MessageCopyOptions());
     if (content == nullptr) {
       LOG(INFO) << "Can't resend " << m->message_id;
       continue;
@@ -23282,7 +23311,7 @@ Result<vector<MessageId>> MessagesManager::resend_messages(DialogId dialog_id, v
     CHECK(message != nullptr);
     send_update_delete_messages(dialog_id, {message->message_id.get()}, true, false);
 
-    SendMessageOptions options(message->disable_notification, message->from_background,
+    MessageSendOptions options(message->disable_notification, message->from_background,
                                get_message_schedule_date(message.get()));
     Message *m = get_message_to_send(d, get_reply_to_message_id(d, message->reply_to_message_id), options,
                                      std::move(new_contents[i]), &need_update_dialog_pos, nullptr, message->is_copy);
@@ -23328,7 +23357,7 @@ Result<MessageId> MessagesManager::send_dialog_set_ttl_message(DialogId dialog_i
 
   TRY_STATUS(can_send_message(dialog_id));
   bool need_update_dialog_pos = false;
-  Message *m = get_message_to_send(d, MessageId(), SendMessageOptions(), create_chat_set_ttl_message_content(ttl),
+  Message *m = get_message_to_send(d, MessageId(), MessageSendOptions(), create_chat_set_ttl_message_content(ttl),
                                    &need_update_dialog_pos);
 
   send_update_new_message(d, m);
@@ -23361,7 +23390,7 @@ Status MessagesManager::send_screenshot_taken_notification_message(DialogId dial
 
   if (dialog_type == DialogType::User) {
     bool need_update_dialog_pos = false;
-    const Message *m = get_message_to_send(d, MessageId(), SendMessageOptions(),
+    const Message *m = get_message_to_send(d, MessageId(), MessageSendOptions(),
                                            create_screenshot_taken_message_content(), &need_update_dialog_pos);
 
     do_send_screenshot_taken_notification_message(dialog_id, m, 0);
@@ -28728,6 +28757,7 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
   }
 
   if (message->contains_unread_mention && message_id <= d->last_read_all_mentions_message_id) {
+    LOG(INFO) << "Ignore unread mention in " << message_id;
     message->contains_unread_mention = false;
     if (message->from_database) {
       on_message_changed(d, message.get(), false, "add already read mention message to dialog");
@@ -28973,9 +29003,7 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
     }
   }
   if (*need_update && message->contains_unread_mention) {
-    d->unread_mention_count++;
-    d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] =
-        d->unread_mention_count;
+    set_dialog_unread_mention_count(d, d->unread_mention_count + 1);
     send_update_chat_unread_mention_count(d);
   }
   if (*need_update) {
@@ -30531,7 +30559,7 @@ void MessagesManager::fix_new_dialog(Dialog *d, unique_ptr<Message> &&last_datab
     update_dialog_pos(d, "fix_new_dialog 7", true, is_loaded_from_database);
   }
   if (is_loaded_from_database && d->order != order && order < MAX_ORDINARY_DIALOG_ORDER &&
-      !td_->contacts_manager_->is_dialog_info_received_from_server(dialog_id)) {
+      !td_->contacts_manager_->is_dialog_info_received_from_server(dialog_id) && !d->had_last_yet_unsent_message) {
     LOG(ERROR) << dialog_id << " has order " << d->order << " instead of saved to database order " << order;
   }
 
@@ -31913,9 +31941,7 @@ void MessagesManager::on_get_channel_dialog(DialogId dialog_id, MessageId last_m
                                           false, "on_get_channel_dialog 50");
   }
   if (d->unread_mention_count != unread_mention_count) {
-    d->unread_mention_count = unread_mention_count;
-    d->message_count_by_index[search_messages_filter_index(SearchMessagesFilter::UnreadMention)] =
-        d->unread_mention_count;
+    set_dialog_unread_mention_count(d, unread_mention_count);
     update_dialog_mention_notification_count(d);
     send_update_chat_unread_mention_count(d);
   }
@@ -32434,12 +32460,14 @@ void MessagesManager::on_binlog_events(vector<BinlogEvent> &&events) {
         add_message_dependencies(dependencies, dialog_id, m.get());
         resolve_dependencies_force(td_, dependencies);
 
-        m->content = dup_message_content(td_, dialog_id, m->content.get(), MessageContentDupType::Send);
+        m->content =
+            dup_message_content(td_, dialog_id, m->content.get(), MessageContentDupType::Send, MessageCopyOptions());
 
         auto result_message = continue_send_message(dialog_id, std::move(m), event.id_);
         if (result_message != nullptr) {
           do_send_message(dialog_id, result_message);
         }
+
         break;
       }
       case LogEvent::HandlerType::SendBotStartMessage: {
@@ -32499,7 +32527,8 @@ void MessagesManager::on_binlog_events(vector<BinlogEvent> &&events) {
         add_message_dependencies(dependencies, dialog_id, m.get());
         resolve_dependencies_force(td_, dependencies);
 
-        m->content = dup_message_content(td_, dialog_id, m->content.get(), MessageContentDupType::SendViaBot);
+        m->content = dup_message_content(td_, dialog_id, m->content.get(), MessageContentDupType::SendViaBot,
+                                         MessageCopyOptions());
 
         auto result_message = continue_send_message(dialog_id, std::move(m), event.id_);
         if (result_message != nullptr) {
@@ -32588,7 +32617,8 @@ void MessagesManager::on_binlog_events(vector<BinlogEvent> &&events) {
             set_message_id(m, get_next_yet_unsent_message_id(to_dialog));
             m->date = now;
           }
-          m->content = dup_message_content(td_, to_dialog_id, m->content.get(), MessageContentDupType::Forward);
+          m->content = dup_message_content(td_, to_dialog_id, m->content.get(), MessageContentDupType::Forward,
+                                           MessageCopyOptions());
           CHECK(m->content != nullptr);
           m->have_previous = true;
           m->have_next = true;
