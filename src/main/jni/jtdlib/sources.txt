@@ -1,3 +1,0 @@
-../../../java/it/tdlight/tdnatives/NativeClient.java
-../../../java/it/tdlight/tdnatives/NativeLog.java
-../../../java/it/tdlight/tdnatives/TdApi.java
