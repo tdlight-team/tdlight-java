@@ -4075,9 +4075,6 @@ void FileManager::memory_cleanup() {
     {
       auto map = remote_location_info_.get_map();
 
-      auto mapSize = map.size();
-      auto mapMaxSize = map.max_size();
-
       auto it = map.begin();
       while (it != map.end()) {
         old_remote_info[it->second] = it->first;
