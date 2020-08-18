@@ -15,7 +15,15 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package it.tdlight.tdlight;
+
 /**
- * it.ernytech.tdbot is a group of class for to simplify the creation of bots or userbots.
+ * A type of callback function that will be called when a fatal error happens.
  */
-package it.ernytech.tdbot;
+public interface FatalErrorCallbackPtr {
+    /**
+     * Send error message to callback.
+     * @param error_message String with a description of a happened fatal error.
+     */
+    void onFatalError(String error_message);
+}

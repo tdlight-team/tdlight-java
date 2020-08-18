@@ -1,4 +1,4 @@
-package it.ernytech.tdlib.utils;
+package it.tdlight.tdlight.utils;
 
 import java.io.PrintStream;
 import java.util.Scanner;

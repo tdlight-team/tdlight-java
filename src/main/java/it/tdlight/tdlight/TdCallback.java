@@ -15,11 +15,11 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib;
+package it.tdlight.tdlight;
 
-import it.ernytech.tdlib.utils.CloseCallback;
-import it.ernytech.tdlib.utils.ErrorCallback;
-import it.ernytech.tdlib.utils.ReceiveCallback;
+import it.tdlight.tdlight.utils.CloseCallback;
+import it.tdlight.tdlight.utils.ErrorCallback;
+import it.tdlight.tdlight.utils.ReceiveCallback;
 
 /**
  * Interface of callback for interaction with TDLib.

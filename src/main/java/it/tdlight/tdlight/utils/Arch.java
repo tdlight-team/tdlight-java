@@ -15,7 +15,16 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package it.tdlight.tdlight.utils;
+
 /**
- * it.ernytech.tdlib.utils is a group of utils necessary to complete the essential operation of tdlib.
+ * Enumeration with all architectures recognized by this library.
  */
-package it.ernytech.tdlib.utils;
+public enum Arch {
+    amd64,
+    i386,
+    armhf,
+    aarch64,
+	ppc64le,
+    unknown
+}

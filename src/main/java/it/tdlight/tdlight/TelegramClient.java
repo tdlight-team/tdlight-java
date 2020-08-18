@@ -1,4 +1,4 @@
-package it.ernytech.tdlib;
+package it.tdlight.tdlight;
 
 import java.io.IOException;
 import java.util.List;

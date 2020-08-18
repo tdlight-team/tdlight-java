@@ -2,8 +2,8 @@
 #rm -r jtdlib/jnibuild
 #rm -r jtdlib/build
 
-rm ../java/it/ernytech/tdlib/TdApi.java || true
-rm ../java/it/ernytech/tdlib/new_TdApi.java || true
+rm ../java/it/tdlight/tdlight/natives/TdApi.java || true
+rm ../java/it/tdlight/tdlight/natives/new_TdApi.java || true
 
 export TD_SRC_DIR=${PWD}/td
 export TD_BIN_DIR=${PWD}/jtdlib/td

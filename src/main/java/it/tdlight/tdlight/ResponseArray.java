@@ -15,14 +15,19 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib.utils;
+package it.tdlight.tdlight;
 
 /**
- * Interface of callback for receive notification of closing Tdlib.
+ * An array of incoming updates from TDLib.
  */
-public interface CloseCallback {
-    /**
-     * This method is called when tdlib is closing
-     */
-    void onClosed();
+public class ResponseArray {
+    private Response[] responses;
+
+    public ResponseArray(Response[] responses) {
+        this.responses = responses;
+    }
+
+    public Response[] getResponses() {
+        return responses;
+    }
 }

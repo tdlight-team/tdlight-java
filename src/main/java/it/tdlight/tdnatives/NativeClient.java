@@ -1,3 +1,4 @@
+package it.tdlight.tdlight.natives;
 /*
  * Copyright (c) 2018. Ernesto Castellotti <erny.castell@gmail.com>
  * This file is part of JTdlib.
@@ -15,16 +16,15 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib.utils;
 
-/**
- * Enumeration with all architectures recognized by this library.
- */
-public enum Arch {
-    amd64,
-    i386,
-    armhf,
-    aarch64,
-	ppc64le,
-    unknown
+
+import it.tdlight.tdnatives.TdApi.Function;
+import it.tdlight.tdnatives.TdApi.Object;
+
+public class NativeClient {
+    protected static native long createNativeClient();
+    protected static native void nativeClientSend(long nativeClientId, long eventId, Function function);
+    protected static native int nativeClientReceive(long nativeClientId, long[] eventIds, Object[] events, double timeout);
+    protected static native Object nativeClientExecute(Function function);
+    protected static native void destroyNativeClient(long nativeClientId);
 }

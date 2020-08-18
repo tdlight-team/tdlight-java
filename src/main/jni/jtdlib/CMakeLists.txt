@@ -12,6 +12,8 @@ endif()
 find_package(Td REQUIRED)
 
 if (NOT JNI_FOUND)
+  set(JAVA_AWT_LIBRARY NotNeeded)
+  set(JAVA_AWT_INCLUDE_PATH NotNeeded)
   find_package(JNI REQUIRED)
 endif()
 message(STATUS "Found JNI: ${JNI_INCLUDE_DIRS} ${JNI_LIBRARIES}")
@@ -26,7 +28,7 @@ message(STATUS "Java Source Directory: ${JAVA_SRC_DIR}")
 # Generating TdApi.java
 find_program(PHP_EXECUTABLE php)
 
-set(TD_API_JAVA_PACKAGE "it/ernytech/tdlib")
+set(TD_API_JAVA_PACKAGE "it/tdlight/tdnatives")
 set(TD_API_JAVA_PATH ${JAVA_SRC_DIR})
 set(TD_API_TLO_PATH ${CMAKE_CURRENT_SOURCE_DIR}/td/bin/td/generate/scheme/td_api.tlo)
 set(TD_API_TL_PATH ${CMAKE_CURRENT_SOURCE_DIR}/td/bin/td/generate/scheme/td_api.tl)
@@ -51,7 +53,7 @@ add_custom_target(build_java
 )
 
 add_custom_target(generate_javadoc
-  COMMAND ${Java_JAVADOC_EXECUTABLE} -d ${JAVA_OUTPUT_DIRECTORY}/../docs it.ernytech.tdlib
+  COMMAND ${Java_JAVADOC_EXECUTABLE} -d ${JAVA_OUTPUT_DIRECTORY}/../docs it.tdlight.tdnatives
   WORKING_DIRECTORY ${TD_API_JAVA_PATH}
   COMMENT "Generating Javadoc documentation"
   DEPENDS td_generate_java_api

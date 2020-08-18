@@ -15,10 +15,9 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdbot;
+package it.tdlight.tdlight;
 
-import it.ernytech.tdlib.TdApi;
-
+import it.tdlight.tdnatives.TdApi;
 import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,7 +29,7 @@ public class ConstructorDetector {
     static {
         // Call this to load static methods and prevent errors during startup!
         try {
-            it.ernytech.tdlib.utils.Init.start();
+            Init.start();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

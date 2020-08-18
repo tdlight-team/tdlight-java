@@ -15,7 +15,7 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib.utils;
+package it.tdlight.tdlight.utils;
 
 import java.io.IOException;
 import java.nio.ByteOrder;

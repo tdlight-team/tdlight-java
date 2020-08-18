@@ -15,21 +15,23 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib;
+package it.tdlight.tdlight;
+
+import it.tdlight.tdnatives.TdApi.Function;
 
 /**
  * A request to the TDLib.
  */
 public class Request {
     private long id;
-    private TdApi.Function function;
+    private Function function;
 
     /**
      * Creates a request with eventId and function.
      * @param id Request identifier. Responses to TDLib requests will have the same id as the corresponding request. Updates from TDLib will have id == 0, incoming requests are thus disallowed to have id == 0.
      * @param function TDLib API function representing a request to TDLib.
      */
-    public Request(long id, TdApi.Function function) {
+    public Request(long id, Function function) {
         this.id = id;
         this.function = function;
     }
@@ -46,7 +48,7 @@ public class Request {
      * Get TDLib API function.
      * @return TDLib API function representing a request to TDLib.
      */
-    public TdApi.Function getFunction() {
+    public Function getFunction() {
         return this.function;
     }
 }

@@ -15,17 +15,14 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib.utils;
-
-import it.ernytech.tdlib.Response;
+package it.tdlight.tdlight.utils;
 
 /**
- * Interface of callback for receive incoming update or request response.
+ * Interface of callback for receive notification of closing Tdlib.
  */
-public interface ReceiveCallback {
+public interface CloseCallback {
     /**
-     * This method is called when the library receives update or request response.
-     * @param response The incoming update or request response.
+     * This method is called when tdlib is closing
      */
-    void onResult(Response response);
+    void onClosed();
 }

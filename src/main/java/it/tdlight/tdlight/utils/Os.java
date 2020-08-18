@@ -15,15 +15,14 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib;
+package it.tdlight.tdlight.utils;
 
 /**
- * A type of callback function that will be called when a fatal error happens.
+ * Enumeration with all operating systems recognized by this library.
  */
-public interface FatalErrorCallbackPtr {
-    /**
-     * Send error message to callback.
-     * @param error_message String with a description of a happened fatal error.
-     */
-    void onFatalError(String error_message);
+public enum  Os {
+    linux,
+    win,
+    mac,
+    unknown
 }

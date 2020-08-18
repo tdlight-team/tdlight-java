@@ -15,35 +15,17 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib.utils;
+package it.tdlight.tdlight.utils;
 
-import it.ernytech.tdbot.ConstructorDetector;
+import it.tdlight.tdlight.Response;
 
 /**
- * Init class to successfully initialize Tdlib
+ * Interface of callback for receive incoming update or request response.
  */
-public class Init {
-
-    private static boolean started = false;
-
+public interface ReceiveCallback {
     /**
-     * Initialize Tdlib
-     *
-     * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
+     * This method is called when the library receives update or request response.
+     * @param response The incoming update or request response.
      */
-    public synchronized static void start() throws Throwable {
-        if (!started) {
-            var os = LoadLibrary.getOs();
-
-            if (os == Os.win) {
-                LoadLibrary.load("libeay32");
-                LoadLibrary.load("ssleay32");
-                LoadLibrary.load("zlib1");
-            }
-
-            LoadLibrary.load("tdjni");
-            ConstructorDetector.init();
-            started = true;
-        }
-    }
+    void onResult(Response response);
 }

@@ -1,4 +1,4 @@
-package it.ernytech.tdlib;
+package it.tdlight.tdnatives;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;

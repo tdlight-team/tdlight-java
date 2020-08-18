@@ -15,19 +15,16 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.ernytech.tdlib;
+package it.tdlight.tdlight.utils;
 
 /**
- * An array of incoming updates from TDLib.
+ * An exception that is thrown when the LoadLibrary class fails to load the library.
  */
-public class ResponseArray {
-    private Response[] responses;
-
-    public ResponseArray(Response[] responses) {
-        this.responses = responses;
-    }
-
-    public Response[] getResponses() {
-        return responses;
+public class CantLoadLibrary extends RuntimeException {
+    /**
+     * Creates a new CantLoadLibrary exception.
+     */
+    CantLoadLibrary() {
+        super("FATAL: org.ernytech.tdlib.utils.Init failled when load tdlib library, execution can't continue");
     }
 }
