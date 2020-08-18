@@ -110,8 +110,6 @@ public class TdApi {
 					return new BotInfo(input);
 				case Call.CONSTRUCTOR:
 					return new Call(input);
-				case CallConnection.CONSTRUCTOR:
-					return new CallConnection(input);
 				case CallDiscardReasonEmpty.CONSTRUCTOR:
 					return new CallDiscardReasonEmpty(input);
 				case CallDiscardReasonMissed.CONSTRUCTOR:
@@ -140,6 +138,12 @@ public class TdApi {
 					return new CallProblemDropped(input);
 				case CallProtocol.CONSTRUCTOR:
 					return new CallProtocol(input);
+				case CallServer.CONSTRUCTOR:
+					return new CallServer(input);
+				case CallServerTypeTelegramReflector.CONSTRUCTOR:
+					return new CallServerTypeTelegramReflector(input);
+				case CallServerTypeWebrtc.CONSTRUCTOR:
+					return new CallServerTypeWebrtc(input);
 				case CallStatePending.CONSTRUCTOR:
 					return new CallStatePending(input);
 				case CallStateExchangingKeys.CONSTRUCTOR:
@@ -824,6 +828,8 @@ public class TdApi {
 					return new MessagePassportDataReceived(input);
 				case MessageUnsupported.CONSTRUCTOR:
 					return new MessageUnsupported(input);
+				case MessageCopyOptions.CONSTRUCTOR:
+					return new MessageCopyOptions(input);
 				case MessageForwardInfo.CONSTRUCTOR:
 					return new MessageForwardInfo(input);
 				case MessageForwardOriginUser.CONSTRUCTOR:
@@ -838,6 +844,8 @@ public class TdApi {
 					return new MessageSchedulingStateSendAtDate(input);
 				case MessageSchedulingStateSendWhenOnline.CONSTRUCTOR:
 					return new MessageSchedulingStateSendWhenOnline(input);
+				case MessageSendOptions.CONSTRUCTOR:
+					return new MessageSendOptions(input);
 				case MessageSendingStatePending.CONSTRUCTOR:
 					return new MessageSendingStatePending(input);
 				case MessageSendingStateFailed.CONSTRUCTOR:
@@ -1258,8 +1266,6 @@ public class TdApi {
 					return new SecretChatStateReady(input);
 				case SecretChatStateClosed.CONSTRUCTOR:
 					return new SecretChatStateClosed(input);
-				case SendMessageOptions.CONSTRUCTOR:
-					return new SendMessageOptions(input);
 				case Session.CONSTRUCTOR:
 					return new Session(input);
 				case Sessions.CONSTRUCTOR:
@@ -1518,6 +1524,8 @@ public class TdApi {
 					return new UpdateFileGenerationStop(input);
 				case UpdateCall.CONSTRUCTOR:
 					return new UpdateCall(input);
+				case UpdateNewCallSignalingData.CONSTRUCTOR:
+					return new UpdateNewCallSignalingData(input);
 				case UpdateUserPrivacySettingRules.CONSTRUCTOR:
 					return new UpdateUserPrivacySettingRules(input);
 				case UpdateUnreadMessageCount.CONSTRUCTOR:
@@ -2228,6 +2236,8 @@ public class TdApi {
 					return new SendCallDebugInformation(input);
 				case SendCallRating.CONSTRUCTOR:
 					return new SendCallRating(input);
+				case SendCallSignalingData.CONSTRUCTOR:
+					return new SendCallSignalingData(input);
 				case SendChatAction.CONSTRUCTOR:
 					return new SendChatAction(input);
 				case SendChatScreenshotTakenNotification.CONSTRUCTOR:
@@ -2429,6 +2439,8 @@ public class TdApi {
 	public abstract static class CallDiscardReason extends Object {}
 
 	public abstract static class CallProblem extends Object {}
+
+	public abstract static class CallServerType extends Object {}
 
 	public abstract static class CallState extends Object {}
 
@@ -4320,16 +4332,18 @@ public class TdApi {
 		public int id;
 		public int userId;
 		public boolean isOutgoing;
+		public boolean isVideo;
 		public CallState state;
 
-		public static final int CONSTRUCTOR = -1837599107;
+		public static final int CONSTRUCTOR = 1504070790;
 
 		public Call() {}
 
-		public Call(int id, int userId, boolean isOutgoing, CallState state) {
+		public Call(int id, int userId, boolean isOutgoing, boolean isVideo, CallState state) {
 			this.id = id;
 			this.userId = userId;
 			this.isOutgoing = isOutgoing;
+			this.isVideo = isVideo;
 			this.state = state;
 		}
 
@@ -4337,6 +4351,7 @@ public class TdApi {
 			this.id = input.readInt();
 			this.userId = input.readInt();
 			this.isOutgoing = input.readBoolean();
+			this.isVideo = input.readBoolean();
 			if (input.readBoolean()) {
 				switch(input.readInt()) {
 					case CallStatePending.CONSTRUCTOR:
@@ -4372,83 +4387,12 @@ public class TdApi {
 			output.writeInt(this.id);
 			output.writeInt(this.userId);
 			output.writeBoolean(this.isOutgoing);
+			output.writeBoolean(this.isVideo);
 			if (this.state == null) {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
 				this.state.serialize(output);
-			}
-		}
-	}
-
-	public static class CallConnection extends Object {
-		public long id;
-		public String ip;
-		public String ipv6;
-		public int port;
-		public byte[] peerTag;
-
-		public static final int CONSTRUCTOR = 1318542714;
-
-		public CallConnection() {}
-
-		public CallConnection(long id, String ip, String ipv6, int port, byte[] peerTag) {
-			this.id = id;
-			this.ip = ip;
-			this.ipv6 = ipv6;
-			this.port = port;
-			this.peerTag = peerTag;
-		}
-
-		public CallConnection(DataInput input) throws IOException {
-			this.id = input.readLong();
-			if (input.readBoolean()) {
-				var ipTmp = new byte[input.readInt()];
-				input.readFully(ipTmp);
-				this.ip = new String(ipTmp, StandardCharsets.UTF_8);
-			}
-			if (input.readBoolean()) {
-				var ipv6Tmp = new byte[input.readInt()];
-				input.readFully(ipv6Tmp);
-				this.ipv6 = new String(ipv6Tmp, StandardCharsets.UTF_8);
-			}
-			this.port = input.readInt();
-			if (input.readBoolean()) {
-				this.peerTag = new byte[input.readInt()];
-				input.readFully(this.peerTag);
-			}
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			output.writeLong(this.id);
-			if (this.ip == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				var ipTmp = this.ip.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(ipTmp.length);
-				output.write(ipTmp);
-			}
-			if (this.ipv6 == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				var ipv6Tmp = this.ipv6.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(ipv6Tmp.length);
-				output.write(ipv6Tmp);
-			}
-			output.writeInt(this.port);
-			if (this.peerTag == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				output.writeInt(this.peerTag.length);
-				output.write(this.peerTag);
 			}
 		}
 	}
@@ -4752,6 +4696,178 @@ public class TdApi {
 		}
 	}
 
+	public static class CallServer extends Object {
+		public long id;
+		public String ipAddress;
+		public String ipv6Address;
+		public int port;
+		public CallServerType type;
+
+		public static final int CONSTRUCTOR = 1865932695;
+
+		public CallServer() {}
+
+		public CallServer(long id, String ipAddress, String ipv6Address, int port, CallServerType type) {
+			this.id = id;
+			this.ipAddress = ipAddress;
+			this.ipv6Address = ipv6Address;
+			this.port = port;
+			this.type = type;
+		}
+
+		public CallServer(DataInput input) throws IOException {
+			this.id = input.readLong();
+			if (input.readBoolean()) {
+				var ipAddressTmp = new byte[input.readInt()];
+				input.readFully(ipAddressTmp);
+				this.ipAddress = new String(ipAddressTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				var ipv6AddressTmp = new byte[input.readInt()];
+				input.readFully(ipv6AddressTmp);
+				this.ipv6Address = new String(ipv6AddressTmp, StandardCharsets.UTF_8);
+			}
+			this.port = input.readInt();
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case CallServerTypeTelegramReflector.CONSTRUCTOR:
+						this.type = new CallServerTypeTelegramReflector(input);
+						break;
+					case CallServerTypeWebrtc.CONSTRUCTOR:
+						this.type = new CallServerTypeWebrtc(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.id);
+			if (this.ipAddress == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var ipAddressTmp = this.ipAddress.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(ipAddressTmp.length);
+				output.write(ipAddressTmp);
+			}
+			if (this.ipv6Address == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var ipv6AddressTmp = this.ipv6Address.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(ipv6AddressTmp.length);
+				output.write(ipv6AddressTmp);
+			}
+			output.writeInt(this.port);
+			if (this.type == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.type.serialize(output);
+			}
+		}
+	}
+
+	public static class CallServerTypeTelegramReflector extends CallServerType {
+		public byte[] peerTag;
+
+		public static final int CONSTRUCTOR = -1507850700;
+
+		public CallServerTypeTelegramReflector() {}
+
+		public CallServerTypeTelegramReflector(byte[] peerTag) {
+			this.peerTag = peerTag;
+		}
+
+		public CallServerTypeTelegramReflector(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				this.peerTag = new byte[input.readInt()];
+				input.readFully(this.peerTag);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.peerTag == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.peerTag.length);
+				output.write(this.peerTag);
+			}
+		}
+	}
+
+	public static class CallServerTypeWebrtc extends CallServerType {
+		public String username;
+		public String password;
+		public boolean supportsTurn;
+		public boolean supportsStun;
+
+		public static final int CONSTRUCTOR = 1250622821;
+
+		public CallServerTypeWebrtc() {}
+
+		public CallServerTypeWebrtc(String username, String password, boolean supportsTurn, boolean supportsStun) {
+			this.username = username;
+			this.password = password;
+			this.supportsTurn = supportsTurn;
+			this.supportsStun = supportsStun;
+		}
+
+		public CallServerTypeWebrtc(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				var usernameTmp = new byte[input.readInt()];
+				input.readFully(usernameTmp);
+				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				var passwordTmp = new byte[input.readInt()];
+				input.readFully(passwordTmp);
+				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
+			}
+			this.supportsTurn = input.readBoolean();
+			this.supportsStun = input.readBoolean();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.username == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(usernameTmp.length);
+				output.write(usernameTmp);
+			}
+			if (this.password == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(passwordTmp.length);
+				output.write(passwordTmp);
+			}
+			output.writeBoolean(this.supportsTurn);
+			output.writeBoolean(this.supportsStun);
+		}
+	}
+
 	public static class CallStatePending extends CallState {
 		public boolean isCreated;
 		public boolean isReceived;
@@ -4801,19 +4917,19 @@ public class TdApi {
 
 	public static class CallStateReady extends CallState {
 		public CallProtocol protocol;
-		public CallConnection[] connections;
+		public CallServer[] servers;
 		public String config;
 		public byte[] encryptionKey;
 		public String[] emojis;
 		public boolean allowP2p;
 
-		public static final int CONSTRUCTOR = 1848397705;
+		public static final int CONSTRUCTOR = -2000107571;
 
 		public CallStateReady() {}
 
-		public CallStateReady(CallProtocol protocol, CallConnection[] connections, String config, byte[] encryptionKey, String[] emojis, boolean allowP2p) {
+		public CallStateReady(CallProtocol protocol, CallServer[] servers, String config, byte[] encryptionKey, String[] emojis, boolean allowP2p) {
 			this.protocol = protocol;
-			this.connections = connections;
+			this.servers = servers;
 			this.config = config;
 			this.encryptionKey = encryptionKey;
 			this.emojis = emojis;
@@ -4828,12 +4944,12 @@ public class TdApi {
 				this.protocol = new CallProtocol(input);
 			}
 			if (input.readBoolean()) {
-				this.connections = new CallConnection[input.readInt()];
-				for (int i = 0; i < this.connections.length; i++) {
-					if (CallConnection.CONSTRUCTOR != input.readInt()) {
+				this.servers = new CallServer[input.readInt()];
+				for (int i = 0; i < this.servers.length; i++) {
+					if (CallServer.CONSTRUCTOR != input.readInt()) {
 						throw new UnsupportedOperationException();
 					}
-					this.connections[i] = new CallConnection(input);
+					this.servers[i] = new CallServer(input);
 				}
 			}
 			if (input.readBoolean()) {
@@ -4868,13 +4984,13 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.protocol.serialize(output);
 			}
-			if (this.connections == null) {
+			if (this.servers == null) {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				output.writeInt(this.connections.length);
-				for (int i = 0; i < this.connections.length; i++) {
-					this.connections[i].serialize(output);
+				output.writeInt(this.servers.length);
+				for (int i = 0; i < this.servers.length; i++) {
+					this.servers[i].serialize(output);
 				}
 			}
 			if (this.config == null) {
@@ -17379,27 +17495,29 @@ public class TdApi {
 		public long fromChatId;
 		public long messageId;
 		public boolean inGameShare;
-		public boolean sendCopy;
-		public boolean removeCaption;
+		public MessageCopyOptions copyOptions;
 
-		public static final int CONSTRUCTOR = 1503132333;
+		public static final int CONSTRUCTOR = 1696232440;
 
 		public InputMessageForwarded() {}
 
-		public InputMessageForwarded(long fromChatId, long messageId, boolean inGameShare, boolean sendCopy, boolean removeCaption) {
+		public InputMessageForwarded(long fromChatId, long messageId, boolean inGameShare, MessageCopyOptions copyOptions) {
 			this.fromChatId = fromChatId;
 			this.messageId = messageId;
 			this.inGameShare = inGameShare;
-			this.sendCopy = sendCopy;
-			this.removeCaption = removeCaption;
+			this.copyOptions = copyOptions;
 		}
 
 		public InputMessageForwarded(DataInput input) throws IOException {
 			this.fromChatId = input.readLong();
 			this.messageId = input.readLong();
 			this.inGameShare = input.readBoolean();
-			this.sendCopy = input.readBoolean();
-			this.removeCaption = input.readBoolean();
+			if (input.readBoolean()) {
+				if (MessageCopyOptions.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.copyOptions = new MessageCopyOptions(input);
+			}
 		}
 
 		public int getConstructor() {
@@ -17411,8 +17529,12 @@ public class TdApi {
 			output.writeLong(this.fromChatId);
 			output.writeLong(this.messageId);
 			output.writeBoolean(this.inGameShare);
-			output.writeBoolean(this.sendCopy);
-			output.writeBoolean(this.removeCaption);
+			if (this.copyOptions == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.copyOptions.serialize(output);
+			}
 		}
 	}
 
@@ -21250,19 +21372,22 @@ public class TdApi {
 	}
 
 	public static class MessageCall extends MessageContent {
+		public boolean isVideo;
 		public CallDiscardReason discardReason;
 		public int duration;
 
-		public static final int CONSTRUCTOR = 366512596;
+		public static final int CONSTRUCTOR = 538893824;
 
 		public MessageCall() {}
 
-		public MessageCall(CallDiscardReason discardReason, int duration) {
+		public MessageCall(boolean isVideo, CallDiscardReason discardReason, int duration) {
+			this.isVideo = isVideo;
 			this.discardReason = discardReason;
 			this.duration = duration;
 		}
 
 		public MessageCall(DataInput input) throws IOException {
+			this.isVideo = input.readBoolean();
 			if (input.readBoolean()) {
 				switch(input.readInt()) {
 					case CallDiscardReasonEmpty.CONSTRUCTOR:
@@ -21293,6 +21418,7 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
+			output.writeBoolean(this.isVideo);
 			if (this.discardReason == null) {
 				output.writeBoolean(false);
 			} else {
@@ -22131,6 +22257,49 @@ public class TdApi {
 		}
 	}
 
+	public static class MessageCopyOptions extends Object {
+		public boolean sendCopy;
+		public boolean replaceCaption;
+		public FormattedText newCaption;
+
+		public static final int CONSTRUCTOR = 1208442937;
+
+		public MessageCopyOptions() {}
+
+		public MessageCopyOptions(boolean sendCopy, boolean replaceCaption, FormattedText newCaption) {
+			this.sendCopy = sendCopy;
+			this.replaceCaption = replaceCaption;
+			this.newCaption = newCaption;
+		}
+
+		public MessageCopyOptions(DataInput input) throws IOException {
+			this.sendCopy = input.readBoolean();
+			this.replaceCaption = input.readBoolean();
+			if (input.readBoolean()) {
+				if (FormattedText.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.newCaption = new FormattedText(input);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeBoolean(this.sendCopy);
+			output.writeBoolean(this.replaceCaption);
+			if (this.newCaption == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.newCaption.serialize(output);
+			}
+		}
+	}
+
 	public static class MessageForwardInfo extends Object {
 		public MessageForwardOrigin origin;
 		public int date;
@@ -22394,6 +22563,55 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class MessageSendOptions extends Object {
+		public boolean disableNotification;
+		public boolean fromBackground;
+		public MessageSchedulingState schedulingState;
+
+		public static final int CONSTRUCTOR = 914544314;
+
+		public MessageSendOptions() {}
+
+		public MessageSendOptions(boolean disableNotification, boolean fromBackground, MessageSchedulingState schedulingState) {
+			this.disableNotification = disableNotification;
+			this.fromBackground = fromBackground;
+			this.schedulingState = schedulingState;
+		}
+
+		public MessageSendOptions(DataInput input) throws IOException {
+			this.disableNotification = input.readBoolean();
+			this.fromBackground = input.readBoolean();
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case MessageSchedulingStateSendAtDate.CONSTRUCTOR:
+						this.schedulingState = new MessageSchedulingStateSendAtDate(input);
+						break;
+					case MessageSchedulingStateSendWhenOnline.CONSTRUCTOR:
+						this.schedulingState = new MessageSchedulingStateSendWhenOnline(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeBoolean(this.disableNotification);
+			output.writeBoolean(this.fromBackground);
+			if (this.schedulingState == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.schedulingState.serialize(output);
+			}
 		}
 	}
 
@@ -33012,55 +33230,6 @@ public class TdApi {
 		}
 	}
 
-	public static class SendMessageOptions extends Object {
-		public boolean disableNotification;
-		public boolean fromBackground;
-		public MessageSchedulingState schedulingState;
-
-		public static final int CONSTRUCTOR = 669760254;
-
-		public SendMessageOptions() {}
-
-		public SendMessageOptions(boolean disableNotification, boolean fromBackground, MessageSchedulingState schedulingState) {
-			this.disableNotification = disableNotification;
-			this.fromBackground = fromBackground;
-			this.schedulingState = schedulingState;
-		}
-
-		public SendMessageOptions(DataInput input) throws IOException {
-			this.disableNotification = input.readBoolean();
-			this.fromBackground = input.readBoolean();
-			if (input.readBoolean()) {
-				switch(input.readInt()) {
-					case MessageSchedulingStateSendAtDate.CONSTRUCTOR:
-						this.schedulingState = new MessageSchedulingStateSendAtDate(input);
-						break;
-					case MessageSchedulingStateSendWhenOnline.CONSTRUCTOR:
-						this.schedulingState = new MessageSchedulingStateSendWhenOnline(input);
-						break;
-					default:
-						throw new UnsupportedOperationException();
-				}
-			}
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			output.writeBoolean(this.disableNotification);
-			output.writeBoolean(this.fromBackground);
-			if (this.schedulingState == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				this.schedulingState.serialize(output);
-			}
-		}
-	}
-
 	public static class Session extends Object {
 		public long id;
 		public boolean isCurrent;
@@ -38580,6 +38749,44 @@ public class TdApi {
 		}
 	}
 
+	public static class UpdateNewCallSignalingData extends Update {
+		public int callId;
+		public byte[] data;
+
+		public static final int CONSTRUCTOR = 583634317;
+
+		public UpdateNewCallSignalingData() {}
+
+		public UpdateNewCallSignalingData(int callId, byte[] data) {
+			this.callId = callId;
+			this.data = data;
+		}
+
+		public UpdateNewCallSignalingData(DataInput input) throws IOException {
+			this.callId = input.readInt();
+			if (input.readBoolean()) {
+				this.data = new byte[input.readInt()];
+				input.readFully(this.data);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.callId);
+			if (this.data == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.data.length);
+				output.write(this.data);
+			}
+		}
+	}
+
 	public static class UpdateUserPrivacySettingRules extends Update {
 		public UserPrivacySetting setting;
 		public UserPrivacySettingRules rules;
@@ -40245,6 +40452,9 @@ public class TdApi {
 						case UpdateCall.CONSTRUCTOR:
 							this.updates[i] = new UpdateCall(input);
 							break;
+						case UpdateNewCallSignalingData.CONSTRUCTOR:
+							this.updates[i] = new UpdateNewCallSignalingData(input);
+							break;
 						case UpdateUserPrivacySettingRules.CONSTRUCTOR:
 							this.updates[i] = new UpdateUserPrivacySettingRules(input);
 							break;
@@ -40569,6 +40779,7 @@ public class TdApi {
 		public ChatPhoto photo;
 		public boolean isBlocked;
 		public boolean canBeCalled;
+		public boolean supportsVideoCalls;
 		public boolean hasPrivateCalls;
 		public boolean needPhoneNumberPrivacyException;
 		public String bio;
@@ -40576,14 +40787,15 @@ public class TdApi {
 		public int groupInCommonCount;
 		public BotInfo botInfo;
 
-		public static final int CONSTRUCTOR = -1528139639;
+		public static final int CONSTRUCTOR = -710655904;
 
 		public UserFullInfo() {}
 
-		public UserFullInfo(ChatPhoto photo, boolean isBlocked, boolean canBeCalled, boolean hasPrivateCalls, boolean needPhoneNumberPrivacyException, String bio, String shareText, int groupInCommonCount, BotInfo botInfo) {
+		public UserFullInfo(ChatPhoto photo, boolean isBlocked, boolean canBeCalled, boolean supportsVideoCalls, boolean hasPrivateCalls, boolean needPhoneNumberPrivacyException, String bio, String shareText, int groupInCommonCount, BotInfo botInfo) {
 			this.photo = photo;
 			this.isBlocked = isBlocked;
 			this.canBeCalled = canBeCalled;
+			this.supportsVideoCalls = supportsVideoCalls;
 			this.hasPrivateCalls = hasPrivateCalls;
 			this.needPhoneNumberPrivacyException = needPhoneNumberPrivacyException;
 			this.bio = bio;
@@ -40601,6 +40813,7 @@ public class TdApi {
 			}
 			this.isBlocked = input.readBoolean();
 			this.canBeCalled = input.readBoolean();
+			this.supportsVideoCalls = input.readBoolean();
 			this.hasPrivateCalls = input.readBoolean();
 			this.needPhoneNumberPrivacyException = input.readBoolean();
 			if (input.readBoolean()) {
@@ -40636,6 +40849,7 @@ public class TdApi {
 			}
 			output.writeBoolean(this.isBlocked);
 			output.writeBoolean(this.canBeCalled);
+			output.writeBoolean(this.supportsVideoCalls);
 			output.writeBoolean(this.hasPrivateCalls);
 			output.writeBoolean(this.needPhoneNumberPrivacyException);
 			if (this.bio == null) {
@@ -44219,14 +44433,16 @@ public class TdApi {
 	public static class CreateCall extends Function {
 		public int userId;
 		public CallProtocol protocol;
+		public boolean isVideo;
 
-		public static final int CONSTRUCTOR = -1742408159;
+		public static final int CONSTRUCTOR = 1837533340;
 
 		public CreateCall() {}
 
-		public CreateCall(int userId, CallProtocol protocol) {
+		public CreateCall(int userId, CallProtocol protocol, boolean isVideo) {
 			this.userId = userId;
 			this.protocol = protocol;
+			this.isVideo = isVideo;
 		}
 
 		public CreateCall(DataInput input) throws IOException {
@@ -44237,6 +44453,7 @@ public class TdApi {
 				}
 				this.protocol = new CallProtocol(input);
 			}
+			this.isVideo = input.readBoolean();
 		}
 
 		public int getConstructor() {
@@ -44252,6 +44469,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.protocol.serialize(output);
 			}
+			output.writeBoolean(this.isVideo);
 		}
 	}
 
@@ -45104,16 +45322,18 @@ public class TdApi {
 		public int callId;
 		public boolean isDisconnected;
 		public int duration;
+		public boolean isVideo;
 		public long connectionId;
 
-		public static final int CONSTRUCTOR = -923187372;
+		public static final int CONSTRUCTOR = -1784044162;
 
 		public DiscardCall() {}
 
-		public DiscardCall(int callId, boolean isDisconnected, int duration, long connectionId) {
+		public DiscardCall(int callId, boolean isDisconnected, int duration, boolean isVideo, long connectionId) {
 			this.callId = callId;
 			this.isDisconnected = isDisconnected;
 			this.duration = duration;
+			this.isVideo = isVideo;
 			this.connectionId = connectionId;
 		}
 
@@ -45121,6 +45341,7 @@ public class TdApi {
 			this.callId = input.readInt();
 			this.isDisconnected = input.readBoolean();
 			this.duration = input.readInt();
+			this.isVideo = input.readBoolean();
 			this.connectionId = input.readLong();
 		}
 
@@ -45133,6 +45354,7 @@ public class TdApi {
 			output.writeInt(this.callId);
 			output.writeBoolean(this.isDisconnected);
 			output.writeInt(this.duration);
+			output.writeBoolean(this.isVideo);
 			output.writeLong(this.connectionId);
 		}
 	}
@@ -46384,16 +46606,16 @@ public class TdApi {
 		public long chatId;
 		public long fromChatId;
 		public long[] messageIds;
-		public SendMessageOptions options;
+		public MessageSendOptions options;
 		public boolean asAlbum;
 		public boolean sendCopy;
 		public boolean removeCaption;
 
-		public static final int CONSTRUCTOR = -1633531094;
+		public static final int CONSTRUCTOR = 705611900;
 
 		public ForwardMessages() {}
 
-		public ForwardMessages(long chatId, long fromChatId, long[] messageIds, SendMessageOptions options, boolean asAlbum, boolean sendCopy, boolean removeCaption) {
+		public ForwardMessages(long chatId, long fromChatId, long[] messageIds, MessageSendOptions options, boolean asAlbum, boolean sendCopy, boolean removeCaption) {
 			this.chatId = chatId;
 			this.fromChatId = fromChatId;
 			this.messageIds = messageIds;
@@ -46413,10 +46635,10 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				if (SendMessageOptions.CONSTRUCTOR != input.readInt()) {
+				if (MessageSendOptions.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.options = new SendMessageOptions(input);
+				this.options = new MessageSendOptions(input);
 			}
 			this.asAlbum = input.readBoolean();
 			this.sendCopy = input.readBoolean();
@@ -53501,6 +53723,44 @@ public class TdApi {
 		}
 	}
 
+	public static class SendCallSignalingData extends Function {
+		public int callId;
+		public byte[] data;
+
+		public static final int CONSTRUCTOR = 1412280732;
+
+		public SendCallSignalingData() {}
+
+		public SendCallSignalingData(int callId, byte[] data) {
+			this.callId = callId;
+			this.data = data;
+		}
+
+		public SendCallSignalingData(DataInput input) throws IOException {
+			this.callId = input.readInt();
+			if (input.readBoolean()) {
+				this.data = new byte[input.readInt()];
+				input.readFully(this.data);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.callId);
+			if (this.data == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.data.length);
+				output.write(this.data);
+			}
+		}
+	}
+
 	public static class SendChatAction extends Function {
 		public long chatId;
 		public ChatAction action;
@@ -53723,16 +53983,16 @@ public class TdApi {
 	public static class SendInlineQueryResultMessage extends Function {
 		public long chatId;
 		public long replyToMessageId;
-		public SendMessageOptions options;
+		public MessageSendOptions options;
 		public long queryId;
 		public String resultId;
 		public boolean hideViaBot;
 
-		public static final int CONSTRUCTOR = 729880339;
+		public static final int CONSTRUCTOR = -1624402875;
 
 		public SendInlineQueryResultMessage() {}
 
-		public SendInlineQueryResultMessage(long chatId, long replyToMessageId, SendMessageOptions options, long queryId, String resultId, boolean hideViaBot) {
+		public SendInlineQueryResultMessage(long chatId, long replyToMessageId, MessageSendOptions options, long queryId, String resultId, boolean hideViaBot) {
 			this.chatId = chatId;
 			this.replyToMessageId = replyToMessageId;
 			this.options = options;
@@ -53745,10 +54005,10 @@ public class TdApi {
 			this.chatId = input.readLong();
 			this.replyToMessageId = input.readLong();
 			if (input.readBoolean()) {
-				if (SendMessageOptions.CONSTRUCTOR != input.readInt()) {
+				if (MessageSendOptions.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.options = new SendMessageOptions(input);
+				this.options = new MessageSendOptions(input);
 			}
 			this.queryId = input.readLong();
 			if (input.readBoolean()) {
@@ -53789,15 +54049,15 @@ public class TdApi {
 	public static class SendMessage extends Function {
 		public long chatId;
 		public long replyToMessageId;
-		public SendMessageOptions options;
+		public MessageSendOptions options;
 		public ReplyMarkup replyMarkup;
 		public InputMessageContent inputMessageContent;
 
-		public static final int CONSTRUCTOR = -1314396596;
+		public static final int CONSTRUCTOR = -1693468857;
 
 		public SendMessage() {}
 
-		public SendMessage(long chatId, long replyToMessageId, SendMessageOptions options, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
+		public SendMessage(long chatId, long replyToMessageId, MessageSendOptions options, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
 			this.chatId = chatId;
 			this.replyToMessageId = replyToMessageId;
 			this.options = options;
@@ -53809,10 +54069,10 @@ public class TdApi {
 			this.chatId = input.readLong();
 			this.replyToMessageId = input.readLong();
 			if (input.readBoolean()) {
-				if (SendMessageOptions.CONSTRUCTOR != input.readInt()) {
+				if (MessageSendOptions.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.options = new SendMessageOptions(input);
+				this.options = new MessageSendOptions(input);
 			}
 			if (input.readBoolean()) {
 				switch(input.readInt()) {
@@ -53923,14 +54183,14 @@ public class TdApi {
 	public static class SendMessageAlbum extends Function {
 		public long chatId;
 		public long replyToMessageId;
-		public SendMessageOptions options;
+		public MessageSendOptions options;
 		public InputMessageContent[] inputMessageContents;
 
-		public static final int CONSTRUCTOR = -818794592;
+		public static final int CONSTRUCTOR = 1301182434;
 
 		public SendMessageAlbum() {}
 
-		public SendMessageAlbum(long chatId, long replyToMessageId, SendMessageOptions options, InputMessageContent[] inputMessageContents) {
+		public SendMessageAlbum(long chatId, long replyToMessageId, MessageSendOptions options, InputMessageContent[] inputMessageContents) {
 			this.chatId = chatId;
 			this.replyToMessageId = replyToMessageId;
 			this.options = options;
@@ -53941,10 +54201,10 @@ public class TdApi {
 			this.chatId = input.readLong();
 			this.replyToMessageId = input.readLong();
 			if (input.readBoolean()) {
-				if (SendMessageOptions.CONSTRUCTOR != input.readInt()) {
+				if (MessageSendOptions.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
 				}
-				this.options = new SendMessageOptions(input);
+				this.options = new MessageSendOptions(input);
 			}
 			if (input.readBoolean()) {
 				this.inputMessageContents = new InputMessageContent[input.readInt()];
