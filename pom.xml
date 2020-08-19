@@ -62,6 +62,16 @@
             <artifactId>tdlight-natives-linux-amd64</artifactId>
             <version>1.1.1</version>
         </dependency> 
+        <dependency>
+            <groupId>it.tdlight</groupId>
+            <artifactId>tdlight-natives-linux-aarch64</artifactId>
+            <version>1.0.0</version>
+        </dependency> 
+        <dependency>
+            <groupId>it.tdlight</groupId>
+            <artifactId>tdlight-natives-windows-amd64</artifactId>
+            <version>1.0.0</version>
+        </dependency> 
     </dependencies>
     <build>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
