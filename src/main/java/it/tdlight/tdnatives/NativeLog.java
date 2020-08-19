@@ -15,7 +15,7 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight.natives;
+package it.tdlight.tdnatives;
 
 /**
  * Interface for managing the internal logging of TDLib. By default TDLib writes logs to stderr or an OS specific log and uses a verbosity level of 5.

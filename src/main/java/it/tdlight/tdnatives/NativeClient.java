@@ -1,4 +1,4 @@
-package it.tdlight.tdlight.natives;
+package it.tdlight.tdnatives;
 /*
  * Copyright (c) 2018. Ernesto Castellotti <erny.castell@gmail.com>
  * This file is part of JTdlib.
