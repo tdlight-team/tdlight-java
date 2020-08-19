@@ -5165,7 +5165,9 @@ void Td::on_request(uint64 id, td_api::optimizeStorage &request) {
   animations_manager_->memory_cleanup();
   file_manager_->memory_cleanup();
 
-  malloc_trim(0);
+  #ifdef __linux__
+    malloc_trim(0);
+  #endif
 
   std::vector<FileType> file_types;
   for (auto &file_type : request.file_types_) {
