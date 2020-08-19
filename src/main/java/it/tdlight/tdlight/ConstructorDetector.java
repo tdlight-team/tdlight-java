@@ -17,7 +17,7 @@
 
 package it.tdlight.tdlight;
 
-import it.tdlight.tdnatives.TdApi;
+import it.tdlight.tdlib.TdApi;
 import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentHashMap;
 

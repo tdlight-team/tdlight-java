@@ -1,4 +1,4 @@
-package it.tdlight.tdnatives;
+package it.tdlight.tdlib;
 /*
  * Copyright (c) 2018. Ernesto Castellotti <erny.castell@gmail.com>
  * This file is part of JTdlib.
@@ -18,8 +18,8 @@ package it.tdlight.tdnatives;
 
 
 
-import it.tdlight.tdnatives.TdApi.Function;
-import it.tdlight.tdnatives.TdApi.Object;
+import it.tdlight.tdlib.TdApi.Function;
+import it.tdlight.tdlib.TdApi.Object;
 
 public class NativeClient {
     protected static native long createNativeClient();

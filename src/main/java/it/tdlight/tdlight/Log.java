@@ -1,6 +1,6 @@
 package it.tdlight.tdlight;
 
-import it.tdlight.tdnatives.NativeLog;
+import it.tdlight.tdlib.NativeLog;
 import java.util.Objects;
 
 public class Log extends NativeLog {

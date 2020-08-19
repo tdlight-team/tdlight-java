@@ -1,7 +1,7 @@
 package it.tdlight.tdlight;
 
-import it.tdlight.tdnatives.TdApi.Object;
-import it.tdlight.tdnatives.NativeClient;
+import it.tdlight.tdlib.TdApi.Object;
+import it.tdlight.tdlib.NativeClient;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

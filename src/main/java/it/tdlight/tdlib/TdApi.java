@@ -1,10 +1,8 @@
-package it.tdlight.tdnatives;
+package it.tdlight.tdlib;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.lang.IllegalStateException;
 import java.io.IOException;
 import java.io.DataInput;
 

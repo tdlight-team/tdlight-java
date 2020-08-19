@@ -17,7 +17,7 @@
 
 package it.tdlight.tdlight;
 
-import it.tdlight.tdnatives.TdApi.Function;
+import it.tdlight.tdlib.TdApi.Function;
 
 /**
  * A request to the TDLib.
