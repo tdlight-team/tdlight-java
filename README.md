@@ -1,5 +1,10 @@
 TDLight Java Wrapper
 ====================
+[![Build Status](https://travis-ci.org/tdlight-team/tdlight-java.svg?branch=master)](https://travis-ci.org/tdlight-team/tdlight-java)
+
+A barebone java wrapper for TDLib (and TDLight)
+
+This wrapper gives you access to TDLib in Java without implementing a simpler or different abstraction layer. 
 
 ## Requirements
 JVM: Oracle JVM and OpenJDK
