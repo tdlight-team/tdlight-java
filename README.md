@@ -79,20 +79,15 @@ public class Example {
 ```
 
 ## About
-#### Libraries and external code
-Telegram Tdlib-TD Copyright owner and contributors: 
-  - Aliaksei Levin <levlam@telegram.org>
-  - Arseny Smirnov <arseny30@gmail.com>
-  - hekkup
-  - Vladislav Yashin <v.yashin.work@gmail.com>
-  - cosmonawt
-  - Aziz Kasymov 
-  - Felix Krause <github@krausefx.com>
-  - Mark
-  
 #### License
-TDLight is licensed by Andrea Cavalli <andrea@cavallium.it>  under the terms of the GNU Lesser General Public License 3
+TDLight is licensed by Andrea Cavalli <andrea@cavallium.it> under the terms of the GNU Lesser General Public License 3
 
-JTDlib is licensed by Ernesto Castellotti under the terms of the GNU Lesser General Public License 3
+### Libraries licenses
 
-TDLib is licensed by Aliaksei Levin Ale under the terms of the Boost Software License										   
+JTDlib is licensed by Ernesto Castellotti <erny.castell@gmail.com> under the terms of the GNU Lesser General Public License 3
+
+TDLib is licensed by Aliaksei Levin <levlam@telegram.org> and Arseny Smirnov <arseny30@gmail.com> under the terms of the Boost Software License				
+
+OpenSSL is licensed under the terms of Apache License v2
+
+Zlib is licensed under the terms of Zlib license
