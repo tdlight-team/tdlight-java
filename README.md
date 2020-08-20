@@ -115,10 +115,10 @@ public class Example {
 ```
 
 ### TDLib methods documentation
-[TdApi class javadoc](https://tdlight-team.github.io/tdlib-docs)
+[TdApi class javadoc](https://tdlight-team.github.io/tdlight-docs)
 
 ## About
-#### License
+### License
 TDLight is licensed by Andrea Cavalli <andrea@cavallium.it> under the terms of the GNU Lesser General Public License 3
 
 ### Libraries licenses
