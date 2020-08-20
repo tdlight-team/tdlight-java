@@ -25,6 +25,6 @@ public class CantLoadLibrary extends RuntimeException {
      * Creates a new CantLoadLibrary exception.
      */
     CantLoadLibrary() {
-        super("FATAL: org.ernytech.tdlib.utils.Init failled when load tdlib library, execution can't continue");
+        super("FATAL: Init failled when load tdlib library, execution can't continue");
     }
 }
