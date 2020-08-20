@@ -18,6 +18,7 @@
 package it.tdlight.tdlight.utils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,8 +69,8 @@ public class LoadLibrary {
 			return;
 		}
 
-		var arch = getCpuArch();
-		var os = getOs();
+		Arch arch = getCpuArch();
+		Os os = getOs();
 
 		if (arch == Arch.unknown) {
 			throw new CantLoadLibrary().initCause(new IllegalStateException("Arch: \"" + System.getProperty("os.arch") + "\" is unknown"));
@@ -99,7 +100,7 @@ public class LoadLibrary {
 	private static void loadJarLibrary(String libname, Arch arch, Os os) throws IOException, CantLoadLibrary {
 		Path tempPath = Files.createDirectories(librariesPath.resolve("version-" + libsVersion).resolve(libname));
 		Path tempFile = Paths.get(tempPath.toString(), libname + getExt(os));
-		var libInputStream = LoadLibrary.class.getResourceAsStream(createPath("libs", os.name(), arch.name(), libname) + getExt(os));
+		InputStream libInputStream = LoadLibrary.class.getResourceAsStream(createPath("libs", os.name(), arch.name(), libname) + getExt(os));
 		if (Files.notExists(tempFile)) {
 			Files.copy(libInputStream, tempFile);
 		}
@@ -109,7 +110,7 @@ public class LoadLibrary {
 
 
 	private static Arch getCpuArch() {
-		var architecture = System.getProperty("os.arch").trim();
+		String architecture = System.getProperty("os.arch").trim();
 		switch (architecture) {
 			case "amd64":
 			case "x86_64":
@@ -133,7 +134,7 @@ public class LoadLibrary {
 	}
 
 	public static Os getOs() {
-		var os = System.getProperty("os.name").toLowerCase().trim();
+		String os = System.getProperty("os.name").toLowerCase().trim();
 		if (os.contains("linux"))
 			return Os.linux;
 		if (os.contains("windows"))
@@ -150,7 +151,7 @@ public class LoadLibrary {
 	}
 
 	private static String createPath(String... path) {
-		var stringBuilder = new StringBuilder();
+		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("/");
 
 		for (int i = 0; i < path.length; i++) {

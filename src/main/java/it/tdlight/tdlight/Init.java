@@ -35,7 +35,7 @@ public class Init {
      */
     public synchronized static void start() throws Throwable {
         if (!started) {
-            var os = LoadLibrary.getOs();
+            Os os = LoadLibrary.getOs();
 
             if (os == Os.win) {
                 LoadLibrary.load("libeay32");

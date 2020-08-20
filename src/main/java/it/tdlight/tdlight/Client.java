@@ -59,7 +59,7 @@ public class Client extends NativeClient implements TelegramClient {
 			throw new IllegalStateException("ClientActor is destroyed");
 		}
 
-		var responseList = new ArrayList<Response>();
+		ArrayList<Response> responseList = new ArrayList<>();
 		if (eventIds == null) {
 			eventIds = new long[eventSize];
 			events = new Object[eventSize];
@@ -100,7 +100,7 @@ public class Client extends NativeClient implements TelegramClient {
 			throw new IllegalStateException("ClientActor is destroyed");
 		}
 
-		var responseList = receive(timeout, 1);
+		List<Response> responseList = receive(timeout, 1);
 
 		if (responseList.size() < 1) {
 			return null;

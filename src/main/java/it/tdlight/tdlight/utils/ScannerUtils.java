@@ -148,12 +148,12 @@ public class ScannerUtils {
 		try {
 			lock.lock();
 			StringBuilder toPrint = new StringBuilder();
-			var oldOut = System.out;
-			var oldErr = System.err;
+			PrintStream oldOut = System.out;
+			PrintStream oldErr = System.err;
 			System.setOut(emptyOut);
 			System.setErr(emptyOut);
 			oldOut.print("[" + displayName + "] " + question + ": ");
-			var result = scanner.nextLine();
+			String result = scanner.nextLine();
 			System.setOut(oldOut);
 			System.setErr(oldErr);
 			return result;
