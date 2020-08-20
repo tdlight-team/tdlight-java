@@ -100,7 +100,29 @@ public class LoadLibrary {
 	private static void loadJarLibrary(String libname, Arch arch, Os os) throws IOException, CantLoadLibrary {
 		Path tempPath = Files.createDirectories(librariesPath.resolve("version-" + libsVersion).resolve(libname));
 		Path tempFile = Paths.get(tempPath.toString(), libname + getExt(os));
-		InputStream libInputStream = LoadLibrary.class.getResourceAsStream(createPath("libs", os.name(), arch.name(), libname) + getExt(os));
+		Class<?> classForResource = null;
+		switch (os) {
+			case linux:
+				switch (arch) {
+					case amd64:
+						classForResource = it.tdlight.tdlight.linux.amd64.LoadLibrary.class;
+						break;
+					case aarch64:
+						classForResource = it.tdlight.tdlight.linux.aarch64.LoadLibrary.class;
+						break;
+				}
+				break;
+			case win:
+				if (arch == Arch.amd64) {
+					classForResource = it.tdlight.tdlight.win.amd64.LoadLibrary.class;
+				}
+				break;
+		}
+		if (classForResource == null) {
+			throw new IOException("Native libraries for platform " + os + "-" + arch + " not found!");
+		}
+		String libPath = createPath("libs", os.name(), arch.name(), libname) + getExt(os);
+		InputStream libInputStream = classForResource.getResourceAsStream(libPath);
 		if (Files.notExists(tempFile)) {
 			Files.copy(libInputStream, tempFile);
 		}
