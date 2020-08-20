@@ -69,7 +69,7 @@ dependencies {
 <dependencies>
   <dependency>
     <groupId>it.tdlight</groupId>
-    <artifactId>tdlight-java</artifactId>
+    <artifactId>tdlib-java</artifactId>
     <version>REPLACE_WITH_LATEST_VERSION</version>
   </dependency>
 </dependencies>
@@ -80,7 +80,7 @@ repositories {
      maven { url "https://maven.pkg.github.com/tdlight-team/tdlight-java" }
 }
 dependencies {
-     implementation 'it.tdlight:tdlight-java:REPLACE_WITH_LATEST_VERSION'
+     implementation 'it.tdlight:tdlib-java:REPLACE_WITH_LATEST_VERSION'
 }
 ```
 
