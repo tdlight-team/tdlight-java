@@ -16,8 +16,19 @@ Supported CPU architectures: amd64 (linux, windows), aarch64 (linux)
 
 Required libraries for linux: OpenSSL and zlib
 
-## Including TDLight in a project
-Maven configuration example to use this version of tdlight-java:
+## Including TDLight Java in a project
+
+There are two packages of TDLight:
+  - [TDLight](#For-TDLight-Java-with-optimized-TDLight), with our optimized fork of TDLib (Reccomended for bots)
+  - [TDLight with official TDLib](#For-TDLight-Java with-official-TDLib) (Reccomended for GUI clients)
+
+The two packages are compatible, but while TDLight is focused on long term resources usage and speed, TDLib is more focused on stability.
+
+Choose one of the two different TDLight packages and then follow the guide below.
+
+Replace `REPLACE_WITH_LATEST_VERSION` with the latest version of tdlight, you can find it on the **Releases** tab on github.
+### For TDLight Java with optimized TDLight
+#### Maven
 ```xml
 <repositories>
   <repository>
@@ -35,7 +46,7 @@ Maven configuration example to use this version of tdlight-java:
   </dependency>
 </dependencies>
 ```
-Gradle configuration example to use this version of tdlight-java:
+#### Gradle
 ```groovy
 repositories {
      maven { url "https://maven.pkg.github.com/tdlight-team/tdlight-java" }
@@ -44,8 +55,34 @@ dependencies {
      implementation 'it.tdlight:tdlight-java:REPLACE_WITH_LATEST_VERSION'
 }
 ```
+### For TDLight Java with official TDLib
+#### Maven
+```xml
+<repositories>
+  <repository>
+    <id>tdlight-gihtub</id>
+    <name>GitHub TDLight Team Apache Maven Packages</name>
+    <url>https://maven.pkg.github.com/tdlight-team/tdlight-java</url>
+  </repository>
+</repositories>
 
-Replace `REPLACE_WITH_LATEST_VERSION` with the latest version of tdlight, you can find it on the **Releases** tab on github.
+<dependencies>
+  <dependency>
+    <groupId>it.tdlight</groupId>
+    <artifactId>tdlight-java</artifactId>
+    <version>REPLACE_WITH_LATEST_VERSION</version>
+  </dependency>
+</dependencies>
+```
+#### Gradle
+```groovy
+repositories {
+     maven { url "https://maven.pkg.github.com/tdlight-team/tdlight-java" }
+}
+dependencies {
+     implementation 'it.tdlight:tdlight-java:REPLACE_WITH_LATEST_VERSION'
+}
+```
 
 ## Usage
 Simple initialization of a native TDLib client
