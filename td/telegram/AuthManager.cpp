@@ -71,7 +71,7 @@ AuthManager::AuthManager(int32 api_id, const string &api_hash, ActorShared<> par
 
 void AuthManager::start_up() {
   if (state_ == State::LoggingOut) {
-    start_net_query(NetQueryType::LogOut, G()->net_query_creator().create(telegram_api::auth_logOut()));
+    send_log_out_query();
   } else if (state_ == State::DestroyingKeys) {
     destroy_auth_keys();
   }
@@ -364,8 +364,14 @@ void AuthManager::log_out(uint64 query_id) {
     LOG(INFO) << "Logging out";
     G()->td_db()->get_binlog_pmc()->set("auth", "logout");
     update_state(State::LoggingOut);
-    start_net_query(NetQueryType::LogOut, G()->net_query_creator().create(telegram_api::auth_logOut()));
+    send_log_out_query();
   }
+}
+
+void AuthManager::send_log_out_query() {
+  auto query = G()->net_query_creator().create(telegram_api::auth_logOut());
+  query->set_priority(1);
+  start_net_query(NetQueryType::LogOut, std::move(query));
 }
 
 void AuthManager::delete_account(uint64 query_id, const string &reason) {
@@ -833,6 +839,8 @@ void AuthManager::update_state(State new_state, bool force, bool should_save_sta
   if (state_ == new_state && !force) {
     return;
   }
+  bool skip_update = (state_ == State::LoggingOut || state_ == State::DestroyingKeys) &&
+                     (new_state == State::LoggingOut || new_state == State::DestroyingKeys);
   state_ = new_state;
   if (should_save_state) {
     save_state();
@@ -840,8 +848,10 @@ void AuthManager::update_state(State new_state, bool force, bool should_save_sta
   if (new_state == State::LoggingOut || new_state == State::DestroyingKeys) {
     send_closure(G()->state_manager(), &StateManager::on_logging_out, true);
   }
-  send_closure(G()->td(), &Td::send_update,
-               make_tl_object<td_api::updateAuthorizationState>(get_authorization_state_object(state_)));
+  if (!skip_update) {
+    send_closure(G()->td(), &Td::send_update,
+                 make_tl_object<td_api::updateAuthorizationState>(get_authorization_state_object(state_)));
+  }
 
   if (!pending_get_authorization_state_requests_.empty()) {
     auto query_ids = std::move(pending_get_authorization_state_requests_);

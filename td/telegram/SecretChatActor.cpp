@@ -1289,7 +1289,7 @@ Status SecretChatActor::do_inbound_message_decrypted(unique_ptr<logevent::Inboun
     auto old = move_tl_object_as<secret_api::decryptedMessage46>(message->decrypted_message_layer->message_);
     old->flags_ &= ~secret_api::decryptedMessage::GROUPED_ID_MASK;  // just in case
     message->decrypted_message_layer->message_ = secret_api::make_object<secret_api::decryptedMessage>(
-        old->flags_, old->random_id_, old->ttl_, std::move(old->message_), std::move(old->media_),
+        old->flags_, false /*ignored*/, old->random_id_, old->ttl_, std::move(old->message_), std::move(old->media_),
         std::move(old->entities_), std::move(old->via_bot_name_), old->reply_to_random_id_, 0);
   }
   if (message->decrypted_message_layer->message_->get_id() == secret_api::decryptedMessageService8::ID) {
@@ -1786,7 +1786,7 @@ void SecretChatActor::on_outbound_outer_send_message_promise(uint64 state_id, Pr
   promise.set_value(Unit());  // Seems like this message is at least stored to binlog already
   if (state->send_result_) {
     state->send_result_({});
-  } else {
+  } else if (state->message->is_sent) {
     context_->on_send_message_error(state->message->random_id, Status::Error(400, "Message has already been sent"),
                                     Auto());
   }
