@@ -2,7 +2,9 @@ package it.tdlight.tdlib;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.lang.IllegalStateException;
 import java.io.IOException;
 import java.io.DataInput;
 
@@ -14,8 +16,8 @@ public class TdApi {
 				public abstract int getConstructor();
 
 				public byte[] serialize() throws IOException {
-						try(var baos = new ByteArrayOutputStream()) {
-								try(var out = new DataOutputStream(baos)) {
+						try(ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+								try(DataOutputStream out = new DataOutputStream(baos)) {
 										serialize(out);
 										return baos.toByteArray();
 								}
@@ -2630,32 +2632,32 @@ public class TdApi {
 
 		public Address(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var countryCodeTmp = new byte[input.readInt()];
+				byte[] countryCodeTmp = new byte[input.readInt()];
 				input.readFully(countryCodeTmp);
 				this.countryCode = new String(countryCodeTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var stateTmp = new byte[input.readInt()];
+				byte[] stateTmp = new byte[input.readInt()];
 				input.readFully(stateTmp);
 				this.state = new String(stateTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var cityTmp = new byte[input.readInt()];
+				byte[] cityTmp = new byte[input.readInt()];
 				input.readFully(cityTmp);
 				this.city = new String(cityTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var streetLine1Tmp = new byte[input.readInt()];
+				byte[] streetLine1Tmp = new byte[input.readInt()];
 				input.readFully(streetLine1Tmp);
 				this.streetLine1 = new String(streetLine1Tmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var streetLine2Tmp = new byte[input.readInt()];
+				byte[] streetLine2Tmp = new byte[input.readInt()];
 				input.readFully(streetLine2Tmp);
 				this.streetLine2 = new String(streetLine2Tmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var postalCodeTmp = new byte[input.readInt()];
+				byte[] postalCodeTmp = new byte[input.readInt()];
 				input.readFully(postalCodeTmp);
 				this.postalCode = new String(postalCodeTmp, StandardCharsets.UTF_8);
 			}
@@ -2671,7 +2673,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var countryCodeTmp = this.countryCode.getBytes(StandardCharsets.UTF_8);
+				byte[] countryCodeTmp = this.countryCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(countryCodeTmp.length);
 				output.write(countryCodeTmp);
 			}
@@ -2679,7 +2681,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var stateTmp = this.state.getBytes(StandardCharsets.UTF_8);
+				byte[] stateTmp = this.state.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(stateTmp.length);
 				output.write(stateTmp);
 			}
@@ -2687,7 +2689,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var cityTmp = this.city.getBytes(StandardCharsets.UTF_8);
+				byte[] cityTmp = this.city.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(cityTmp.length);
 				output.write(cityTmp);
 			}
@@ -2695,7 +2697,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var streetLine1Tmp = this.streetLine1.getBytes(StandardCharsets.UTF_8);
+				byte[] streetLine1Tmp = this.streetLine1.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(streetLine1Tmp.length);
 				output.write(streetLine1Tmp);
 			}
@@ -2703,7 +2705,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var streetLine2Tmp = this.streetLine2.getBytes(StandardCharsets.UTF_8);
+				byte[] streetLine2Tmp = this.streetLine2.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(streetLine2Tmp.length);
 				output.write(streetLine2Tmp);
 			}
@@ -2711,7 +2713,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var postalCodeTmp = this.postalCode.getBytes(StandardCharsets.UTF_8);
+				byte[] postalCodeTmp = this.postalCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(postalCodeTmp.length);
 				output.write(postalCodeTmp);
 			}
@@ -2793,12 +2795,12 @@ public class TdApi {
 			this.width = input.readInt();
 			this.height = input.readInt();
 			if (input.readBoolean()) {
-				var fileNameTmp = new byte[input.readInt()];
+				byte[] fileNameTmp = new byte[input.readInt()];
 				input.readFully(fileNameTmp);
 				this.fileName = new String(fileNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var mimeTypeTmp = new byte[input.readInt()];
+				byte[] mimeTypeTmp = new byte[input.readInt()];
 				input.readFully(mimeTypeTmp);
 				this.mimeType = new String(mimeTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -2836,7 +2838,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
+				byte[] fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(fileNameTmp.length);
 				output.write(fileNameTmp);
 			}
@@ -2844,7 +2846,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(mimeTypeTmp.length);
 				output.write(mimeTypeTmp);
 			}
@@ -2939,22 +2941,22 @@ public class TdApi {
 		public Audio(DataInput input) throws IOException {
 			this.duration = input.readInt();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var performerTmp = new byte[input.readInt()];
+				byte[] performerTmp = new byte[input.readInt()];
 				input.readFully(performerTmp);
 				this.performer = new String(performerTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var fileNameTmp = new byte[input.readInt()];
+				byte[] fileNameTmp = new byte[input.readInt()];
 				input.readFully(fileNameTmp);
 				this.fileName = new String(fileNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var mimeTypeTmp = new byte[input.readInt()];
+				byte[] mimeTypeTmp = new byte[input.readInt()];
 				input.readFully(mimeTypeTmp);
 				this.mimeType = new String(mimeTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -2989,7 +2991,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -2997,7 +2999,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var performerTmp = this.performer.getBytes(StandardCharsets.UTF_8);
+				byte[] performerTmp = this.performer.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(performerTmp.length);
 				output.write(performerTmp);
 			}
@@ -3005,7 +3007,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
+				byte[] fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(fileNameTmp.length);
 				output.write(fileNameTmp);
 			}
@@ -3013,7 +3015,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(mimeTypeTmp.length);
 				output.write(mimeTypeTmp);
 			}
@@ -3057,7 +3059,7 @@ public class TdApi {
 
 		public AuthenticationCodeInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -3110,7 +3112,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -3218,7 +3220,7 @@ public class TdApi {
 
 		public AuthenticationCodeTypeFlashCall(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var patternTmp = new byte[input.readInt()];
+				byte[] patternTmp = new byte[input.readInt()];
 				input.readFully(patternTmp);
 				this.pattern = new String(patternTmp, StandardCharsets.UTF_8);
 			}
@@ -3234,7 +3236,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var patternTmp = this.pattern.getBytes(StandardCharsets.UTF_8);
+				byte[] patternTmp = this.pattern.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(patternTmp.length);
 				output.write(patternTmp);
 			}
@@ -3350,7 +3352,7 @@ public class TdApi {
 
 		public AuthorizationStateWaitOtherDeviceConfirmation(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var linkTmp = new byte[input.readInt()];
+				byte[] linkTmp = new byte[input.readInt()];
 				input.readFully(linkTmp);
 				this.link = new String(linkTmp, StandardCharsets.UTF_8);
 			}
@@ -3366,7 +3368,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
+				byte[] linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(linkTmp.length);
 				output.write(linkTmp);
 			}
@@ -3425,13 +3427,13 @@ public class TdApi {
 
 		public AuthorizationStateWaitPassword(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var passwordHintTmp = new byte[input.readInt()];
+				byte[] passwordHintTmp = new byte[input.readInt()];
 				input.readFully(passwordHintTmp);
 				this.passwordHint = new String(passwordHintTmp, StandardCharsets.UTF_8);
 			}
 			this.hasRecoveryEmailAddress = input.readBoolean();
 			if (input.readBoolean()) {
-				var recoveryEmailAddressPatternTmp = new byte[input.readInt()];
+				byte[] recoveryEmailAddressPatternTmp = new byte[input.readInt()];
 				input.readFully(recoveryEmailAddressPatternTmp);
 				this.recoveryEmailAddressPattern = new String(recoveryEmailAddressPatternTmp, StandardCharsets.UTF_8);
 			}
@@ -3447,7 +3449,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordHintTmp = this.passwordHint.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordHintTmp = this.passwordHint.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordHintTmp.length);
 				output.write(passwordHintTmp);
 			}
@@ -3456,7 +3458,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var recoveryEmailAddressPatternTmp = this.recoveryEmailAddressPattern.getBytes(StandardCharsets.UTF_8);
+				byte[] recoveryEmailAddressPatternTmp = this.recoveryEmailAddressPattern.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(recoveryEmailAddressPatternTmp.length);
 				output.write(recoveryEmailAddressPatternTmp);
 			}
@@ -3677,7 +3679,7 @@ public class TdApi {
 			this.isDefault = input.readBoolean();
 			this.isDark = input.readBoolean();
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -3717,7 +3719,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -3969,12 +3971,12 @@ public class TdApi {
 
 		public BankCardActionOpenUrl(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -3990,7 +3992,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -3998,7 +4000,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -4020,7 +4022,7 @@ public class TdApi {
 
 		public BankCardInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -4045,7 +4047,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -4157,7 +4159,7 @@ public class TdApi {
 				this.photo = new ChatPhoto(input);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -4172,7 +4174,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var inviteLinkTmp = new byte[input.readInt()];
+				byte[] inviteLinkTmp = new byte[input.readInt()];
 				input.readFully(inviteLinkTmp);
 				this.inviteLink = new String(inviteLinkTmp, StandardCharsets.UTF_8);
 			}
@@ -4194,7 +4196,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -4212,7 +4214,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
+				byte[] inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inviteLinkTmp.length);
 				output.write(inviteLinkTmp);
 			}
@@ -4234,12 +4236,12 @@ public class TdApi {
 
 		public BotCommand(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var commandTmp = new byte[input.readInt()];
+				byte[] commandTmp = new byte[input.readInt()];
 				input.readFully(commandTmp);
 				this.command = new String(commandTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -4255,7 +4257,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var commandTmp = this.command.getBytes(StandardCharsets.UTF_8);
+				byte[] commandTmp = this.command.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(commandTmp.length);
 				output.write(commandTmp);
 			}
@@ -4263,7 +4265,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -4285,7 +4287,7 @@ public class TdApi {
 
 		public BotInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -4310,7 +4312,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -4663,7 +4665,7 @@ public class TdApi {
 			if (input.readBoolean()) {
 				this.libraryVersions = new String[input.readInt()];
 				for (int i = 0; i < this.libraryVersions.length; i++) {
-					var libraryVersionsTmp = new byte[input.readInt()];
+					byte[] libraryVersionsTmp = new byte[input.readInt()];
 					input.readFully(libraryVersionsTmp);
 					this.libraryVersions[i] = new String(libraryVersionsTmp, StandardCharsets.UTF_8);
 				}
@@ -4686,7 +4688,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.libraryVersions.length);
 				for (int i = 0; i < this.libraryVersions.length; i++) {
-					var libraryVersionsTmp = this.libraryVersions[i].getBytes(StandardCharsets.UTF_8);
+					byte[] libraryVersionsTmp = this.libraryVersions[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(libraryVersionsTmp.length);
 					output.write(libraryVersionsTmp);
 				}
@@ -4716,12 +4718,12 @@ public class TdApi {
 		public CallServer(DataInput input) throws IOException {
 			this.id = input.readLong();
 			if (input.readBoolean()) {
-				var ipAddressTmp = new byte[input.readInt()];
+				byte[] ipAddressTmp = new byte[input.readInt()];
 				input.readFully(ipAddressTmp);
 				this.ipAddress = new String(ipAddressTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var ipv6AddressTmp = new byte[input.readInt()];
+				byte[] ipv6AddressTmp = new byte[input.readInt()];
 				input.readFully(ipv6AddressTmp);
 				this.ipv6Address = new String(ipv6AddressTmp, StandardCharsets.UTF_8);
 			}
@@ -4751,7 +4753,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var ipAddressTmp = this.ipAddress.getBytes(StandardCharsets.UTF_8);
+				byte[] ipAddressTmp = this.ipAddress.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(ipAddressTmp.length);
 				output.write(ipAddressTmp);
 			}
@@ -4759,7 +4761,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var ipv6AddressTmp = this.ipv6Address.getBytes(StandardCharsets.UTF_8);
+				byte[] ipv6AddressTmp = this.ipv6Address.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(ipv6AddressTmp.length);
 				output.write(ipv6AddressTmp);
 			}
@@ -4826,12 +4828,12 @@ public class TdApi {
 
 		public CallServerTypeWebrtc(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -4849,7 +4851,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -4857,7 +4859,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -4951,7 +4953,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var configTmp = new byte[input.readInt()];
+				byte[] configTmp = new byte[input.readInt()];
 				input.readFully(configTmp);
 				this.config = new String(configTmp, StandardCharsets.UTF_8);
 			}
@@ -4962,7 +4964,7 @@ public class TdApi {
 			if (input.readBoolean()) {
 				this.emojis = new String[input.readInt()];
 				for (int i = 0; i < this.emojis.length; i++) {
-					var emojisTmp = new byte[input.readInt()];
+					byte[] emojisTmp = new byte[input.readInt()];
 					input.readFully(emojisTmp);
 					this.emojis[i] = new String(emojisTmp, StandardCharsets.UTF_8);
 				}
@@ -4995,7 +4997,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var configTmp = this.config.getBytes(StandardCharsets.UTF_8);
+				byte[] configTmp = this.config.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(configTmp.length);
 				output.write(configTmp);
 			}
@@ -5012,7 +5014,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.emojis.length);
 				for (int i = 0; i < this.emojis.length; i++) {
-					var emojisTmp = this.emojis[i].getBytes(StandardCharsets.UTF_8);
+					byte[] emojisTmp = this.emojis[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(emojisTmp.length);
 					output.write(emojisTmp);
 				}
@@ -5149,13 +5151,13 @@ public class TdApi {
 
 		public CallbackQueryAnswer(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
 			this.showAlert = input.readBoolean();
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -5171,7 +5173,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -5180,7 +5182,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -5234,7 +5236,7 @@ public class TdApi {
 
 		public CallbackQueryPayloadGame(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var gameShortNameTmp = new byte[input.readInt()];
+				byte[] gameShortNameTmp = new byte[input.readInt()];
 				input.readFully(gameShortNameTmp);
 				this.gameShortName = new String(gameShortNameTmp, StandardCharsets.UTF_8);
 			}
@@ -5250,7 +5252,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var gameShortNameTmp = this.gameShortName.getBytes(StandardCharsets.UTF_8);
+				byte[] gameShortNameTmp = this.gameShortName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(gameShortNameTmp.length);
 				output.write(gameShortNameTmp);
 			}
@@ -5419,7 +5421,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -5496,7 +5498,7 @@ public class TdApi {
 				this.draftMessage = new DraftMessage(input);
 			}
 			if (input.readBoolean()) {
-				var clientDataTmp = new byte[input.readInt()];
+				byte[] clientDataTmp = new byte[input.readInt()];
 				input.readFully(clientDataTmp);
 				this.clientData = new String(clientDataTmp, StandardCharsets.UTF_8);
 			}
@@ -5519,7 +5521,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -5584,7 +5586,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var clientDataTmp = this.clientData.getBytes(StandardCharsets.UTF_8);
+				byte[] clientDataTmp = this.clientData.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(clientDataTmp.length);
 				output.write(clientDataTmp);
 			}
@@ -5986,7 +5988,7 @@ public class TdApi {
 		public ChatAdministrator(DataInput input) throws IOException {
 			this.userId = input.readInt();
 			if (input.readBoolean()) {
-				var customTitleTmp = new byte[input.readInt()];
+				byte[] customTitleTmp = new byte[input.readInt()];
 				input.readFully(customTitleTmp);
 				this.customTitle = new String(customTitleTmp, StandardCharsets.UTF_8);
 			}
@@ -6004,7 +6006,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var customTitleTmp = this.customTitle.getBytes(StandardCharsets.UTF_8);
+				byte[] customTitleTmp = this.customTitle.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(customTitleTmp.length);
 				output.write(customTitleTmp);
 			}
@@ -6624,12 +6626,12 @@ public class TdApi {
 
 		public ChatEventTitleChanged(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var oldTitleTmp = new byte[input.readInt()];
+				byte[] oldTitleTmp = new byte[input.readInt()];
 				input.readFully(oldTitleTmp);
 				this.oldTitle = new String(oldTitleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var newTitleTmp = new byte[input.readInt()];
+				byte[] newTitleTmp = new byte[input.readInt()];
 				input.readFully(newTitleTmp);
 				this.newTitle = new String(newTitleTmp, StandardCharsets.UTF_8);
 			}
@@ -6645,7 +6647,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var oldTitleTmp = this.oldTitle.getBytes(StandardCharsets.UTF_8);
+				byte[] oldTitleTmp = this.oldTitle.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(oldTitleTmp.length);
 				output.write(oldTitleTmp);
 			}
@@ -6653,7 +6655,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var newTitleTmp = this.newTitle.getBytes(StandardCharsets.UTF_8);
+				byte[] newTitleTmp = this.newTitle.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(newTitleTmp.length);
 				output.write(newTitleTmp);
 			}
@@ -6724,12 +6726,12 @@ public class TdApi {
 
 		public ChatEventDescriptionChanged(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var oldDescriptionTmp = new byte[input.readInt()];
+				byte[] oldDescriptionTmp = new byte[input.readInt()];
 				input.readFully(oldDescriptionTmp);
 				this.oldDescription = new String(oldDescriptionTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var newDescriptionTmp = new byte[input.readInt()];
+				byte[] newDescriptionTmp = new byte[input.readInt()];
 				input.readFully(newDescriptionTmp);
 				this.newDescription = new String(newDescriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -6745,7 +6747,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var oldDescriptionTmp = this.oldDescription.getBytes(StandardCharsets.UTF_8);
+				byte[] oldDescriptionTmp = this.oldDescription.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(oldDescriptionTmp.length);
 				output.write(oldDescriptionTmp);
 			}
@@ -6753,7 +6755,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var newDescriptionTmp = this.newDescription.getBytes(StandardCharsets.UTF_8);
+				byte[] newDescriptionTmp = this.newDescription.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(newDescriptionTmp.length);
 				output.write(newDescriptionTmp);
 			}
@@ -6775,12 +6777,12 @@ public class TdApi {
 
 		public ChatEventUsernameChanged(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var oldUsernameTmp = new byte[input.readInt()];
+				byte[] oldUsernameTmp = new byte[input.readInt()];
 				input.readFully(oldUsernameTmp);
 				this.oldUsername = new String(oldUsernameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var newUsernameTmp = new byte[input.readInt()];
+				byte[] newUsernameTmp = new byte[input.readInt()];
 				input.readFully(newUsernameTmp);
 				this.newUsername = new String(newUsernameTmp, StandardCharsets.UTF_8);
 			}
@@ -6796,7 +6798,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var oldUsernameTmp = this.oldUsername.getBytes(StandardCharsets.UTF_8);
+				byte[] oldUsernameTmp = this.oldUsername.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(oldUsernameTmp.length);
 				output.write(oldUsernameTmp);
 			}
@@ -6804,7 +6806,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var newUsernameTmp = this.newUsername.getBytes(StandardCharsets.UTF_8);
+				byte[] newUsernameTmp = this.newUsername.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(newUsernameTmp.length);
 				output.write(newUsernameTmp);
 			}
@@ -7210,12 +7212,12 @@ public class TdApi {
 
 		public ChatFilter(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var iconNameTmp = new byte[input.readInt()];
+				byte[] iconNameTmp = new byte[input.readInt()];
 				input.readFully(iconNameTmp);
 				this.iconName = new String(iconNameTmp, StandardCharsets.UTF_8);
 			}
@@ -7257,7 +7259,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -7265,7 +7267,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var iconNameTmp = this.iconName.getBytes(StandardCharsets.UTF_8);
+				byte[] iconNameTmp = this.iconName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(iconNameTmp.length);
 				output.write(iconNameTmp);
 			}
@@ -7325,12 +7327,12 @@ public class TdApi {
 		public ChatFilterInfo(DataInput input) throws IOException {
 			this.id = input.readInt();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var iconNameTmp = new byte[input.readInt()];
+				byte[] iconNameTmp = new byte[input.readInt()];
 				input.readFully(iconNameTmp);
 				this.iconName = new String(iconNameTmp, StandardCharsets.UTF_8);
 			}
@@ -7347,7 +7349,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -7355,7 +7357,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var iconNameTmp = this.iconName.getBytes(StandardCharsets.UTF_8);
+				byte[] iconNameTmp = this.iconName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(iconNameTmp.length);
 				output.write(iconNameTmp);
 			}
@@ -7375,7 +7377,7 @@ public class TdApi {
 
 		public ChatInviteLink(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inviteLinkTmp = new byte[input.readInt()];
+				byte[] inviteLinkTmp = new byte[input.readInt()];
 				input.readFully(inviteLinkTmp);
 				this.inviteLink = new String(inviteLinkTmp, StandardCharsets.UTF_8);
 			}
@@ -7391,7 +7393,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
+				byte[] inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inviteLinkTmp.length);
 				output.write(inviteLinkTmp);
 			}
@@ -7445,7 +7447,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -7483,7 +7485,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -7639,7 +7641,7 @@ public class TdApi {
 				this.location = new Location(input);
 			}
 			if (input.readBoolean()) {
-				var addressTmp = new byte[input.readInt()];
+				byte[] addressTmp = new byte[input.readInt()];
 				input.readFully(addressTmp);
 				this.address = new String(addressTmp, StandardCharsets.UTF_8);
 			}
@@ -7661,7 +7663,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var addressTmp = this.address.getBytes(StandardCharsets.UTF_8);
+				byte[] addressTmp = this.address.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(addressTmp.length);
 				output.write(addressTmp);
 			}
@@ -7762,7 +7764,7 @@ public class TdApi {
 
 		public ChatMemberStatusCreator(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var customTitleTmp = new byte[input.readInt()];
+				byte[] customTitleTmp = new byte[input.readInt()];
 				input.readFully(customTitleTmp);
 				this.customTitle = new String(customTitleTmp, StandardCharsets.UTF_8);
 			}
@@ -7779,7 +7781,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var customTitleTmp = this.customTitle.getBytes(StandardCharsets.UTF_8);
+				byte[] customTitleTmp = this.customTitle.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(customTitleTmp.length);
 				output.write(customTitleTmp);
 			}
@@ -7818,7 +7820,7 @@ public class TdApi {
 
 		public ChatMemberStatusAdministrator(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var customTitleTmp = new byte[input.readInt()];
+				byte[] customTitleTmp = new byte[input.readInt()];
 				input.readFully(customTitleTmp);
 				this.customTitle = new String(customTitleTmp, StandardCharsets.UTF_8);
 			}
@@ -7843,7 +7845,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var customTitleTmp = this.customTitle.getBytes(StandardCharsets.UTF_8);
+				byte[] customTitleTmp = this.customTitle.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(customTitleTmp.length);
 				output.write(customTitleTmp);
 			}
@@ -8179,7 +8181,7 @@ public class TdApi {
 			this.muteFor = input.readInt();
 			this.useDefaultSound = input.readBoolean();
 			if (input.readBoolean()) {
-				var soundTmp = new byte[input.readInt()];
+				byte[] soundTmp = new byte[input.readInt()];
 				input.readFully(soundTmp);
 				this.sound = new String(soundTmp, StandardCharsets.UTF_8);
 			}
@@ -8204,7 +8206,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var soundTmp = this.sound.getBytes(StandardCharsets.UTF_8);
+				byte[] soundTmp = this.sound.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(soundTmp.length);
 				output.write(soundTmp);
 			}
@@ -8638,7 +8640,7 @@ public class TdApi {
 
 		public ChatReportReasonCustom(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -8654,7 +8656,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -8694,12 +8696,12 @@ public class TdApi {
 
 		public ChatSourcePublicServiceAnnouncement(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var typeTmp = new byte[input.readInt()];
+				byte[] typeTmp = new byte[input.readInt()];
 				input.readFully(typeTmp);
 				this.type = new String(typeTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -8715,7 +8717,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
+				byte[] typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(typeTmp.length);
 				output.write(typeTmp);
 			}
@@ -8723,7 +8725,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -9832,30 +9834,30 @@ public class TdApi {
 		public ConnectedWebsite(DataInput input) throws IOException {
 			this.id = input.readLong();
 			if (input.readBoolean()) {
-				var domainNameTmp = new byte[input.readInt()];
+				byte[] domainNameTmp = new byte[input.readInt()];
 				input.readFully(domainNameTmp);
 				this.domainName = new String(domainNameTmp, StandardCharsets.UTF_8);
 			}
 			this.botUserId = input.readInt();
 			if (input.readBoolean()) {
-				var browserTmp = new byte[input.readInt()];
+				byte[] browserTmp = new byte[input.readInt()];
 				input.readFully(browserTmp);
 				this.browser = new String(browserTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var platformTmp = new byte[input.readInt()];
+				byte[] platformTmp = new byte[input.readInt()];
 				input.readFully(platformTmp);
 				this.platform = new String(platformTmp, StandardCharsets.UTF_8);
 			}
 			this.logInDate = input.readInt();
 			this.lastActiveDate = input.readInt();
 			if (input.readBoolean()) {
-				var ipTmp = new byte[input.readInt()];
+				byte[] ipTmp = new byte[input.readInt()];
 				input.readFully(ipTmp);
 				this.ip = new String(ipTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var locationTmp = new byte[input.readInt()];
+				byte[] locationTmp = new byte[input.readInt()];
 				input.readFully(locationTmp);
 				this.location = new String(locationTmp, StandardCharsets.UTF_8);
 			}
@@ -9872,7 +9874,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var domainNameTmp = this.domainName.getBytes(StandardCharsets.UTF_8);
+				byte[] domainNameTmp = this.domainName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(domainNameTmp.length);
 				output.write(domainNameTmp);
 			}
@@ -9881,7 +9883,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var browserTmp = this.browser.getBytes(StandardCharsets.UTF_8);
+				byte[] browserTmp = this.browser.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(browserTmp.length);
 				output.write(browserTmp);
 			}
@@ -9889,7 +9891,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var platformTmp = this.platform.getBytes(StandardCharsets.UTF_8);
+				byte[] platformTmp = this.platform.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(platformTmp.length);
 				output.write(platformTmp);
 			}
@@ -9899,7 +9901,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var ipTmp = this.ip.getBytes(StandardCharsets.UTF_8);
+				byte[] ipTmp = this.ip.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(ipTmp.length);
 				output.write(ipTmp);
 			}
@@ -9907,7 +9909,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var locationTmp = this.location.getBytes(StandardCharsets.UTF_8);
+				byte[] locationTmp = this.location.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(locationTmp.length);
 				output.write(locationTmp);
 			}
@@ -10066,22 +10068,22 @@ public class TdApi {
 
 		public Contact(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var firstNameTmp = new byte[input.readInt()];
+				byte[] firstNameTmp = new byte[input.readInt()];
 				input.readFully(firstNameTmp);
 				this.firstName = new String(firstNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var lastNameTmp = new byte[input.readInt()];
+				byte[] lastNameTmp = new byte[input.readInt()];
 				input.readFully(lastNameTmp);
 				this.lastName = new String(lastNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var vcardTmp = new byte[input.readInt()];
+				byte[] vcardTmp = new byte[input.readInt()];
 				input.readFully(vcardTmp);
 				this.vcard = new String(vcardTmp, StandardCharsets.UTF_8);
 			}
@@ -10098,7 +10100,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -10106,7 +10108,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
+				byte[] firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(firstNameTmp.length);
 				output.write(firstNameTmp);
 			}
@@ -10114,7 +10116,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
+				byte[] lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(lastNameTmp.length);
 				output.write(lastNameTmp);
 			}
@@ -10122,7 +10124,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var vcardTmp = this.vcard.getBytes(StandardCharsets.UTF_8);
+				byte[] vcardTmp = this.vcard.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(vcardTmp.length);
 				output.write(vcardTmp);
 			}
@@ -10168,7 +10170,7 @@ public class TdApi {
 
 		public CustomRequestResult(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var resultTmp = new byte[input.readInt()];
+				byte[] resultTmp = new byte[input.readInt()];
 				input.readFully(resultTmp);
 				this.result = new String(resultTmp, StandardCharsets.UTF_8);
 			}
@@ -10184,7 +10186,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var resultTmp = this.result.getBytes(StandardCharsets.UTF_8);
+				byte[] resultTmp = this.result.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(resultTmp.length);
 				output.write(resultTmp);
 			}
@@ -10204,7 +10206,7 @@ public class TdApi {
 
 		public DatabaseStatistics(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var statisticsTmp = new byte[input.readInt()];
+				byte[] statisticsTmp = new byte[input.readInt()];
 				input.readFully(statisticsTmp);
 				this.statistics = new String(statisticsTmp, StandardCharsets.UTF_8);
 			}
@@ -10220,7 +10222,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var statisticsTmp = this.statistics.getBytes(StandardCharsets.UTF_8);
+				byte[] statisticsTmp = this.statistics.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(statisticsTmp.length);
 				output.write(statisticsTmp);
 			}
@@ -10382,7 +10384,7 @@ public class TdApi {
 
 		public DeviceTokenFirebaseCloudMessaging(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var tokenTmp = new byte[input.readInt()];
+				byte[] tokenTmp = new byte[input.readInt()];
 				input.readFully(tokenTmp);
 				this.token = new String(tokenTmp, StandardCharsets.UTF_8);
 			}
@@ -10399,7 +10401,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
+				byte[] tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(tokenTmp.length);
 				output.write(tokenTmp);
 			}
@@ -10422,7 +10424,7 @@ public class TdApi {
 
 		public DeviceTokenApplePush(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var deviceTokenTmp = new byte[input.readInt()];
+				byte[] deviceTokenTmp = new byte[input.readInt()];
 				input.readFully(deviceTokenTmp);
 				this.deviceToken = new String(deviceTokenTmp, StandardCharsets.UTF_8);
 			}
@@ -10439,7 +10441,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var deviceTokenTmp = this.deviceToken.getBytes(StandardCharsets.UTF_8);
+				byte[] deviceTokenTmp = this.deviceToken.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(deviceTokenTmp.length);
 				output.write(deviceTokenTmp);
 			}
@@ -10464,7 +10466,7 @@ public class TdApi {
 
 		public DeviceTokenApplePushVoIP(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var deviceTokenTmp = new byte[input.readInt()];
+				byte[] deviceTokenTmp = new byte[input.readInt()];
 				input.readFully(deviceTokenTmp);
 				this.deviceToken = new String(deviceTokenTmp, StandardCharsets.UTF_8);
 			}
@@ -10482,7 +10484,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var deviceTokenTmp = this.deviceToken.getBytes(StandardCharsets.UTF_8);
+				byte[] deviceTokenTmp = this.deviceToken.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(deviceTokenTmp.length);
 				output.write(deviceTokenTmp);
 			}
@@ -10504,7 +10506,7 @@ public class TdApi {
 
 		public DeviceTokenWindowsPush(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var accessTokenTmp = new byte[input.readInt()];
+				byte[] accessTokenTmp = new byte[input.readInt()];
 				input.readFully(accessTokenTmp);
 				this.accessToken = new String(accessTokenTmp, StandardCharsets.UTF_8);
 			}
@@ -10520,7 +10522,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var accessTokenTmp = this.accessToken.getBytes(StandardCharsets.UTF_8);
+				byte[] accessTokenTmp = this.accessToken.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(accessTokenTmp.length);
 				output.write(accessTokenTmp);
 			}
@@ -10540,7 +10542,7 @@ public class TdApi {
 
 		public DeviceTokenMicrosoftPush(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var channelUriTmp = new byte[input.readInt()];
+				byte[] channelUriTmp = new byte[input.readInt()];
 				input.readFully(channelUriTmp);
 				this.channelUri = new String(channelUriTmp, StandardCharsets.UTF_8);
 			}
@@ -10556,7 +10558,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var channelUriTmp = this.channelUri.getBytes(StandardCharsets.UTF_8);
+				byte[] channelUriTmp = this.channelUri.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(channelUriTmp.length);
 				output.write(channelUriTmp);
 			}
@@ -10576,7 +10578,7 @@ public class TdApi {
 
 		public DeviceTokenMicrosoftPushVoIP(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var channelUriTmp = new byte[input.readInt()];
+				byte[] channelUriTmp = new byte[input.readInt()];
 				input.readFully(channelUriTmp);
 				this.channelUri = new String(channelUriTmp, StandardCharsets.UTF_8);
 			}
@@ -10592,7 +10594,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var channelUriTmp = this.channelUri.getBytes(StandardCharsets.UTF_8);
+				byte[] channelUriTmp = this.channelUri.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(channelUriTmp.length);
 				output.write(channelUriTmp);
 			}
@@ -10616,17 +10618,17 @@ public class TdApi {
 
 		public DeviceTokenWebPush(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var endpointTmp = new byte[input.readInt()];
+				byte[] endpointTmp = new byte[input.readInt()];
 				input.readFully(endpointTmp);
 				this.endpoint = new String(endpointTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var p256dhBase64urlTmp = new byte[input.readInt()];
+				byte[] p256dhBase64urlTmp = new byte[input.readInt()];
 				input.readFully(p256dhBase64urlTmp);
 				this.p256dhBase64url = new String(p256dhBase64urlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var authBase64urlTmp = new byte[input.readInt()];
+				byte[] authBase64urlTmp = new byte[input.readInt()];
 				input.readFully(authBase64urlTmp);
 				this.authBase64url = new String(authBase64urlTmp, StandardCharsets.UTF_8);
 			}
@@ -10642,7 +10644,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var endpointTmp = this.endpoint.getBytes(StandardCharsets.UTF_8);
+				byte[] endpointTmp = this.endpoint.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(endpointTmp.length);
 				output.write(endpointTmp);
 			}
@@ -10650,7 +10652,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var p256dhBase64urlTmp = this.p256dhBase64url.getBytes(StandardCharsets.UTF_8);
+				byte[] p256dhBase64urlTmp = this.p256dhBase64url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(p256dhBase64urlTmp.length);
 				output.write(p256dhBase64urlTmp);
 			}
@@ -10658,7 +10660,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var authBase64urlTmp = this.authBase64url.getBytes(StandardCharsets.UTF_8);
+				byte[] authBase64urlTmp = this.authBase64url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(authBase64urlTmp.length);
 				output.write(authBase64urlTmp);
 			}
@@ -10678,7 +10680,7 @@ public class TdApi {
 
 		public DeviceTokenSimplePush(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var endpointTmp = new byte[input.readInt()];
+				byte[] endpointTmp = new byte[input.readInt()];
 				input.readFully(endpointTmp);
 				this.endpoint = new String(endpointTmp, StandardCharsets.UTF_8);
 			}
@@ -10694,7 +10696,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var endpointTmp = this.endpoint.getBytes(StandardCharsets.UTF_8);
+				byte[] endpointTmp = this.endpoint.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(endpointTmp.length);
 				output.write(endpointTmp);
 			}
@@ -10714,7 +10716,7 @@ public class TdApi {
 
 		public DeviceTokenUbuntuPush(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var tokenTmp = new byte[input.readInt()];
+				byte[] tokenTmp = new byte[input.readInt()];
 				input.readFully(tokenTmp);
 				this.token = new String(tokenTmp, StandardCharsets.UTF_8);
 			}
@@ -10730,7 +10732,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
+				byte[] tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(tokenTmp.length);
 				output.write(tokenTmp);
 			}
@@ -10750,7 +10752,7 @@ public class TdApi {
 
 		public DeviceTokenBlackBerryPush(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var tokenTmp = new byte[input.readInt()];
+				byte[] tokenTmp = new byte[input.readInt()];
 				input.readFully(tokenTmp);
 				this.token = new String(tokenTmp, StandardCharsets.UTF_8);
 			}
@@ -10766,7 +10768,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
+				byte[] tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(tokenTmp.length);
 				output.write(tokenTmp);
 			}
@@ -10786,7 +10788,7 @@ public class TdApi {
 
 		public DeviceTokenTizenPush(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var regIdTmp = new byte[input.readInt()];
+				byte[] regIdTmp = new byte[input.readInt()];
 				input.readFully(regIdTmp);
 				this.regId = new String(regIdTmp, StandardCharsets.UTF_8);
 			}
@@ -10802,7 +10804,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var regIdTmp = this.regId.getBytes(StandardCharsets.UTF_8);
+				byte[] regIdTmp = this.regId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(regIdTmp.length);
 				output.write(regIdTmp);
 			}
@@ -10830,12 +10832,12 @@ public class TdApi {
 
 		public Document(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var fileNameTmp = new byte[input.readInt()];
+				byte[] fileNameTmp = new byte[input.readInt()];
 				input.readFully(fileNameTmp);
 				this.fileName = new String(fileNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var mimeTypeTmp = new byte[input.readInt()];
+				byte[] mimeTypeTmp = new byte[input.readInt()];
 				input.readFully(mimeTypeTmp);
 				this.mimeType = new String(mimeTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -10869,7 +10871,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
+				byte[] fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(fileNameTmp.length);
 				output.write(fileNameTmp);
 			}
@@ -10877,7 +10879,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(mimeTypeTmp.length);
 				output.write(mimeTypeTmp);
 			}
@@ -11011,7 +11013,7 @@ public class TdApi {
 
 		public EmailAddressAuthenticationCodeInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var emailAddressPatternTmp = new byte[input.readInt()];
+				byte[] emailAddressPatternTmp = new byte[input.readInt()];
 				input.readFully(emailAddressPatternTmp);
 				this.emailAddressPattern = new String(emailAddressPatternTmp, StandardCharsets.UTF_8);
 			}
@@ -11028,7 +11030,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emailAddressPatternTmp = this.emailAddressPattern.getBytes(StandardCharsets.UTF_8);
+				byte[] emailAddressPatternTmp = this.emailAddressPattern.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emailAddressPatternTmp.length);
 				output.write(emailAddressPatternTmp);
 			}
@@ -11051,7 +11053,7 @@ public class TdApi {
 			if (input.readBoolean()) {
 				this.emojis = new String[input.readInt()];
 				for (int i = 0; i < this.emojis.length; i++) {
-					var emojisTmp = new byte[input.readInt()];
+					byte[] emojisTmp = new byte[input.readInt()];
 					input.readFully(emojisTmp);
 					this.emojis[i] = new String(emojisTmp, StandardCharsets.UTF_8);
 				}
@@ -11070,7 +11072,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.emojis.length);
 				for (int i = 0; i < this.emojis.length; i++) {
-					var emojisTmp = this.emojis[i].getBytes(StandardCharsets.UTF_8);
+					byte[] emojisTmp = this.emojis[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(emojisTmp.length);
 					output.write(emojisTmp);
 				}
@@ -11252,12 +11254,12 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var valueTmp = new byte[input.readInt()];
+				byte[] valueTmp = new byte[input.readInt()];
 				input.readFully(valueTmp);
 				this.value = new String(valueTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var hashTmp = new byte[input.readInt()];
+				byte[] hashTmp = new byte[input.readInt()];
 				input.readFully(hashTmp);
 				this.hash = new String(hashTmp, StandardCharsets.UTF_8);
 			}
@@ -11322,7 +11324,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
+				byte[] valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(valueTmp.length);
 				output.write(valueTmp);
 			}
@@ -11330,7 +11332,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var hashTmp = this.hash.getBytes(StandardCharsets.UTF_8);
+				byte[] hashTmp = this.hash.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(hashTmp.length);
 				output.write(hashTmp);
 			}
@@ -11353,7 +11355,7 @@ public class TdApi {
 		public Error(DataInput input) throws IOException {
 			this.code = input.readInt();
 			if (input.readBoolean()) {
-				var messageTmp = new byte[input.readInt()];
+				byte[] messageTmp = new byte[input.readInt()];
 				input.readFully(messageTmp);
 				this.message = new String(messageTmp, StandardCharsets.UTF_8);
 			}
@@ -11370,7 +11372,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var messageTmp = this.message.getBytes(StandardCharsets.UTF_8);
+				byte[] messageTmp = this.message.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(messageTmp.length);
 				output.write(messageTmp);
 			}
@@ -11775,7 +11777,7 @@ public class TdApi {
 
 		public FormattedText(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -11800,7 +11802,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -11887,12 +11889,12 @@ public class TdApi {
 		public Game(DataInput input) throws IOException {
 			this.id = input.readLong();
 			if (input.readBoolean()) {
-				var shortNameTmp = new byte[input.readInt()];
+				byte[] shortNameTmp = new byte[input.readInt()];
 				input.readFully(shortNameTmp);
 				this.shortName = new String(shortNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -11903,7 +11905,7 @@ public class TdApi {
 				this.text = new FormattedText(input);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -11932,7 +11934,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var shortNameTmp = this.shortName.getBytes(StandardCharsets.UTF_8);
+				byte[] shortNameTmp = this.shortName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(shortNameTmp.length);
 				output.write(shortNameTmp);
 			}
@@ -11940,7 +11942,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -11954,7 +11956,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -12062,7 +12064,7 @@ public class TdApi {
 			if (input.readBoolean()) {
 				this.hashtags = new String[input.readInt()];
 				for (int i = 0; i < this.hashtags.length; i++) {
-					var hashtagsTmp = new byte[input.readInt()];
+					byte[] hashtagsTmp = new byte[input.readInt()];
 					input.readFully(hashtagsTmp);
 					this.hashtags[i] = new String(hashtagsTmp, StandardCharsets.UTF_8);
 				}
@@ -12081,7 +12083,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.hashtags.length);
 				for (int i = 0; i < this.hashtags.length; i++) {
-					var hashtagsTmp = this.hashtags[i].getBytes(StandardCharsets.UTF_8);
+					byte[] hashtagsTmp = this.hashtags[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(hashtagsTmp.length);
 					output.write(hashtagsTmp);
 				}
@@ -12102,7 +12104,7 @@ public class TdApi {
 
 		public HttpUrl(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -12118,7 +12120,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -12148,7 +12150,7 @@ public class TdApi {
 
 		public IdentityDocument(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var numberTmp = new byte[input.readInt()];
+				byte[] numberTmp = new byte[input.readInt()];
 				input.readFully(numberTmp);
 				this.number = new String(numberTmp, StandardCharsets.UTF_8);
 			}
@@ -12197,7 +12199,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var numberTmp = this.number.getBytes(StandardCharsets.UTF_8);
+				byte[] numberTmp = this.number.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(numberTmp.length);
 				output.write(numberTmp);
 			}
@@ -12307,7 +12309,7 @@ public class TdApi {
 
 		public InlineKeyboardButton(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -12347,7 +12349,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -12373,7 +12375,7 @@ public class TdApi {
 
 		public InlineKeyboardButtonTypeUrl(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -12389,7 +12391,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -12413,13 +12415,13 @@ public class TdApi {
 
 		public InlineKeyboardButtonTypeLoginUrl(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
 			this.id = input.readInt();
 			if (input.readBoolean()) {
-				var forwardTextTmp = new byte[input.readInt()];
+				byte[] forwardTextTmp = new byte[input.readInt()];
 				input.readFully(forwardTextTmp);
 				this.forwardText = new String(forwardTextTmp, StandardCharsets.UTF_8);
 			}
@@ -12435,7 +12437,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -12444,7 +12446,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var forwardTextTmp = this.forwardText.getBytes(StandardCharsets.UTF_8);
+				byte[] forwardTextTmp = this.forwardText.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(forwardTextTmp.length);
 				output.write(forwardTextTmp);
 			}
@@ -12518,7 +12520,7 @@ public class TdApi {
 
 		public InlineKeyboardButtonTypeSwitchInline(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -12535,7 +12537,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -12584,23 +12586,23 @@ public class TdApi {
 
 		public InlineQueryResultArticle(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
 			this.hideUrl = input.readBoolean();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -12622,7 +12624,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -12630,7 +12632,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -12639,7 +12641,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -12647,7 +12649,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -12677,7 +12679,7 @@ public class TdApi {
 
 		public InlineQueryResultContact(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -12705,7 +12707,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -12743,7 +12745,7 @@ public class TdApi {
 
 		public InlineQueryResultLocation(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -12754,7 +12756,7 @@ public class TdApi {
 				this.location = new Location(input);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -12776,7 +12778,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -12790,7 +12792,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -12820,7 +12822,7 @@ public class TdApi {
 
 		public InlineQueryResultVenue(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -12848,7 +12850,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -12882,7 +12884,7 @@ public class TdApi {
 
 		public InlineQueryResultGame(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -12904,7 +12906,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -12934,7 +12936,7 @@ public class TdApi {
 
 		public InlineQueryResultAnimation(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -12945,7 +12947,7 @@ public class TdApi {
 				this.animation = new Animation(input);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -12961,7 +12963,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -12975,7 +12977,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -12997,7 +12999,7 @@ public class TdApi {
 
 		public InlineQueryResultAudio(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -13019,7 +13021,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -13051,7 +13053,7 @@ public class TdApi {
 
 		public InlineQueryResultDocument(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -13062,12 +13064,12 @@ public class TdApi {
 				this.document = new Document(input);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -13083,7 +13085,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -13097,7 +13099,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -13105,7 +13107,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -13131,7 +13133,7 @@ public class TdApi {
 
 		public InlineQueryResultPhoto(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -13142,12 +13144,12 @@ public class TdApi {
 				this.photo = new Photo(input);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -13163,7 +13165,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -13177,7 +13179,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -13185,7 +13187,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -13207,7 +13209,7 @@ public class TdApi {
 
 		public InlineQueryResultSticker(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -13229,7 +13231,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -13261,7 +13263,7 @@ public class TdApi {
 
 		public InlineQueryResultVideo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -13272,12 +13274,12 @@ public class TdApi {
 				this.video = new Video(input);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -13293,7 +13295,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -13307,7 +13309,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -13315,7 +13317,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -13339,7 +13341,7 @@ public class TdApi {
 
 		public InlineQueryResultVoiceNote(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -13350,7 +13352,7 @@ public class TdApi {
 				this.voiceNote = new VoiceNote(input);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -13366,7 +13368,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -13380,7 +13382,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -13409,7 +13411,7 @@ public class TdApi {
 		public InlineQueryResults(DataInput input) throws IOException {
 			this.inlineQueryId = input.readLong();
 			if (input.readBoolean()) {
-				var nextOffsetTmp = new byte[input.readInt()];
+				byte[] nextOffsetTmp = new byte[input.readInt()];
 				input.readFully(nextOffsetTmp);
 				this.nextOffset = new String(nextOffsetTmp, StandardCharsets.UTF_8);
 			}
@@ -13459,12 +13461,12 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var switchPmTextTmp = new byte[input.readInt()];
+				byte[] switchPmTextTmp = new byte[input.readInt()];
 				input.readFully(switchPmTextTmp);
 				this.switchPmText = new String(switchPmTextTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var switchPmParameterTmp = new byte[input.readInt()];
+				byte[] switchPmParameterTmp = new byte[input.readInt()];
 				input.readFully(switchPmParameterTmp);
 				this.switchPmParameter = new String(switchPmParameterTmp, StandardCharsets.UTF_8);
 			}
@@ -13481,7 +13483,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nextOffsetTmp = this.nextOffset.getBytes(StandardCharsets.UTF_8);
+				byte[] nextOffsetTmp = this.nextOffset.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nextOffsetTmp.length);
 				output.write(nextOffsetTmp);
 			}
@@ -13498,7 +13500,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var switchPmTextTmp = this.switchPmText.getBytes(StandardCharsets.UTF_8);
+				byte[] switchPmTextTmp = this.switchPmText.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(switchPmTextTmp.length);
 				output.write(switchPmTextTmp);
 			}
@@ -13506,7 +13508,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var switchPmParameterTmp = this.switchPmParameter.getBytes(StandardCharsets.UTF_8);
+				byte[] switchPmParameterTmp = this.switchPmParameter.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(switchPmParameterTmp.length);
 				output.write(switchPmParameterTmp);
 			}
@@ -13721,7 +13723,7 @@ public class TdApi {
 
 		public InputCredentialsSaved(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var savedCredentialsIdTmp = new byte[input.readInt()];
+				byte[] savedCredentialsIdTmp = new byte[input.readInt()];
 				input.readFully(savedCredentialsIdTmp);
 				this.savedCredentialsId = new String(savedCredentialsIdTmp, StandardCharsets.UTF_8);
 			}
@@ -13737,7 +13739,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var savedCredentialsIdTmp = this.savedCredentialsId.getBytes(StandardCharsets.UTF_8);
+				byte[] savedCredentialsIdTmp = this.savedCredentialsId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(savedCredentialsIdTmp.length);
 				output.write(savedCredentialsIdTmp);
 			}
@@ -13759,7 +13761,7 @@ public class TdApi {
 
 		public InputCredentialsNew(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var dataTmp = new byte[input.readInt()];
+				byte[] dataTmp = new byte[input.readInt()];
 				input.readFully(dataTmp);
 				this.data = new String(dataTmp, StandardCharsets.UTF_8);
 			}
@@ -13776,7 +13778,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
+				byte[] dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(dataTmp.length);
 				output.write(dataTmp);
 			}
@@ -13797,7 +13799,7 @@ public class TdApi {
 
 		public InputCredentialsAndroidPay(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var dataTmp = new byte[input.readInt()];
+				byte[] dataTmp = new byte[input.readInt()];
 				input.readFully(dataTmp);
 				this.data = new String(dataTmp, StandardCharsets.UTF_8);
 			}
@@ -13813,7 +13815,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
+				byte[] dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(dataTmp.length);
 				output.write(dataTmp);
 			}
@@ -13833,7 +13835,7 @@ public class TdApi {
 
 		public InputCredentialsApplePay(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var dataTmp = new byte[input.readInt()];
+				byte[] dataTmp = new byte[input.readInt()];
 				input.readFully(dataTmp);
 				this.data = new String(dataTmp, StandardCharsets.UTF_8);
 			}
@@ -13849,7 +13851,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
+				byte[] dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(dataTmp.length);
 				output.write(dataTmp);
 			}
@@ -13894,7 +13896,7 @@ public class TdApi {
 
 		public InputFileRemote(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -13910,7 +13912,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -13930,7 +13932,7 @@ public class TdApi {
 
 		public InputFileLocal(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var pathTmp = new byte[input.readInt()];
+				byte[] pathTmp = new byte[input.readInt()];
 				input.readFully(pathTmp);
 				this.path = new String(pathTmp, StandardCharsets.UTF_8);
 			}
@@ -13946,7 +13948,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var pathTmp = this.path.getBytes(StandardCharsets.UTF_8);
+				byte[] pathTmp = this.path.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(pathTmp.length);
 				output.write(pathTmp);
 			}
@@ -13970,12 +13972,12 @@ public class TdApi {
 
 		public InputFileGenerated(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var originalPathTmp = new byte[input.readInt()];
+				byte[] originalPathTmp = new byte[input.readInt()];
 				input.readFully(originalPathTmp);
 				this.originalPath = new String(originalPathTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var conversionTmp = new byte[input.readInt()];
+				byte[] conversionTmp = new byte[input.readInt()];
 				input.readFully(conversionTmp);
 				this.conversion = new String(conversionTmp, StandardCharsets.UTF_8);
 			}
@@ -13992,7 +13994,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var originalPathTmp = this.originalPath.getBytes(StandardCharsets.UTF_8);
+				byte[] originalPathTmp = this.originalPath.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(originalPathTmp.length);
 				output.write(originalPathTmp);
 			}
@@ -14000,7 +14002,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var conversionTmp = this.conversion.getBytes(StandardCharsets.UTF_8);
+				byte[] conversionTmp = this.conversion.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(conversionTmp.length);
 				output.write(conversionTmp);
 			}
@@ -14031,7 +14033,7 @@ public class TdApi {
 
 		public InputIdentityDocument(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var numberTmp = new byte[input.readInt()];
+				byte[] numberTmp = new byte[input.readInt()];
 				input.readFully(numberTmp);
 				this.number = new String(numberTmp, StandardCharsets.UTF_8);
 			}
@@ -14128,7 +14130,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var numberTmp = this.number.getBytes(StandardCharsets.UTF_8);
+				byte[] numberTmp = this.number.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(numberTmp.length);
 				output.write(numberTmp);
 			}
@@ -14201,32 +14203,32 @@ public class TdApi {
 
 		public InputInlineQueryResultAnimation(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
+				byte[] thumbnailUrlTmp = new byte[input.readInt()];
 				input.readFully(thumbnailUrlTmp);
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var thumbnailMimeTypeTmp = new byte[input.readInt()];
+				byte[] thumbnailMimeTypeTmp = new byte[input.readInt()];
 				input.readFully(thumbnailMimeTypeTmp);
 				this.thumbnailMimeType = new String(thumbnailMimeTypeTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var videoUrlTmp = new byte[input.readInt()];
+				byte[] videoUrlTmp = new byte[input.readInt()];
 				input.readFully(videoUrlTmp);
 				this.videoUrl = new String(videoUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var videoMimeTypeTmp = new byte[input.readInt()];
+				byte[] videoMimeTypeTmp = new byte[input.readInt()];
 				input.readFully(videoMimeTypeTmp);
 				this.videoMimeType = new String(videoMimeTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -14320,7 +14322,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -14328,7 +14330,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -14336,7 +14338,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
@@ -14344,7 +14346,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailMimeTypeTmp = this.thumbnailMimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailMimeTypeTmp = this.thumbnailMimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailMimeTypeTmp.length);
 				output.write(thumbnailMimeTypeTmp);
 			}
@@ -14352,7 +14354,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var videoUrlTmp = this.videoUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] videoUrlTmp = this.videoUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(videoUrlTmp.length);
 				output.write(videoUrlTmp);
 			}
@@ -14360,7 +14362,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var videoMimeTypeTmp = this.videoMimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] videoMimeTypeTmp = this.videoMimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(videoMimeTypeTmp.length);
 				output.write(videoMimeTypeTmp);
 			}
@@ -14413,28 +14415,28 @@ public class TdApi {
 
 		public InputInlineQueryResultArticle(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
 			this.hideUrl = input.readBoolean();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
+				byte[] thumbnailUrlTmp = new byte[input.readInt()];
 				input.readFully(thumbnailUrlTmp);
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -14527,7 +14529,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -14535,7 +14537,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -14544,7 +14546,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -14552,7 +14554,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -14560,7 +14562,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
@@ -14606,22 +14608,22 @@ public class TdApi {
 
 		public InputInlineQueryResultAudio(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var performerTmp = new byte[input.readInt()];
+				byte[] performerTmp = new byte[input.readInt()];
 				input.readFully(performerTmp);
 				this.performer = new String(performerTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var audioUrlTmp = new byte[input.readInt()];
+				byte[] audioUrlTmp = new byte[input.readInt()];
 				input.readFully(audioUrlTmp);
 				this.audioUrl = new String(audioUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -14713,7 +14715,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -14721,7 +14723,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -14729,7 +14731,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var performerTmp = this.performer.getBytes(StandardCharsets.UTF_8);
+				byte[] performerTmp = this.performer.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(performerTmp.length);
 				output.write(performerTmp);
 			}
@@ -14737,7 +14739,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var audioUrlTmp = this.audioUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] audioUrlTmp = this.audioUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(audioUrlTmp.length);
 				output.write(audioUrlTmp);
 			}
@@ -14782,7 +14784,7 @@ public class TdApi {
 
 		public InputInlineQueryResultContact(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -14793,7 +14795,7 @@ public class TdApi {
 				this.contact = new Contact(input);
 			}
 			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
+				byte[] thumbnailUrlTmp = new byte[input.readInt()];
 				input.readFully(thumbnailUrlTmp);
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -14886,7 +14888,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -14900,7 +14902,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
@@ -14952,32 +14954,32 @@ public class TdApi {
 
 		public InputInlineQueryResultDocument(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var documentUrlTmp = new byte[input.readInt()];
+				byte[] documentUrlTmp = new byte[input.readInt()];
 				input.readFully(documentUrlTmp);
 				this.documentUrl = new String(documentUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var mimeTypeTmp = new byte[input.readInt()];
+				byte[] mimeTypeTmp = new byte[input.readInt()];
 				input.readFully(mimeTypeTmp);
 				this.mimeType = new String(mimeTypeTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
+				byte[] thumbnailUrlTmp = new byte[input.readInt()];
 				input.readFully(thumbnailUrlTmp);
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -15070,7 +15072,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -15078,7 +15080,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -15086,7 +15088,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -15094,7 +15096,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var documentUrlTmp = this.documentUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] documentUrlTmp = this.documentUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(documentUrlTmp.length);
 				output.write(documentUrlTmp);
 			}
@@ -15102,7 +15104,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(mimeTypeTmp.length);
 				output.write(mimeTypeTmp);
 			}
@@ -15110,7 +15112,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
@@ -15148,12 +15150,12 @@ public class TdApi {
 
 		public InputInlineQueryResultGame(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var gameShortNameTmp = new byte[input.readInt()];
+				byte[] gameShortNameTmp = new byte[input.readInt()];
 				input.readFully(gameShortNameTmp);
 				this.gameShortName = new String(gameShortNameTmp, StandardCharsets.UTF_8);
 			}
@@ -15187,7 +15189,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -15195,7 +15197,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var gameShortNameTmp = this.gameShortName.getBytes(StandardCharsets.UTF_8);
+				byte[] gameShortNameTmp = this.gameShortName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(gameShortNameTmp.length);
 				output.write(gameShortNameTmp);
 			}
@@ -15237,7 +15239,7 @@ public class TdApi {
 
 		public InputInlineQueryResultLocation(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -15249,12 +15251,12 @@ public class TdApi {
 			}
 			this.livePeriod = input.readInt();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
+				byte[] thumbnailUrlTmp = new byte[input.readInt()];
 				input.readFully(thumbnailUrlTmp);
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -15347,7 +15349,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -15362,7 +15364,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -15370,7 +15372,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
@@ -15420,27 +15422,27 @@ public class TdApi {
 
 		public InputInlineQueryResultPhoto(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
+				byte[] thumbnailUrlTmp = new byte[input.readInt()];
 				input.readFully(thumbnailUrlTmp);
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var photoUrlTmp = new byte[input.readInt()];
+				byte[] photoUrlTmp = new byte[input.readInt()];
 				input.readFully(photoUrlTmp);
 				this.photoUrl = new String(photoUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -15533,7 +15535,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -15541,7 +15543,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -15549,7 +15551,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -15557,7 +15559,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
@@ -15565,7 +15567,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var photoUrlTmp = this.photoUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] photoUrlTmp = this.photoUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(photoUrlTmp.length);
 				output.write(photoUrlTmp);
 			}
@@ -15611,17 +15613,17 @@ public class TdApi {
 
 		public InputInlineQueryResultSticker(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
+				byte[] thumbnailUrlTmp = new byte[input.readInt()];
 				input.readFully(thumbnailUrlTmp);
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var stickerUrlTmp = new byte[input.readInt()];
+				byte[] stickerUrlTmp = new byte[input.readInt()];
 				input.readFully(stickerUrlTmp);
 				this.stickerUrl = new String(stickerUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -15714,7 +15716,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -15722,7 +15724,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
@@ -15730,7 +15732,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var stickerUrlTmp = this.stickerUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] stickerUrlTmp = this.stickerUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(stickerUrlTmp.length);
 				output.write(stickerUrlTmp);
 			}
@@ -15776,7 +15778,7 @@ public class TdApi {
 
 		public InputInlineQueryResultVenue(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
@@ -15787,7 +15789,7 @@ public class TdApi {
 				this.venue = new Venue(input);
 			}
 			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
+				byte[] thumbnailUrlTmp = new byte[input.readInt()];
 				input.readFully(thumbnailUrlTmp);
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -15880,7 +15882,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -15894,7 +15896,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
@@ -15948,32 +15950,32 @@ public class TdApi {
 
 		public InputInlineQueryResultVideo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var thumbnailUrlTmp = new byte[input.readInt()];
+				byte[] thumbnailUrlTmp = new byte[input.readInt()];
 				input.readFully(thumbnailUrlTmp);
 				this.thumbnailUrl = new String(thumbnailUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var videoUrlTmp = new byte[input.readInt()];
+				byte[] videoUrlTmp = new byte[input.readInt()];
 				input.readFully(videoUrlTmp);
 				this.videoUrl = new String(videoUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var mimeTypeTmp = new byte[input.readInt()];
+				byte[] mimeTypeTmp = new byte[input.readInt()];
 				input.readFully(mimeTypeTmp);
 				this.mimeType = new String(mimeTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -16067,7 +16069,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -16075,7 +16077,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -16083,7 +16085,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -16091,7 +16093,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] thumbnailUrlTmp = this.thumbnailUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(thumbnailUrlTmp.length);
 				output.write(thumbnailUrlTmp);
 			}
@@ -16099,7 +16101,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var videoUrlTmp = this.videoUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] videoUrlTmp = this.videoUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(videoUrlTmp.length);
 				output.write(videoUrlTmp);
 			}
@@ -16107,7 +16109,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(mimeTypeTmp.length);
 				output.write(mimeTypeTmp);
 			}
@@ -16152,17 +16154,17 @@ public class TdApi {
 
 		public InputInlineQueryResultVoiceNote(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var voiceNoteUrlTmp = new byte[input.readInt()];
+				byte[] voiceNoteUrlTmp = new byte[input.readInt()];
 				input.readFully(voiceNoteUrlTmp);
 				this.voiceNoteUrl = new String(voiceNoteUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -16254,7 +16256,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -16262,7 +16264,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -16270,7 +16272,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var voiceNoteUrlTmp = this.voiceNoteUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] voiceNoteUrlTmp = this.voiceNoteUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(voiceNoteUrlTmp.length);
 				output.write(voiceNoteUrlTmp);
 			}
@@ -16485,12 +16487,12 @@ public class TdApi {
 			}
 			this.duration = input.readInt();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var performerTmp = new byte[input.readInt()];
+				byte[] performerTmp = new byte[input.readInt()];
 				input.readFully(performerTmp);
 				this.performer = new String(performerTmp, StandardCharsets.UTF_8);
 			}
@@ -16525,7 +16527,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -16533,7 +16535,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var performerTmp = this.performer.getBytes(StandardCharsets.UTF_8);
+				byte[] performerTmp = this.performer.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(performerTmp.length);
 				output.write(performerTmp);
 			}
@@ -17181,7 +17183,7 @@ public class TdApi {
 
 		public InputMessageDice(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var emojiTmp = new byte[input.readInt()];
+				byte[] emojiTmp = new byte[input.readInt()];
 				input.readFully(emojiTmp);
 				this.emoji = new String(emojiTmp, StandardCharsets.UTF_8);
 			}
@@ -17198,7 +17200,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
+				byte[] emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emojiTmp.length);
 				output.write(emojiTmp);
 			}
@@ -17222,7 +17224,7 @@ public class TdApi {
 		public InputMessageGame(DataInput input) throws IOException {
 			this.botUserId = input.readInt();
 			if (input.readBoolean()) {
-				var gameShortNameTmp = new byte[input.readInt()];
+				byte[] gameShortNameTmp = new byte[input.readInt()];
 				input.readFully(gameShortNameTmp);
 				this.gameShortName = new String(gameShortNameTmp, StandardCharsets.UTF_8);
 			}
@@ -17239,7 +17241,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var gameShortNameTmp = this.gameShortName.getBytes(StandardCharsets.UTF_8);
+				byte[] gameShortNameTmp = this.gameShortName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(gameShortNameTmp.length);
 				output.write(gameShortNameTmp);
 			}
@@ -17285,17 +17287,17 @@ public class TdApi {
 				this.invoice = new Invoice(input);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var photoUrlTmp = new byte[input.readInt()];
+				byte[] photoUrlTmp = new byte[input.readInt()];
 				input.readFully(photoUrlTmp);
 				this.photoUrl = new String(photoUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -17307,17 +17309,17 @@ public class TdApi {
 				input.readFully(this.payload);
 			}
 			if (input.readBoolean()) {
-				var providerTokenTmp = new byte[input.readInt()];
+				byte[] providerTokenTmp = new byte[input.readInt()];
 				input.readFully(providerTokenTmp);
 				this.providerToken = new String(providerTokenTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var providerDataTmp = new byte[input.readInt()];
+				byte[] providerDataTmp = new byte[input.readInt()];
 				input.readFully(providerDataTmp);
 				this.providerData = new String(providerDataTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var startParameterTmp = new byte[input.readInt()];
+				byte[] startParameterTmp = new byte[input.readInt()];
 				input.readFully(startParameterTmp);
 				this.startParameter = new String(startParameterTmp, StandardCharsets.UTF_8);
 			}
@@ -17339,7 +17341,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -17347,7 +17349,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -17355,7 +17357,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var photoUrlTmp = this.photoUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] photoUrlTmp = this.photoUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(photoUrlTmp.length);
 				output.write(photoUrlTmp);
 			}
@@ -17373,7 +17375,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var providerTokenTmp = this.providerToken.getBytes(StandardCharsets.UTF_8);
+				byte[] providerTokenTmp = this.providerToken.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(providerTokenTmp.length);
 				output.write(providerTokenTmp);
 			}
@@ -17381,7 +17383,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var providerDataTmp = this.providerData.getBytes(StandardCharsets.UTF_8);
+				byte[] providerDataTmp = this.providerData.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(providerDataTmp.length);
 				output.write(providerDataTmp);
 			}
@@ -17389,7 +17391,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var startParameterTmp = this.startParameter.getBytes(StandardCharsets.UTF_8);
+				byte[] startParameterTmp = this.startParameter.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(startParameterTmp.length);
 				output.write(startParameterTmp);
 			}
@@ -17421,14 +17423,14 @@ public class TdApi {
 
 		public InputMessagePoll(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var questionTmp = new byte[input.readInt()];
+				byte[] questionTmp = new byte[input.readInt()];
 				input.readFully(questionTmp);
 				this.question = new String(questionTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
 				this.options = new String[input.readInt()];
 				for (int i = 0; i < this.options.length; i++) {
-					var optionsTmp = new byte[input.readInt()];
+					byte[] optionsTmp = new byte[input.readInt()];
 					input.readFully(optionsTmp);
 					this.options[i] = new String(optionsTmp, StandardCharsets.UTF_8);
 				}
@@ -17461,7 +17463,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var questionTmp = this.question.getBytes(StandardCharsets.UTF_8);
+				byte[] questionTmp = this.question.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(questionTmp.length);
 				output.write(questionTmp);
 			}
@@ -17471,7 +17473,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.options.length);
 				for (int i = 0; i < this.options.length; i++) {
-					var optionsTmp = this.options[i].getBytes(StandardCharsets.UTF_8);
+					byte[] optionsTmp = this.options[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(optionsTmp.length);
 					output.write(optionsTmp);
 				}
@@ -17934,7 +17936,7 @@ public class TdApi {
 
 		public InputPassportElementPhoneNumber(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -17950,7 +17952,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -17970,7 +17972,7 @@ public class TdApi {
 
 		public InputPassportElementEmailAddress(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var emailAddressTmp = new byte[input.readInt()];
+				byte[] emailAddressTmp = new byte[input.readInt()];
 				input.readFully(emailAddressTmp);
 				this.emailAddress = new String(emailAddressTmp, StandardCharsets.UTF_8);
 			}
@@ -17986,7 +17988,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
+				byte[] emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emailAddressTmp.length);
 				output.write(emailAddressTmp);
 			}
@@ -18055,7 +18057,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var messageTmp = new byte[input.readInt()];
+				byte[] messageTmp = new byte[input.readInt()];
 				input.readFully(messageTmp);
 				this.message = new String(messageTmp, StandardCharsets.UTF_8);
 			}
@@ -18110,7 +18112,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var messageTmp = this.message.getBytes(StandardCharsets.UTF_8);
+				byte[] messageTmp = this.message.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(messageTmp.length);
 				output.write(messageTmp);
 			}
@@ -18172,7 +18174,7 @@ public class TdApi {
 
 		public InputPassportElementErrorSourceDataField(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var fieldNameTmp = new byte[input.readInt()];
+				byte[] fieldNameTmp = new byte[input.readInt()];
 				input.readFully(fieldNameTmp);
 				this.fieldName = new String(fieldNameTmp, StandardCharsets.UTF_8);
 			}
@@ -18192,7 +18194,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var fieldNameTmp = this.fieldName.getBytes(StandardCharsets.UTF_8);
+				byte[] fieldNameTmp = this.fieldName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(fieldNameTmp.length);
 				output.write(fieldNameTmp);
 			}
@@ -18576,7 +18578,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var emojisTmp = new byte[input.readInt()];
+				byte[] emojisTmp = new byte[input.readInt()];
 				input.readFully(emojisTmp);
 				this.emojis = new String(emojisTmp, StandardCharsets.UTF_8);
 			}
@@ -18604,7 +18606,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emojisTmp = this.emojis.getBytes(StandardCharsets.UTF_8);
+				byte[] emojisTmp = this.emojis.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emojisTmp.length);
 				output.write(emojisTmp);
 			}
@@ -18650,7 +18652,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var emojisTmp = new byte[input.readInt()];
+				byte[] emojisTmp = new byte[input.readInt()];
 				input.readFully(emojisTmp);
 				this.emojis = new String(emojisTmp, StandardCharsets.UTF_8);
 			}
@@ -18672,7 +18674,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emojisTmp = this.emojis.getBytes(StandardCharsets.UTF_8);
+				byte[] emojisTmp = this.emojis.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emojisTmp.length);
 				output.write(emojisTmp);
 			}
@@ -18765,7 +18767,7 @@ public class TdApi {
 
 		public Invoice(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var currencyTmp = new byte[input.readInt()];
+				byte[] currencyTmp = new byte[input.readInt()];
 				input.readFully(currencyTmp);
 				this.currency = new String(currencyTmp, StandardCharsets.UTF_8);
 			}
@@ -18798,7 +18800,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
+				byte[] currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(currencyTmp.length);
 				output.write(currencyTmp);
 			}
@@ -18837,7 +18839,7 @@ public class TdApi {
 
 		public JsonObjectMember(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var keyTmp = new byte[input.readInt()];
+				byte[] keyTmp = new byte[input.readInt()];
 				input.readFully(keyTmp);
 				this.key = new String(keyTmp, StandardCharsets.UTF_8);
 			}
@@ -18877,7 +18879,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var keyTmp = this.key.getBytes(StandardCharsets.UTF_8);
+				byte[] keyTmp = this.key.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(keyTmp.length);
 				output.write(keyTmp);
 			}
@@ -18971,7 +18973,7 @@ public class TdApi {
 
 		public JsonValueString(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var valueTmp = new byte[input.readInt()];
+				byte[] valueTmp = new byte[input.readInt()];
 				input.readFully(valueTmp);
 				this.value = new String(valueTmp, StandardCharsets.UTF_8);
 			}
@@ -18987,7 +18989,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
+				byte[] valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(valueTmp.length);
 				output.write(valueTmp);
 			}
@@ -19109,7 +19111,7 @@ public class TdApi {
 
 		public KeyboardButton(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -19143,7 +19145,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -19254,7 +19256,7 @@ public class TdApi {
 
 		public LabeledPricePart(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var labelTmp = new byte[input.readInt()];
+				byte[] labelTmp = new byte[input.readInt()];
 				input.readFully(labelTmp);
 				this.label = new String(labelTmp, StandardCharsets.UTF_8);
 			}
@@ -19271,7 +19273,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var labelTmp = this.label.getBytes(StandardCharsets.UTF_8);
+				byte[] labelTmp = this.label.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(labelTmp.length);
 				output.write(labelTmp);
 			}
@@ -19316,27 +19318,27 @@ public class TdApi {
 
 		public LanguagePackInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var baseLanguagePackIdTmp = new byte[input.readInt()];
+				byte[] baseLanguagePackIdTmp = new byte[input.readInt()];
 				input.readFully(baseLanguagePackIdTmp);
 				this.baseLanguagePackId = new String(baseLanguagePackIdTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var nativeNameTmp = new byte[input.readInt()];
+				byte[] nativeNameTmp = new byte[input.readInt()];
 				input.readFully(nativeNameTmp);
 				this.nativeName = new String(nativeNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var pluralCodeTmp = new byte[input.readInt()];
+				byte[] pluralCodeTmp = new byte[input.readInt()];
 				input.readFully(pluralCodeTmp);
 				this.pluralCode = new String(pluralCodeTmp, StandardCharsets.UTF_8);
 			}
@@ -19348,7 +19350,7 @@ public class TdApi {
 			this.translatedStringCount = input.readInt();
 			this.localStringCount = input.readInt();
 			if (input.readBoolean()) {
-				var translationUrlTmp = new byte[input.readInt()];
+				byte[] translationUrlTmp = new byte[input.readInt()];
 				input.readFully(translationUrlTmp);
 				this.translationUrl = new String(translationUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -19364,7 +19366,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -19372,7 +19374,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var baseLanguagePackIdTmp = this.baseLanguagePackId.getBytes(StandardCharsets.UTF_8);
+				byte[] baseLanguagePackIdTmp = this.baseLanguagePackId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(baseLanguagePackIdTmp.length);
 				output.write(baseLanguagePackIdTmp);
 			}
@@ -19380,7 +19382,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -19388,7 +19390,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nativeNameTmp = this.nativeName.getBytes(StandardCharsets.UTF_8);
+				byte[] nativeNameTmp = this.nativeName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nativeNameTmp.length);
 				output.write(nativeNameTmp);
 			}
@@ -19396,7 +19398,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var pluralCodeTmp = this.pluralCode.getBytes(StandardCharsets.UTF_8);
+				byte[] pluralCodeTmp = this.pluralCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(pluralCodeTmp.length);
 				output.write(pluralCodeTmp);
 			}
@@ -19411,7 +19413,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var translationUrlTmp = this.translationUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] translationUrlTmp = this.translationUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(translationUrlTmp.length);
 				output.write(translationUrlTmp);
 			}
@@ -19433,7 +19435,7 @@ public class TdApi {
 
 		public LanguagePackString(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var keyTmp = new byte[input.readInt()];
+				byte[] keyTmp = new byte[input.readInt()];
 				input.readFully(keyTmp);
 				this.key = new String(keyTmp, StandardCharsets.UTF_8);
 			}
@@ -19464,7 +19466,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var keyTmp = this.key.getBytes(StandardCharsets.UTF_8);
+				byte[] keyTmp = this.key.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(keyTmp.length);
 				output.write(keyTmp);
 			}
@@ -19490,7 +19492,7 @@ public class TdApi {
 
 		public LanguagePackStringValueOrdinary(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var valueTmp = new byte[input.readInt()];
+				byte[] valueTmp = new byte[input.readInt()];
 				input.readFully(valueTmp);
 				this.value = new String(valueTmp, StandardCharsets.UTF_8);
 			}
@@ -19506,7 +19508,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
+				byte[] valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(valueTmp.length);
 				output.write(valueTmp);
 			}
@@ -19536,32 +19538,32 @@ public class TdApi {
 
 		public LanguagePackStringValuePluralized(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var zeroValueTmp = new byte[input.readInt()];
+				byte[] zeroValueTmp = new byte[input.readInt()];
 				input.readFully(zeroValueTmp);
 				this.zeroValue = new String(zeroValueTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var oneValueTmp = new byte[input.readInt()];
+				byte[] oneValueTmp = new byte[input.readInt()];
 				input.readFully(oneValueTmp);
 				this.oneValue = new String(oneValueTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var twoValueTmp = new byte[input.readInt()];
+				byte[] twoValueTmp = new byte[input.readInt()];
 				input.readFully(twoValueTmp);
 				this.twoValue = new String(twoValueTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var fewValueTmp = new byte[input.readInt()];
+				byte[] fewValueTmp = new byte[input.readInt()];
 				input.readFully(fewValueTmp);
 				this.fewValue = new String(fewValueTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var manyValueTmp = new byte[input.readInt()];
+				byte[] manyValueTmp = new byte[input.readInt()];
 				input.readFully(manyValueTmp);
 				this.manyValue = new String(manyValueTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var otherValueTmp = new byte[input.readInt()];
+				byte[] otherValueTmp = new byte[input.readInt()];
 				input.readFully(otherValueTmp);
 				this.otherValue = new String(otherValueTmp, StandardCharsets.UTF_8);
 			}
@@ -19577,7 +19579,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var zeroValueTmp = this.zeroValue.getBytes(StandardCharsets.UTF_8);
+				byte[] zeroValueTmp = this.zeroValue.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(zeroValueTmp.length);
 				output.write(zeroValueTmp);
 			}
@@ -19585,7 +19587,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var oneValueTmp = this.oneValue.getBytes(StandardCharsets.UTF_8);
+				byte[] oneValueTmp = this.oneValue.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(oneValueTmp.length);
 				output.write(oneValueTmp);
 			}
@@ -19593,7 +19595,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var twoValueTmp = this.twoValue.getBytes(StandardCharsets.UTF_8);
+				byte[] twoValueTmp = this.twoValue.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(twoValueTmp.length);
 				output.write(twoValueTmp);
 			}
@@ -19601,7 +19603,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var fewValueTmp = this.fewValue.getBytes(StandardCharsets.UTF_8);
+				byte[] fewValueTmp = this.fewValue.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(fewValueTmp.length);
 				output.write(fewValueTmp);
 			}
@@ -19609,7 +19611,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var manyValueTmp = this.manyValue.getBytes(StandardCharsets.UTF_8);
+				byte[] manyValueTmp = this.manyValue.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(manyValueTmp.length);
 				output.write(manyValueTmp);
 			}
@@ -19617,7 +19619,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var otherValueTmp = this.otherValue.getBytes(StandardCharsets.UTF_8);
+				byte[] otherValueTmp = this.otherValue.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(otherValueTmp.length);
 				output.write(otherValueTmp);
 			}
@@ -19710,7 +19712,7 @@ public class TdApi {
 
 		public LocalFile(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var pathTmp = new byte[input.readInt()];
+				byte[] pathTmp = new byte[input.readInt()];
 				input.readFully(pathTmp);
 				this.path = new String(pathTmp, StandardCharsets.UTF_8);
 			}
@@ -19733,7 +19735,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var pathTmp = this.path.getBytes(StandardCharsets.UTF_8);
+				byte[] pathTmp = this.path.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(pathTmp.length);
 				output.write(pathTmp);
 			}
@@ -19850,7 +19852,7 @@ public class TdApi {
 
 		public LogStreamFile(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var pathTmp = new byte[input.readInt()];
+				byte[] pathTmp = new byte[input.readInt()];
 				input.readFully(pathTmp);
 				this.path = new String(pathTmp, StandardCharsets.UTF_8);
 			}
@@ -19867,7 +19869,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var pathTmp = this.path.getBytes(StandardCharsets.UTF_8);
+				byte[] pathTmp = this.path.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(pathTmp.length);
 				output.write(pathTmp);
 			}
@@ -19908,7 +19910,7 @@ public class TdApi {
 			if (input.readBoolean()) {
 				this.tags = new String[input.readInt()];
 				for (int i = 0; i < this.tags.length; i++) {
-					var tagsTmp = new byte[input.readInt()];
+					byte[] tagsTmp = new byte[input.readInt()];
 					input.readFully(tagsTmp);
 					this.tags[i] = new String(tagsTmp, StandardCharsets.UTF_8);
 				}
@@ -19927,7 +19929,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.tags.length);
 				for (int i = 0; i < this.tags.length; i++) {
-					var tagsTmp = this.tags[i].getBytes(StandardCharsets.UTF_8);
+					byte[] tagsTmp = this.tags[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(tagsTmp.length);
 					output.write(tagsTmp);
 				}
@@ -19975,7 +19977,7 @@ public class TdApi {
 
 		public LoginUrlInfoOpen(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -19992,7 +19994,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -20019,12 +20021,12 @@ public class TdApi {
 
 		public LoginUrlInfoRequestConfirmation(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var domainTmp = new byte[input.readInt()];
+				byte[] domainTmp = new byte[input.readInt()];
 				input.readFully(domainTmp);
 				this.domain = new String(domainTmp, StandardCharsets.UTF_8);
 			}
@@ -20042,7 +20044,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -20050,7 +20052,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var domainTmp = this.domain.getBytes(StandardCharsets.UTF_8);
+				byte[] domainTmp = this.domain.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(domainTmp.length);
 				output.write(domainTmp);
 			}
@@ -20297,14 +20299,14 @@ public class TdApi {
 			this.ttlExpiresIn = input.readDouble();
 			this.viaBotUserId = input.readInt();
 			if (input.readBoolean()) {
-				var authorSignatureTmp = new byte[input.readInt()];
+				byte[] authorSignatureTmp = new byte[input.readInt()];
 				input.readFully(authorSignatureTmp);
 				this.authorSignature = new String(authorSignatureTmp, StandardCharsets.UTF_8);
 			}
 			this.views = input.readInt();
 			this.mediaAlbumId = input.readLong();
 			if (input.readBoolean()) {
-				var restrictionReasonTmp = new byte[input.readInt()];
+				byte[] restrictionReasonTmp = new byte[input.readInt()];
 				input.readFully(restrictionReasonTmp);
 				this.restrictionReason = new String(restrictionReasonTmp, StandardCharsets.UTF_8);
 			}
@@ -20501,7 +20503,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var authorSignatureTmp = this.authorSignature.getBytes(StandardCharsets.UTF_8);
+				byte[] authorSignatureTmp = this.authorSignature.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(authorSignatureTmp.length);
 				output.write(authorSignatureTmp);
 			}
@@ -20511,7 +20513,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var restrictionReasonTmp = this.restrictionReason.getBytes(StandardCharsets.UTF_8);
+				byte[] restrictionReasonTmp = this.restrictionReason.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(restrictionReasonTmp.length);
 				output.write(restrictionReasonTmp);
 			}
@@ -21149,7 +21151,7 @@ public class TdApi {
 				this.finalStateSticker = new Sticker(input);
 			}
 			if (input.readBoolean()) {
-				var emojiTmp = new byte[input.readInt()];
+				byte[] emojiTmp = new byte[input.readInt()];
 				input.readFully(emojiTmp);
 				this.emoji = new String(emojiTmp, StandardCharsets.UTF_8);
 			}
@@ -21179,7 +21181,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
+				byte[] emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emojiTmp.length);
 				output.write(emojiTmp);
 			}
@@ -21287,12 +21289,12 @@ public class TdApi {
 
 		public MessageInvoice(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -21303,13 +21305,13 @@ public class TdApi {
 				this.photo = new Photo(input);
 			}
 			if (input.readBoolean()) {
-				var currencyTmp = new byte[input.readInt()];
+				byte[] currencyTmp = new byte[input.readInt()];
 				input.readFully(currencyTmp);
 				this.currency = new String(currencyTmp, StandardCharsets.UTF_8);
 			}
 			this.totalAmount = input.readLong();
 			if (input.readBoolean()) {
-				var startParameterTmp = new byte[input.readInt()];
+				byte[] startParameterTmp = new byte[input.readInt()];
 				input.readFully(startParameterTmp);
 				this.startParameter = new String(startParameterTmp, StandardCharsets.UTF_8);
 			}
@@ -21328,7 +21330,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -21336,7 +21338,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -21350,7 +21352,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
+				byte[] currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(currencyTmp.length);
 				output.write(currencyTmp);
 			}
@@ -21359,7 +21361,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var startParameterTmp = this.startParameter.getBytes(StandardCharsets.UTF_8);
+				byte[] startParameterTmp = this.startParameter.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(startParameterTmp.length);
 				output.write(startParameterTmp);
 			}
@@ -21442,7 +21444,7 @@ public class TdApi {
 
 		public MessageBasicGroupChatCreate(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -21464,7 +21466,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -21493,7 +21495,7 @@ public class TdApi {
 
 		public MessageSupergroupChatCreate(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -21509,7 +21511,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -21529,7 +21531,7 @@ public class TdApi {
 
 		public MessageChatChangeTitle(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -21545,7 +21547,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -21726,7 +21728,7 @@ public class TdApi {
 
 		public MessageChatUpgradeFrom(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -21743,7 +21745,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -21832,7 +21834,7 @@ public class TdApi {
 
 		public MessageCustomServiceAction(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -21848,7 +21850,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -21906,7 +21908,7 @@ public class TdApi {
 		public MessagePaymentSuccessful(DataInput input) throws IOException {
 			this.invoiceMessageId = input.readLong();
 			if (input.readBoolean()) {
-				var currencyTmp = new byte[input.readInt()];
+				byte[] currencyTmp = new byte[input.readInt()];
 				input.readFully(currencyTmp);
 				this.currency = new String(currencyTmp, StandardCharsets.UTF_8);
 			}
@@ -21924,7 +21926,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
+				byte[] currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(currencyTmp.length);
 				output.write(currencyTmp);
 			}
@@ -21960,7 +21962,7 @@ public class TdApi {
 		public MessagePaymentSuccessfulBot(DataInput input) throws IOException {
 			this.invoiceMessageId = input.readLong();
 			if (input.readBoolean()) {
-				var currencyTmp = new byte[input.readInt()];
+				byte[] currencyTmp = new byte[input.readInt()];
 				input.readFully(currencyTmp);
 				this.currency = new String(currencyTmp, StandardCharsets.UTF_8);
 			}
@@ -21970,7 +21972,7 @@ public class TdApi {
 				input.readFully(this.invoicePayload);
 			}
 			if (input.readBoolean()) {
-				var shippingOptionIdTmp = new byte[input.readInt()];
+				byte[] shippingOptionIdTmp = new byte[input.readInt()];
 				input.readFully(shippingOptionIdTmp);
 				this.shippingOptionId = new String(shippingOptionIdTmp, StandardCharsets.UTF_8);
 			}
@@ -21981,12 +21983,12 @@ public class TdApi {
 				this.orderInfo = new OrderInfo(input);
 			}
 			if (input.readBoolean()) {
-				var telegramPaymentChargeIdTmp = new byte[input.readInt()];
+				byte[] telegramPaymentChargeIdTmp = new byte[input.readInt()];
 				input.readFully(telegramPaymentChargeIdTmp);
 				this.telegramPaymentChargeId = new String(telegramPaymentChargeIdTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var providerPaymentChargeIdTmp = new byte[input.readInt()];
+				byte[] providerPaymentChargeIdTmp = new byte[input.readInt()];
 				input.readFully(providerPaymentChargeIdTmp);
 				this.providerPaymentChargeId = new String(providerPaymentChargeIdTmp, StandardCharsets.UTF_8);
 			}
@@ -22003,7 +22005,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
+				byte[] currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(currencyTmp.length);
 				output.write(currencyTmp);
 			}
@@ -22019,7 +22021,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var shippingOptionIdTmp = this.shippingOptionId.getBytes(StandardCharsets.UTF_8);
+				byte[] shippingOptionIdTmp = this.shippingOptionId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(shippingOptionIdTmp.length);
 				output.write(shippingOptionIdTmp);
 			}
@@ -22033,7 +22035,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var telegramPaymentChargeIdTmp = this.telegramPaymentChargeId.getBytes(StandardCharsets.UTF_8);
+				byte[] telegramPaymentChargeIdTmp = this.telegramPaymentChargeId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(telegramPaymentChargeIdTmp.length);
 				output.write(telegramPaymentChargeIdTmp);
 			}
@@ -22041,7 +22043,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var providerPaymentChargeIdTmp = this.providerPaymentChargeId.getBytes(StandardCharsets.UTF_8);
+				byte[] providerPaymentChargeIdTmp = this.providerPaymentChargeId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(providerPaymentChargeIdTmp.length);
 				output.write(providerPaymentChargeIdTmp);
 			}
@@ -22079,7 +22081,7 @@ public class TdApi {
 
 		public MessageWebsiteConnected(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var domainNameTmp = new byte[input.readInt()];
+				byte[] domainNameTmp = new byte[input.readInt()];
 				input.readFully(domainNameTmp);
 				this.domainName = new String(domainNameTmp, StandardCharsets.UTF_8);
 			}
@@ -22095,7 +22097,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var domainNameTmp = this.domainName.getBytes(StandardCharsets.UTF_8);
+				byte[] domainNameTmp = this.domainName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(domainNameTmp.length);
 				output.write(domainNameTmp);
 			}
@@ -22335,7 +22337,7 @@ public class TdApi {
 			}
 			this.date = input.readInt();
 			if (input.readBoolean()) {
-				var publicServiceAnnouncementTypeTmp = new byte[input.readInt()];
+				byte[] publicServiceAnnouncementTypeTmp = new byte[input.readInt()];
 				input.readFully(publicServiceAnnouncementTypeTmp);
 				this.publicServiceAnnouncementType = new String(publicServiceAnnouncementTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -22360,7 +22362,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var publicServiceAnnouncementTypeTmp = this.publicServiceAnnouncementType.getBytes(StandardCharsets.UTF_8);
+				byte[] publicServiceAnnouncementTypeTmp = this.publicServiceAnnouncementType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(publicServiceAnnouncementTypeTmp.length);
 				output.write(publicServiceAnnouncementTypeTmp);
 			}
@@ -22407,7 +22409,7 @@ public class TdApi {
 
 		public MessageForwardOriginHiddenUser(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var senderNameTmp = new byte[input.readInt()];
+				byte[] senderNameTmp = new byte[input.readInt()];
 				input.readFully(senderNameTmp);
 				this.senderName = new String(senderNameTmp, StandardCharsets.UTF_8);
 			}
@@ -22423,7 +22425,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var senderNameTmp = this.senderName.getBytes(StandardCharsets.UTF_8);
+				byte[] senderNameTmp = this.senderName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(senderNameTmp.length);
 				output.write(senderNameTmp);
 			}
@@ -22449,7 +22451,7 @@ public class TdApi {
 			this.chatId = input.readLong();
 			this.messageId = input.readLong();
 			if (input.readBoolean()) {
-				var authorSignatureTmp = new byte[input.readInt()];
+				byte[] authorSignatureTmp = new byte[input.readInt()];
 				input.readFully(authorSignatureTmp);
 				this.authorSignature = new String(authorSignatureTmp, StandardCharsets.UTF_8);
 			}
@@ -22467,7 +22469,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var authorSignatureTmp = this.authorSignature.getBytes(StandardCharsets.UTF_8);
+				byte[] authorSignatureTmp = this.authorSignature.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(authorSignatureTmp.length);
 				output.write(authorSignatureTmp);
 			}
@@ -22651,7 +22653,7 @@ public class TdApi {
 		public MessageSendingStateFailed(DataInput input) throws IOException {
 			this.errorCode = input.readInt();
 			if (input.readBoolean()) {
-				var errorMessageTmp = new byte[input.readInt()];
+				byte[] errorMessageTmp = new byte[input.readInt()];
 				input.readFully(errorMessageTmp);
 				this.errorMessage = new String(errorMessageTmp, StandardCharsets.UTF_8);
 			}
@@ -22670,7 +22672,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
+				byte[] errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(errorMessageTmp.length);
 				output.write(errorMessageTmp);
 			}
@@ -23454,7 +23456,7 @@ public class TdApi {
 			this.messageId = input.readLong();
 			this.senderUserId = input.readInt();
 			if (input.readBoolean()) {
-				var senderNameTmp = new byte[input.readInt()];
+				byte[] senderNameTmp = new byte[input.readInt()];
 				input.readFully(senderNameTmp);
 				this.senderName = new String(senderNameTmp, StandardCharsets.UTF_8);
 			}
@@ -23557,7 +23559,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var senderNameTmp = this.senderName.getBytes(StandardCharsets.UTF_8);
+				byte[] senderNameTmp = this.senderName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(senderNameTmp.length);
 				output.write(senderNameTmp);
 			}
@@ -23670,7 +23672,7 @@ public class TdApi {
 
 		public OptionValueString(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var valueTmp = new byte[input.readInt()];
+				byte[] valueTmp = new byte[input.readInt()];
 				input.readFully(valueTmp);
 				this.value = new String(valueTmp, StandardCharsets.UTF_8);
 			}
@@ -23686,7 +23688,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
+				byte[] valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(valueTmp.length);
 				output.write(valueTmp);
 			}
@@ -23712,17 +23714,17 @@ public class TdApi {
 
 		public OrderInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var emailAddressTmp = new byte[input.readInt()];
+				byte[] emailAddressTmp = new byte[input.readInt()];
 				input.readFully(emailAddressTmp);
 				this.emailAddress = new String(emailAddressTmp, StandardCharsets.UTF_8);
 			}
@@ -23744,7 +23746,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -23752,7 +23754,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -23760,7 +23762,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
+				byte[] emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emailAddressTmp.length);
 				output.write(emailAddressTmp);
 			}
@@ -24451,7 +24453,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var languageTmp = new byte[input.readInt()];
+				byte[] languageTmp = new byte[input.readInt()];
 				input.readFully(languageTmp);
 				this.language = new String(languageTmp, StandardCharsets.UTF_8);
 			}
@@ -24473,7 +24475,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languageTmp = this.language.getBytes(StandardCharsets.UTF_8);
+				byte[] languageTmp = this.language.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languageTmp.length);
 				output.write(languageTmp);
 			}
@@ -24597,7 +24599,7 @@ public class TdApi {
 
 		public PageBlockAnchor(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -24613,7 +24615,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -25094,7 +25096,7 @@ public class TdApi {
 				this.caption = new PageBlockCaption(input);
 			}
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -25122,7 +25124,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -25384,12 +25386,12 @@ public class TdApi {
 
 		public PageBlockEmbedded(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var htmlTmp = new byte[input.readInt()];
+				byte[] htmlTmp = new byte[input.readInt()];
 				input.readFully(htmlTmp);
 				this.html = new String(htmlTmp, StandardCharsets.UTF_8);
 			}
@@ -25421,7 +25423,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -25429,7 +25431,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var htmlTmp = this.html.getBytes(StandardCharsets.UTF_8);
+				byte[] htmlTmp = this.html.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(htmlTmp.length);
 				output.write(htmlTmp);
 			}
@@ -25475,12 +25477,12 @@ public class TdApi {
 
 		public PageBlockEmbeddedPost(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var authorTmp = new byte[input.readInt()];
+				byte[] authorTmp = new byte[input.readInt()];
 				input.readFully(authorTmp);
 				this.author = new String(authorTmp, StandardCharsets.UTF_8);
 			}
@@ -25605,7 +25607,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -25613,7 +25615,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var authorTmp = this.author.getBytes(StandardCharsets.UTF_8);
+				byte[] authorTmp = this.author.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(authorTmp.length);
 				output.write(authorTmp);
 			}
@@ -25943,7 +25945,7 @@ public class TdApi {
 
 		public PageBlockChatLink(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -25954,7 +25956,7 @@ public class TdApi {
 				this.photo = new ChatPhotoInfo(input);
 			}
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
@@ -25970,7 +25972,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -25984,7 +25986,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -26695,7 +26697,7 @@ public class TdApi {
 
 		public PageBlockListItem(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var labelTmp = new byte[input.readInt()];
+				byte[] labelTmp = new byte[input.readInt()];
 				input.readFully(labelTmp);
 				this.label = new String(labelTmp, StandardCharsets.UTF_8);
 			}
@@ -26807,7 +26809,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var labelTmp = this.label.getBytes(StandardCharsets.UTF_8);
+				byte[] labelTmp = this.label.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(labelTmp.length);
 				output.write(labelTmp);
 			}
@@ -26846,17 +26848,17 @@ public class TdApi {
 
 		public PageBlockRelatedArticle(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -26867,7 +26869,7 @@ public class TdApi {
 				this.photo = new Photo(input);
 			}
 			if (input.readBoolean()) {
-				var authorTmp = new byte[input.readInt()];
+				byte[] authorTmp = new byte[input.readInt()];
 				input.readFully(authorTmp);
 				this.author = new String(authorTmp, StandardCharsets.UTF_8);
 			}
@@ -26884,7 +26886,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -26892,7 +26894,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -26900,7 +26902,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -26914,7 +26916,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var authorTmp = this.author.getBytes(StandardCharsets.UTF_8);
+				byte[] authorTmp = this.author.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(authorTmp.length);
 				output.write(authorTmp);
 			}
@@ -27147,7 +27149,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var privacyPolicyUrlTmp = new byte[input.readInt()];
+				byte[] privacyPolicyUrlTmp = new byte[input.readInt()];
 				input.readFully(privacyPolicyUrlTmp);
 				this.privacyPolicyUrl = new String(privacyPolicyUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -27173,7 +27175,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var privacyPolicyUrlTmp = this.privacyPolicyUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] privacyPolicyUrlTmp = this.privacyPolicyUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(privacyPolicyUrlTmp.length);
 				output.write(privacyPolicyUrlTmp);
 			}
@@ -27578,7 +27580,7 @@ public class TdApi {
 
 		public PassportElementPhoneNumber(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -27594,7 +27596,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -27614,7 +27616,7 @@ public class TdApi {
 
 		public PassportElementEmailAddress(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var emailAddressTmp = new byte[input.readInt()];
+				byte[] emailAddressTmp = new byte[input.readInt()];
 				input.readFully(emailAddressTmp);
 				this.emailAddress = new String(emailAddressTmp, StandardCharsets.UTF_8);
 			}
@@ -27630,7 +27632,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
+				byte[] emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emailAddressTmp.length);
 				output.write(emailAddressTmp);
 			}
@@ -27699,7 +27701,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var messageTmp = new byte[input.readInt()];
+				byte[] messageTmp = new byte[input.readInt()];
 				input.readFully(messageTmp);
 				this.message = new String(messageTmp, StandardCharsets.UTF_8);
 			}
@@ -27754,7 +27756,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var messageTmp = this.message.getBytes(StandardCharsets.UTF_8);
+				byte[] messageTmp = this.message.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(messageTmp.length);
 				output.write(messageTmp);
 			}
@@ -27798,7 +27800,7 @@ public class TdApi {
 
 		public PassportElementErrorSourceDataField(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var fieldNameTmp = new byte[input.readInt()];
+				byte[] fieldNameTmp = new byte[input.readInt()];
 				input.readFully(fieldNameTmp);
 				this.fieldName = new String(fieldNameTmp, StandardCharsets.UTF_8);
 			}
@@ -27814,7 +27816,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var fieldNameTmp = this.fieldName.getBytes(StandardCharsets.UTF_8);
+				byte[] fieldNameTmp = this.fieldName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(fieldNameTmp.length);
 				output.write(fieldNameTmp);
 			}
@@ -28524,7 +28526,7 @@ public class TdApi {
 		public PasswordState(DataInput input) throws IOException {
 			this.hasPassword = input.readBoolean();
 			if (input.readBoolean()) {
-				var passwordHintTmp = new byte[input.readInt()];
+				byte[] passwordHintTmp = new byte[input.readInt()];
 				input.readFully(passwordHintTmp);
 				this.passwordHint = new String(passwordHintTmp, StandardCharsets.UTF_8);
 			}
@@ -28549,7 +28551,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordHintTmp = this.passwordHint.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordHintTmp = this.passwordHint.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordHintTmp.length);
 				output.write(passwordHintTmp);
 			}
@@ -28595,7 +28597,7 @@ public class TdApi {
 				this.invoice = new Invoice(input);
 			}
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -28637,7 +28639,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -28707,7 +28709,7 @@ public class TdApi {
 				this.shippingOption = new ShippingOption(input);
 			}
 			if (input.readBoolean()) {
-				var credentialsTitleTmp = new byte[input.readInt()];
+				byte[] credentialsTitleTmp = new byte[input.readInt()];
 				input.readFully(credentialsTitleTmp);
 				this.credentialsTitle = new String(credentialsTitleTmp, StandardCharsets.UTF_8);
 			}
@@ -28743,7 +28745,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var credentialsTitleTmp = this.credentialsTitle.getBytes(StandardCharsets.UTF_8);
+				byte[] credentialsTitleTmp = this.credentialsTitle.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(credentialsTitleTmp.length);
 				output.write(credentialsTitleTmp);
 			}
@@ -28766,7 +28768,7 @@ public class TdApi {
 		public PaymentResult(DataInput input) throws IOException {
 			this.success = input.readBoolean();
 			if (input.readBoolean()) {
-				var verificationUrlTmp = new byte[input.readInt()];
+				byte[] verificationUrlTmp = new byte[input.readInt()];
 				input.readFully(verificationUrlTmp);
 				this.verificationUrl = new String(verificationUrlTmp, StandardCharsets.UTF_8);
 			}
@@ -28783,7 +28785,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var verificationUrlTmp = this.verificationUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] verificationUrlTmp = this.verificationUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(verificationUrlTmp.length);
 				output.write(verificationUrlTmp);
 			}
@@ -28809,7 +28811,7 @@ public class TdApi {
 
 		public PaymentsProviderStripe(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var publishableKeyTmp = new byte[input.readInt()];
+				byte[] publishableKeyTmp = new byte[input.readInt()];
 				input.readFully(publishableKeyTmp);
 				this.publishableKey = new String(publishableKeyTmp, StandardCharsets.UTF_8);
 			}
@@ -28828,7 +28830,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var publishableKeyTmp = this.publishableKey.getBytes(StandardCharsets.UTF_8);
+				byte[] publishableKeyTmp = this.publishableKey.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(publishableKeyTmp.length);
 				output.write(publishableKeyTmp);
 			}
@@ -28869,32 +28871,32 @@ public class TdApi {
 
 		public PersonalDetails(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var firstNameTmp = new byte[input.readInt()];
+				byte[] firstNameTmp = new byte[input.readInt()];
 				input.readFully(firstNameTmp);
 				this.firstName = new String(firstNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var middleNameTmp = new byte[input.readInt()];
+				byte[] middleNameTmp = new byte[input.readInt()];
 				input.readFully(middleNameTmp);
 				this.middleName = new String(middleNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var lastNameTmp = new byte[input.readInt()];
+				byte[] lastNameTmp = new byte[input.readInt()];
 				input.readFully(lastNameTmp);
 				this.lastName = new String(lastNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var nativeFirstNameTmp = new byte[input.readInt()];
+				byte[] nativeFirstNameTmp = new byte[input.readInt()];
 				input.readFully(nativeFirstNameTmp);
 				this.nativeFirstName = new String(nativeFirstNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var nativeMiddleNameTmp = new byte[input.readInt()];
+				byte[] nativeMiddleNameTmp = new byte[input.readInt()];
 				input.readFully(nativeMiddleNameTmp);
 				this.nativeMiddleName = new String(nativeMiddleNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var nativeLastNameTmp = new byte[input.readInt()];
+				byte[] nativeLastNameTmp = new byte[input.readInt()];
 				input.readFully(nativeLastNameTmp);
 				this.nativeLastName = new String(nativeLastNameTmp, StandardCharsets.UTF_8);
 			}
@@ -28905,17 +28907,17 @@ public class TdApi {
 				this.birthdate = new Date(input);
 			}
 			if (input.readBoolean()) {
-				var genderTmp = new byte[input.readInt()];
+				byte[] genderTmp = new byte[input.readInt()];
 				input.readFully(genderTmp);
 				this.gender = new String(genderTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var countryCodeTmp = new byte[input.readInt()];
+				byte[] countryCodeTmp = new byte[input.readInt()];
 				input.readFully(countryCodeTmp);
 				this.countryCode = new String(countryCodeTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var residenceCountryCodeTmp = new byte[input.readInt()];
+				byte[] residenceCountryCodeTmp = new byte[input.readInt()];
 				input.readFully(residenceCountryCodeTmp);
 				this.residenceCountryCode = new String(residenceCountryCodeTmp, StandardCharsets.UTF_8);
 			}
@@ -28931,7 +28933,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
+				byte[] firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(firstNameTmp.length);
 				output.write(firstNameTmp);
 			}
@@ -28939,7 +28941,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var middleNameTmp = this.middleName.getBytes(StandardCharsets.UTF_8);
+				byte[] middleNameTmp = this.middleName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(middleNameTmp.length);
 				output.write(middleNameTmp);
 			}
@@ -28947,7 +28949,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
+				byte[] lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(lastNameTmp.length);
 				output.write(lastNameTmp);
 			}
@@ -28955,7 +28957,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nativeFirstNameTmp = this.nativeFirstName.getBytes(StandardCharsets.UTF_8);
+				byte[] nativeFirstNameTmp = this.nativeFirstName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nativeFirstNameTmp.length);
 				output.write(nativeFirstNameTmp);
 			}
@@ -28963,7 +28965,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nativeMiddleNameTmp = this.nativeMiddleName.getBytes(StandardCharsets.UTF_8);
+				byte[] nativeMiddleNameTmp = this.nativeMiddleName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nativeMiddleNameTmp.length);
 				output.write(nativeMiddleNameTmp);
 			}
@@ -28971,7 +28973,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nativeLastNameTmp = this.nativeLastName.getBytes(StandardCharsets.UTF_8);
+				byte[] nativeLastNameTmp = this.nativeLastName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nativeLastNameTmp.length);
 				output.write(nativeLastNameTmp);
 			}
@@ -28985,7 +28987,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var genderTmp = this.gender.getBytes(StandardCharsets.UTF_8);
+				byte[] genderTmp = this.gender.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(genderTmp.length);
 				output.write(genderTmp);
 			}
@@ -28993,7 +28995,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var countryCodeTmp = this.countryCode.getBytes(StandardCharsets.UTF_8);
+				byte[] countryCodeTmp = this.countryCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(countryCodeTmp.length);
 				output.write(countryCodeTmp);
 			}
@@ -29001,7 +29003,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var residenceCountryCodeTmp = this.residenceCountryCode.getBytes(StandardCharsets.UTF_8);
+				byte[] residenceCountryCodeTmp = this.residenceCountryCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(residenceCountryCodeTmp.length);
 				output.write(residenceCountryCodeTmp);
 			}
@@ -29180,7 +29182,7 @@ public class TdApi {
 
 		public PhotoSize(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var typeTmp = new byte[input.readInt()];
+				byte[] typeTmp = new byte[input.readInt()];
 				input.readFully(typeTmp);
 				this.type = new String(typeTmp, StandardCharsets.UTF_8);
 			}
@@ -29204,7 +29206,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
+				byte[] typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(typeTmp.length);
 				output.write(typeTmp);
 			}
@@ -29251,7 +29253,7 @@ public class TdApi {
 		public Poll(DataInput input) throws IOException {
 			this.id = input.readLong();
 			if (input.readBoolean()) {
-				var questionTmp = new byte[input.readInt()];
+				byte[] questionTmp = new byte[input.readInt()];
 				input.readFully(questionTmp);
 				this.question = new String(questionTmp, StandardCharsets.UTF_8);
 			}
@@ -29300,7 +29302,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var questionTmp = this.question.getBytes(StandardCharsets.UTF_8);
+				byte[] questionTmp = this.question.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(questionTmp.length);
 				output.write(questionTmp);
 			}
@@ -29357,7 +29359,7 @@ public class TdApi {
 
 		public PollOption(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -29377,7 +29379,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -29574,7 +29576,7 @@ public class TdApi {
 		public Proxy(DataInput input) throws IOException {
 			this.id = input.readInt();
 			if (input.readBoolean()) {
-				var serverTmp = new byte[input.readInt()];
+				byte[] serverTmp = new byte[input.readInt()];
 				input.readFully(serverTmp);
 				this.server = new String(serverTmp, StandardCharsets.UTF_8);
 			}
@@ -29609,7 +29611,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var serverTmp = this.server.getBytes(StandardCharsets.UTF_8);
+				byte[] serverTmp = this.server.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(serverTmp.length);
 				output.write(serverTmp);
 			}
@@ -29640,12 +29642,12 @@ public class TdApi {
 
 		public ProxyTypeSocks5(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -29661,7 +29663,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -29669,7 +29671,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -29693,12 +29695,12 @@ public class TdApi {
 
 		public ProxyTypeHttp(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -29715,7 +29717,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -29723,7 +29725,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -29744,7 +29746,7 @@ public class TdApi {
 
 		public ProxyTypeMtproto(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var secretTmp = new byte[input.readInt()];
+				byte[] secretTmp = new byte[input.readInt()];
 				input.readFully(secretTmp);
 				this.secret = new String(secretTmp, StandardCharsets.UTF_8);
 			}
@@ -29760,7 +29762,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var secretTmp = this.secret.getBytes(StandardCharsets.UTF_8);
+				byte[] secretTmp = this.secret.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(secretTmp.length);
 				output.write(secretTmp);
 			}
@@ -29818,12 +29820,12 @@ public class TdApi {
 
 		public PublicMessageLink(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var linkTmp = new byte[input.readInt()];
+				byte[] linkTmp = new byte[input.readInt()];
 				input.readFully(linkTmp);
 				this.link = new String(linkTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var htmlTmp = new byte[input.readInt()];
+				byte[] htmlTmp = new byte[input.readInt()];
 				input.readFully(htmlTmp);
 				this.html = new String(htmlTmp, StandardCharsets.UTF_8);
 			}
@@ -29839,7 +29841,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
+				byte[] linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(linkTmp.length);
 				output.write(linkTmp);
 			}
@@ -29847,7 +29849,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var htmlTmp = this.html.getBytes(StandardCharsets.UTF_8);
+				byte[] htmlTmp = this.html.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(htmlTmp.length);
 				output.write(htmlTmp);
 			}
@@ -29902,7 +29904,7 @@ public class TdApi {
 				this.animation = new Animation(input);
 			}
 			if (input.readBoolean()) {
-				var captionTmp = new byte[input.readInt()];
+				byte[] captionTmp = new byte[input.readInt()];
 				input.readFully(captionTmp);
 				this.caption = new String(captionTmp, StandardCharsets.UTF_8);
 			}
@@ -29925,7 +29927,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var captionTmp = this.caption.getBytes(StandardCharsets.UTF_8);
+				byte[] captionTmp = this.caption.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(captionTmp.length);
 				output.write(captionTmp);
 			}
@@ -29987,7 +29989,7 @@ public class TdApi {
 
 		public PushMessageContentContact(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -30004,7 +30006,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -30084,7 +30086,7 @@ public class TdApi {
 
 		public PushMessageContentGame(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -30101,7 +30103,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -30126,7 +30128,7 @@ public class TdApi {
 
 		public PushMessageContentGameScore(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -30144,7 +30146,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -30168,7 +30170,7 @@ public class TdApi {
 
 		public PushMessageContentInvoice(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var priceTmp = new byte[input.readInt()];
+				byte[] priceTmp = new byte[input.readInt()];
 				input.readFully(priceTmp);
 				this.price = new String(priceTmp, StandardCharsets.UTF_8);
 			}
@@ -30185,7 +30187,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var priceTmp = this.price.getBytes(StandardCharsets.UTF_8);
+				byte[] priceTmp = this.price.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(priceTmp.length);
 				output.write(priceTmp);
 			}
@@ -30247,7 +30249,7 @@ public class TdApi {
 				this.photo = new Photo(input);
 			}
 			if (input.readBoolean()) {
-				var captionTmp = new byte[input.readInt()];
+				byte[] captionTmp = new byte[input.readInt()];
 				input.readFully(captionTmp);
 				this.caption = new String(captionTmp, StandardCharsets.UTF_8);
 			}
@@ -30271,7 +30273,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var captionTmp = this.caption.getBytes(StandardCharsets.UTF_8);
+				byte[] captionTmp = this.caption.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(captionTmp.length);
 				output.write(captionTmp);
 			}
@@ -30297,7 +30299,7 @@ public class TdApi {
 
 		public PushMessageContentPoll(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var questionTmp = new byte[input.readInt()];
+				byte[] questionTmp = new byte[input.readInt()];
 				input.readFully(questionTmp);
 				this.question = new String(questionTmp, StandardCharsets.UTF_8);
 			}
@@ -30315,7 +30317,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var questionTmp = this.question.getBytes(StandardCharsets.UTF_8);
+				byte[] questionTmp = this.question.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(questionTmp.length);
 				output.write(questionTmp);
 			}
@@ -30365,7 +30367,7 @@ public class TdApi {
 				this.sticker = new Sticker(input);
 			}
 			if (input.readBoolean()) {
-				var emojiTmp = new byte[input.readInt()];
+				byte[] emojiTmp = new byte[input.readInt()];
 				input.readFully(emojiTmp);
 				this.emoji = new String(emojiTmp, StandardCharsets.UTF_8);
 			}
@@ -30388,7 +30390,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
+				byte[] emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emojiTmp.length);
 				output.write(emojiTmp);
 			}
@@ -30411,7 +30413,7 @@ public class TdApi {
 
 		public PushMessageContentText(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -30428,7 +30430,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -30461,7 +30463,7 @@ public class TdApi {
 				this.video = new Video(input);
 			}
 			if (input.readBoolean()) {
-				var captionTmp = new byte[input.readInt()];
+				byte[] captionTmp = new byte[input.readInt()];
 				input.readFully(captionTmp);
 				this.caption = new String(captionTmp, StandardCharsets.UTF_8);
 			}
@@ -30485,7 +30487,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var captionTmp = this.caption.getBytes(StandardCharsets.UTF_8);
+				byte[] captionTmp = this.caption.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(captionTmp.length);
 				output.write(captionTmp);
 			}
@@ -30607,7 +30609,7 @@ public class TdApi {
 
 		public PushMessageContentChatAddMembers(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var memberNameTmp = new byte[input.readInt()];
+				byte[] memberNameTmp = new byte[input.readInt()];
 				input.readFully(memberNameTmp);
 				this.memberName = new String(memberNameTmp, StandardCharsets.UTF_8);
 			}
@@ -30625,7 +30627,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var memberNameTmp = this.memberName.getBytes(StandardCharsets.UTF_8);
+				byte[] memberNameTmp = this.memberName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(memberNameTmp.length);
 				output.write(memberNameTmp);
 			}
@@ -30665,7 +30667,7 @@ public class TdApi {
 
 		public PushMessageContentChatChangeTitle(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -30681,7 +30683,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -30705,7 +30707,7 @@ public class TdApi {
 
 		public PushMessageContentChatDeleteMember(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var memberNameTmp = new byte[input.readInt()];
+				byte[] memberNameTmp = new byte[input.readInt()];
 				input.readFully(memberNameTmp);
 				this.memberName = new String(memberNameTmp, StandardCharsets.UTF_8);
 			}
@@ -30723,7 +30725,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var memberNameTmp = this.memberName.getBytes(StandardCharsets.UTF_8);
+				byte[] memberNameTmp = this.memberName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(memberNameTmp.length);
 				output.write(memberNameTmp);
 			}
@@ -30854,7 +30856,7 @@ public class TdApi {
 				this.filter = new ChatFilter(input);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -30876,7 +30878,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -30937,7 +30939,7 @@ public class TdApi {
 
 		public RecoveryEmailAddress(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var recoveryEmailAddressTmp = new byte[input.readInt()];
+				byte[] recoveryEmailAddressTmp = new byte[input.readInt()];
 				input.readFully(recoveryEmailAddressTmp);
 				this.recoveryEmailAddress = new String(recoveryEmailAddressTmp, StandardCharsets.UTF_8);
 			}
@@ -30953,7 +30955,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var recoveryEmailAddressTmp = this.recoveryEmailAddress.getBytes(StandardCharsets.UTF_8);
+				byte[] recoveryEmailAddressTmp = this.recoveryEmailAddress.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(recoveryEmailAddressTmp.length);
 				output.write(recoveryEmailAddressTmp);
 			}
@@ -30981,12 +30983,12 @@ public class TdApi {
 
 		public RemoteFile(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var uniqueIdTmp = new byte[input.readInt()];
+				byte[] uniqueIdTmp = new byte[input.readInt()];
 				input.readFully(uniqueIdTmp);
 				this.uniqueId = new String(uniqueIdTmp, StandardCharsets.UTF_8);
 			}
@@ -31005,7 +31007,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -31013,7 +31015,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var uniqueIdTmp = this.uniqueId.getBytes(StandardCharsets.UTF_8);
+				byte[] uniqueIdTmp = this.uniqueId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(uniqueIdTmp.length);
 				output.write(uniqueIdTmp);
 			}
@@ -31192,7 +31194,7 @@ public class TdApi {
 
 		public RichTextPlain(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -31208,7 +31210,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -31719,7 +31721,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -31742,7 +31744,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -31822,7 +31824,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var emailAddressTmp = new byte[input.readInt()];
+				byte[] emailAddressTmp = new byte[input.readInt()];
 				input.readFully(emailAddressTmp);
 				this.emailAddress = new String(emailAddressTmp, StandardCharsets.UTF_8);
 			}
@@ -31844,7 +31846,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
+				byte[] emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emailAddressTmp.length);
 				output.write(emailAddressTmp);
 			}
@@ -32181,7 +32183,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -32203,7 +32205,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -32384,7 +32386,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -32412,7 +32414,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -32432,7 +32434,7 @@ public class TdApi {
 
 		public RichTextAnchor(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -32448,7 +32450,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -32529,12 +32531,12 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -32556,7 +32558,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -32564,7 +32566,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -32678,12 +32680,12 @@ public class TdApi {
 
 		public SavedCredentials(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -32699,7 +32701,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -32707,7 +32709,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -32736,7 +32738,7 @@ public class TdApi {
 		public ScopeNotificationSettings(DataInput input) throws IOException {
 			this.muteFor = input.readInt();
 			if (input.readBoolean()) {
-				var soundTmp = new byte[input.readInt()];
+				byte[] soundTmp = new byte[input.readInt()];
 				input.readFully(soundTmp);
 				this.sound = new String(soundTmp, StandardCharsets.UTF_8);
 			}
@@ -32756,7 +32758,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var soundTmp = this.sound.getBytes(StandardCharsets.UTF_8);
+				byte[] soundTmp = this.sound.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(soundTmp.length);
 				output.write(soundTmp);
 			}
@@ -33273,45 +33275,45 @@ public class TdApi {
 			this.isPasswordPending = input.readBoolean();
 			this.apiId = input.readInt();
 			if (input.readBoolean()) {
-				var applicationNameTmp = new byte[input.readInt()];
+				byte[] applicationNameTmp = new byte[input.readInt()];
 				input.readFully(applicationNameTmp);
 				this.applicationName = new String(applicationNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var applicationVersionTmp = new byte[input.readInt()];
+				byte[] applicationVersionTmp = new byte[input.readInt()];
 				input.readFully(applicationVersionTmp);
 				this.applicationVersion = new String(applicationVersionTmp, StandardCharsets.UTF_8);
 			}
 			this.isOfficialApplication = input.readBoolean();
 			if (input.readBoolean()) {
-				var deviceModelTmp = new byte[input.readInt()];
+				byte[] deviceModelTmp = new byte[input.readInt()];
 				input.readFully(deviceModelTmp);
 				this.deviceModel = new String(deviceModelTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var platformTmp = new byte[input.readInt()];
+				byte[] platformTmp = new byte[input.readInt()];
 				input.readFully(platformTmp);
 				this.platform = new String(platformTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var systemVersionTmp = new byte[input.readInt()];
+				byte[] systemVersionTmp = new byte[input.readInt()];
 				input.readFully(systemVersionTmp);
 				this.systemVersion = new String(systemVersionTmp, StandardCharsets.UTF_8);
 			}
 			this.logInDate = input.readInt();
 			this.lastActiveDate = input.readInt();
 			if (input.readBoolean()) {
-				var ipTmp = new byte[input.readInt()];
+				byte[] ipTmp = new byte[input.readInt()];
 				input.readFully(ipTmp);
 				this.ip = new String(ipTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var countryTmp = new byte[input.readInt()];
+				byte[] countryTmp = new byte[input.readInt()];
 				input.readFully(countryTmp);
 				this.country = new String(countryTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var regionTmp = new byte[input.readInt()];
+				byte[] regionTmp = new byte[input.readInt()];
 				input.readFully(regionTmp);
 				this.region = new String(regionTmp, StandardCharsets.UTF_8);
 			}
@@ -33331,7 +33333,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var applicationNameTmp = this.applicationName.getBytes(StandardCharsets.UTF_8);
+				byte[] applicationNameTmp = this.applicationName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(applicationNameTmp.length);
 				output.write(applicationNameTmp);
 			}
@@ -33339,7 +33341,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var applicationVersionTmp = this.applicationVersion.getBytes(StandardCharsets.UTF_8);
+				byte[] applicationVersionTmp = this.applicationVersion.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(applicationVersionTmp.length);
 				output.write(applicationVersionTmp);
 			}
@@ -33348,7 +33350,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var deviceModelTmp = this.deviceModel.getBytes(StandardCharsets.UTF_8);
+				byte[] deviceModelTmp = this.deviceModel.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(deviceModelTmp.length);
 				output.write(deviceModelTmp);
 			}
@@ -33356,7 +33358,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var platformTmp = this.platform.getBytes(StandardCharsets.UTF_8);
+				byte[] platformTmp = this.platform.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(platformTmp.length);
 				output.write(platformTmp);
 			}
@@ -33364,7 +33366,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var systemVersionTmp = this.systemVersion.getBytes(StandardCharsets.UTF_8);
+				byte[] systemVersionTmp = this.systemVersion.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(systemVersionTmp.length);
 				output.write(systemVersionTmp);
 			}
@@ -33374,7 +33376,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var ipTmp = this.ip.getBytes(StandardCharsets.UTF_8);
+				byte[] ipTmp = this.ip.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(ipTmp.length);
 				output.write(ipTmp);
 			}
@@ -33382,7 +33384,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var countryTmp = this.country.getBytes(StandardCharsets.UTF_8);
+				byte[] countryTmp = this.country.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(countryTmp.length);
 				output.write(countryTmp);
 			}
@@ -33390,7 +33392,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var regionTmp = this.region.getBytes(StandardCharsets.UTF_8);
+				byte[] regionTmp = this.region.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(regionTmp.length);
 				output.write(regionTmp);
 			}
@@ -33455,12 +33457,12 @@ public class TdApi {
 
 		public ShippingOption(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -33485,7 +33487,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -33493,7 +33495,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -33524,12 +33526,12 @@ public class TdApi {
 
 		public StatisticsGraphData(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var jsonDataTmp = new byte[input.readInt()];
+				byte[] jsonDataTmp = new byte[input.readInt()];
 				input.readFully(jsonDataTmp);
 				this.jsonData = new String(jsonDataTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var zoomTokenTmp = new byte[input.readInt()];
+				byte[] zoomTokenTmp = new byte[input.readInt()];
 				input.readFully(zoomTokenTmp);
 				this.zoomToken = new String(zoomTokenTmp, StandardCharsets.UTF_8);
 			}
@@ -33545,7 +33547,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var jsonDataTmp = this.jsonData.getBytes(StandardCharsets.UTF_8);
+				byte[] jsonDataTmp = this.jsonData.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(jsonDataTmp.length);
 				output.write(jsonDataTmp);
 			}
@@ -33553,7 +33555,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var zoomTokenTmp = this.zoomToken.getBytes(StandardCharsets.UTF_8);
+				byte[] zoomTokenTmp = this.zoomToken.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(zoomTokenTmp.length);
 				output.write(zoomTokenTmp);
 			}
@@ -33573,7 +33575,7 @@ public class TdApi {
 
 		public StatisticsGraphAsync(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var tokenTmp = new byte[input.readInt()];
+				byte[] tokenTmp = new byte[input.readInt()];
 				input.readFully(tokenTmp);
 				this.token = new String(tokenTmp, StandardCharsets.UTF_8);
 			}
@@ -33589,7 +33591,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
+				byte[] tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(tokenTmp.length);
 				output.write(tokenTmp);
 			}
@@ -33609,7 +33611,7 @@ public class TdApi {
 
 		public StatisticsGraphError(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var errorMessageTmp = new byte[input.readInt()];
+				byte[] errorMessageTmp = new byte[input.readInt()];
 				input.readFully(errorMessageTmp);
 				this.errorMessage = new String(errorMessageTmp, StandardCharsets.UTF_8);
 			}
@@ -33625,7 +33627,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
+				byte[] errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(errorMessageTmp.length);
 				output.write(errorMessageTmp);
 			}
@@ -33697,7 +33699,7 @@ public class TdApi {
 			this.width = input.readInt();
 			this.height = input.readInt();
 			if (input.readBoolean()) {
-				var emojiTmp = new byte[input.readInt()];
+				byte[] emojiTmp = new byte[input.readInt()];
 				input.readFully(emojiTmp);
 				this.emoji = new String(emojiTmp, StandardCharsets.UTF_8);
 			}
@@ -33736,7 +33738,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
+				byte[] emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emojiTmp.length);
 				output.write(emojiTmp);
 			}
@@ -33799,12 +33801,12 @@ public class TdApi {
 		public StickerSet(DataInput input) throws IOException {
 			this.id = input.readLong();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -33851,7 +33853,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -33859,7 +33861,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -33932,12 +33934,12 @@ public class TdApi {
 		public StickerSetInfo(DataInput input) throws IOException {
 			this.id = input.readLong();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -33976,7 +33978,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -33984,7 +33986,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -34407,7 +34409,7 @@ public class TdApi {
 		public Supergroup(DataInput input) throws IOException {
 			this.id = input.readInt();
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
@@ -34444,7 +34446,7 @@ public class TdApi {
 			this.isChannel = input.readBoolean();
 			this.isVerified = input.readBoolean();
 			if (input.readBoolean()) {
-				var restrictionReasonTmp = new byte[input.readInt()];
+				byte[] restrictionReasonTmp = new byte[input.readInt()];
 				input.readFully(restrictionReasonTmp);
 				this.restrictionReason = new String(restrictionReasonTmp, StandardCharsets.UTF_8);
 			}
@@ -34462,7 +34464,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -34484,7 +34486,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var restrictionReasonTmp = this.restrictionReason.getBytes(StandardCharsets.UTF_8);
+				byte[] restrictionReasonTmp = this.restrictionReason.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(restrictionReasonTmp.length);
 				output.write(restrictionReasonTmp);
 			}
@@ -34549,7 +34551,7 @@ public class TdApi {
 				this.photo = new ChatPhoto(input);
 			}
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -34574,7 +34576,7 @@ public class TdApi {
 				this.location = new ChatLocation(input);
 			}
 			if (input.readBoolean()) {
-				var inviteLinkTmp = new byte[input.readInt()];
+				byte[] inviteLinkTmp = new byte[input.readInt()];
 				input.readFully(inviteLinkTmp);
 				this.inviteLink = new String(inviteLinkTmp, StandardCharsets.UTF_8);
 			}
@@ -34598,7 +34600,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -34626,7 +34628,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
+				byte[] inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inviteLinkTmp.length);
 				output.write(inviteLinkTmp);
 			}
@@ -34666,7 +34668,7 @@ public class TdApi {
 
 		public SupergroupMembersFilterContacts(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -34682,7 +34684,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -34720,7 +34722,7 @@ public class TdApi {
 
 		public SupergroupMembersFilterSearch(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -34736,7 +34738,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -34756,7 +34758,7 @@ public class TdApi {
 
 		public SupergroupMembersFilterRestricted(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -34772,7 +34774,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -34792,7 +34794,7 @@ public class TdApi {
 
 		public SupergroupMembersFilterBanned(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -34808,7 +34810,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -34848,7 +34850,7 @@ public class TdApi {
 
 		public TMeUrl(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -34882,7 +34884,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -35088,12 +35090,12 @@ public class TdApi {
 		public TdlibParameters(DataInput input) throws IOException {
 			this.useTestDc = input.readBoolean();
 			if (input.readBoolean()) {
-				var databaseDirectoryTmp = new byte[input.readInt()];
+				byte[] databaseDirectoryTmp = new byte[input.readInt()];
 				input.readFully(databaseDirectoryTmp);
 				this.databaseDirectory = new String(databaseDirectoryTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var filesDirectoryTmp = new byte[input.readInt()];
+				byte[] filesDirectoryTmp = new byte[input.readInt()];
 				input.readFully(filesDirectoryTmp);
 				this.filesDirectory = new String(filesDirectoryTmp, StandardCharsets.UTF_8);
 			}
@@ -35103,27 +35105,27 @@ public class TdApi {
 			this.useSecretChats = input.readBoolean();
 			this.apiId = input.readInt();
 			if (input.readBoolean()) {
-				var apiHashTmp = new byte[input.readInt()];
+				byte[] apiHashTmp = new byte[input.readInt()];
 				input.readFully(apiHashTmp);
 				this.apiHash = new String(apiHashTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var systemLanguageCodeTmp = new byte[input.readInt()];
+				byte[] systemLanguageCodeTmp = new byte[input.readInt()];
 				input.readFully(systemLanguageCodeTmp);
 				this.systemLanguageCode = new String(systemLanguageCodeTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var deviceModelTmp = new byte[input.readInt()];
+				byte[] deviceModelTmp = new byte[input.readInt()];
 				input.readFully(deviceModelTmp);
 				this.deviceModel = new String(deviceModelTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var systemVersionTmp = new byte[input.readInt()];
+				byte[] systemVersionTmp = new byte[input.readInt()];
 				input.readFully(systemVersionTmp);
 				this.systemVersion = new String(systemVersionTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var applicationVersionTmp = new byte[input.readInt()];
+				byte[] applicationVersionTmp = new byte[input.readInt()];
 				input.readFully(applicationVersionTmp);
 				this.applicationVersion = new String(applicationVersionTmp, StandardCharsets.UTF_8);
 			}
@@ -35142,7 +35144,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var databaseDirectoryTmp = this.databaseDirectory.getBytes(StandardCharsets.UTF_8);
+				byte[] databaseDirectoryTmp = this.databaseDirectory.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(databaseDirectoryTmp.length);
 				output.write(databaseDirectoryTmp);
 			}
@@ -35150,7 +35152,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var filesDirectoryTmp = this.filesDirectory.getBytes(StandardCharsets.UTF_8);
+				byte[] filesDirectoryTmp = this.filesDirectory.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(filesDirectoryTmp.length);
 				output.write(filesDirectoryTmp);
 			}
@@ -35163,7 +35165,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var apiHashTmp = this.apiHash.getBytes(StandardCharsets.UTF_8);
+				byte[] apiHashTmp = this.apiHash.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(apiHashTmp.length);
 				output.write(apiHashTmp);
 			}
@@ -35171,7 +35173,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var systemLanguageCodeTmp = this.systemLanguageCode.getBytes(StandardCharsets.UTF_8);
+				byte[] systemLanguageCodeTmp = this.systemLanguageCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(systemLanguageCodeTmp.length);
 				output.write(systemLanguageCodeTmp);
 			}
@@ -35179,7 +35181,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var deviceModelTmp = this.deviceModel.getBytes(StandardCharsets.UTF_8);
+				byte[] deviceModelTmp = this.deviceModel.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(deviceModelTmp.length);
 				output.write(deviceModelTmp);
 			}
@@ -35187,7 +35189,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var systemVersionTmp = this.systemVersion.getBytes(StandardCharsets.UTF_8);
+				byte[] systemVersionTmp = this.systemVersion.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(systemVersionTmp.length);
 				output.write(systemVersionTmp);
 			}
@@ -35195,7 +35197,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var applicationVersionTmp = this.applicationVersion.getBytes(StandardCharsets.UTF_8);
+				byte[] applicationVersionTmp = this.applicationVersion.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(applicationVersionTmp.length);
 				output.write(applicationVersionTmp);
 			}
@@ -35348,7 +35350,7 @@ public class TdApi {
 
 		public TestString(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var valueTmp = new byte[input.readInt()];
+				byte[] valueTmp = new byte[input.readInt()];
 				input.readFully(valueTmp);
 				this.value = new String(valueTmp, StandardCharsets.UTF_8);
 			}
@@ -35364,7 +35366,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
+				byte[] valueTmp = this.value.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(valueTmp.length);
 				output.write(valueTmp);
 			}
@@ -35465,7 +35467,7 @@ public class TdApi {
 			if (input.readBoolean()) {
 				this.value = new String[input.readInt()];
 				for (int i = 0; i < this.value.length; i++) {
-					var valueTmp = new byte[input.readInt()];
+					byte[] valueTmp = new byte[input.readInt()];
 					input.readFully(valueTmp);
 					this.value[i] = new String(valueTmp, StandardCharsets.UTF_8);
 				}
@@ -35484,7 +35486,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.value.length);
 				for (int i = 0; i < this.value.length; i++) {
-					var valueTmp = this.value[i].getBytes(StandardCharsets.UTF_8);
+					byte[] valueTmp = this.value[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(valueTmp.length);
 					output.write(valueTmp);
 				}
@@ -35546,7 +35548,7 @@ public class TdApi {
 
 		public Text(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -35562,7 +35564,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -35969,7 +35971,7 @@ public class TdApi {
 
 		public TextEntityTypePreCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var languageTmp = new byte[input.readInt()];
+				byte[] languageTmp = new byte[input.readInt()];
 				input.readFully(languageTmp);
 				this.language = new String(languageTmp, StandardCharsets.UTF_8);
 			}
@@ -35985,7 +35987,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languageTmp = this.language.getBytes(StandardCharsets.UTF_8);
+				byte[] languageTmp = this.language.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languageTmp.length);
 				output.write(languageTmp);
 			}
@@ -36005,7 +36007,7 @@ public class TdApi {
 
 		public TextEntityTypeTextUrl(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -36021,7 +36023,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -36603,7 +36605,7 @@ public class TdApi {
 			this.oldMessageId = input.readLong();
 			this.errorCode = input.readInt();
 			if (input.readBoolean()) {
-				var errorMessageTmp = new byte[input.readInt()];
+				byte[] errorMessageTmp = new byte[input.readInt()];
 				input.readFully(errorMessageTmp);
 				this.errorMessage = new String(errorMessageTmp, StandardCharsets.UTF_8);
 			}
@@ -36627,7 +36629,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
+				byte[] errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(errorMessageTmp.length);
 				output.write(errorMessageTmp);
 			}
@@ -37034,7 +37036,7 @@ public class TdApi {
 		public UpdateChatTitle(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -37051,7 +37053,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -38424,7 +38426,7 @@ public class TdApi {
 
 		public UpdateServiceNotification(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var typeTmp = new byte[input.readInt()];
+				byte[] typeTmp = new byte[input.readInt()];
 				input.readFully(typeTmp);
 				this.type = new String(typeTmp, StandardCharsets.UTF_8);
 			}
@@ -38569,7 +38571,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
+				byte[] typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(typeTmp.length);
 				output.write(typeTmp);
 			}
@@ -38637,17 +38639,17 @@ public class TdApi {
 		public UpdateFileGenerationStart(DataInput input) throws IOException {
 			this.generationId = input.readLong();
 			if (input.readBoolean()) {
-				var originalPathTmp = new byte[input.readInt()];
+				byte[] originalPathTmp = new byte[input.readInt()];
 				input.readFully(originalPathTmp);
 				this.originalPath = new String(originalPathTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var destinationPathTmp = new byte[input.readInt()];
+				byte[] destinationPathTmp = new byte[input.readInt()];
 				input.readFully(destinationPathTmp);
 				this.destinationPath = new String(destinationPathTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var conversionTmp = new byte[input.readInt()];
+				byte[] conversionTmp = new byte[input.readInt()];
 				input.readFully(conversionTmp);
 				this.conversion = new String(conversionTmp, StandardCharsets.UTF_8);
 			}
@@ -38664,7 +38666,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var originalPathTmp = this.originalPath.getBytes(StandardCharsets.UTF_8);
+				byte[] originalPathTmp = this.originalPath.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(originalPathTmp.length);
 				output.write(originalPathTmp);
 			}
@@ -38672,7 +38674,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var destinationPathTmp = this.destinationPath.getBytes(StandardCharsets.UTF_8);
+				byte[] destinationPathTmp = this.destinationPath.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(destinationPathTmp.length);
 				output.write(destinationPathTmp);
 			}
@@ -38680,7 +38682,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var conversionTmp = this.conversion.getBytes(StandardCharsets.UTF_8);
+				byte[] conversionTmp = this.conversion.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(conversionTmp.length);
 				output.write(conversionTmp);
 			}
@@ -38989,7 +38991,7 @@ public class TdApi {
 
 		public UpdateOption(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -39023,7 +39025,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -39322,12 +39324,12 @@ public class TdApi {
 
 		public UpdateLanguagePackStrings(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var localizationTargetTmp = new byte[input.readInt()];
+				byte[] localizationTargetTmp = new byte[input.readInt()];
 				input.readFully(localizationTargetTmp);
 				this.localizationTarget = new String(localizationTargetTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var languagePackIdTmp = new byte[input.readInt()];
+				byte[] languagePackIdTmp = new byte[input.readInt()];
 				input.readFully(languagePackIdTmp);
 				this.languagePackId = new String(languagePackIdTmp, StandardCharsets.UTF_8);
 			}
@@ -39352,7 +39354,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var localizationTargetTmp = this.localizationTarget.getBytes(StandardCharsets.UTF_8);
+				byte[] localizationTargetTmp = this.localizationTarget.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(localizationTargetTmp.length);
 				output.write(localizationTargetTmp);
 			}
@@ -39360,7 +39362,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
+				byte[] languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languagePackIdTmp.length);
 				output.write(languagePackIdTmp);
 			}
@@ -39441,7 +39443,7 @@ public class TdApi {
 
 		public UpdateTermsOfService(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var termsOfServiceIdTmp = new byte[input.readInt()];
+				byte[] termsOfServiceIdTmp = new byte[input.readInt()];
 				input.readFully(termsOfServiceIdTmp);
 				this.termsOfServiceId = new String(termsOfServiceIdTmp, StandardCharsets.UTF_8);
 			}
@@ -39463,7 +39465,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var termsOfServiceIdTmp = this.termsOfServiceId.getBytes(StandardCharsets.UTF_8);
+				byte[] termsOfServiceIdTmp = this.termsOfServiceId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(termsOfServiceIdTmp.length);
 				output.write(termsOfServiceIdTmp);
 			}
@@ -39532,7 +39534,7 @@ public class TdApi {
 			if (input.readBoolean()) {
 				this.emojis = new String[input.readInt()];
 				for (int i = 0; i < this.emojis.length; i++) {
-					var emojisTmp = new byte[input.readInt()];
+					byte[] emojisTmp = new byte[input.readInt()];
 					input.readFully(emojisTmp);
 					this.emojis[i] = new String(emojisTmp, StandardCharsets.UTF_8);
 				}
@@ -39551,7 +39553,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.emojis.length);
 				for (int i = 0; i < this.emojis.length; i++) {
-					var emojisTmp = this.emojis[i].getBytes(StandardCharsets.UTF_8);
+					byte[] emojisTmp = this.emojis[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(emojisTmp.length);
 					output.write(emojisTmp);
 				}
@@ -39574,14 +39576,14 @@ public class TdApi {
 
 		public UpdateAnimationSearchParameters(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var providerTmp = new byte[input.readInt()];
+				byte[] providerTmp = new byte[input.readInt()];
 				input.readFully(providerTmp);
 				this.provider = new String(providerTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
 				this.emojis = new String[input.readInt()];
 				for (int i = 0; i < this.emojis.length; i++) {
-					var emojisTmp = new byte[input.readInt()];
+					byte[] emojisTmp = new byte[input.readInt()];
 					input.readFully(emojisTmp);
 					this.emojis[i] = new String(emojisTmp, StandardCharsets.UTF_8);
 				}
@@ -39598,7 +39600,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var providerTmp = this.provider.getBytes(StandardCharsets.UTF_8);
+				byte[] providerTmp = this.provider.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(providerTmp.length);
 				output.write(providerTmp);
 			}
@@ -39608,7 +39610,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.emojis.length);
 				for (int i = 0; i < this.emojis.length; i++) {
-					var emojisTmp = this.emojis[i].getBytes(StandardCharsets.UTF_8);
+					byte[] emojisTmp = this.emojis[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(emojisTmp.length);
 					output.write(emojisTmp);
 				}
@@ -39718,12 +39720,12 @@ public class TdApi {
 				this.userLocation = new Location(input);
 			}
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var offsetTmp = new byte[input.readInt()];
+				byte[] offsetTmp = new byte[input.readInt()];
 				input.readFully(offsetTmp);
 				this.offset = new String(offsetTmp, StandardCharsets.UTF_8);
 			}
@@ -39747,7 +39749,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -39755,7 +39757,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var offsetTmp = this.offset.getBytes(StandardCharsets.UTF_8);
+				byte[] offsetTmp = this.offset.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(offsetTmp.length);
 				output.write(offsetTmp);
 			}
@@ -39790,17 +39792,17 @@ public class TdApi {
 				this.userLocation = new Location(input);
 			}
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var resultIdTmp = new byte[input.readInt()];
+				byte[] resultIdTmp = new byte[input.readInt()];
 				input.readFully(resultIdTmp);
 				this.resultId = new String(resultIdTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var inlineMessageIdTmp = new byte[input.readInt()];
+				byte[] inlineMessageIdTmp = new byte[input.readInt()];
 				input.readFully(inlineMessageIdTmp);
 				this.inlineMessageId = new String(inlineMessageIdTmp, StandardCharsets.UTF_8);
 			}
@@ -39823,7 +39825,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -39831,7 +39833,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var resultIdTmp = this.resultId.getBytes(StandardCharsets.UTF_8);
+				byte[] resultIdTmp = this.resultId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(resultIdTmp.length);
 				output.write(resultIdTmp);
 			}
@@ -39839,7 +39841,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineMessageIdTmp.length);
 				output.write(inlineMessageIdTmp);
 			}
@@ -39930,7 +39932,7 @@ public class TdApi {
 			this.id = input.readLong();
 			this.senderUserId = input.readInt();
 			if (input.readBoolean()) {
-				var inlineMessageIdTmp = new byte[input.readInt()];
+				byte[] inlineMessageIdTmp = new byte[input.readInt()];
 				input.readFully(inlineMessageIdTmp);
 				this.inlineMessageId = new String(inlineMessageIdTmp, StandardCharsets.UTF_8);
 			}
@@ -39961,7 +39963,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineMessageIdTmp.length);
 				output.write(inlineMessageIdTmp);
 			}
@@ -39996,7 +39998,7 @@ public class TdApi {
 			this.id = input.readLong();
 			this.senderUserId = input.readInt();
 			if (input.readBoolean()) {
-				var invoicePayloadTmp = new byte[input.readInt()];
+				byte[] invoicePayloadTmp = new byte[input.readInt()];
 				input.readFully(invoicePayloadTmp);
 				this.invoicePayload = new String(invoicePayloadTmp, StandardCharsets.UTF_8);
 			}
@@ -40020,7 +40022,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var invoicePayloadTmp = this.invoicePayload.getBytes(StandardCharsets.UTF_8);
+				byte[] invoicePayloadTmp = this.invoicePayload.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(invoicePayloadTmp.length);
 				output.write(invoicePayloadTmp);
 			}
@@ -40060,7 +40062,7 @@ public class TdApi {
 			this.id = input.readLong();
 			this.senderUserId = input.readInt();
 			if (input.readBoolean()) {
-				var currencyTmp = new byte[input.readInt()];
+				byte[] currencyTmp = new byte[input.readInt()];
 				input.readFully(currencyTmp);
 				this.currency = new String(currencyTmp, StandardCharsets.UTF_8);
 			}
@@ -40070,7 +40072,7 @@ public class TdApi {
 				input.readFully(this.invoicePayload);
 			}
 			if (input.readBoolean()) {
-				var shippingOptionIdTmp = new byte[input.readInt()];
+				byte[] shippingOptionIdTmp = new byte[input.readInt()];
 				input.readFully(shippingOptionIdTmp);
 				this.shippingOptionId = new String(shippingOptionIdTmp, StandardCharsets.UTF_8);
 			}
@@ -40094,7 +40096,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
+				byte[] currencyTmp = this.currency.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(currencyTmp.length);
 				output.write(currencyTmp);
 			}
@@ -40110,7 +40112,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var shippingOptionIdTmp = this.shippingOptionId.getBytes(StandardCharsets.UTF_8);
+				byte[] shippingOptionIdTmp = this.shippingOptionId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(shippingOptionIdTmp.length);
 				output.write(shippingOptionIdTmp);
 			}
@@ -40136,7 +40138,7 @@ public class TdApi {
 
 		public UpdateNewCustomEvent(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var eventTmp = new byte[input.readInt()];
+				byte[] eventTmp = new byte[input.readInt()];
 				input.readFully(eventTmp);
 				this.event = new String(eventTmp, StandardCharsets.UTF_8);
 			}
@@ -40152,7 +40154,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var eventTmp = this.event.getBytes(StandardCharsets.UTF_8);
+				byte[] eventTmp = this.event.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(eventTmp.length);
 				output.write(eventTmp);
 			}
@@ -40177,7 +40179,7 @@ public class TdApi {
 		public UpdateNewCustomQuery(DataInput input) throws IOException {
 			this.id = input.readLong();
 			if (input.readBoolean()) {
-				var dataTmp = new byte[input.readInt()];
+				byte[] dataTmp = new byte[input.readInt()];
 				input.readFully(dataTmp);
 				this.data = new String(dataTmp, StandardCharsets.UTF_8);
 			}
@@ -40195,7 +40197,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
+				byte[] dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(dataTmp.length);
 				output.write(dataTmp);
 			}
@@ -40606,22 +40608,22 @@ public class TdApi {
 		public User(DataInput input) throws IOException {
 			this.id = input.readInt();
 			if (input.readBoolean()) {
-				var firstNameTmp = new byte[input.readInt()];
+				byte[] firstNameTmp = new byte[input.readInt()];
 				input.readFully(firstNameTmp);
 				this.firstName = new String(firstNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var lastNameTmp = new byte[input.readInt()];
+				byte[] lastNameTmp = new byte[input.readInt()];
 				input.readFully(lastNameTmp);
 				this.lastName = new String(lastNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -40660,7 +40662,7 @@ public class TdApi {
 			this.isVerified = input.readBoolean();
 			this.isSupport = input.readBoolean();
 			if (input.readBoolean()) {
-				var restrictionReasonTmp = new byte[input.readInt()];
+				byte[] restrictionReasonTmp = new byte[input.readInt()];
 				input.readFully(restrictionReasonTmp);
 				this.restrictionReason = new String(restrictionReasonTmp, StandardCharsets.UTF_8);
 			}
@@ -40685,7 +40687,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var languageCodeTmp = new byte[input.readInt()];
+				byte[] languageCodeTmp = new byte[input.readInt()];
 				input.readFully(languageCodeTmp);
 				this.languageCode = new String(languageCodeTmp, StandardCharsets.UTF_8);
 			}
@@ -40702,7 +40704,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
+				byte[] firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(firstNameTmp.length);
 				output.write(firstNameTmp);
 			}
@@ -40710,7 +40712,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
+				byte[] lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(lastNameTmp.length);
 				output.write(lastNameTmp);
 			}
@@ -40718,7 +40720,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -40726,7 +40728,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -40750,7 +40752,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var restrictionReasonTmp = this.restrictionReason.getBytes(StandardCharsets.UTF_8);
+				byte[] restrictionReasonTmp = this.restrictionReason.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(restrictionReasonTmp.length);
 				output.write(restrictionReasonTmp);
 			}
@@ -40766,7 +40768,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languageCodeTmp = this.languageCode.getBytes(StandardCharsets.UTF_8);
+				byte[] languageCodeTmp = this.languageCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languageCodeTmp.length);
 				output.write(languageCodeTmp);
 			}
@@ -40815,12 +40817,12 @@ public class TdApi {
 			this.hasPrivateCalls = input.readBoolean();
 			this.needPhoneNumberPrivacyException = input.readBoolean();
 			if (input.readBoolean()) {
-				var bioTmp = new byte[input.readInt()];
+				byte[] bioTmp = new byte[input.readInt()];
 				input.readFully(bioTmp);
 				this.bio = new String(bioTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var shareTextTmp = new byte[input.readInt()];
+				byte[] shareTextTmp = new byte[input.readInt()];
 				input.readFully(shareTextTmp);
 				this.shareText = new String(shareTextTmp, StandardCharsets.UTF_8);
 			}
@@ -40854,7 +40856,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var bioTmp = this.bio.getBytes(StandardCharsets.UTF_8);
+				byte[] bioTmp = this.bio.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(bioTmp.length);
 				output.write(bioTmp);
 			}
@@ -40862,7 +40864,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var shareTextTmp = this.shareText.getBytes(StandardCharsets.UTF_8);
+				byte[] shareTextTmp = this.shareText.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(shareTextTmp.length);
 				output.write(shareTextTmp);
 			}
@@ -41491,7 +41493,7 @@ public class TdApi {
 			this.canReadAllGroupMessages = input.readBoolean();
 			this.isInline = input.readBoolean();
 			if (input.readBoolean()) {
-				var inlineQueryPlaceholderTmp = new byte[input.readInt()];
+				byte[] inlineQueryPlaceholderTmp = new byte[input.readInt()];
 				input.readFully(inlineQueryPlaceholderTmp);
 				this.inlineQueryPlaceholder = new String(inlineQueryPlaceholderTmp, StandardCharsets.UTF_8);
 			}
@@ -41511,7 +41513,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineQueryPlaceholderTmp = this.inlineQueryPlaceholder.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineQueryPlaceholderTmp = this.inlineQueryPlaceholder.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineQueryPlaceholderTmp.length);
 				output.write(inlineQueryPlaceholderTmp);
 			}
@@ -41594,7 +41596,7 @@ public class TdApi {
 
 		public ValidatedOrderInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var orderInfoIdTmp = new byte[input.readInt()];
+				byte[] orderInfoIdTmp = new byte[input.readInt()];
 				input.readFully(orderInfoIdTmp);
 				this.orderInfoId = new String(orderInfoIdTmp, StandardCharsets.UTF_8);
 			}
@@ -41619,7 +41621,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var orderInfoIdTmp = this.orderInfoId.getBytes(StandardCharsets.UTF_8);
+				byte[] orderInfoIdTmp = this.orderInfoId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(orderInfoIdTmp.length);
 				output.write(orderInfoIdTmp);
 			}
@@ -41664,27 +41666,27 @@ public class TdApi {
 				this.location = new Location(input);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var addressTmp = new byte[input.readInt()];
+				byte[] addressTmp = new byte[input.readInt()];
 				input.readFully(addressTmp);
 				this.address = new String(addressTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var providerTmp = new byte[input.readInt()];
+				byte[] providerTmp = new byte[input.readInt()];
 				input.readFully(providerTmp);
 				this.provider = new String(providerTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var idTmp = new byte[input.readInt()];
+				byte[] idTmp = new byte[input.readInt()];
 				input.readFully(idTmp);
 				this.id = new String(idTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var typeTmp = new byte[input.readInt()];
+				byte[] typeTmp = new byte[input.readInt()];
 				input.readFully(typeTmp);
 				this.type = new String(typeTmp, StandardCharsets.UTF_8);
 			}
@@ -41706,7 +41708,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -41714,7 +41716,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var addressTmp = this.address.getBytes(StandardCharsets.UTF_8);
+				byte[] addressTmp = this.address.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(addressTmp.length);
 				output.write(addressTmp);
 			}
@@ -41722,7 +41724,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var providerTmp = this.provider.getBytes(StandardCharsets.UTF_8);
+				byte[] providerTmp = this.provider.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(providerTmp.length);
 				output.write(providerTmp);
 			}
@@ -41730,7 +41732,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var idTmp = this.id.getBytes(StandardCharsets.UTF_8);
+				byte[] idTmp = this.id.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(idTmp.length);
 				output.write(idTmp);
 			}
@@ -41738,7 +41740,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
+				byte[] typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(typeTmp.length);
 				output.write(typeTmp);
 			}
@@ -41779,12 +41781,12 @@ public class TdApi {
 			this.width = input.readInt();
 			this.height = input.readInt();
 			if (input.readBoolean()) {
-				var fileNameTmp = new byte[input.readInt()];
+				byte[] fileNameTmp = new byte[input.readInt()];
 				input.readFully(fileNameTmp);
 				this.fileName = new String(fileNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var mimeTypeTmp = new byte[input.readInt()];
+				byte[] mimeTypeTmp = new byte[input.readInt()];
 				input.readFully(mimeTypeTmp);
 				this.mimeType = new String(mimeTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -41823,7 +41825,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
+				byte[] fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(fileNameTmp.length);
 				output.write(fileNameTmp);
 			}
@@ -41831,7 +41833,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(mimeTypeTmp.length);
 				output.write(mimeTypeTmp);
 			}
@@ -41953,7 +41955,7 @@ public class TdApi {
 				input.readFully(this.waveform);
 			}
 			if (input.readBoolean()) {
-				var mimeTypeTmp = new byte[input.readInt()];
+				byte[] mimeTypeTmp = new byte[input.readInt()];
 				input.readFully(mimeTypeTmp);
 				this.mimeType = new String(mimeTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -41983,7 +41985,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(mimeTypeTmp.length);
 				output.write(mimeTypeTmp);
 			}
@@ -42049,27 +42051,27 @@ public class TdApi {
 
 		public WebPage(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var displayUrlTmp = new byte[input.readInt()];
+				byte[] displayUrlTmp = new byte[input.readInt()];
 				input.readFully(displayUrlTmp);
 				this.displayUrl = new String(displayUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var typeTmp = new byte[input.readInt()];
+				byte[] typeTmp = new byte[input.readInt()];
 				input.readFully(typeTmp);
 				this.type = new String(typeTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var siteNameTmp = new byte[input.readInt()];
+				byte[] siteNameTmp = new byte[input.readInt()];
 				input.readFully(siteNameTmp);
 				this.siteName = new String(siteNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -42086,12 +42088,12 @@ public class TdApi {
 				this.photo = new Photo(input);
 			}
 			if (input.readBoolean()) {
-				var embedUrlTmp = new byte[input.readInt()];
+				byte[] embedUrlTmp = new byte[input.readInt()];
 				input.readFully(embedUrlTmp);
 				this.embedUrl = new String(embedUrlTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var embedTypeTmp = new byte[input.readInt()];
+				byte[] embedTypeTmp = new byte[input.readInt()];
 				input.readFully(embedTypeTmp);
 				this.embedType = new String(embedTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -42099,7 +42101,7 @@ public class TdApi {
 			this.embedHeight = input.readInt();
 			this.duration = input.readInt();
 			if (input.readBoolean()) {
-				var authorTmp = new byte[input.readInt()];
+				byte[] authorTmp = new byte[input.readInt()];
 				input.readFully(authorTmp);
 				this.author = new String(authorTmp, StandardCharsets.UTF_8);
 			}
@@ -42158,7 +42160,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -42166,7 +42168,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var displayUrlTmp = this.displayUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] displayUrlTmp = this.displayUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(displayUrlTmp.length);
 				output.write(displayUrlTmp);
 			}
@@ -42174,7 +42176,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
+				byte[] typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(typeTmp.length);
 				output.write(typeTmp);
 			}
@@ -42182,7 +42184,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var siteNameTmp = this.siteName.getBytes(StandardCharsets.UTF_8);
+				byte[] siteNameTmp = this.siteName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(siteNameTmp.length);
 				output.write(siteNameTmp);
 			}
@@ -42190,7 +42192,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -42210,7 +42212,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var embedUrlTmp = this.embedUrl.getBytes(StandardCharsets.UTF_8);
+				byte[] embedUrlTmp = this.embedUrl.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(embedUrlTmp.length);
 				output.write(embedUrlTmp);
 			}
@@ -42218,7 +42220,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var embedTypeTmp = this.embedType.getBytes(StandardCharsets.UTF_8);
+				byte[] embedTypeTmp = this.embedType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(embedTypeTmp.length);
 				output.write(embedTypeTmp);
 			}
@@ -42229,7 +42231,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var authorTmp = this.author.getBytes(StandardCharsets.UTF_8);
+				byte[] authorTmp = this.author.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(authorTmp.length);
 				output.write(authorTmp);
 			}
@@ -42475,7 +42477,7 @@ public class TdApi {
 
 		public AcceptTermsOfService(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var termsOfServiceIdTmp = new byte[input.readInt()];
+				byte[] termsOfServiceIdTmp = new byte[input.readInt()];
 				input.readFully(termsOfServiceIdTmp);
 				this.termsOfServiceId = new String(termsOfServiceIdTmp, StandardCharsets.UTF_8);
 			}
@@ -42491,7 +42493,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var termsOfServiceIdTmp = this.termsOfServiceId.getBytes(StandardCharsets.UTF_8);
+				byte[] termsOfServiceIdTmp = this.termsOfServiceId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(termsOfServiceIdTmp.length);
 				output.write(termsOfServiceIdTmp);
 			}
@@ -42673,7 +42675,7 @@ public class TdApi {
 
 		public AddCustomServerLanguagePack(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var languagePackIdTmp = new byte[input.readInt()];
+				byte[] languagePackIdTmp = new byte[input.readInt()];
 				input.readFully(languagePackIdTmp);
 				this.languagePackId = new String(languagePackIdTmp, StandardCharsets.UTF_8);
 			}
@@ -42689,7 +42691,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
+				byte[] languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languagePackIdTmp.length);
 				output.write(languagePackIdTmp);
 			}
@@ -42861,7 +42863,7 @@ public class TdApi {
 		public AddLogMessage(DataInput input) throws IOException {
 			this.verbosityLevel = input.readInt();
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -42878,7 +42880,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -42945,7 +42947,7 @@ public class TdApi {
 
 		public AddProxy(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var serverTmp = new byte[input.readInt()];
+				byte[] serverTmp = new byte[input.readInt()];
 				input.readFully(serverTmp);
 				this.server = new String(serverTmp, StandardCharsets.UTF_8);
 			}
@@ -42978,7 +42980,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var serverTmp = this.server.getBytes(StandardCharsets.UTF_8);
+				byte[] serverTmp = this.server.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(serverTmp.length);
 				output.write(serverTmp);
 			}
@@ -43134,7 +43136,7 @@ public class TdApi {
 		public AddStickerToSet(DataInput input) throws IOException {
 			this.userId = input.readInt();
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -43163,7 +43165,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -43198,13 +43200,13 @@ public class TdApi {
 		public AnswerCallbackQuery(DataInput input) throws IOException {
 			this.callbackQueryId = input.readLong();
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
 			this.showAlert = input.readBoolean();
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -43222,7 +43224,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -43231,7 +43233,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -43255,7 +43257,7 @@ public class TdApi {
 		public AnswerCustomQuery(DataInput input) throws IOException {
 			this.customQueryId = input.readLong();
 			if (input.readBoolean()) {
-				var dataTmp = new byte[input.readInt()];
+				byte[] dataTmp = new byte[input.readInt()];
 				input.readFully(dataTmp);
 				this.data = new String(dataTmp, StandardCharsets.UTF_8);
 			}
@@ -43272,7 +43274,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
+				byte[] dataTmp = this.data.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(dataTmp.length);
 				output.write(dataTmp);
 			}
@@ -43352,17 +43354,17 @@ public class TdApi {
 			}
 			this.cacheTime = input.readInt();
 			if (input.readBoolean()) {
-				var nextOffsetTmp = new byte[input.readInt()];
+				byte[] nextOffsetTmp = new byte[input.readInt()];
 				input.readFully(nextOffsetTmp);
 				this.nextOffset = new String(nextOffsetTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var switchPmTextTmp = new byte[input.readInt()];
+				byte[] switchPmTextTmp = new byte[input.readInt()];
 				input.readFully(switchPmTextTmp);
 				this.switchPmText = new String(switchPmTextTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var switchPmParameterTmp = new byte[input.readInt()];
+				byte[] switchPmParameterTmp = new byte[input.readInt()];
 				input.readFully(switchPmParameterTmp);
 				this.switchPmParameter = new String(switchPmParameterTmp, StandardCharsets.UTF_8);
 			}
@@ -43390,7 +43392,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nextOffsetTmp = this.nextOffset.getBytes(StandardCharsets.UTF_8);
+				byte[] nextOffsetTmp = this.nextOffset.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nextOffsetTmp.length);
 				output.write(nextOffsetTmp);
 			}
@@ -43398,7 +43400,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var switchPmTextTmp = this.switchPmText.getBytes(StandardCharsets.UTF_8);
+				byte[] switchPmTextTmp = this.switchPmText.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(switchPmTextTmp.length);
 				output.write(switchPmTextTmp);
 			}
@@ -43406,7 +43408,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var switchPmParameterTmp = this.switchPmParameter.getBytes(StandardCharsets.UTF_8);
+				byte[] switchPmParameterTmp = this.switchPmParameter.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(switchPmParameterTmp.length);
 				output.write(switchPmParameterTmp);
 			}
@@ -43429,7 +43431,7 @@ public class TdApi {
 		public AnswerPreCheckoutQuery(DataInput input) throws IOException {
 			this.preCheckoutQueryId = input.readLong();
 			if (input.readBoolean()) {
-				var errorMessageTmp = new byte[input.readInt()];
+				byte[] errorMessageTmp = new byte[input.readInt()];
 				input.readFully(errorMessageTmp);
 				this.errorMessage = new String(errorMessageTmp, StandardCharsets.UTF_8);
 			}
@@ -43446,7 +43448,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
+				byte[] errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(errorMessageTmp.length);
 				output.write(errorMessageTmp);
 			}
@@ -43480,7 +43482,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var errorMessageTmp = new byte[input.readInt()];
+				byte[] errorMessageTmp = new byte[input.readInt()];
 				input.readFully(errorMessageTmp);
 				this.errorMessage = new String(errorMessageTmp, StandardCharsets.UTF_8);
 			}
@@ -43506,7 +43508,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
+				byte[] errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(errorMessageTmp.length);
 				output.write(errorMessageTmp);
 			}
@@ -43666,7 +43668,7 @@ public class TdApi {
 
 		public ChangePhoneNumber(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -43688,7 +43690,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -43747,7 +43749,7 @@ public class TdApi {
 
 		public CheckAuthenticationBotToken(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var tokenTmp = new byte[input.readInt()];
+				byte[] tokenTmp = new byte[input.readInt()];
 				input.readFully(tokenTmp);
 				this.token = new String(tokenTmp, StandardCharsets.UTF_8);
 			}
@@ -43763,7 +43765,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
+				byte[] tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(tokenTmp.length);
 				output.write(tokenTmp);
 			}
@@ -43783,7 +43785,7 @@ public class TdApi {
 
 		public CheckAuthenticationCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var codeTmp = new byte[input.readInt()];
+				byte[] codeTmp = new byte[input.readInt()];
 				input.readFully(codeTmp);
 				this.code = new String(codeTmp, StandardCharsets.UTF_8);
 			}
@@ -43799,7 +43801,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
+				byte[] codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(codeTmp.length);
 				output.write(codeTmp);
 			}
@@ -43819,7 +43821,7 @@ public class TdApi {
 
 		public CheckAuthenticationPassword(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -43835,7 +43837,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -43855,7 +43857,7 @@ public class TdApi {
 
 		public CheckChangePhoneNumberCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var codeTmp = new byte[input.readInt()];
+				byte[] codeTmp = new byte[input.readInt()];
 				input.readFully(codeTmp);
 				this.code = new String(codeTmp, StandardCharsets.UTF_8);
 			}
@@ -43871,7 +43873,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
+				byte[] codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(codeTmp.length);
 				output.write(codeTmp);
 			}
@@ -43891,7 +43893,7 @@ public class TdApi {
 
 		public CheckChatInviteLink(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inviteLinkTmp = new byte[input.readInt()];
+				byte[] inviteLinkTmp = new byte[input.readInt()];
 				input.readFully(inviteLinkTmp);
 				this.inviteLink = new String(inviteLinkTmp, StandardCharsets.UTF_8);
 			}
@@ -43907,7 +43909,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
+				byte[] inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inviteLinkTmp.length);
 				output.write(inviteLinkTmp);
 			}
@@ -43930,7 +43932,7 @@ public class TdApi {
 		public CheckChatUsername(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
@@ -43947,7 +43949,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -44042,7 +44044,7 @@ public class TdApi {
 
 		public CheckEmailAddressVerificationCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var codeTmp = new byte[input.readInt()];
+				byte[] codeTmp = new byte[input.readInt()];
 				input.readFully(codeTmp);
 				this.code = new String(codeTmp, StandardCharsets.UTF_8);
 			}
@@ -44058,7 +44060,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
+				byte[] codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(codeTmp.length);
 				output.write(codeTmp);
 			}
@@ -44078,7 +44080,7 @@ public class TdApi {
 
 		public CheckPhoneNumberConfirmationCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var codeTmp = new byte[input.readInt()];
+				byte[] codeTmp = new byte[input.readInt()];
 				input.readFully(codeTmp);
 				this.code = new String(codeTmp, StandardCharsets.UTF_8);
 			}
@@ -44094,7 +44096,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
+				byte[] codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(codeTmp.length);
 				output.write(codeTmp);
 			}
@@ -44114,7 +44116,7 @@ public class TdApi {
 
 		public CheckPhoneNumberVerificationCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var codeTmp = new byte[input.readInt()];
+				byte[] codeTmp = new byte[input.readInt()];
 				input.readFully(codeTmp);
 				this.code = new String(codeTmp, StandardCharsets.UTF_8);
 			}
@@ -44130,7 +44132,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
+				byte[] codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(codeTmp.length);
 				output.write(codeTmp);
 			}
@@ -44150,7 +44152,7 @@ public class TdApi {
 
 		public CheckRecoveryEmailAddressCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var codeTmp = new byte[input.readInt()];
+				byte[] codeTmp = new byte[input.readInt()];
 				input.readFully(codeTmp);
 				this.code = new String(codeTmp, StandardCharsets.UTF_8);
 			}
@@ -44166,7 +44168,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
+				byte[] codeTmp = this.code.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(codeTmp.length);
 				output.write(codeTmp);
 			}
@@ -44186,7 +44188,7 @@ public class TdApi {
 
 		public CleanFileName(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var fileNameTmp = new byte[input.readInt()];
+				byte[] fileNameTmp = new byte[input.readInt()];
 				input.readFully(fileNameTmp);
 				this.fileName = new String(fileNameTmp, StandardCharsets.UTF_8);
 			}
@@ -44202,7 +44204,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
+				byte[] fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(fileNameTmp.length);
 				output.write(fileNameTmp);
 			}
@@ -44376,7 +44378,7 @@ public class TdApi {
 
 		public ConfirmQrCodeAuthentication(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var linkTmp = new byte[input.readInt()];
+				byte[] linkTmp = new byte[input.readInt()];
 				input.readFully(linkTmp);
 				this.link = new String(linkTmp, StandardCharsets.UTF_8);
 			}
@@ -44392,7 +44394,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
+				byte[] linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(linkTmp.length);
 				output.write(linkTmp);
 			}
@@ -44527,7 +44529,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -44552,7 +44554,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -44606,12 +44608,12 @@ public class TdApi {
 		public CreateNewStickerSet(DataInput input) throws IOException {
 			this.userId = input.readInt();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -44644,7 +44646,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -44652,7 +44654,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -44688,13 +44690,13 @@ public class TdApi {
 
 		public CreateNewSupergroupChat(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
 			this.isChannel = input.readBoolean();
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -44716,7 +44718,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -44725,7 +44727,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -44836,7 +44838,7 @@ public class TdApi {
 
 		public CreateTemporaryPassword(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -44853,7 +44855,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -44874,7 +44876,7 @@ public class TdApi {
 
 		public DeleteAccount(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var reasonTmp = new byte[input.readInt()];
+				byte[] reasonTmp = new byte[input.readInt()];
 				input.readFully(reasonTmp);
 				this.reason = new String(reasonTmp, StandardCharsets.UTF_8);
 			}
@@ -44890,7 +44892,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var reasonTmp = this.reason.getBytes(StandardCharsets.UTF_8);
+				byte[] reasonTmp = this.reason.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(reasonTmp.length);
 				output.write(reasonTmp);
 			}
@@ -45051,7 +45053,7 @@ public class TdApi {
 
 		public DeleteLanguagePack(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var languagePackIdTmp = new byte[input.readInt()];
+				byte[] languagePackIdTmp = new byte[input.readInt()];
 				input.readFully(languagePackIdTmp);
 				this.languagePackId = new String(languagePackIdTmp, StandardCharsets.UTF_8);
 			}
@@ -45067,7 +45069,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
+				byte[] languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languagePackIdTmp.length);
 				output.write(languagePackIdTmp);
 			}
@@ -45532,7 +45534,7 @@ public class TdApi {
 
 		public EditInlineMessageCaption(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inlineMessageIdTmp = new byte[input.readInt()];
+				byte[] inlineMessageIdTmp = new byte[input.readInt()];
 				input.readFully(inlineMessageIdTmp);
 				this.inlineMessageId = new String(inlineMessageIdTmp, StandardCharsets.UTF_8);
 			}
@@ -45572,7 +45574,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineMessageIdTmp.length);
 				output.write(inlineMessageIdTmp);
 			}
@@ -45608,7 +45610,7 @@ public class TdApi {
 
 		public EditInlineMessageLiveLocation(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inlineMessageIdTmp = new byte[input.readInt()];
+				byte[] inlineMessageIdTmp = new byte[input.readInt()];
 				input.readFully(inlineMessageIdTmp);
 				this.inlineMessageId = new String(inlineMessageIdTmp, StandardCharsets.UTF_8);
 			}
@@ -45648,7 +45650,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineMessageIdTmp.length);
 				output.write(inlineMessageIdTmp);
 			}
@@ -45684,7 +45686,7 @@ public class TdApi {
 
 		public EditInlineMessageMedia(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inlineMessageIdTmp = new byte[input.readInt()];
+				byte[] inlineMessageIdTmp = new byte[input.readInt()];
 				input.readFully(inlineMessageIdTmp);
 				this.inlineMessageId = new String(inlineMessageIdTmp, StandardCharsets.UTF_8);
 			}
@@ -45775,7 +45777,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineMessageIdTmp.length);
 				output.write(inlineMessageIdTmp);
 			}
@@ -45809,7 +45811,7 @@ public class TdApi {
 
 		public EditInlineMessageReplyMarkup(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inlineMessageIdTmp = new byte[input.readInt()];
+				byte[] inlineMessageIdTmp = new byte[input.readInt()];
 				input.readFully(inlineMessageIdTmp);
 				this.inlineMessageId = new String(inlineMessageIdTmp, StandardCharsets.UTF_8);
 			}
@@ -45843,7 +45845,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineMessageIdTmp.length);
 				output.write(inlineMessageIdTmp);
 			}
@@ -45873,7 +45875,7 @@ public class TdApi {
 
 		public EditInlineMessageText(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inlineMessageIdTmp = new byte[input.readInt()];
+				byte[] inlineMessageIdTmp = new byte[input.readInt()];
 				input.readFully(inlineMessageIdTmp);
 				this.inlineMessageId = new String(inlineMessageIdTmp, StandardCharsets.UTF_8);
 			}
@@ -45964,7 +45966,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineMessageIdTmp.length);
 				output.write(inlineMessageIdTmp);
 			}
@@ -46487,7 +46489,7 @@ public class TdApi {
 		public EditProxy(DataInput input) throws IOException {
 			this.proxyId = input.readInt();
 			if (input.readBoolean()) {
-				var serverTmp = new byte[input.readInt()];
+				byte[] serverTmp = new byte[input.readInt()];
 				input.readFully(serverTmp);
 				this.server = new String(serverTmp, StandardCharsets.UTF_8);
 			}
@@ -46521,7 +46523,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var serverTmp = this.server.getBytes(StandardCharsets.UTF_8);
+				byte[] serverTmp = this.server.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(serverTmp.length);
 				output.write(serverTmp);
 			}
@@ -46764,7 +46766,7 @@ public class TdApi {
 
 		public GetAllPassportElements(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -46780,7 +46782,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -46914,7 +46916,7 @@ public class TdApi {
 
 		public GetBackgroundUrl(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -46945,7 +46947,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -46996,7 +46998,7 @@ public class TdApi {
 
 		public GetBankCardInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var bankCardNumberTmp = new byte[input.readInt()];
+				byte[] bankCardNumberTmp = new byte[input.readInt()];
 				input.readFully(bankCardNumberTmp);
 				this.bankCardNumber = new String(bankCardNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -47012,7 +47014,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var bankCardNumberTmp = this.bankCardNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] bankCardNumberTmp = this.bankCardNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(bankCardNumberTmp.length);
 				output.write(bankCardNumberTmp);
 			}
@@ -47221,7 +47223,7 @@ public class TdApi {
 		public GetChatEventLog(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -47252,7 +47254,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -47699,7 +47701,7 @@ public class TdApi {
 		public GetChatStatisticsGraph(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var tokenTmp = new byte[input.readInt()];
+				byte[] tokenTmp = new byte[input.readInt()];
 				input.readFully(tokenTmp);
 				this.token = new String(tokenTmp, StandardCharsets.UTF_8);
 			}
@@ -47717,7 +47719,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
+				byte[] tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(tokenTmp.length);
 				output.write(tokenTmp);
 			}
@@ -47743,7 +47745,7 @@ public class TdApi {
 		public GetChatStatisticsUrl(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var parametersTmp = new byte[input.readInt()];
+				byte[] parametersTmp = new byte[input.readInt()];
 				input.readFully(parametersTmp);
 				this.parameters = new String(parametersTmp, StandardCharsets.UTF_8);
 			}
@@ -47761,7 +47763,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var parametersTmp = this.parameters.getBytes(StandardCharsets.UTF_8);
+				byte[] parametersTmp = this.parameters.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(parametersTmp.length);
 				output.write(parametersTmp);
 			}
@@ -47969,7 +47971,7 @@ public class TdApi {
 
 		public GetDeepLinkInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var linkTmp = new byte[input.readInt()];
+				byte[] linkTmp = new byte[input.readInt()];
 				input.readFully(linkTmp);
 				this.link = new String(linkTmp, StandardCharsets.UTF_8);
 			}
@@ -47985,7 +47987,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
+				byte[] linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(linkTmp.length);
 				output.write(linkTmp);
 			}
@@ -48005,7 +48007,7 @@ public class TdApi {
 
 		public GetEmojiSuggestionsUrl(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var languageCodeTmp = new byte[input.readInt()];
+				byte[] languageCodeTmp = new byte[input.readInt()];
 				input.readFully(languageCodeTmp);
 				this.languageCode = new String(languageCodeTmp, StandardCharsets.UTF_8);
 			}
@@ -48021,7 +48023,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languageCodeTmp = this.languageCode.getBytes(StandardCharsets.UTF_8);
+				byte[] languageCodeTmp = this.languageCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languageCodeTmp.length);
 				output.write(languageCodeTmp);
 			}
@@ -48113,7 +48115,7 @@ public class TdApi {
 
 		public GetFileExtension(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var mimeTypeTmp = new byte[input.readInt()];
+				byte[] mimeTypeTmp = new byte[input.readInt()];
 				input.readFully(mimeTypeTmp);
 				this.mimeType = new String(mimeTypeTmp, StandardCharsets.UTF_8);
 			}
@@ -48129,7 +48131,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
+				byte[] mimeTypeTmp = this.mimeType.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(mimeTypeTmp.length);
 				output.write(mimeTypeTmp);
 			}
@@ -48149,7 +48151,7 @@ public class TdApi {
 
 		public GetFileMimeType(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var fileNameTmp = new byte[input.readInt()];
+				byte[] fileNameTmp = new byte[input.readInt()];
 				input.readFully(fileNameTmp);
 				this.fileName = new String(fileNameTmp, StandardCharsets.UTF_8);
 			}
@@ -48165,7 +48167,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
+				byte[] fileNameTmp = this.fileName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(fileNameTmp.length);
 				output.write(fileNameTmp);
 			}
@@ -48289,7 +48291,7 @@ public class TdApi {
 
 		public GetInlineGameHighScores(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inlineMessageIdTmp = new byte[input.readInt()];
+				byte[] inlineMessageIdTmp = new byte[input.readInt()];
 				input.readFully(inlineMessageIdTmp);
 				this.inlineMessageId = new String(inlineMessageIdTmp, StandardCharsets.UTF_8);
 			}
@@ -48306,7 +48308,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineMessageIdTmp.length);
 				output.write(inlineMessageIdTmp);
 			}
@@ -48343,12 +48345,12 @@ public class TdApi {
 				this.userLocation = new Location(input);
 			}
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var offsetTmp = new byte[input.readInt()];
+				byte[] offsetTmp = new byte[input.readInt()];
 				input.readFully(offsetTmp);
 				this.offset = new String(offsetTmp, StandardCharsets.UTF_8);
 			}
@@ -48372,7 +48374,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -48380,7 +48382,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var offsetTmp = this.offset.getBytes(StandardCharsets.UTF_8);
+				byte[] offsetTmp = this.offset.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(offsetTmp.length);
 				output.write(offsetTmp);
 			}
@@ -48496,7 +48498,7 @@ public class TdApi {
 
 		public GetJsonValue(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var jsonTmp = new byte[input.readInt()];
+				byte[] jsonTmp = new byte[input.readInt()];
 				input.readFully(jsonTmp);
 				this.json = new String(jsonTmp, StandardCharsets.UTF_8);
 			}
@@ -48512,7 +48514,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var jsonTmp = this.json.getBytes(StandardCharsets.UTF_8);
+				byte[] jsonTmp = this.json.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(jsonTmp.length);
 				output.write(jsonTmp);
 			}
@@ -48532,7 +48534,7 @@ public class TdApi {
 
 		public GetLanguagePackInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var languagePackIdTmp = new byte[input.readInt()];
+				byte[] languagePackIdTmp = new byte[input.readInt()];
 				input.readFully(languagePackIdTmp);
 				this.languagePackId = new String(languagePackIdTmp, StandardCharsets.UTF_8);
 			}
@@ -48548,7 +48550,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
+				byte[] languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languagePackIdTmp.length);
 				output.write(languagePackIdTmp);
 			}
@@ -48574,22 +48576,22 @@ public class TdApi {
 
 		public GetLanguagePackString(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var languagePackDatabasePathTmp = new byte[input.readInt()];
+				byte[] languagePackDatabasePathTmp = new byte[input.readInt()];
 				input.readFully(languagePackDatabasePathTmp);
 				this.languagePackDatabasePath = new String(languagePackDatabasePathTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var localizationTargetTmp = new byte[input.readInt()];
+				byte[] localizationTargetTmp = new byte[input.readInt()];
 				input.readFully(localizationTargetTmp);
 				this.localizationTarget = new String(localizationTargetTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var languagePackIdTmp = new byte[input.readInt()];
+				byte[] languagePackIdTmp = new byte[input.readInt()];
 				input.readFully(languagePackIdTmp);
 				this.languagePackId = new String(languagePackIdTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var keyTmp = new byte[input.readInt()];
+				byte[] keyTmp = new byte[input.readInt()];
 				input.readFully(keyTmp);
 				this.key = new String(keyTmp, StandardCharsets.UTF_8);
 			}
@@ -48605,7 +48607,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languagePackDatabasePathTmp = this.languagePackDatabasePath.getBytes(StandardCharsets.UTF_8);
+				byte[] languagePackDatabasePathTmp = this.languagePackDatabasePath.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languagePackDatabasePathTmp.length);
 				output.write(languagePackDatabasePathTmp);
 			}
@@ -48613,7 +48615,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var localizationTargetTmp = this.localizationTarget.getBytes(StandardCharsets.UTF_8);
+				byte[] localizationTargetTmp = this.localizationTarget.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(localizationTargetTmp.length);
 				output.write(localizationTargetTmp);
 			}
@@ -48621,7 +48623,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
+				byte[] languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languagePackIdTmp.length);
 				output.write(languagePackIdTmp);
 			}
@@ -48629,7 +48631,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var keyTmp = this.key.getBytes(StandardCharsets.UTF_8);
+				byte[] keyTmp = this.key.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(keyTmp.length);
 				output.write(keyTmp);
 			}
@@ -48651,14 +48653,14 @@ public class TdApi {
 
 		public GetLanguagePackStrings(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var languagePackIdTmp = new byte[input.readInt()];
+				byte[] languagePackIdTmp = new byte[input.readInt()];
 				input.readFully(languagePackIdTmp);
 				this.languagePackId = new String(languagePackIdTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
 				this.keys = new String[input.readInt()];
 				for (int i = 0; i < this.keys.length; i++) {
-					var keysTmp = new byte[input.readInt()];
+					byte[] keysTmp = new byte[input.readInt()];
 					input.readFully(keysTmp);
 					this.keys[i] = new String(keysTmp, StandardCharsets.UTF_8);
 				}
@@ -48675,7 +48677,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
+				byte[] languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languagePackIdTmp.length);
 				output.write(languagePackIdTmp);
 			}
@@ -48685,7 +48687,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.keys.length);
 				for (int i = 0; i < this.keys.length; i++) {
-					var keysTmp = this.keys[i].getBytes(StandardCharsets.UTF_8);
+					byte[] keysTmp = this.keys[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(keysTmp.length);
 					output.write(keysTmp);
 				}
@@ -48749,7 +48751,7 @@ public class TdApi {
 
 		public GetLogTagVerbosityLevel(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var tagTmp = new byte[input.readInt()];
+				byte[] tagTmp = new byte[input.readInt()];
 				input.readFully(tagTmp);
 				this.tag = new String(tagTmp, StandardCharsets.UTF_8);
 			}
@@ -48765,7 +48767,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var tagTmp = this.tag.getBytes(StandardCharsets.UTF_8);
+				byte[] tagTmp = this.tag.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(tagTmp.length);
 				output.write(tagTmp);
 			}
@@ -49057,7 +49059,7 @@ public class TdApi {
 
 		public GetMessageLinkInfo(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -49073,7 +49075,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -49189,7 +49191,7 @@ public class TdApi {
 
 		public GetOption(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -49205,7 +49207,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -49232,17 +49234,17 @@ public class TdApi {
 		public GetPassportAuthorizationForm(DataInput input) throws IOException {
 			this.botUserId = input.readInt();
 			if (input.readBoolean()) {
-				var scopeTmp = new byte[input.readInt()];
+				byte[] scopeTmp = new byte[input.readInt()];
 				input.readFully(scopeTmp);
 				this.scope = new String(scopeTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var publicKeyTmp = new byte[input.readInt()];
+				byte[] publicKeyTmp = new byte[input.readInt()];
 				input.readFully(publicKeyTmp);
 				this.publicKey = new String(publicKeyTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var nonceTmp = new byte[input.readInt()];
+				byte[] nonceTmp = new byte[input.readInt()];
 				input.readFully(nonceTmp);
 				this.nonce = new String(nonceTmp, StandardCharsets.UTF_8);
 			}
@@ -49259,7 +49261,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var scopeTmp = this.scope.getBytes(StandardCharsets.UTF_8);
+				byte[] scopeTmp = this.scope.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(scopeTmp.length);
 				output.write(scopeTmp);
 			}
@@ -49267,7 +49269,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var publicKeyTmp = this.publicKey.getBytes(StandardCharsets.UTF_8);
+				byte[] publicKeyTmp = this.publicKey.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(publicKeyTmp.length);
 				output.write(publicKeyTmp);
 			}
@@ -49275,7 +49277,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nonceTmp = this.nonce.getBytes(StandardCharsets.UTF_8);
+				byte[] nonceTmp = this.nonce.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nonceTmp.length);
 				output.write(nonceTmp);
 			}
@@ -49298,7 +49300,7 @@ public class TdApi {
 		public GetPassportAuthorizationFormAvailableElements(DataInput input) throws IOException {
 			this.autorizationFormId = input.readInt();
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -49315,7 +49317,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -49382,7 +49384,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -49404,7 +49406,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -49541,7 +49543,7 @@ public class TdApi {
 
 		public GetPreferredCountryLanguage(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var countryCodeTmp = new byte[input.readInt()];
+				byte[] countryCodeTmp = new byte[input.readInt()];
 				input.readFully(countryCodeTmp);
 				this.countryCode = new String(countryCodeTmp, StandardCharsets.UTF_8);
 			}
@@ -49557,7 +49559,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var countryCodeTmp = this.countryCode.getBytes(StandardCharsets.UTF_8);
+				byte[] countryCodeTmp = this.countryCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(countryCodeTmp.length);
 				output.write(countryCodeTmp);
 			}
@@ -49653,7 +49655,7 @@ public class TdApi {
 
 		public GetPushReceiverId(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var payloadTmp = new byte[input.readInt()];
+				byte[] payloadTmp = new byte[input.readInt()];
 				input.readFully(payloadTmp);
 				this.payload = new String(payloadTmp, StandardCharsets.UTF_8);
 			}
@@ -49669,7 +49671,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var payloadTmp = this.payload.getBytes(StandardCharsets.UTF_8);
+				byte[] payloadTmp = this.payload.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(payloadTmp.length);
 				output.write(payloadTmp);
 			}
@@ -49732,7 +49734,7 @@ public class TdApi {
 
 		public GetRecentlyVisitedTMeUrls(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var referrerTmp = new byte[input.readInt()];
+				byte[] referrerTmp = new byte[input.readInt()];
 				input.readFully(referrerTmp);
 				this.referrer = new String(referrerTmp, StandardCharsets.UTF_8);
 			}
@@ -49748,7 +49750,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var referrerTmp = this.referrer.getBytes(StandardCharsets.UTF_8);
+				byte[] referrerTmp = this.referrer.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(referrerTmp.length);
 				output.write(referrerTmp);
 			}
@@ -49786,7 +49788,7 @@ public class TdApi {
 
 		public GetRecoveryEmailAddress(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -49802,7 +49804,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -49824,7 +49826,7 @@ public class TdApi {
 
 		public GetRemoteFile(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var remoteFileIdTmp = new byte[input.readInt()];
+				byte[] remoteFileIdTmp = new byte[input.readInt()];
 				input.readFully(remoteFileIdTmp);
 				this.remoteFileId = new String(remoteFileIdTmp, StandardCharsets.UTF_8);
 			}
@@ -49894,7 +49896,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var remoteFileIdTmp = this.remoteFileId.getBytes(StandardCharsets.UTF_8);
+				byte[] remoteFileIdTmp = this.remoteFileId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(remoteFileIdTmp.length);
 				output.write(remoteFileIdTmp);
 			}
@@ -50128,7 +50130,7 @@ public class TdApi {
 
 		public GetStickers(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var emojiTmp = new byte[input.readInt()];
+				byte[] emojiTmp = new byte[input.readInt()];
 				input.readFully(emojiTmp);
 				this.emoji = new String(emojiTmp, StandardCharsets.UTF_8);
 			}
@@ -50145,7 +50147,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
+				byte[] emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emojiTmp.length);
 				output.write(emojiTmp);
 			}
@@ -50381,7 +50383,7 @@ public class TdApi {
 
 		public GetTextEntities(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -50397,7 +50399,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -50650,7 +50652,7 @@ public class TdApi {
 
 		public GetWebPageInstantView(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var urlTmp = new byte[input.readInt()];
+				byte[] urlTmp = new byte[input.readInt()];
 				input.readFully(urlTmp);
 				this.url = new String(urlTmp, StandardCharsets.UTF_8);
 			}
@@ -50667,7 +50669,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
+				byte[] urlTmp = this.url.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(urlTmp.length);
 				output.write(urlTmp);
 			}
@@ -50830,7 +50832,7 @@ public class TdApi {
 
 		public JoinChatByInviteLink(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inviteLinkTmp = new byte[input.readInt()];
+				byte[] inviteLinkTmp = new byte[input.readInt()];
 				input.readFully(inviteLinkTmp);
 				this.inviteLink = new String(inviteLinkTmp, StandardCharsets.UTF_8);
 			}
@@ -50846,7 +50848,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
+				byte[] inviteLinkTmp = this.inviteLink.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inviteLinkTmp.length);
 				output.write(inviteLinkTmp);
 			}
@@ -51147,7 +51149,7 @@ public class TdApi {
 
 		public ParseTextEntities(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -51175,7 +51177,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -51259,7 +51261,7 @@ public class TdApi {
 
 		public ProcessPushNotification(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var payloadTmp = new byte[input.readInt()];
+				byte[] payloadTmp = new byte[input.readInt()];
 				input.readFully(payloadTmp);
 				this.payload = new String(payloadTmp, StandardCharsets.UTF_8);
 			}
@@ -51275,7 +51277,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var payloadTmp = this.payload.getBytes(StandardCharsets.UTF_8);
+				byte[] payloadTmp = this.payload.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(payloadTmp.length);
 				output.write(payloadTmp);
 			}
@@ -51353,7 +51355,7 @@ public class TdApi {
 
 		public RecoverAuthenticationPassword(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var recoveryCodeTmp = new byte[input.readInt()];
+				byte[] recoveryCodeTmp = new byte[input.readInt()];
 				input.readFully(recoveryCodeTmp);
 				this.recoveryCode = new String(recoveryCodeTmp, StandardCharsets.UTF_8);
 			}
@@ -51369,7 +51371,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var recoveryCodeTmp = this.recoveryCode.getBytes(StandardCharsets.UTF_8);
+				byte[] recoveryCodeTmp = this.recoveryCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(recoveryCodeTmp.length);
 				output.write(recoveryCodeTmp);
 			}
@@ -51389,7 +51391,7 @@ public class TdApi {
 
 		public RecoverPassword(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var recoveryCodeTmp = new byte[input.readInt()];
+				byte[] recoveryCodeTmp = new byte[input.readInt()];
 				input.readFully(recoveryCodeTmp);
 				this.recoveryCode = new String(recoveryCodeTmp, StandardCharsets.UTF_8);
 			}
@@ -51405,7 +51407,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var recoveryCodeTmp = this.recoveryCode.getBytes(StandardCharsets.UTF_8);
+				byte[] recoveryCodeTmp = this.recoveryCode.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(recoveryCodeTmp.length);
 				output.write(recoveryCodeTmp);
 			}
@@ -51512,12 +51514,12 @@ public class TdApi {
 
 		public RegisterUser(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var firstNameTmp = new byte[input.readInt()];
+				byte[] firstNameTmp = new byte[input.readInt()];
 				input.readFully(firstNameTmp);
 				this.firstName = new String(firstNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var lastNameTmp = new byte[input.readInt()];
+				byte[] lastNameTmp = new byte[input.readInt()];
 				input.readFully(lastNameTmp);
 				this.lastName = new String(lastNameTmp, StandardCharsets.UTF_8);
 			}
@@ -51533,7 +51535,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
+				byte[] firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(firstNameTmp.length);
 				output.write(firstNameTmp);
 			}
@@ -51541,7 +51543,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
+				byte[] lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(lastNameTmp.length);
 				output.write(lastNameTmp);
 			}
@@ -51779,7 +51781,7 @@ public class TdApi {
 
 		public RemoveRecentHashtag(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var hashtagTmp = new byte[input.readInt()];
+				byte[] hashtagTmp = new byte[input.readInt()];
 				input.readFully(hashtagTmp);
 				this.hashtag = new String(hashtagTmp, StandardCharsets.UTF_8);
 			}
@@ -51795,7 +51797,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var hashtagTmp = this.hashtag.getBytes(StandardCharsets.UTF_8);
+				byte[] hashtagTmp = this.hashtag.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(hashtagTmp.length);
 				output.write(hashtagTmp);
 			}
@@ -52530,7 +52532,7 @@ public class TdApi {
 
 		public SaveApplicationLogEvent(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var typeTmp = new byte[input.readInt()];
+				byte[] typeTmp = new byte[input.readInt()];
 				input.readFully(typeTmp);
 				this.type = new String(typeTmp, StandardCharsets.UTF_8);
 			}
@@ -52571,7 +52573,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
+				byte[] typeTmp = this.type.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(typeTmp.length);
 				output.write(typeTmp);
 			}
@@ -52598,7 +52600,7 @@ public class TdApi {
 
 		public SearchBackground(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -52614,7 +52616,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -52674,7 +52676,7 @@ public class TdApi {
 		public SearchChatMembers(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -52716,7 +52718,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -52756,7 +52758,7 @@ public class TdApi {
 		public SearchChatMessages(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -52834,7 +52836,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -52895,7 +52897,7 @@ public class TdApi {
 
 		public SearchChats(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -52912,7 +52914,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -52970,7 +52972,7 @@ public class TdApi {
 
 		public SearchChatsOnServer(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -52987,7 +52989,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -53010,7 +53012,7 @@ public class TdApi {
 
 		public SearchContacts(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -53027,7 +53029,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -53052,7 +53054,7 @@ public class TdApi {
 
 		public SearchEmojis(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var textTmp = new byte[input.readInt()];
+				byte[] textTmp = new byte[input.readInt()];
 				input.readFully(textTmp);
 				this.text = new String(textTmp, StandardCharsets.UTF_8);
 			}
@@ -53060,7 +53062,7 @@ public class TdApi {
 			if (input.readBoolean()) {
 				this.inputLanguageCodes = new String[input.readInt()];
 				for (int i = 0; i < this.inputLanguageCodes.length; i++) {
-					var inputLanguageCodesTmp = new byte[input.readInt()];
+					byte[] inputLanguageCodesTmp = new byte[input.readInt()];
 					input.readFully(inputLanguageCodesTmp);
 					this.inputLanguageCodes[i] = new String(inputLanguageCodesTmp, StandardCharsets.UTF_8);
 				}
@@ -53077,7 +53079,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var textTmp = this.text.getBytes(StandardCharsets.UTF_8);
+				byte[] textTmp = this.text.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(textTmp.length);
 				output.write(textTmp);
 			}
@@ -53088,7 +53090,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.inputLanguageCodes.length);
 				for (int i = 0; i < this.inputLanguageCodes.length; i++) {
-					var inputLanguageCodesTmp = this.inputLanguageCodes[i].getBytes(StandardCharsets.UTF_8);
+					byte[] inputLanguageCodesTmp = this.inputLanguageCodes[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(inputLanguageCodesTmp.length);
 					output.write(inputLanguageCodesTmp);
 				}
@@ -53111,7 +53113,7 @@ public class TdApi {
 
 		public SearchHashtags(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var prefixTmp = new byte[input.readInt()];
+				byte[] prefixTmp = new byte[input.readInt()];
 				input.readFully(prefixTmp);
 				this.prefix = new String(prefixTmp, StandardCharsets.UTF_8);
 			}
@@ -53128,7 +53130,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var prefixTmp = this.prefix.getBytes(StandardCharsets.UTF_8);
+				byte[] prefixTmp = this.prefix.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(prefixTmp.length);
 				output.write(prefixTmp);
 			}
@@ -53154,7 +53156,7 @@ public class TdApi {
 		public SearchInstalledStickerSets(DataInput input) throws IOException {
 			this.isMasks = input.readBoolean();
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -53172,7 +53174,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -53218,7 +53220,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -53244,7 +53246,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -53268,7 +53270,7 @@ public class TdApi {
 
 		public SearchPublicChat(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
@@ -53284,7 +53286,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -53304,7 +53306,7 @@ public class TdApi {
 
 		public SearchPublicChats(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -53320,7 +53322,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -53349,7 +53351,7 @@ public class TdApi {
 		public SearchSecretMessages(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -53425,7 +53427,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -53453,7 +53455,7 @@ public class TdApi {
 
 		public SearchStickerSet(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -53469,7 +53471,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -53489,7 +53491,7 @@ public class TdApi {
 
 		public SearchStickerSets(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var queryTmp = new byte[input.readInt()];
+				byte[] queryTmp = new byte[input.readInt()];
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
@@ -53505,7 +53507,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
+				byte[] queryTmp = this.query.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
@@ -53527,7 +53529,7 @@ public class TdApi {
 
 		public SearchStickers(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var emojiTmp = new byte[input.readInt()];
+				byte[] emojiTmp = new byte[input.readInt()];
 				input.readFully(emojiTmp);
 				this.emoji = new String(emojiTmp, StandardCharsets.UTF_8);
 			}
@@ -53544,7 +53546,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
+				byte[] emojiTmp = this.emoji.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emojiTmp.length);
 				output.write(emojiTmp);
 			}
@@ -53571,7 +53573,7 @@ public class TdApi {
 			this.botUserId = input.readInt();
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var parameterTmp = new byte[input.readInt()];
+				byte[] parameterTmp = new byte[input.readInt()];
 				input.readFully(parameterTmp);
 				this.parameter = new String(parameterTmp, StandardCharsets.UTF_8);
 			}
@@ -53589,7 +53591,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var parameterTmp = this.parameter.getBytes(StandardCharsets.UTF_8);
+				byte[] parameterTmp = this.parameter.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(parameterTmp.length);
 				output.write(parameterTmp);
 			}
@@ -53612,7 +53614,7 @@ public class TdApi {
 		public SendCallDebugInformation(DataInput input) throws IOException {
 			this.callId = input.readInt();
 			if (input.readBoolean()) {
-				var debugInformationTmp = new byte[input.readInt()];
+				byte[] debugInformationTmp = new byte[input.readInt()];
 				input.readFully(debugInformationTmp);
 				this.debugInformation = new String(debugInformationTmp, StandardCharsets.UTF_8);
 			}
@@ -53629,7 +53631,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var debugInformationTmp = this.debugInformation.getBytes(StandardCharsets.UTF_8);
+				byte[] debugInformationTmp = this.debugInformation.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(debugInformationTmp.length);
 				output.write(debugInformationTmp);
 			}
@@ -53657,7 +53659,7 @@ public class TdApi {
 			this.callId = input.readInt();
 			this.rating = input.readInt();
 			if (input.readBoolean()) {
-				var commentTmp = new byte[input.readInt()];
+				byte[] commentTmp = new byte[input.readInt()];
 				input.readFully(commentTmp);
 				this.comment = new String(commentTmp, StandardCharsets.UTF_8);
 			}
@@ -53705,7 +53707,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var commentTmp = this.comment.getBytes(StandardCharsets.UTF_8);
+				byte[] commentTmp = this.comment.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(commentTmp.length);
 				output.write(commentTmp);
 			}
@@ -53906,12 +53908,12 @@ public class TdApi {
 
 		public SendCustomRequest(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var methodTmp = new byte[input.readInt()];
+				byte[] methodTmp = new byte[input.readInt()];
 				input.readFully(methodTmp);
 				this.method = new String(methodTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var parametersTmp = new byte[input.readInt()];
+				byte[] parametersTmp = new byte[input.readInt()];
 				input.readFully(parametersTmp);
 				this.parameters = new String(parametersTmp, StandardCharsets.UTF_8);
 			}
@@ -53927,7 +53929,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var methodTmp = this.method.getBytes(StandardCharsets.UTF_8);
+				byte[] methodTmp = this.method.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(methodTmp.length);
 				output.write(methodTmp);
 			}
@@ -53935,7 +53937,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var parametersTmp = this.parameters.getBytes(StandardCharsets.UTF_8);
+				byte[] parametersTmp = this.parameters.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(parametersTmp.length);
 				output.write(parametersTmp);
 			}
@@ -53955,7 +53957,7 @@ public class TdApi {
 
 		public SendEmailAddressVerificationCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var emailAddressTmp = new byte[input.readInt()];
+				byte[] emailAddressTmp = new byte[input.readInt()];
 				input.readFully(emailAddressTmp);
 				this.emailAddress = new String(emailAddressTmp, StandardCharsets.UTF_8);
 			}
@@ -53971,7 +53973,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
+				byte[] emailAddressTmp = this.emailAddress.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(emailAddressTmp.length);
 				output.write(emailAddressTmp);
 			}
@@ -54010,7 +54012,7 @@ public class TdApi {
 			}
 			this.queryId = input.readLong();
 			if (input.readBoolean()) {
-				var resultIdTmp = new byte[input.readInt()];
+				byte[] resultIdTmp = new byte[input.readInt()];
 				input.readFully(resultIdTmp);
 				this.resultId = new String(resultIdTmp, StandardCharsets.UTF_8);
 			}
@@ -54036,7 +54038,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var resultIdTmp = this.resultId.getBytes(StandardCharsets.UTF_8);
+				byte[] resultIdTmp = this.resultId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(resultIdTmp.length);
 				output.write(resultIdTmp);
 			}
@@ -54399,12 +54401,12 @@ public class TdApi {
 			this.chatId = input.readLong();
 			this.messageId = input.readLong();
 			if (input.readBoolean()) {
-				var orderInfoIdTmp = new byte[input.readInt()];
+				byte[] orderInfoIdTmp = new byte[input.readInt()];
 				input.readFully(orderInfoIdTmp);
 				this.orderInfoId = new String(orderInfoIdTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var shippingOptionIdTmp = new byte[input.readInt()];
+				byte[] shippingOptionIdTmp = new byte[input.readInt()];
 				input.readFully(shippingOptionIdTmp);
 				this.shippingOptionId = new String(shippingOptionIdTmp, StandardCharsets.UTF_8);
 			}
@@ -54440,7 +54442,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var orderInfoIdTmp = this.orderInfoId.getBytes(StandardCharsets.UTF_8);
+				byte[] orderInfoIdTmp = this.orderInfoId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(orderInfoIdTmp.length);
 				output.write(orderInfoIdTmp);
 			}
@@ -54448,7 +54450,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var shippingOptionIdTmp = this.shippingOptionId.getBytes(StandardCharsets.UTF_8);
+				byte[] shippingOptionIdTmp = this.shippingOptionId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(shippingOptionIdTmp.length);
 				output.write(shippingOptionIdTmp);
 			}
@@ -54478,12 +54480,12 @@ public class TdApi {
 
 		public SendPhoneNumberConfirmationCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var hashTmp = new byte[input.readInt()];
+				byte[] hashTmp = new byte[input.readInt()];
 				input.readFully(hashTmp);
 				this.hash = new String(hashTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -54505,7 +54507,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var hashTmp = this.hash.getBytes(StandardCharsets.UTF_8);
+				byte[] hashTmp = this.hash.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(hashTmp.length);
 				output.write(hashTmp);
 			}
@@ -54513,7 +54515,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -54541,7 +54543,7 @@ public class TdApi {
 
 		public SendPhoneNumberVerificationCode(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -54563,7 +54565,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -54651,7 +54653,7 @@ public class TdApi {
 
 		public SetAuthenticationPhoneNumber(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var phoneNumberTmp = new byte[input.readInt()];
+				byte[] phoneNumberTmp = new byte[input.readInt()];
 				input.readFully(phoneNumberTmp);
 				this.phoneNumber = new String(phoneNumberTmp, StandardCharsets.UTF_8);
 			}
@@ -54673,7 +54675,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
+				byte[] phoneNumberTmp = this.phoneNumber.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(phoneNumberTmp.length);
 				output.write(phoneNumberTmp);
 			}
@@ -54831,7 +54833,7 @@ public class TdApi {
 
 		public SetBio(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var bioTmp = new byte[input.readInt()];
+				byte[] bioTmp = new byte[input.readInt()];
 				input.readFully(bioTmp);
 				this.bio = new String(bioTmp, StandardCharsets.UTF_8);
 			}
@@ -54847,7 +54849,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var bioTmp = this.bio.getBytes(StandardCharsets.UTF_8);
+				byte[] bioTmp = this.bio.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(bioTmp.length);
 				output.write(bioTmp);
 			}
@@ -54870,7 +54872,7 @@ public class TdApi {
 		public SetBotUpdatesStatus(DataInput input) throws IOException {
 			this.pendingUpdateCount = input.readInt();
 			if (input.readBoolean()) {
-				var errorMessageTmp = new byte[input.readInt()];
+				byte[] errorMessageTmp = new byte[input.readInt()];
 				input.readFully(errorMessageTmp);
 				this.errorMessage = new String(errorMessageTmp, StandardCharsets.UTF_8);
 			}
@@ -54887,7 +54889,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
+				byte[] errorMessageTmp = this.errorMessage.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(errorMessageTmp.length);
 				output.write(errorMessageTmp);
 			}
@@ -54910,7 +54912,7 @@ public class TdApi {
 		public SetChatClientData(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var clientDataTmp = new byte[input.readInt()];
+				byte[] clientDataTmp = new byte[input.readInt()];
 				input.readFully(clientDataTmp);
 				this.clientData = new String(clientDataTmp, StandardCharsets.UTF_8);
 			}
@@ -54927,7 +54929,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var clientDataTmp = this.clientData.getBytes(StandardCharsets.UTF_8);
+				byte[] clientDataTmp = this.clientData.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(clientDataTmp.length);
 				output.write(clientDataTmp);
 			}
@@ -54950,7 +54952,7 @@ public class TdApi {
 		public SetChatDescription(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var descriptionTmp = new byte[input.readInt()];
+				byte[] descriptionTmp = new byte[input.readInt()];
 				input.readFully(descriptionTmp);
 				this.description = new String(descriptionTmp, StandardCharsets.UTF_8);
 			}
@@ -54967,7 +54969,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
+				byte[] descriptionTmp = this.description.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(descriptionTmp.length);
 				output.write(descriptionTmp);
 			}
@@ -55313,7 +55315,7 @@ public class TdApi {
 		public SetChatTitle(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
-				var titleTmp = new byte[input.readInt()];
+				byte[] titleTmp = new byte[input.readInt()];
 				input.readFully(titleTmp);
 				this.title = new String(titleTmp, StandardCharsets.UTF_8);
 			}
@@ -55330,7 +55332,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
+				byte[] titleTmp = this.title.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(titleTmp.length);
 				output.write(titleTmp);
 			}
@@ -55448,7 +55450,7 @@ public class TdApi {
 
 		public SetCustomLanguagePackString(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var languagePackIdTmp = new byte[input.readInt()];
+				byte[] languagePackIdTmp = new byte[input.readInt()];
 				input.readFully(languagePackIdTmp);
 				this.languagePackId = new String(languagePackIdTmp, StandardCharsets.UTF_8);
 			}
@@ -55470,7 +55472,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
+				byte[] languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languagePackIdTmp.length);
 				output.write(languagePackIdTmp);
 			}
@@ -55616,7 +55618,7 @@ public class TdApi {
 
 		public SetInlineGameScore(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var inlineMessageIdTmp = new byte[input.readInt()];
+				byte[] inlineMessageIdTmp = new byte[input.readInt()];
 				input.readFully(inlineMessageIdTmp);
 				this.inlineMessageId = new String(inlineMessageIdTmp, StandardCharsets.UTF_8);
 			}
@@ -55636,7 +55638,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
+				byte[] inlineMessageIdTmp = this.inlineMessageId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(inlineMessageIdTmp.length);
 				output.write(inlineMessageIdTmp);
 			}
@@ -55741,7 +55743,7 @@ public class TdApi {
 
 		public SetLogTagVerbosityLevel(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var tagTmp = new byte[input.readInt()];
+				byte[] tagTmp = new byte[input.readInt()];
 				input.readFully(tagTmp);
 				this.tag = new String(tagTmp, StandardCharsets.UTF_8);
 			}
@@ -55758,7 +55760,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var tagTmp = this.tag.getBytes(StandardCharsets.UTF_8);
+				byte[] tagTmp = this.tag.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(tagTmp.length);
 				output.write(tagTmp);
 			}
@@ -55806,12 +55808,12 @@ public class TdApi {
 
 		public SetName(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var firstNameTmp = new byte[input.readInt()];
+				byte[] firstNameTmp = new byte[input.readInt()];
 				input.readFully(firstNameTmp);
 				this.firstName = new String(firstNameTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var lastNameTmp = new byte[input.readInt()];
+				byte[] lastNameTmp = new byte[input.readInt()];
 				input.readFully(lastNameTmp);
 				this.lastName = new String(lastNameTmp, StandardCharsets.UTF_8);
 			}
@@ -55827,7 +55829,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
+				byte[] firstNameTmp = this.firstName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(firstNameTmp.length);
 				output.write(firstNameTmp);
 			}
@@ -55835,7 +55837,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
+				byte[] lastNameTmp = this.lastName.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(lastNameTmp.length);
 				output.write(lastNameTmp);
 			}
@@ -55907,7 +55909,7 @@ public class TdApi {
 
 		public SetOption(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -55941,7 +55943,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -56014,7 +56016,7 @@ public class TdApi {
 				}
 			}
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -56036,7 +56038,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -56109,23 +56111,23 @@ public class TdApi {
 
 		public SetPassword(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var oldPasswordTmp = new byte[input.readInt()];
+				byte[] oldPasswordTmp = new byte[input.readInt()];
 				input.readFully(oldPasswordTmp);
 				this.oldPassword = new String(oldPasswordTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var newPasswordTmp = new byte[input.readInt()];
+				byte[] newPasswordTmp = new byte[input.readInt()];
 				input.readFully(newPasswordTmp);
 				this.newPassword = new String(newPasswordTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var newHintTmp = new byte[input.readInt()];
+				byte[] newHintTmp = new byte[input.readInt()];
 				input.readFully(newHintTmp);
 				this.newHint = new String(newHintTmp, StandardCharsets.UTF_8);
 			}
 			this.setRecoveryEmailAddress = input.readBoolean();
 			if (input.readBoolean()) {
-				var newRecoveryEmailAddressTmp = new byte[input.readInt()];
+				byte[] newRecoveryEmailAddressTmp = new byte[input.readInt()];
 				input.readFully(newRecoveryEmailAddressTmp);
 				this.newRecoveryEmailAddress = new String(newRecoveryEmailAddressTmp, StandardCharsets.UTF_8);
 			}
@@ -56141,7 +56143,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var oldPasswordTmp = this.oldPassword.getBytes(StandardCharsets.UTF_8);
+				byte[] oldPasswordTmp = this.oldPassword.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(oldPasswordTmp.length);
 				output.write(oldPasswordTmp);
 			}
@@ -56149,7 +56151,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var newPasswordTmp = this.newPassword.getBytes(StandardCharsets.UTF_8);
+				byte[] newPasswordTmp = this.newPassword.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(newPasswordTmp.length);
 				output.write(newPasswordTmp);
 			}
@@ -56157,7 +56159,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var newHintTmp = this.newHint.getBytes(StandardCharsets.UTF_8);
+				byte[] newHintTmp = this.newHint.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(newHintTmp.length);
 				output.write(newHintTmp);
 			}
@@ -56166,7 +56168,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var newRecoveryEmailAddressTmp = this.newRecoveryEmailAddress.getBytes(StandardCharsets.UTF_8);
+				byte[] newRecoveryEmailAddressTmp = this.newRecoveryEmailAddress.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(newRecoveryEmailAddressTmp.length);
 				output.write(newRecoveryEmailAddressTmp);
 			}
@@ -56339,12 +56341,12 @@ public class TdApi {
 
 		public SetRecoveryEmailAddress(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
 			if (input.readBoolean()) {
-				var newRecoveryEmailAddressTmp = new byte[input.readInt()];
+				byte[] newRecoveryEmailAddressTmp = new byte[input.readInt()];
 				input.readFully(newRecoveryEmailAddressTmp);
 				this.newRecoveryEmailAddress = new String(newRecoveryEmailAddressTmp, StandardCharsets.UTF_8);
 			}
@@ -56360,7 +56362,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
@@ -56368,7 +56370,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var newRecoveryEmailAddressTmp = this.newRecoveryEmailAddress.getBytes(StandardCharsets.UTF_8);
+				byte[] newRecoveryEmailAddressTmp = this.newRecoveryEmailAddress.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(newRecoveryEmailAddressTmp.length);
 				output.write(newRecoveryEmailAddressTmp);
 			}
@@ -56502,7 +56504,7 @@ public class TdApi {
 		public SetStickerSetThumbnail(DataInput input) throws IOException {
 			this.userId = input.readInt();
 			if (input.readBoolean()) {
-				var nameTmp = new byte[input.readInt()];
+				byte[] nameTmp = new byte[input.readInt()];
 				input.readFully(nameTmp);
 				this.name = new String(nameTmp, StandardCharsets.UTF_8);
 			}
@@ -56537,7 +56539,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(nameTmp.length);
 				output.write(nameTmp);
 			}
@@ -56595,7 +56597,7 @@ public class TdApi {
 		public SetSupergroupUsername(DataInput input) throws IOException {
 			this.supergroupId = input.readInt();
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
@@ -56612,7 +56614,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -56740,7 +56742,7 @@ public class TdApi {
 
 		public SetUsername(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var usernameTmp = new byte[input.readInt()];
+				byte[] usernameTmp = new byte[input.readInt()];
 				input.readFully(usernameTmp);
 				this.username = new String(usernameTmp, StandardCharsets.UTF_8);
 			}
@@ -56756,7 +56758,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
+				byte[] usernameTmp = this.username.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(usernameTmp.length);
 				output.write(usernameTmp);
 			}
@@ -56856,7 +56858,7 @@ public class TdApi {
 
 		public SynchronizeLanguagePack(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var languagePackIdTmp = new byte[input.readInt()];
+				byte[] languagePackIdTmp = new byte[input.readInt()];
 				input.readFully(languagePackIdTmp);
 				this.languagePackId = new String(languagePackIdTmp, StandardCharsets.UTF_8);
 			}
@@ -56872,7 +56874,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
+				byte[] languagePackIdTmp = this.languagePackId.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(languagePackIdTmp.length);
 				output.write(languagePackIdTmp);
 			}
@@ -56987,7 +56989,7 @@ public class TdApi {
 
 		public TestCallString(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var xTmp = new byte[input.readInt()];
+				byte[] xTmp = new byte[input.readInt()];
 				input.readFully(xTmp);
 				this.x = new String(xTmp, StandardCharsets.UTF_8);
 			}
@@ -57003,7 +57005,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var xTmp = this.x.getBytes(StandardCharsets.UTF_8);
+				byte[] xTmp = this.x.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(xTmp.length);
 				output.write(xTmp);
 			}
@@ -57104,7 +57106,7 @@ public class TdApi {
 			if (input.readBoolean()) {
 				this.x = new String[input.readInt()];
 				for (int i = 0; i < this.x.length; i++) {
-					var xTmp = new byte[input.readInt()];
+					byte[] xTmp = new byte[input.readInt()];
 					input.readFully(xTmp);
 					this.x[i] = new String(xTmp, StandardCharsets.UTF_8);
 				}
@@ -57123,7 +57125,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				output.writeInt(this.x.length);
 				for (int i = 0; i < this.x.length; i++) {
-					var xTmp = this.x[i].getBytes(StandardCharsets.UTF_8);
+					byte[] xTmp = this.x[i].getBytes(StandardCharsets.UTF_8);
 					output.writeInt(xTmp.length);
 					output.write(xTmp);
 				}
@@ -57229,7 +57231,7 @@ public class TdApi {
 
 		public TestProxy(DataInput input) throws IOException {
 			if (input.readBoolean()) {
-				var serverTmp = new byte[input.readInt()];
+				byte[] serverTmp = new byte[input.readInt()];
 				input.readFully(serverTmp);
 				this.server = new String(serverTmp, StandardCharsets.UTF_8);
 			}
@@ -57263,7 +57265,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var serverTmp = this.server.getBytes(StandardCharsets.UTF_8);
+				byte[] serverTmp = this.server.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(serverTmp.length);
 				output.write(serverTmp);
 			}
@@ -57544,7 +57546,7 @@ public class TdApi {
 			this.chatId = input.readLong();
 			this.userId = input.readInt();
 			if (input.readBoolean()) {
-				var passwordTmp = new byte[input.readInt()];
+				byte[] passwordTmp = new byte[input.readInt()];
 				input.readFully(passwordTmp);
 				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
 			}
@@ -57562,7 +57564,7 @@ public class TdApi {
 				output.writeBoolean(false);
 			} else {
 				output.writeBoolean(true);
-				var passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
