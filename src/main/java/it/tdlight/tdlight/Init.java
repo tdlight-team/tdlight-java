@@ -38,8 +38,8 @@ public class Init {
             Os os = LoadLibrary.getOs();
 
             if (os == Os.win) {
-                LoadLibrary.load("libeay32");
-                LoadLibrary.load("ssleay32");
+                LoadLibrary.load("libcrypto-1_1-x64");
+                LoadLibrary.load("libssl-1_1-x64");
                 LoadLibrary.load("zlib1");
             }
 
