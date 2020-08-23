@@ -11,34 +11,52 @@
 
     <repositories>
         <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
+            <id>mchv</id>
+            <name>MCHV Apache Maven Packages</name>
+            <url>https://mvn.mchv.eu/repository/mchv/</url>
         </repository>
     </repositories>
 
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub TDLight Team Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/tdlight-team/tdlight-java</url>
-        </repository>
-    </distributionManagement>
+    <profiles>
+        <profile>
+            <id>publish-to-mchv</id>
+            <properties/>
+            <distributionManagement>
+                <repository>
+                    <id>mchv</id>
+                    <name>MCHV Apache Maven Packages</name>
+                    <url>https://mvn.mchv.eu/repository/mchv/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>publish-to-github</id>
+            <properties/>
+            <distributionManagement>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub TDLight Team Apache Maven Packages</name>
+                    <url>https://maven.pkg.github.com/tdlight-team/tdlight-java</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>
-            <groupId>com.github.tdlight-team</groupId>
-            <artifactId>tdlight-java-natives-linux-amd64</artifactId>
-            <version>v1.1.11</version>
+            <groupId>it.tdlight</groupId>
+            <artifactId>tdlight-natives-linux-amd64</artifactId>
+            <version>1.1.11</version>
         </dependency>
         <dependency>
-            <groupId>com.github.tdlight-team</groupId>
-            <artifactId>tdlight-java-natives-linux-aarch64</artifactId>
-            <version>v1.1.7</version>
+            <groupId>it.tdlight</groupId>
+            <artifactId>tdlight-natives-linux-aarch64</artifactId>
+            <version>1.1.7</version>
         </dependency> 
         <dependency>
-            <groupId>com.github.tdlight-team</groupId>
-            <artifactId>tdlight-java-natives-windows-amd64</artifactId>
-            <version>v1.1.8</version>
+            <groupId>it.tdlight</groupId>
+            <artifactId>tdlight-natives-windows-amd64</artifactId>
+            <version>1.1.8</version>
         </dependency> 
     </dependencies>
     <build>
