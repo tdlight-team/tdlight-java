@@ -161,14 +161,23 @@ public class LoadLibrary {
 		if (os.contains("windows"))
 			return Os.win;
 		if (os.contains("mac"))
-			return Os.mac;
+			return Os.osx;
 		if (os.contains("darwin"))
-			return Os.mac;
+			return Os.osx;
 		return Os.unknown;
 	}
 
 	private static String getExt(Os os) {
-		return (os == Os.win) ? ".dll" : ".so";
+		switch (os) {
+			case win:
+				return ".dll";
+			case osx:
+				return ".dylib";
+			case linux:
+			case unknown:
+			default:
+				return ".so";
+		}
 	}
 
 	private static String createPath(String... path) {
