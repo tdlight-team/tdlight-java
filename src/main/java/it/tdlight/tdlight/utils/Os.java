@@ -23,6 +23,6 @@ package it.tdlight.tdlight.utils;
 public enum  Os {
     linux,
     win,
-    mac,
+    osx,
     unknown
 }
