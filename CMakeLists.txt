@@ -953,6 +953,7 @@ if (NOT CMAKE_CROSSCOMPILING AND NOT TD_SKIP_TG_CLI)
   target_link_libraries(tg_cli PRIVATE memprof tdclient tdcore)
   add_dependencies(tg_cli tl_generate_json)
 endif()
+endif()
 
 #Exported libraries
 add_library(TdStatic INTERFACE)
