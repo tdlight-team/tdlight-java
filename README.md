@@ -29,27 +29,28 @@ Choose one of the two different TDLight packages and then follow the guide below
 Replace `REPLACE_WITH_LATEST_VERSION` with the latest version of tdlight, you can find it on the **Releases** tab on github.
 ### For TDLight Java with optimized TDLight
 #### Maven
+Repository:
 ```xml
 <repositories>
   <repository>
-    <id>tdlight-gihtub</id>
-    <name>GitHub TDLight Team Apache Maven Packages</name>
-    <url>https://maven.pkg.github.com/tdlight-team/tdlight-java</url>
+    <id>mchv</id>
+    <name>MCHV Apache Maven Packages</name>
+    <url>https://mvn.mchv.eu/repository/mchv/</url>
   </repository>
 </repositories>
-
-<dependencies>
-  <dependency>
-    <groupId>it.tdlight</groupId>
-    <artifactId>tdlight-java</artifactId>
-    <version>REPLACE_WITH_LATEST_VERSION</version>
-  </dependency>
-</dependencies>
+```
+Dependency:
+```xml
+<dependency>
+<groupId>it.tdlight</groupId>
+<artifactId>tdlight-java</artifactId>
+<version>REPLACE_WITH_LATEST_VERSION</version>
+</dependency>
 ```
 #### Gradle
 ```groovy
 repositories {
-     maven { url "https://maven.pkg.github.com/tdlight-team/tdlight-java" }
+     maven { url "https://mvn.mchv.eu/repository/mchv/" }
 }
 dependencies {
      implementation 'it.tdlight:tdlight-java:REPLACE_WITH_LATEST_VERSION'
@@ -57,27 +58,28 @@ dependencies {
 ```
 ### For TDLight Java with official TDLib
 #### Maven
+Repository:
 ```xml
 <repositories>
   <repository>
-    <id>tdlight-gihtub</id>
-    <name>GitHub TDLight Team Apache Maven Packages</name>
-    <url>https://maven.pkg.github.com/tdlight-team/tdlight-java</url>
+    <id>mchv</id>
+    <name>MCHV Apache Maven Packages</name>
+    <url>https://mvn.mchv.eu/repository/mchv/</url>
   </repository>
 </repositories>
-
-<dependencies>
-  <dependency>
-    <groupId>it.tdlight</groupId>
-    <artifactId>tdlib-java</artifactId>
-    <version>REPLACE_WITH_LATEST_VERSION</version>
-  </dependency>
-</dependencies>
+```
+Dependency:
+```xml
+<dependency>
+<groupId>it.tdlight</groupId>
+<artifactId>tdlib-java</artifactId>
+<version>REPLACE_WITH_LATEST_VERSION</version>
+</dependency>
 ```
 #### Gradle
 ```groovy
 repositories {
-     maven { url "https://maven.pkg.github.com/tdlight-team/tdlight-java" }
+     maven { url "https://mvn.mchv.eu/repository/mchv/" }
 }
 dependencies {
      implementation 'it.tdlight:tdlib-java:REPLACE_WITH_LATEST_VERSION'
