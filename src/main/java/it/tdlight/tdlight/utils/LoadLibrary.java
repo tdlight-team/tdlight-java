@@ -65,10 +65,6 @@ public class LoadLibrary {
 	}
 
 	private static void loadLibrary(String libname) throws Throwable {
-		if (loadSysLibrary(libname)) {
-			return;
-		}
-
 		Arch arch = getCpuArch();
 		Os os = getOs();
 
@@ -83,6 +79,9 @@ public class LoadLibrary {
 		try {
 			loadJarLibrary(libname, arch, os);
 		} catch (IOException | CantLoadLibrary | UnsatisfiedLinkError e) {
+			if (loadSysLibrary(libname)) {
+				return;
+			}
 			throw new CantLoadLibrary().initCause(e);
 		}
 	}
