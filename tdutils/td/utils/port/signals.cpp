@@ -45,7 +45,7 @@ Status setup_signals_alt_stack() {
   auto page_size = getpagesize();
   auto stack_size = (MINSIGSTKSZ + 16 * page_size - 1) / page_size * page_size;
 
-  void *stack = mmap(nullptr, stack_size + 2 * page_size, PROT_READ | PROT_WRITE, MAP_ANON | MADV_MERGEABLE, -1, 0);
+  void *stack = mmap(nullptr, stack_size + 2 * page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
   if (stack == MAP_FAILED) {
     return OS_ERROR("Mmap failed");
   }
