@@ -2,6 +2,7 @@ package it.tdlight.tdlight;
 
 import it.tdlight.tdlib.NativeLog;
 import it.tdlight.tdlight.utils.ObjectsUtils;
+import java.io.PrintStream;
 
 /**
  * Interface for managing the internal logging of TDLib. By default TDLib writes logs to stderr or an OS specific log and uses a verbosity level of 5.
@@ -27,7 +28,14 @@ public class Log {
 	 * @return True on success, or false otherwise, i.e. if the file can't be opened for writing.
 	 */
 	public static boolean setFilePath(String filePath) {
-		return NativeLog.setFilePath(filePath);
+		PrintStream previousOut = System.out;
+		PrintStream previousErr = System.err;
+		try {
+			return NativeLog.setFilePath(filePath);
+		} finally {
+			System.setOut(previousOut);
+			System.setOut(previousErr);
+		}
 	}
 
 	/**
