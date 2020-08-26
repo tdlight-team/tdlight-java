@@ -34,7 +34,7 @@ public class Log {
 			return NativeLog.setFilePath(filePath);
 		} finally {
 			System.setOut(previousOut);
-			System.setOut(previousErr);
+			System.setErr(previousErr);
 		}
 	}
 
