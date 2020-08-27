@@ -27,22 +27,26 @@ public class Log {
 	 * @param filePath Path to a file where the internal TDLib log will be written. Use an empty path to switch back to the default logging behaviour.
 	 * @return True on success, or false otherwise, i.e. if the file can't be opened for writing.
 	 */
-	public static boolean setFilePath(String filePath) {
+	public static synchronized boolean setFilePath(String filePath) {
 		PrintStream previousOut = System.out;
 		PrintStream previousErr = System.err;
+		boolean result = NativeLog.setFilePath(filePath);
 		try {
-			return NativeLog.setFilePath(filePath);
-		} finally {
-			System.setOut(previousOut);
-			System.setErr(previousErr);
+			// Sleeping to make sure that the system output has been changed by TDLib, before restoring it
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
+		System.setOut(previousOut);
+		System.setErr(previousErr);
+		return result;
 	}
 
 	/**
 	 * Sets maximum size of the file to where the internal TDLib log is written before the file will be auto-rotated. Unused if log is not written to a file. Defaults to 10 MB.
 	 * @param maxFileSize Maximum size of the file to where the internal TDLib log is written before the file will be auto-rotated. Should be positive.
 	 */
-	public static void setMaxFileSize(long maxFileSize) {
+	public static synchronized void setMaxFileSize(long maxFileSize) {
 		NativeLog.setMaxFileSize(maxFileSize);
 	}
 
@@ -50,7 +54,7 @@ public class Log {
 	 * Sets the verbosity level of the internal logging of TDLib. By default the TDLib uses a verbosity level of 5 for logging.
 	 * @param verbosityLevel New value of the verbosity level for logging. Value 0 corresponds to fatal errors, value 1 corresponds to errors, value 2 corresponds to warnings and debug warnings, value 3 corresponds to informational, value 4 corresponds to debug, value 5 corresponds to verbose debug, value greater than 5 and up to 1024 can be used to enable even more logging.
 	 */
-	public static void setVerbosityLevel(int verbosityLevel) {
+	public static synchronized void setVerbosityLevel(int verbosityLevel) {
 		NativeLog.setVerbosityLevel(verbosityLevel);
 	}
 
@@ -58,11 +62,11 @@ public class Log {
 	 * Sets the callback that will be called when a fatal error happens. None of the TDLib methods can be called from the callback. The TDLib will crash as soon as callback returns. By default the callback set to print in stderr.
 	 * @param fatalErrorCallback Callback that will be called when a fatal error happens. Pass null to restore default callback.
 	 */
-	public static void setFatalErrorCallback(FatalErrorCallbackPtr fatalErrorCallback) {
+	public static synchronized void setFatalErrorCallback(FatalErrorCallbackPtr fatalErrorCallback) {
 		Log.fatalErrorCallback = ObjectsUtils.requireNonNullElse(fatalErrorCallback, defaultFatalErrorCallbackPtr);
 	}
 
-	private static void onFatalError(String errorMessage) {
+	private static synchronized void onFatalError(String errorMessage) {
 		new Thread(() -> Log.fatalErrorCallback.onFatalError(errorMessage)).start();
 	}
 }
