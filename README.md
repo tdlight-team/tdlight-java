@@ -16,7 +16,9 @@ We added some options:
 * **ignore_update_chat_last_message**  (true/false) If you don't care about have updateChatLastMessage updates enable this
 * **ignore_update_chat_read_inbox**  (true/false) If you don't care about have updateChatReadInbox updates enable this
 * **ignore_update_user_chat_action**  (true/false) If you don't care about have updateUserChatAction updates enable this
-
+* **delete_chat_reference_after_seconds** (positive number) During cleanup, free the memory of the chats that have not been touched for more than X seconds
+* **delete_user_reference_after_seconds** (positive number) During cleanup, free the memory of the users that have not been touched for more than X seconds
+* **delete_file_reference_after_seconds** (positive number) During cleanup, free the memory of the files that have not been touched for more than X seconds
 
 ## Modified features
 ### TdApi.OptimizeStorage
