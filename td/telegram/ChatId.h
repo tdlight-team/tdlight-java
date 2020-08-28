@@ -9,6 +9,7 @@
 #include "td/utils/common.h"
 #include "td/utils/StringBuilder.h"
 
+#include <ctime>
 #include <functional>
 #include <type_traits>
 
@@ -16,6 +17,7 @@ namespace td {
 
 class ChatId {
   int32 id = 0;
+  int64 time_ = INT64_MAX;
 
  public:
   ChatId() = default;
@@ -31,6 +33,18 @@ class ChatId {
 
   int32 get() const {
     return id;
+  }
+
+  void set_time() {
+    time_ = std::time(nullptr);
+  }
+
+  int64 get_time() const {
+    return time_;
+  }
+
+  void reset_time() {
+    time_ = INT64_MAX;
   }
 
   bool operator==(const ChatId &other) const {

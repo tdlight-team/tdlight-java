@@ -7061,6 +7061,15 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
       if (set_boolean_option("disable_notifications")) {
         return;
       }
+      if (set_integer_option("delete_file_reference_after_seconds")) {
+        return;
+      }
+      if (set_integer_option("delete_user_reference_after_seconds")) {
+        return;
+      }
+      if (set_integer_option("delete_chat_reference_after_seconds")) {
+        return;
+      }
       // End custom-patches
       if (set_boolean_option("disable_persistent_network_statistics")) {
         return;

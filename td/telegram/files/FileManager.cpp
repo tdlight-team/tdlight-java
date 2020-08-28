@@ -49,8 +49,6 @@
 #include <unordered_set>
 #include <utility>
 
-#define FILE_TTL 30
-
 namespace td {
 namespace {
 constexpr int64 MAX_FILE_SIZE = 2000 * (1 << 20) /* 2000MB */;
@@ -1031,7 +1029,7 @@ bool FileManager::try_fix_partial_local_location(FileNodePtr node) {
 }
 
 FileManager::FileIdInfo *FileManager::get_file_id_info(FileId file_id) {
-  file_id.set_time();
+  file_id.set_time(); // update last access time of FileId
   return &file_id_info_.at(file_id.get());
 }
 
@@ -1074,7 +1072,7 @@ void FileManager::try_forget_file_id(FileId file_id) {
   *info = FileIdInfo();
   file_id_info_.erase(file_id.get());
   // Start custom-patches
-  file_id.reset_time();
+  file_id.reset_time(); // delete last access time of FileId
   destroy_query(file_id.get());
   context_->destroy_file_source(file_id);
   // End custom-patches
@@ -3306,7 +3304,7 @@ FileId FileManager::next_file_id() {
   auto id = file_id_seqno++;
   FileId res(static_cast<int32>(id), 0);
   file_id_info_[id] = {};
-  res.set_time();
+  res.set_time(); // update last access time of FileId
   return res;
 }
 
@@ -3846,7 +3844,7 @@ void FileManager::hangup() {
 void FileManager::destroy_query(int32 file_id) {
   for (auto &query_id : queries_container_.ids()) {
     auto query = queries_container_.get(query_id);
-    if (query != nullptr && file_id == query->file_id_.fast_get()) {
+    if (query != nullptr && file_id == query->file_id_.get()) {
       on_error(query_id, Status::Error(400, "FILE_DOWNLOAD_RESTART"));
     }
   }
@@ -3860,6 +3858,8 @@ void FileManager::memory_cleanup() {
 
   std::unordered_set<int32> file_to_be_deleted = {};
 
+  auto file_ttl = !G()->shared_config().get_option_integer("delete_file_reference_after_seconds", 30);
+
   /* DESTROY OLD file_id_info_ */
   if (true) {
     auto it = file_id_info_.begin();
@@ -3870,7 +3870,7 @@ void FileManager::memory_cleanup() {
       if (find_node != file_nodes_.end()) {
         auto &node = find_node->second;
 
-        if (time - node->main_file_id_.get_time() > FILE_TTL) {
+        if (time - node->main_file_id_.get_time() > file_ttl) {
           auto can_reset = node->download_priority_ == 0;
           can_reset &= node->generate_download_priority_ == 0;
           can_reset &= node->download_id_ == 0;
@@ -3879,27 +3879,27 @@ void FileManager::memory_cleanup() {
             auto file_ids_it = node->file_ids_.begin();
 
             while (file_ids_it != node->file_ids_.end() && can_reset) {
-              auto find_file = file_id_info_.find(file_ids_it->fast_get());
+              auto find_file = file_id_info_.find(file_ids_it->get());
               if (find_file != file_id_info_.end()) {
                 auto &file = find_file->second;
                 can_reset &= file.download_priority_ == 0;
-                can_reset &= time - file_ids_it->get_time() > FILE_TTL;
+                can_reset &= time - file_ids_it->get_time() > file_ttl;
               }
               file_ids_it++;
             }
           }
 
           if (can_reset) {
-            node->main_file_id_.reset_time();
+            node->main_file_id_.reset_time(); // delete last access time of FileId
 
             for (auto &file_id : node->file_ids_) {
-              file_id.reset_time();
+              file_id.reset_time(); // delete last access time of FileId
 
               /* DESTROY ASSOCIATED QUERIES */
-              destroy_query(file_id.fast_get());
+              destroy_query(file_id.get());
 
               /* DESTROY ASSOCIATED LATE */
-              file_to_be_deleted.insert(file_id.fast_get());
+              file_to_be_deleted.insert(file_id.get());
             }
 
             /* DESTROY MAIN QUERY */
@@ -3995,7 +3995,7 @@ void FileManager::memory_cleanup() {
     while (it != file_hash_to_file_id_.end()) {
       auto is_invalid = false;
 
-      auto find_file = file_id_info_.find(it->second.fast_get());
+      auto find_file = file_id_info_.find(it->second.get());
       if (find_file != file_id_info_.end()) {
         auto &file = find_file->second;
         auto find_file_node = file_nodes_.find(file.node_id_);
@@ -4021,7 +4021,7 @@ void FileManager::memory_cleanup() {
     while (it != local_location_to_file_id_.end()) {
       auto is_invalid = false;
 
-      auto find_file = file_id_info_.find(it->second.fast_get());
+      auto find_file = file_id_info_.find(it->second.get());
       if (find_file != file_id_info_.end()) {
         auto &file = find_file->second;
         auto find_file_node = file_nodes_.find(file.node_id_);
@@ -4047,7 +4047,7 @@ void FileManager::memory_cleanup() {
     while (it != generate_location_to_file_id_.end()) {
       auto is_invalid = false;
 
-      auto find_file = file_id_info_.find(it->second.fast_get());
+      auto find_file = file_id_info_.find(it->second.get());
       if (find_file != file_id_info_.end()) {
         auto &file = find_file->second;
         auto find_file_node = file_nodes_.find(file.node_id_);
@@ -4086,7 +4086,7 @@ void FileManager::memory_cleanup() {
     while (it != old_remote_info.end()) {
       auto is_invalid = false;
 
-      auto find_file = file_id_info_.find(it->second.file_id_.fast_get());
+      auto find_file = file_id_info_.find(it->second.file_id_.get());
       if (find_file != file_id_info_.end()) {
         auto &file = find_file->second;
         auto find_file_node = file_nodes_.find(file.node_id_);

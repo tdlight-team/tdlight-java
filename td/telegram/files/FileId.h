@@ -36,10 +36,6 @@ class FileId {
     return id > 0;
   }
 
-  int32 fast_get() const {
-    return id;
-  }
-
   int32 get() const {
     return id;
   }
