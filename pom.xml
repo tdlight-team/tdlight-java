@@ -51,7 +51,7 @@
         <dependency>
             <groupId>it.tdlight</groupId>
             <artifactId>tdlight-natives-linux-aarch64</artifactId>
-            <version>1.1.8</version>
+            <version>1.1.9</version>
         </dependency>
         <dependency>
             <groupId>it.tdlight</groupId>
