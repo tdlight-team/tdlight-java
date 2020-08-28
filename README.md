@@ -119,6 +119,11 @@ public class Example {
 ### TDLib methods documentation
 [TdApi class javadoc](https://tdlight-team.github.io/tdlight-docs)
 
+### TDLight extended features
+TDLight Java with TDLight has some extended features, that you can see on the [TDLight official repository](https://github.com/tdlight-team/tdlight).
+
+This features are present only if you use the optimized TDLight package.
+
 ## About
 ### License
 TDLight is licensed by Andrea Cavalli <andrea@cavallium.it> under the terms of the GNU Lesser General Public License 3
