@@ -33,7 +33,7 @@ public class Init {
      *
      * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
      */
-    public synchronized static void start() throws Throwable {
+    public synchronized static void start() throws CantLoadLibrary {
         if (!started) {
             Os os = LoadLibrary.getOs();
 

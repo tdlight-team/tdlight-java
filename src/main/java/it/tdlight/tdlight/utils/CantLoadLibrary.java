@@ -20,7 +20,7 @@ package it.tdlight.tdlight.utils;
 /**
  * An exception that is thrown when the LoadLibrary class fails to load the library.
  */
-public class CantLoadLibrary extends RuntimeException {
+public class CantLoadLibrary extends Exception {
     /**
      * Creates a new CantLoadLibrary exception.
      */

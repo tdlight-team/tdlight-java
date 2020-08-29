@@ -49,7 +49,7 @@ public class LoadLibrary {
 	 * @param libname The name of the library.
 	 * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
 	 */
-	public static void load(String libname) throws Throwable {
+	public static void load(String libname) throws CantLoadLibrary {
 		if (libname == null || libname.trim().isEmpty()) {
 			throw new IllegalArgumentException();
 		}
@@ -64,16 +64,16 @@ public class LoadLibrary {
 		libraryLoaded.put(libname, true);
 	}
 
-	private static void loadLibrary(String libname) throws Throwable {
+	private static void loadLibrary(String libname) throws CantLoadLibrary {
 		Arch arch = getCpuArch();
 		Os os = getOs();
 
 		if (arch == Arch.unknown) {
-			throw new CantLoadLibrary().initCause(new IllegalStateException("Arch: \"" + System.getProperty("os.arch") + "\" is unknown"));
+			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException("Arch: \"" + System.getProperty("os.arch") + "\" is unknown"));
 		}
 
 		if (os == Os.unknown) {
-			throw new CantLoadLibrary().initCause(new IllegalStateException("Os: \"" + System.getProperty("os.name") + "\" is unknown"));
+			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException("Os: \"" + System.getProperty("os.name") + "\" is unknown"));
 		}
 
 		try {
@@ -82,7 +82,7 @@ public class LoadLibrary {
 			if (loadSysLibrary(libname)) {
 				return;
 			}
-			throw new CantLoadLibrary().initCause(e);
+			throw (CantLoadLibrary) new CantLoadLibrary().initCause(e);
 		}
 	}
 
