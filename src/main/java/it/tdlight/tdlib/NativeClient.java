@@ -25,6 +25,7 @@ public class NativeClient {
     protected static native long createNativeClient();
     protected static native void nativeClientSend(long nativeClientId, long eventId, Function function);
     protected static native int nativeClientReceive(long nativeClientId, long[] eventIds, Object[] events, double timeout);
+    protected static native int nativeClientReceive(long nativeClientId, long[] eventIds, Object[] events, double timeout, boolean include_responses, boolean include_updates);
     protected static native Object nativeClientExecute(Function function);
     protected static native void destroyNativeClient(long nativeClientId);
 }
