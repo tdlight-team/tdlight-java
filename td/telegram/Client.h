@@ -104,6 +104,17 @@ class Client final {
   Response receive(double timeout);
 
   /**
+   * Receives incoming updates and request responses from TDLib. May be called from any thread, but shouldn't be
+   * called simultaneously from two different threads.
+   * \param[in] timeout The maximum number of seconds allowed for this function to wait for new data.
+   * \param[in] include_responses Include request responses from TDLib.
+   * \param[in] include_responses Include updates from TDLib.
+   * \return An incoming update or request response. The object returned in the response may be a nullptr
+   *         if the timeout expires.
+   */
+  Response receive(double timeout,  bool include_responses, bool include_updates);
+
+  /**
    * Synchronously executes TDLib requests. Only a few requests can be executed synchronously.
    * May be called from any thread.
    * \param[in] request Request to the TDLib.
@@ -151,6 +162,8 @@ class MultiClient final {
   void send(ClientId client_id, RequestId request_id, Function &&function);
 
   Response receive(double timeout);
+
+  Response receive(double timeout, bool include_responses, bool include_updates);
 
   static Object execute(Function &&function);
 
