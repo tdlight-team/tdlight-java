@@ -288,19 +288,23 @@ class TdReceiver {
   std::atomic<bool> receive_lock_{false};
 
   MultiClient::Response receive_unlocked(double timeout, bool include_responses, bool include_updates) {
-    if (output_responses_queue_ready_cnt_ == 0) {
-      output_responses_queue_ready_cnt_ = output_responses_queue_->reader_wait_nonblock();
+    if (include_responses) {
+      if (output_responses_queue_ready_cnt_ == 0) {
+        output_responses_queue_ready_cnt_ = output_responses_queue_->reader_wait_nonblock();
+      }
+      if (output_responses_queue_ready_cnt_ > 0) {
+        output_responses_queue_ready_cnt_--;
+        return output_responses_queue_->reader_get_unsafe();
+      }
     }
-    if (output_responses_queue_ready_cnt_ > 0) {
-      output_responses_queue_ready_cnt_--;
-      return output_responses_queue_->reader_get_unsafe();
-    }
-    if (output_updates_queue_ready_cnt_ == 0) {
-      output_updates_queue_ready_cnt_ = output_updates_queue_->reader_wait_nonblock();
-    }
-    if (output_updates_queue_ready_cnt_ > 0) {
-      output_updates_queue_ready_cnt_--;
-      return output_updates_queue_->reader_get_unsafe();
+    if (include_updates) {
+      if (output_updates_queue_ready_cnt_ == 0) {
+        output_updates_queue_ready_cnt_ = output_updates_queue_->reader_wait_nonblock();
+      }
+      if (output_updates_queue_ready_cnt_ > 0) {
+        output_updates_queue_ready_cnt_--;
+        return output_updates_queue_->reader_get_unsafe();
+      }
     }
     if (timeout != 0) {
       if (include_responses && !include_updates) {
