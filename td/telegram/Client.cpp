@@ -263,7 +263,7 @@ class TdReceiver {
     class Callback : public TdCallback {
      public:
       explicit Callback(MultiClient::ClientId client_id, std::shared_ptr<OutputQueue> output_responses_queue, std::shared_ptr<OutputQueue> output_updates_queue)
-          : client_id_(client_id), output_responses_queue_(std::move(output_responses_queue), output_updates_queue_(std::move(output_updates_queue))) {
+          : client_id_(client_id), output_responses_queue_(std::move(output_responses_queue)), output_updates_queue_(std::move(output_updates_queue)) {
       }
       void on_result(uint64 id, td_api::object_ptr<td_api::Object> result) override {
         if (id == 0) {
