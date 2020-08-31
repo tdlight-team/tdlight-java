@@ -8116,7 +8116,8 @@ void MessagesManager::after_get_difference() {
     auto *list = get_dialog_list(dialog_list_id);
     CHECK(list != nullptr);
     if (!list->is_dialog_unread_count_inited_) {
-      get_dialogs(dialog_list_id, MIN_DIALOG_DATE, 1, false, PromiseCreator::lambda([dialog_list_id](Unit) {
+      get_dialogs(dialog_list_id, MIN_DIALOG_DATE, static_cast<int32>(list->pinned_dialogs_.size() + 2), false,
+                  PromiseCreator::lambda([dialog_list_id](Unit) {
                     if (!G()->close_flag()) {
                       LOG(INFO) << "Inited total chat count in " << dialog_list_id;
                     }
@@ -10862,6 +10863,7 @@ void MessagesManager::start_up() {
 }
 
 void MessagesManager::create_folders() {
+  LOG(INFO) << "Create folders";
   dialog_folders_[FolderId::main()].folder_id = FolderId::main();
   dialog_folders_[FolderId::archive()].folder_id = FolderId::archive();
 
@@ -10879,15 +10881,16 @@ void MessagesManager::init() {
 
   start_time_ = Time::now();
 
-  bool is_authorized_user = td_->auth_manager_->is_authorized() && !td_->auth_manager_->is_bot();
-  if (is_authorized_user) {
+  bool is_authorized = td_->auth_manager_->is_authorized();
+  bool was_authorized_user = td_->auth_manager_->was_authorized() && !td_->auth_manager_->is_bot();
+  if (was_authorized_user) {
     create_folders();  // ensure that Main and Archive dialog lists are created
   }
-  if (td_->auth_manager_->is_authorized() && td_->auth_manager_->is_bot()) {
+  if (is_authorized && td_->auth_manager_->is_bot()) {
     disable_get_dialog_filter_ = true;
   }
 
-  if (is_authorized_user) {
+  if (was_authorized_user) {
     vector<NotificationSettingsScope> scopes{NotificationSettingsScope::Private, NotificationSettingsScope::Group,
                                              NotificationSettingsScope::Channel};
     for (auto scope : scopes) {
@@ -10905,7 +10908,7 @@ void MessagesManager::init() {
         send_closure(G()->td(), &Td::send_update, get_update_scope_notification_settings_object(scope));
       }
     }
-    if (!channels_notification_settings_.is_synchronized) {
+    if (!channels_notification_settings_.is_synchronized && is_authorized) {
       channels_notification_settings_ = chats_notification_settings_;
       channels_notification_settings_.disable_pinned_message_notifications = false;
       channels_notification_settings_.disable_mention_notifications = false;
@@ -10915,7 +10918,7 @@ void MessagesManager::init() {
   }
   G()->td_db()->get_binlog_pmc()->erase("nsfac");
 
-  if (is_authorized_user) {
+  if (was_authorized_user) {
     auto dialog_filters = G()->td_db()->get_binlog_pmc()->get("dialog_filters");
     if (!dialog_filters.empty()) {
       DialogFiltersLogEvent log_event;
@@ -10939,7 +10942,7 @@ void MessagesManager::init() {
     send_update_chat_filters();  // always send updateChatFilters
   }
 
-  if (G()->parameters().use_message_db && is_authorized_user) {
+  if (G()->parameters().use_message_db && was_authorized_user) {
     // erase old keys
     G()->td_db()->get_binlog_pmc()->erase("last_server_dialog_date");
     G()->td_db()->get_binlog_pmc()->erase("unread_message_count");
@@ -11114,7 +11117,7 @@ void MessagesManager::init() {
 
   load_calls_db_state();
 
-  if (is_authorized_user) {
+  if (was_authorized_user && is_authorized) {
     if (need_synchronize_dialog_filters()) {
       reload_dialog_filters();
     } else {
@@ -24948,6 +24951,11 @@ void MessagesManager::send_update_new_chat(Dialog *d, int64 real_order) {
 }
 
 void MessagesManager::send_update_chat_draft_message(const Dialog *d) {
+  if (td_->auth_manager_->is_bot()) {
+    // just in case
+    return;
+  }
+
   CHECK(d != nullptr);
   LOG_CHECK(d->is_update_new_chat_sent) << "Wrong " << d->dialog_id << " in send_update_chat_draft_message";
   on_dialog_updated(d->dialog_id, "send_update_chat_draft_message");
@@ -24964,9 +24972,16 @@ void MessagesManager::send_update_chat_last_message(Dialog *d, const char *sourc
 }
 
 void MessagesManager::send_update_chat_last_message_impl(const Dialog *d, const char *source) const {
+  if (td_->auth_manager_->is_bot()) {
+    return;
+  }
+
   //TDLIGHT-PATCH-START
   if (!G()->shared_config().get_option_boolean("ignore_update_chat_last_message")) {
+    return;
+  }
   //TDLIGHT-PATCH-END
+
   CHECK(d != nullptr);
   LOG_CHECK(d->is_update_new_chat_sent) << "Wrong " << d->dialog_id << " in send_update_chat_last_message from "
                                         << source;
@@ -24975,9 +24990,6 @@ void MessagesManager::send_update_chat_last_message_impl(const Dialog *d, const 
       d->dialog_id.get(), get_message_object(d->dialog_id, get_message(d, d->last_message_id)),
       get_chat_positions_object(d));
   send_closure(G()->td(), &Td::send_update, std::move(update));
-  //TDLIGHT-PATCH-START
-  }
-  //TDLIGHT-PATCH-END
 }
 
 void MessagesManager::send_update_chat_filters() {
@@ -30899,9 +30911,18 @@ bool MessagesManager::set_dialog_order(Dialog *d, int64 new_order, bool need_sen
   DialogDate old_date(d->order, dialog_id);
   DialogDate new_date(new_order, dialog_id);
 
-  auto &folder = *get_dialog_folder(d->folder_id);
   if (old_date == new_date) {
-    LOG(INFO) << "Order of " << d->dialog_id << " is still " << new_order << " from " << source;
+    LOG(INFO) << "Order of " << d->dialog_id << " from " << d->folder_id << " is still " << new_order << " from "
+              << source;
+  } else {
+    LOG(INFO) << "Update order of " << dialog_id << " from " << d->folder_id << " from " << d->order << " to "
+              << new_order << " from " << source;
+  }
+
+  auto folder_ptr = get_dialog_folder(d->folder_id);
+  CHECK(folder_ptr != nullptr);
+  auto &folder = *folder_ptr;
+  if (old_date == new_date) {
     if (new_order == DEFAULT_ORDER) {
       // first addition of a new left dialog
       if (folder.ordered_dialogs_.insert(new_date).second) {
@@ -30915,8 +30936,6 @@ bool MessagesManager::set_dialog_order(Dialog *d, int64 new_order, bool need_sen
 
     return false;
   }
-
-  LOG(INFO) << "Update order of " << dialog_id << " from " << d->order << " to " << new_order << " from " << source;
 
   auto dialog_positions = get_dialog_positions(d);
 
@@ -31571,6 +31590,9 @@ MessagesManager::DialogList &MessagesManager::add_dialog_list(DialogListId dialo
   CHECK(!td_->auth_manager_->is_bot());
   if (dialog_list_id.is_folder() && dialog_list_id.get_folder_id() != FolderId::archive()) {
     dialog_list_id = DialogListId(FolderId::main());
+  }
+  if (dialog_lists_.find(dialog_list_id) == dialog_lists_.end()) {
+    LOG(INFO) << "Create " << dialog_list_id;
   }
   auto &list = dialog_lists_[dialog_list_id];
   list.dialog_list_id = dialog_list_id;
