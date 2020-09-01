@@ -19,6 +19,8 @@
 #include "td/utils/port/RwMutex.h"
 #include "td/utils/port/thread.h"
 
+#include "death_handler.h"
+
 #include <algorithm>
 #include <atomic>
 #include <memory>
