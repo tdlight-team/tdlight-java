@@ -342,8 +342,12 @@ class TdReceiver {
     if (timeout != 0) {
       if (include_responses && !include_updates) {
         output_responses_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
-      } else {
+      } else if (!include_responses && include_updates) {
         output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
+      } else if (include_responses && include_updates) {
+        output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
+      } else {
+        // do nothing, this configuration shouldn't be used.
       }
       return receive_unlocked(0, include_responses, include_updates);
     }
