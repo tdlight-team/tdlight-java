@@ -250,12 +250,14 @@ class TdReceiver {
 
   MultiClient::Response receive(double timeout, bool include_responses, bool include_updates) {
     VLOG(td_requests) << "Begin to wait for updates with timeout " << timeout;
+    bool is_responses_locked = false;
+    bool is_updates_locked = false;
     if (include_responses) {
-      auto is_responses_locked = receive_responses_lock_.exchange(true);
+      is_responses_locked = receive_responses_lock_.exchange(true);
       CHECK(!is_responseslocked);
     }
     if (include_updates) {
-      auto is_updates_locked = receive_updates_lock_.exchange(true);
+      is_updates_locked = receive_updates_lock_.exchange(true);
       CHECK(!is_updates_locked);
     }
     auto response = receive_unlocked(timeout, include_responses, include_updates);
