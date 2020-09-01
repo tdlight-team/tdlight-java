@@ -250,11 +250,23 @@ class TdReceiver {
 
   MultiClient::Response receive(double timeout, bool include_responses, bool include_updates) {
     VLOG(td_requests) << "Begin to wait for updates with timeout " << timeout;
-    auto is_locked = receive_lock_.exchange(true);
-    CHECK(!is_locked);
+    if (include_responses) {
+      auto is_responses_locked = receive_responses_lock_.exchange(true);
+      CHECK(!is_responseslocked);
+    }
+    if (include_updates) {
+      auto is_updates_locked = receive_updates_lock_.exchange(true);
+      CHECK(!is_updates_locked);
+    }
     auto response = receive_unlocked(timeout, include_responses, include_updates);
-    is_locked = receive_lock_.exchange(false);
-    CHECK(is_locked);
+    if (include_updates) {
+      is_updates_locked = receive_updates_lock_.exchange(false);
+      CHECK(is_updates_locked);
+    }
+    if (include_responses) {
+      is_responses_locked = receive_responses_lock_.exchange(false);
+      CHECK(is_responses_locked);
+    }
     VLOG(td_requests) << "End to wait for updates, returning object " << response.id << ' ' << response.object.get();
     return response;
   }
@@ -301,7 +313,8 @@ class TdReceiver {
   std::shared_ptr<OutputQueue> output_updates_queue_;
   int output_responses_queue_ready_cnt_{0};
   int output_updates_queue_ready_cnt_{0};
-  std::atomic<bool> receive_lock_{false};
+  std::atomic<bool> receive_responses_lock_{false};
+  std::atomic<bool> receive_updates_lock_{false};
 
   MultiClient::Response receive_unlocked(double timeout, bool include_responses, bool include_updates) {
     if (include_responses) {
