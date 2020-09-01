@@ -2,7 +2,6 @@ package it.tdlight.tdlight;
 
 import it.tdlight.tdlib.NativeLog;
 import it.tdlight.tdlight.utils.ObjectsUtils;
-import java.io.PrintStream;
 
 /**
  * Interface for managing the internal logging of TDLib. By default TDLib writes logs to stderr or an OS specific log and uses a verbosity level of 5.
@@ -26,20 +25,11 @@ public class Log {
 	 * Sets the path to the file to where the internal TDLib log will be written. By default TDLib writes logs to stderr or an OS specific log. Use this method to write the log to a file instead.
 	 * @param filePath Path to a file where the internal TDLib log will be written. Use an empty path to switch back to the default logging behaviour.
 	 * @return True on success, or false otherwise, i.e. if the file can't be opened for writing.
+	 * @deprecated Unfortunately TDLib redirects all STDERR to a file, try to avoid this function.
 	 */
+	@Deprecated
 	public static synchronized boolean setFilePath(String filePath) {
-		PrintStream previousOut = System.out;
-		PrintStream previousErr = System.err;
-		boolean result = NativeLog.setFilePath(filePath);
-		try {
-			// Sleeping to make sure that the system output has been changed by TDLib, before restoring it
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		System.setOut(previousOut);
-		System.setErr(previousErr);
-		return result;
+		return NativeLog.setFilePath(filePath);
 	}
 
 	/**
