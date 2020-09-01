@@ -10,12 +10,14 @@
 #include "td/utils/OptionParser.h"
 #include "td/utils/Slice.h"
 #include "td/utils/tests.h"
+#include "death_handler.h"
 
 #if TD_EMSCRIPTEN
 #include <emscripten.h>
 #endif
 
 int main(int argc, char **argv) {
+  Debug::DeathHandler dh;
   td::init_openssl_threads();
 
   td::TestsRunner &runner = td::TestsRunner::get_default();

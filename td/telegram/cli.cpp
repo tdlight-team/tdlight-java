@@ -4343,6 +4343,7 @@ static void on_fatal_error(const char *error) {
 }
 
 void main(int argc, char **argv) {
+  Debug::DeathHandler dh;
   ignore_signal(SignalType::HangUp).ensure();
   ignore_signal(SignalType::Pipe).ensure();
   set_signal_handler(SignalType::Error, fail_signal).ensure();
