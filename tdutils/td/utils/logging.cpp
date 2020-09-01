@@ -12,10 +12,13 @@
 #include "td/utils/Slice.h"
 #include "td/utils/Time.h"
 
+#include "td/utils/death_handler.h"
+
 #include <atomic>
 #include <cstdlib>
 #include <limits>
 #include <mutex>
+#include <csignal>
 
 #if TD_ANDROID
 #include <android/log.h>
@@ -275,7 +278,9 @@ void process_fatal_error(CSlice message) {
   if (callback) {
     callback(message);
   }
-  std::abort();
+  // replaced std::abort(); with the following method:
+  struct sigaction sa{};
+  Debug::DeathHandler::HandleSignal(SIGABRT, &sa, nullptr);
 }
 
 namespace {

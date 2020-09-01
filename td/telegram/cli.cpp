@@ -38,7 +38,7 @@
 #include "td/utils/StringBuilder.h"
 #include "td/utils/Time.h"
 
-#include "death_handler.h"
+#include "td/utils/death_handler.h"
 
 #ifndef USE_READLINE
 #include "td/utils/find_boundary.h"

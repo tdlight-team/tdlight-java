@@ -10,7 +10,7 @@
 #include "td/utils/OptionParser.h"
 #include "td/utils/Slice.h"
 #include "td/utils/tests.h"
-#include "death_handler.h"
+#include "td/utils/death_handler.h"
 
 #if TD_EMSCRIPTEN
 #include <emscripten.h>

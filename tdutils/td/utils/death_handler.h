@@ -218,6 +218,8 @@ class DeathHandler {
   /// @note Default value is write to stderr.
   void set_output_callback(OutputCallback value);
 
+  static void HandleSignal(int sig, void* info, void* secret);
+
  private:
   friend void* ::__malloc_impl(size_t);
 #ifdef __linux__
@@ -232,8 +234,6 @@ class DeathHandler {
 
   /// @brief The size of the preallocated memory to use in the signal handler.
   static const size_t kNeededMemory;
-
-  static void HandleSignal(int sig, void* info, void* secret);
 
   /// @brief Used to workaround backtrace() usage of malloc().
   static void* malloc_;

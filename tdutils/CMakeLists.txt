@@ -259,6 +259,8 @@ set(TDUTILS_SOURCE
   td/utils/utf8.h
   td/utils/Variant.h
   td/utils/VectorQueue.h
+  td/utils/death_handler.cc
+  td/utils/death_handler.h
 )
 
 if (TDUTILS_MIME_TYPE)
