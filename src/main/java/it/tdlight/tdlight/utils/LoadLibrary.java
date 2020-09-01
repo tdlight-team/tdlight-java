@@ -130,7 +130,7 @@ public class LoadLibrary {
 		if (Files.notExists(tempFile)) {
 			Files.copy(libInputStream, tempFile);
 		}
-		libInputStream.close();
+		if (libInputStream != null) libInputStream.close();
 		System.load(tempFile.toFile().getAbsolutePath());
 	}
 
