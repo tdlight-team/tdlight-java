@@ -278,9 +278,12 @@ void process_fatal_error(CSlice message) {
   if (callback) {
     callback(message);
   }
-  // replaced std::abort(); with the following method:
+#if TD_THREAD_UNSUPPORTED || TD_EVENTFD_UNSUPPORTED
+  std::abort();
+#else
   struct sigaction sa{};
   Debug::DeathHandler::HandleSignal(SIGABRT, &sa, nullptr);
+#endif
 }
 
 namespace {
