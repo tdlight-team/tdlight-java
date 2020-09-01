@@ -426,7 +426,6 @@ class MultiImplPool {
   std::shared_ptr<MultiImpl> get() {
     std::unique_lock<std::mutex> lock(mutex_);
     if (impls_.empty()) {
-      Debug::DeathHandler dh;
       init_openssl_threads();
 
       impls_.resize(clamp(thread::hardware_concurrency(), 8u, 1000u) * 5 / 4);
