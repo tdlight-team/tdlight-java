@@ -254,7 +254,7 @@ class TdReceiver {
     bool is_updates_locked = false;
     if (include_responses) {
       is_responses_locked = receive_responses_lock_.exchange(true);
-      CHECK(!is_responseslocked);
+      CHECK(!is_responses_locked);
     }
     if (include_updates) {
       is_updates_locked = receive_updates_lock_.exchange(true);
