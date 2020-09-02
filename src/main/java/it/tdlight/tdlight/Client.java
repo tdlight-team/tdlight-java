@@ -15,12 +15,20 @@ public class Client extends NativeClient implements TelegramClient {
 	private long clientId;
 	private final ReentrantLock receiveLock = new ReentrantLock();
 	private final StampedLock executionLock = new StampedLock();
-	private volatile Long stampedLockValue = 1L;
+	private volatile Long stampedLockValue;
 
 	/**
 	 * Creates a new TDLib client.
 	 */
-	public Client() {}
+	public Client() {
+		try {
+			Init.start();
+		} catch (Throwable throwable) {
+			throwable.printStackTrace();
+			System.exit(1);
+		}
+		this.clientId = createNativeClient();
+	}
 
 	@Override
 	public void send(Request request) {
@@ -105,12 +113,6 @@ public class Client extends NativeClient implements TelegramClient {
 	public void initializeClient() {
 		this.executionLock.tryUnlockWrite();
 		stampedLockValue = null;
-		try {
-			Init.start();
-		} catch (Throwable throwable) {
-			throwable.printStackTrace();
-			System.exit(1);
-		}
 		this.clientId = createNativeClient();
 	}
 }
