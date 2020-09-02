@@ -20,21 +20,8 @@ public class Client extends NativeClient implements TelegramClient {
 	/**
 	 * Creates a new TDLib client.
 	 */
-	public Client() {
-		super();
-		try {
-			Init.start();
-		} catch (Throwable throwable) {
-			throwable.printStackTrace();
-			System.exit(1);
-		}
-		this.clientId = createNativeClient();
-	}
+	public Client() {}
 
-	/**
-	 * Sends request to TDLib. May be called from any thread.
-	 * @param request Request to TDLib.
-	 */
 	@Override
 	public void send(Request request) {
 		if (this.executionLock.isWriteLocked()) {
@@ -47,14 +34,8 @@ public class Client extends NativeClient implements TelegramClient {
 	private long[] eventIds;
 	private Object[] events;
 
-	/**
-	 * Receives incoming updates and request responses from TDLib. May be called from any thread, but shouldn't be called simultaneously from two different threads.
-	 * @param timeout Maximum number of seconds allowed for this function to wait for new records.
-	 * @param eventSize Maximum number of events allowed in list.
-	 * @return An incoming update or request response list. The object returned in the response may be an empty list if the timeout expires.
-	 */
 	@Override
-	public List<Response> receive(double timeout, int eventSize) {
+	public List<Response> receive(double timeout, int eventSize, boolean receiveResponses, boolean receiveUpdates) {
 		if (this.executionLock.isWriteLocked()) {
 			throw new IllegalStateException("ClientActor is destroyed");
 		}
@@ -77,7 +58,7 @@ public class Client extends NativeClient implements TelegramClient {
 		int resultSize;
 		this.receiveLock.lock();
 		try {
-			resultSize = nativeClientReceive(this.clientId, eventIds, events, timeout);
+			resultSize = nativeClientReceive(this.clientId, eventIds, events, timeout, receiveResponses, receiveUpdates);
 		} finally {
 			this.receiveLock.unlock();
 		}
@@ -89,18 +70,13 @@ public class Client extends NativeClient implements TelegramClient {
 		return responseList;
 	}
 
-	/**
-	 * Receives incoming updates and request responses from TDLib. May be called from any thread, but shouldn't be called simultaneously from two different threads.
-	 * @param timeout Maximum number of seconds allowed for this function to wait for new records.
-	 * @return An incoming update or request response. The object returned in the response may be a nullptr if the timeout expires.
-	 */
 	@Override
-	public Response receive(double timeout) {
+	public Response receive(double timeout, boolean receiveResponses, boolean receiveUpdates) {
 		if (this.executionLock.isWriteLocked()) {
 			throw new IllegalStateException("ClientActor is destroyed");
 		}
 
-		List<Response> responseList = receive(timeout, 1);
+		List<Response> responseList = receive(timeout, 1, receiveResponses, receiveUpdates);
 
 		if (responseList.size() < 1) {
 			return null;
@@ -109,11 +85,6 @@ public class Client extends NativeClient implements TelegramClient {
 		return responseList.get(0);
 	}
 
-	/**
-	 * Synchronously executes TDLib requests. Only a few requests can be executed synchronously. May be called from any thread.
-	 * @param request Request to the TDLib.
-	 * @return The request response.
-	 */
 	@Override
 	public Response execute(Request request) {
 		if (this.executionLock.isWriteLocked()) {
@@ -124,27 +95,22 @@ public class Client extends NativeClient implements TelegramClient {
 		return new Response(0, object);
 	}
 
-	/**
-	 * Destroys the client and TDLib instance.
-	 */
 	@Override
 	public void destroyClient() {
 		stampedLockValue = this.executionLock.tryWriteLock();
 		destroyNativeClient(this.clientId);
 	}
 
-	/**
-	 * Destroys the client and TDLib instance.
-	 */
 	@Override
 	public void initializeClient() {
 		this.executionLock.tryUnlockWrite();
 		stampedLockValue = null;
+		try {
+			Init.start();
+		} catch (Throwable throwable) {
+			throwable.printStackTrace();
+			System.exit(1);
+		}
 		this.clientId = createNativeClient();
-	}
-
-	@Override
-	public boolean isDestroyed() {
-		return this.executionLock.isWriteLocked();
 	}
 }
