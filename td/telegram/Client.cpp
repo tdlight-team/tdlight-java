@@ -91,16 +91,20 @@ class TdReceiver {
       }
       void on_result(uint64 id, td_api::object_ptr<td_api::Object> result) override {
         if (id == 0) {
+          impl_->responses_.push({client_id_, id, nullptr});
           impl_->updates_.push({client_id_, 0, std::move(result)});
         } else {
           impl_->responses_.push({client_id_, id, std::move(result)});
+          impl_->updates_.push({client_id_, id, nullptr});
         }
       }
       void on_error(uint64 id, td_api::object_ptr<td_api::error> error) override {
         if (id == 0) {
+          impl_->responses_.push({client_id_, 0, nullptr});
           impl_->updates_.push({client_id_, 0, std::move(error)});
         } else {
           impl_->responses_.push({client_id_, id, std::move(error)});
+          impl_->updates_.push({client_id_, id, nullptr});
         }
       }
       Callback(const Callback &) = delete;
@@ -108,6 +112,7 @@ class TdReceiver {
       Callback(Callback &&) = delete;
       Callback &operator=(Callback &&) = delete;
       ~Callback() override {
+        impl_->responses_.push({client_id_, 0, nullptr});
         impl_->updates_.push({client_id_, 0, nullptr});
       }
 
@@ -283,16 +288,20 @@ class TdReceiver {
       }
       void on_result(uint64 id, td_api::object_ptr<td_api::Object> result) override {
         if (id == 0) {
+          output_responses_queue_->writer_put({client_id_, id, nullptr});
           output_updates_queue_->writer_put({client_id_, 0, std::move(result)});
         } else {
           output_responses_queue_->writer_put({client_id_, id, std::move(result)});
+          output_updates_queue_->writer_put({client_id_, id, nullptr});
         }
       }
       void on_error(uint64 id, td_api::object_ptr<td_api::error> error) override {
         if (id == 0) {
+          output_responses_queue_->writer_put({client_id_, id, nullptr});
           output_updates_queue_->writer_put({client_id_, 0, std::move(error)});
         } else {
           output_responses_queue_->writer_put({client_id_, id, std::move(error)});
+          output_updates_queue_->writer_put({client_id_, id, nullptr});
         }
       }
       Callback(const Callback &) = delete;
@@ -301,6 +310,7 @@ class TdReceiver {
       Callback &operator=(Callback &&) = delete;
       ~Callback() override {
         output_updates_queue_->writer_put({client_id_, 0, nullptr});
+        output_responses_queue_->writer_put({client_id_, 0, nullptr});
       }
 
      private:
@@ -345,17 +355,10 @@ class TdReceiver {
       } else if (!include_responses && include_updates) {
         output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
       } else if (include_responses && include_updates) {
-        auto cnt = 0;
-        //todo: find a better implementation by joining two fd together, instead of quickly cycling them.
-        while (cnt <= timeout * 1000) {
-          output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(10));
-          if (output_updates_queue_->reader_wait_nonblock() > 0) break;
-          output_responses_queue_->reader_get_event_fd().wait(static_cast<int>(10));
-          if (output_responses_queue_->reader_wait_nonblock() > 0) break;
-          cnt += 10;
-        }
+        output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
       } else {
-        // do nothing, this configuration shouldn't be used.
+        // This configuration (include_responses = false and include_updates = false) shouldn't be used.
+        output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
       }
       return receive_unlocked(0, include_responses, include_updates);
     }
