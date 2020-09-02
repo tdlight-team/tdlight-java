@@ -345,7 +345,15 @@ class TdReceiver {
       } else if (!include_responses && include_updates) {
         output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
       } else if (include_responses && include_updates) {
-        output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
+        auto cnt = 0;
+        //todo: find a better implementation by joining two fd together, instead of quickly cycling them.
+        while (cnt <= timeout * 1000) {
+          output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(10));
+          if (output_updates_queue_->reader_wait_nonblock() > 0) break;
+          output_responses_queue_->reader_get_event_fd().wait(static_cast<int>(10));
+          if (output_responses_queue_->reader_wait_nonblock() > 0) break;
+          cnt += 10;
+        }
       } else {
         // do nothing, this configuration shouldn't be used.
       }
