@@ -1,8 +1,7 @@
 package it.tdlight.tdlight;
 
-import it.tdlight.tdlib.TdApi.Object;
 import it.tdlight.tdlib.NativeClient;
-import java.util.ArrayList;
+import it.tdlight.tdlib.TdApi.Object;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,7 +12,8 @@ import java.util.concurrent.locks.StampedLock;
  */
 public class Client extends NativeClient implements TelegramClient {
 	private long clientId;
-	private final ReentrantLock receiveLock = new ReentrantLock();
+	private final ReentrantLock receiveResponsesLock = new ReentrantLock();
+	private final ReentrantLock receiveUpdatesLock = new ReentrantLock();
 	private final StampedLock executionLock = new StampedLock();
 	private volatile Long stampedLockValue;
 
@@ -39,43 +39,63 @@ public class Client extends NativeClient implements TelegramClient {
 		nativeClientSend(this.clientId, request.getId(), request.getFunction());
 	}
 
-	private long[] eventIds;
-	private Object[] events;
+	private final long[][] eventIds = new long[8][];
+	private final Object[][] events = new Object[8][];
 
 	@Override
-	public List<Response> receive(double timeout, int eventSize, boolean receiveResponses, boolean receiveUpdates) {
+	public List<Response> receive(double timeout, int eventsSize, boolean receiveResponses, boolean receiveUpdates) {
+		return Arrays.asList(this.receive(timeout, eventsSize, receiveResponses, receiveUpdates, false));
+	}
+
+	private Response[] receive(double timeout, int eventsSize, boolean receiveResponses, boolean receiveUpdates, boolean singleResponse) {
 		if (this.executionLock.isWriteLocked()) {
 			throw new IllegalStateException("ClientActor is destroyed");
 		}
+		int group = (singleResponse ? 0b100 : 0b000) | (receiveResponses ? 0b010 : 0b000) | (receiveUpdates ? 0b001 : 0b000);
 
-		ArrayList<Response> responseList = new ArrayList<>();
-		if (eventIds == null) {
-			eventIds = new long[eventSize];
-			events = new Object[eventSize];
-		} else if (eventIds.length != eventSize) {
-			throw new IllegalArgumentException("EventSize can't change! Previous value = " + eventIds.length + " New value = " + eventSize);
+		if (eventIds[group] == null) {
+			eventIds[group] = new long[eventsSize];
 		} else {
-			Arrays.fill(eventIds, 0);
-			Arrays.fill(events, null);
+			Arrays.fill(eventIds[group], 0);
+		}
+		if (events[group] == null) {
+			events[group] = new Object[eventsSize];
+		} else {
+			Arrays.fill(events[group], null);
+		}
+		if (eventIds[group].length != eventsSize || events[group].length != eventsSize) {
+			throw new IllegalArgumentException("EventSize can't change over time!"
+					+ " Previous: " + eventIds[group].length + " Current: " + eventsSize);
 		}
 
-		if (this.receiveLock.isLocked()) {
+		if (receiveResponses && this.receiveResponsesLock.isLocked()) {
+			throw new IllegalThreadStateException("Thread: " + Thread.currentThread().getName() + " trying receive incoming responses but shouldn't be called simultaneously from two different threads!");
+		}
+
+		if (receiveUpdates && this.receiveUpdatesLock.isLocked()) {
 			throw new IllegalThreadStateException("Thread: " + Thread.currentThread().getName() + " trying receive incoming updates but shouldn't be called simultaneously from two different threads!");
 		}
 
 		int resultSize;
-		this.receiveLock.lock();
+		if (receiveResponses) this.receiveResponsesLock.lock();
 		try {
-			resultSize = nativeClientReceive(this.clientId, eventIds, events, timeout, receiveResponses, receiveUpdates);
+			if (receiveUpdates) this.receiveUpdatesLock.lock();
+			try {
+				resultSize = nativeClientReceive(this.clientId, eventIds[group], events[group], timeout, receiveResponses, receiveUpdates);
+			} finally {
+				if (receiveUpdates) this.receiveUpdatesLock.unlock();
+			}
 		} finally {
-			this.receiveLock.unlock();
+			if (receiveResponses) this.receiveResponsesLock.unlock();
 		}
+
+		Response[] responses = new Response[resultSize];
 
 		for (int i = 0; i < resultSize; i++) {
-			responseList.add(new Response(eventIds[i], events[i]));
+			responses[i] = new Response(eventIds[group][i], events[group][i]);
 		}
 
-		return responseList;
+		return responses;
 	}
 
 	@Override
@@ -84,13 +104,13 @@ public class Client extends NativeClient implements TelegramClient {
 			throw new IllegalStateException("ClientActor is destroyed");
 		}
 
-		List<Response> responseList = receive(timeout, 1, receiveResponses, receiveUpdates);
+		Response[] responses = receive(timeout, 1, receiveResponses, receiveUpdates, true);
 
-		if (responseList.size() < 1) {
-			return null;
+		if (responses.length != 0) {
+			return responses[0];
 		}
 
-		return responseList.get(0);
+		return null;
 	}
 
 	@Override
