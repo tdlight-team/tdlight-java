@@ -38,7 +38,9 @@
 #include "td/utils/StringBuilder.h"
 #include "td/utils/Time.h"
 
+#ifndef _WIN32
 #include "td/utils/death_handler.h"
+#endif
 
 #ifndef USE_READLINE
 #include "td/utils/find_boundary.h"
@@ -4345,7 +4347,9 @@ static void on_fatal_error(const char *error) {
 }
 
 void main(int argc, char **argv) {
+#ifndef _WIN32
   Debug::DeathHandler dh;
+#endif
   ignore_signal(SignalType::HangUp).ensure();
   ignore_signal(SignalType::Pipe).ensure();
   set_signal_handler(SignalType::Error, fail_signal).ensure();
