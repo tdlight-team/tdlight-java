@@ -112,7 +112,7 @@ class TdReceiver {
       Callback(Callback &&) = delete;
       Callback &operator=(Callback &&) = delete;
       ~Callback() override {
-        impl_->responses_.push({client_id_, 0, nullptr});
+        //impl_->responses_.push({0, 0, nullptr});
         impl_->updates_.push({client_id_, 0, nullptr});
       }
 
@@ -194,7 +194,7 @@ class MultiClient::Impl final {
       }
     }
     while (!tds_.empty()) {
-      receive(10);
+      receive(10, false, true);
     }
     concurrent_scheduler_->finish();
   }
@@ -288,20 +288,20 @@ class TdReceiver {
       }
       void on_result(uint64 id, td_api::object_ptr<td_api::Object> result) override {
         if (id == 0) {
-          output_responses_queue_->writer_put({client_id_, id, nullptr});
+          output_responses_queue_->writer_put({0, 0, nullptr});
           output_updates_queue_->writer_put({client_id_, 0, std::move(result)});
         } else {
           output_responses_queue_->writer_put({client_id_, id, std::move(result)});
-          output_updates_queue_->writer_put({client_id_, id, nullptr});
+          output_updates_queue_->writer_put({0, 0, nullptr});
         }
       }
       void on_error(uint64 id, td_api::object_ptr<td_api::error> error) override {
         if (id == 0) {
-          output_responses_queue_->writer_put({client_id_, id, nullptr});
+          output_responses_queue_->writer_put({0, 0, nullptr});
           output_updates_queue_->writer_put({client_id_, 0, std::move(error)});
         } else {
           output_responses_queue_->writer_put({client_id_, id, std::move(error)});
-          output_updates_queue_->writer_put({client_id_, id, nullptr});
+          output_updates_queue_->writer_put({0, 0, nullptr});
         }
       }
       Callback(const Callback &) = delete;
@@ -309,8 +309,8 @@ class TdReceiver {
       Callback(Callback &&) = delete;
       Callback &operator=(Callback &&) = delete;
       ~Callback() override {
+        //output_responses_queue_->writer_put({0, 0, nullptr});
         output_updates_queue_->writer_put({client_id_, 0, nullptr});
-        output_responses_queue_->writer_put({client_id_, 0, nullptr});
       }
 
      private:
@@ -358,7 +358,6 @@ class TdReceiver {
         output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
       } else {
         // This configuration (include_responses = false and include_updates = false) shouldn't be used.
-        output_updates_queue_->reader_get_event_fd().wait(static_cast<int>(timeout * 1000));
       }
       return receive_unlocked(0, include_responses, include_updates);
     }
@@ -499,7 +498,7 @@ class MultiClient::Impl final {
       it.second->close(it.first);
     }
     while (!impls_.empty()) {
-      receive(10, true, true);
+      receive(10, false, true);
     }
   }
 
@@ -552,7 +551,7 @@ class Client::Impl final {
   ~Impl() {
     multi_impl_->close(td_id_);
     while (!is_closed_) {
-      receive(10, true, true);
+      receive(10, false, true);
     }
   }
 
