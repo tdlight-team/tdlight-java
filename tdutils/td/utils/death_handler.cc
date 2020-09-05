@@ -560,7 +560,7 @@ void DeathHandler::HandleSignal(int sig, void * /* info */, void *secret) {
 #ifdef __linux__
   #if defined(__arm__) || defined(__aarch64__)
     #if defined(__aarch64__)
-      trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.arm_pc);
+      trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.pc);
     #else
       trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.arm_pc);
     #endif
