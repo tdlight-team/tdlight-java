@@ -34,6 +34,8 @@
  *  @copyright 2012 Samsung R&D Institute Russia, 2016 Moscow Institute of Physics and Technology
  */
 
+#ifndef _WIN32
+
 #include "death_handler.h"
 #include <assert.h>
 #include <execinfo.h>
@@ -556,18 +558,22 @@ void DeathHandler::HandleSignal(int sig, void * /* info */, void *secret) {
 
   // Overwrite sigaction with caller's address
 #ifdef __linux__
-#if defined(__arm__)
-  trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.arm_pc);
-#else
-#if !defined(__i386__) && !defined(__x86_64__)
-#error Only ARM, x86 and x86-64 are supported
-#endif
-#if defined(__x86_64__)
-  trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.gregs[REG_RIP]);
-#else
-  trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.gregs[REG_EIP]);
-#endif
-#endif
+  #if defined(__arm__) || defined(__aarch64__)
+    #if defined(__aarch64__)
+      trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.arm_pc);
+    #else
+      trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.arm_pc);
+    #endif
+  #else
+    #if !defined(__i386__) && !defined(__x86_64__)
+      #error Only ARM, AARCH64, x86 and x86-64 are supported
+    #endif
+    #if defined(__x86_64__)
+      trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.gregs[REG_RIP]);
+    #else
+      trace[1] = reinterpret_cast<void *>(uc->uc_mcontext.gregs[REG_EIP]);
+    #endif
+  #endif
 
   const int path_max_length = 2048;
   char* name_buf = memory;
@@ -727,3 +733,5 @@ void DeathHandler::HandleSignal(int sig, void * /* info */, void *secret) {
 #endif
 
 }  // namespace Debug
+
+#endif

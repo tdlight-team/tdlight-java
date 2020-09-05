@@ -51,6 +51,8 @@
  *  Underlying code style is very similar to [Google C++ Style Guide](http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml). It is checked with cpplint.py.
  */
 
+#ifndef _WIN32
+
 #ifndef DEATH_HANDLER_H_
 #define DEATH_HANDLER_H_
 
@@ -258,3 +260,5 @@ class DeathHandler {
 
 }  // namespace Debug
 #endif  // DEATH_HANDLER_H_
+
+#endif
