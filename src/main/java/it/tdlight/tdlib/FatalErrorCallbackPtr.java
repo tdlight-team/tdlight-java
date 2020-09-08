@@ -15,7 +15,7 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight;
+package it.tdlight.tdlib;
 
 /**
  * A type of callback function that will be called when a fatal error happens.

@@ -1,4 +1,4 @@
-package it.tdlight.tdlight.utils;
+package it.tdlight.tdlib;
 
 public class ObjectsUtils {
 	/**
