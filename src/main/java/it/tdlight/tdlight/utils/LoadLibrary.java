@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LoadLibrary {
 	private static ConcurrentHashMap<String, Boolean> libraryLoaded = new ConcurrentHashMap<>();
-	private static Path librariesPath = Paths.get(".JTDLibLibraries");
+	private static Path librariesPath = Paths.get(".tdlight-libs-cache");
 	private static final String libsVersion = LibraryVersion.VERSION;
 
 	static {
