@@ -549,7 +549,7 @@ class MessagesManager : public Actor {
 
   void get_message(FullMessageId full_message_id, Promise<Unit> &&promise);
 
-  MessageId get_replied_message(DialogId dialog_id, MessageId message_id, bool force, Promise<Unit> &&promise);
+  FullMessageId get_replied_message(DialogId dialog_id, MessageId message_id, bool force, Promise<Unit> &&promise);
 
   MessageId get_dialog_pinned_message(DialogId dialog_id, Promise<Unit> &&promise);
 
@@ -885,8 +885,6 @@ class MessagesManager : public Actor {
 
   void get_current_state(vector<td_api::object_ptr<td_api::Update>> &updates) const;
 
-  static void add_dialog_dependencies(Dependencies &dependencies, DialogId dialog_id);
-
   ActorOwn<MultiSequenceDispatcher> sequence_dispatcher_;
 
  private:
@@ -990,6 +988,8 @@ class MessagesManager : public Actor {
 
     MessageId reply_to_message_id;
     int64 reply_to_random_id = 0;  // for send_message
+    DialogId reply_in_dialog_id;
+    MessageId top_reply_message_id;
 
     UserId via_bot_user_id;
 
@@ -1716,9 +1716,12 @@ class MessagesManager : public Actor {
 
   MessageId get_persistent_message_id(const Dialog *d, MessageId message_id) const;
 
-  static MessageId get_replied_message_id(const Message *m);
+  static FullMessageId get_replied_message_id(DialogId dialog_id, const Message *m);
 
   MessageId get_reply_to_message_id(Dialog *d, MessageId message_id);
+
+  static void fix_server_reply_to_message_id(DialogId dialog_id, MessageId message_id, DialogId reply_in_dialog_id,
+                                             MessageId &reply_to_message_id);
 
   bool can_set_game_score(DialogId dialog_id, const Message *m) const;
 
@@ -1854,6 +1857,8 @@ class MessagesManager : public Actor {
 
   void update_message_interaction_info(FullMessageId full_message_id, int32 view_count, int32 forward_count,
                                        bool has_reply_info, tl_object_ptr<telegram_api::messageReplies> &&reply_info);
+
+  bool is_active_message_reply_info(DialogId dialog_id, const MessageReplyInfo &info) const;
 
   td_api::object_ptr<td_api::messageInteractionInfo> get_message_interaction_info_object(DialogId dialog_id,
                                                                                          const Message *m) const;

@@ -1032,7 +1032,7 @@ class GetRepliedMessageRequest : public RequestOnceActor {
   DialogId dialog_id_;
   MessageId message_id_;
 
-  MessageId replied_message_id_;
+  FullMessageId replied_message_id_;
 
   void do_run(Promise<Unit> &&promise) override {
     replied_message_id_ =
@@ -1040,7 +1040,7 @@ class GetRepliedMessageRequest : public RequestOnceActor {
   }
 
   void do_send_result() override {
-    send_result(td->messages_manager_->get_message_object({dialog_id_, replied_message_id_}));
+    send_result(td->messages_manager_->get_message_object(replied_message_id_));
   }
 
  public:
@@ -3778,7 +3778,9 @@ void Td::inc_actor_refcnt() {
 
 void Td::dec_actor_refcnt() {
   actor_refcnt_--;
-  LOG(DEBUG) << "Decrease reference count to " << actor_refcnt_;
+  if (actor_refcnt_ < 3) {
+    LOG(DEBUG) << "Decrease reference count to " << actor_refcnt_;
+  }
   if (actor_refcnt_ == 0) {
     if (close_flag_ == 2) {
       create_reference();
@@ -6100,7 +6102,8 @@ void Td::on_request(uint64 id, const td_api::leaveChat &request) {
         return promise.set_value(Unit());
       }
 
-      new_status = td_api::make_object<td_api::chatMemberStatusCreator>(status.get_rank(), false);
+      new_status =
+          td_api::make_object<td_api::chatMemberStatusCreator>(status.is_anonymous(), status.get_rank(), false);
     }
   }
   messages_manager_->set_dialog_participant_status(dialog_id, contacts_manager_->get_my_id(), std::move(new_status),

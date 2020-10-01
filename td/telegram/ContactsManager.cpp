@@ -3545,7 +3545,7 @@ void ContactsManager::Chat::parse(ParserT &parser) {
     } else if (left) {
       status = DialogParticipantStatus::Left();
     } else if (is_creator) {
-      status = DialogParticipantStatus::Creator(true, string());
+      status = DialogParticipantStatus::Creator(true, false, string());
     } else if (is_administrator && !everyone_is_administrator) {
       status = DialogParticipantStatus::GroupAdministrator(false);
     } else {
@@ -3724,7 +3724,7 @@ void ContactsManager::Channel::parse(ParserT &parser) {
     } else if (left) {
       status = DialogParticipantStatus::Left();
     } else if (is_creator) {
-      status = DialogParticipantStatus::Creator(true, string());
+      status = DialogParticipantStatus::Creator(true, false, string());
     } else if (can_edit || can_moderate) {
       status = DialogParticipantStatus::ChannelAdministrator(false, is_megagroup);
     } else {
@@ -4160,6 +4160,14 @@ bool ContactsManager::have_input_peer_channel(const Channel *c, ChannelId channe
     }
     if (dialog_access_by_invite_link_.count(DialogId(channel_id))) {
       return true;
+    }
+  } else {
+    if (!from_linked && c->is_megagroup) {
+      auto linked_channel_id = get_linked_channel_id(channel_id);
+      if (linked_channel_id.is_valid()) {
+        return !c->username.empty() || c->has_location ||
+               have_input_peer_channel(get_channel(linked_channel_id), linked_channel_id, AccessRights::Read, true);
+      }
     }
   }
   if (!c->status.is_member()) {
@@ -6398,9 +6406,9 @@ void ContactsManager::change_channel_participant_status_impl(ChannelId channel_i
       return promise.set_error(Status::Error(3, "Can't remove chat owner"));
     }
     if (status.is_member() == old_status.is_member()) {
-      // change rank
+      // change rank and is_anonymous
       if (user_id != get_my_id()) {
-        return promise.set_error(Status::Error(3, "Not enough rights to change chat owner custom title"));
+        return promise.set_error(Status::Error(3, "Not enough rights to change chat owner rights"));
       }
 
       auto input_user = get_input_user(user_id);
@@ -8762,7 +8770,7 @@ void ContactsManager::on_load_channel_full_from_database(ChannelId channel_id, s
 
   Dependencies dependencies;
   dependencies.channel_ids.insert(channel_id);
-  MessagesManager::add_dialog_dependencies(dependencies, DialogId(channel_full->linked_channel_id));
+  add_dialog_and_dependencies(dependencies, DialogId(channel_full->linked_channel_id));
   dependencies.chat_ids.insert(channel_full->migrated_from_chat_id);
   dependencies.user_ids.insert(channel_full->bot_user_ids.begin(), channel_full->bot_user_ids.end());
   resolve_dependencies_force(td_, dependencies);
@@ -10505,7 +10513,7 @@ void ContactsManager::on_get_chat_participants(tl_object_ptr<telegram_api::ChatP
             auto participant = move_tl_object_as<telegram_api::chatParticipantCreator>(participant_ptr);
             new_creator_user_id = UserId(participant->user_id_);
             dialog_participant = {new_creator_user_id, new_creator_user_id, c->date,
-                                  DialogParticipantStatus::Creator(true, string())};
+                                  DialogParticipantStatus::Creator(true, false, string())};
             break;
           }
           case telegram_api::chatParticipantAdmin::ID: {
@@ -11569,7 +11577,7 @@ void ContactsManager::on_update_chat_add_user(ChatId chat_id, UserId inviter_use
     }
     chat_full->participants.push_back(DialogParticipant{user_id, inviter_user_id, date,
                                                         user_id == chat_full->creator_user_id
-                                                            ? DialogParticipantStatus::Creator(true, string())
+                                                            ? DialogParticipantStatus::Creator(true, false, string())
                                                             : DialogParticipantStatus::Member()});
     update_chat_online_member_count(chat_full, chat_id, false);
     chat_full->is_changed = true;
@@ -13037,6 +13045,14 @@ bool ContactsManager::get_channel_has_linked_channel(const Channel *c) {
   return c->has_linked_channel;
 }
 
+ChannelId ContactsManager::get_channel_linked_channel_id(ChannelId channel_id) {
+  auto channel_full = get_channel_full_force(channel_id, "get_channel_linked_channel_id");
+  if (channel_full == nullptr) {
+    return ChannelId();
+  }
+  return channel_full->linked_channel_id;
+}
+
 int32 ContactsManager::get_channel_slow_mode_delay(ChannelId channel_id) {
   auto channel_full = get_channel_full_force(channel_id, "get_channel_slow_mode_delay");
   if (channel_full == nullptr) {
@@ -13732,7 +13748,7 @@ void ContactsManager::on_chat_update(telegram_api::chat &chat, const char *sourc
     }
 
     if (is_creator) {
-      return DialogParticipantStatus::Creator(!has_left, string());
+      return DialogParticipantStatus::Creator(!has_left, false, string());
     } else if (chat.admin_rights_ != nullptr) {
       return get_dialog_participant_status(false, std::move(chat.admin_rights_), string());
     } else if (was_kicked) {
@@ -13893,7 +13909,7 @@ void ContactsManager::on_chat_update(telegram_api::channel &channel, const char 
     bool is_creator = (channel.flags_ & CHANNEL_FLAG_USER_IS_CREATOR) != 0;
 
     if (is_creator) {
-      return DialogParticipantStatus::Creator(!has_left, string());
+      return DialogParticipantStatus::Creator(!has_left, false, string());
     } else if (channel.admin_rights_ != nullptr) {
       return get_dialog_participant_status(false, std::move(channel.admin_rights_), string());
     } else if (channel.banned_rights_ != nullptr) {

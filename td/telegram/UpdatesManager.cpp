@@ -352,7 +352,12 @@ bool UpdatesManager::is_acceptable_channel(ChannelId channel_id) const {
   return td_->contacts_manager_->have_channel_force(channel_id);
 }
 
-bool UpdatesManager::is_acceptable_dialog(DialogId dialog_id) const {
+bool UpdatesManager::is_acceptable_peer(const tl_object_ptr<telegram_api::Peer> &peer) const {
+  if (peer == nullptr) {
+    return true;
+  }
+
+  DialogId dialog_id(peer);
   switch (dialog_id.get_type()) {
     case DialogType::User:
       if (!is_acceptable_user(dialog_id.get_user_id())) {
@@ -393,24 +398,29 @@ bool UpdatesManager::is_acceptable_message_entities(
   return true;
 }
 
+bool UpdatesManager::is_acceptable_message_reply_header(
+    const telegram_api::object_ptr<telegram_api::messageReplyHeader> &header) const {
+  if (header == nullptr) {
+    return true;
+  }
+
+  if (is_acceptable_peer(header->reply_to_peer_id_)) {
+    return false;
+  }
+  return true;
+}
+
 bool UpdatesManager::is_acceptable_message_forward_header(
     const telegram_api::object_ptr<telegram_api::messageFwdHeader> &header) const {
   if (header == nullptr) {
     return true;
   }
 
-  auto flags = header->flags_;
-  if (flags & telegram_api::messageFwdHeader::FROM_ID_MASK) {
-    DialogId dialog_id(header->from_id_);
-    if (!is_acceptable_dialog(dialog_id)) {
-      return false;
-    }
+  if (!is_acceptable_peer(header->from_id_)) {
+    return false;
   }
-  if (flags & telegram_api::messageFwdHeader::SAVED_FROM_PEER_MASK) {
-    DialogId dialog_id(header->saved_from_peer_);
-    if (!is_acceptable_dialog(dialog_id)) {
-      return false;
-    }
+  if (!is_acceptable_peer(header->saved_from_peer_)) {
+    return false;
   }
   return true;
 }
@@ -425,15 +435,16 @@ bool UpdatesManager::is_acceptable_message(const telegram_api::Message *message_
     case telegram_api::message::ID: {
       auto message = static_cast<const telegram_api::message *>(message_ptr);
 
-      if (!is_acceptable_dialog(DialogId(message->peer_id_))) {
+      if (!is_acceptable_peer(message->peer_id_)) {
         return false;
       }
-      if (message->flags_ & MessagesManager::MESSAGE_FLAG_HAS_FROM_ID) {
-        if (!is_acceptable_dialog(DialogId(message->from_id_))) {
-          return false;
-        }
+      if (!is_acceptable_peer(message->from_id_)) {
+        return false;
       }
 
+      if (!is_acceptable_message_reply_header(message->reply_to_)) {
+        return false;
+      }
       if (!is_acceptable_message_forward_header(message->fwd_from_)) {
         return false;
       }
@@ -501,10 +512,10 @@ bool UpdatesManager::is_acceptable_message(const telegram_api::Message *message_
       }
 
       /*
-      // the users are always min, so no need to check
+      // the dialogs are always min, so no need to check
       if (message->replies_ != nullptr) {
-        for (auto &user_id : message->replies_->recent_repliers_) {
-          if (!is_acceptable_user(UserId(user_id))) {
+        for (auto &peer : message->replies_->recent_repliers_) {
+          if (!is_acceptable_peer(peer)) {
             return false;
           }
         }
@@ -516,13 +527,11 @@ bool UpdatesManager::is_acceptable_message(const telegram_api::Message *message_
     case telegram_api::messageService::ID: {
       auto message = static_cast<const telegram_api::messageService *>(message_ptr);
 
-      if (!is_acceptable_dialog(DialogId(message->peer_id_))) {
+      if (!is_acceptable_peer(message->peer_id_)) {
         return false;
       }
-      if (message->flags_ & MessagesManager::MESSAGE_FLAG_HAS_FROM_ID) {
-        if (!is_acceptable_dialog(DialogId(message->from_id_))) {
-          return false;
-        }
+      if (!is_acceptable_peer(message->from_id_)) {
+        return false;
       }
 
       const telegram_api::MessageAction *action = message->action_.get();
@@ -692,16 +701,13 @@ void UpdatesManager::on_get_updates(tl_object_ptr<telegram_api::Updates> &&updat
 
       auto from_id = update->flags_ & MessagesManager::MESSAGE_FLAG_IS_OUT ? td_->contacts_manager_->get_my_id().get()
                                                                            : update->user_id_;
-      auto peer_id = update->flags_ & MessagesManager::MESSAGE_FLAG_IS_OUT ? update->user_id_
-                                                                           : td_->contacts_manager_->get_my_id().get();
-
       update->flags_ |= MessagesManager::MESSAGE_FLAG_HAS_FROM_ID;
       on_pending_update(make_tl_object<telegram_api::updateNewMessage>(
                             make_tl_object<telegram_api::message>(
                                 update->flags_, false /*ignored*/, false /*ignored*/, false /*ignored*/,
                                 false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/,
                                 false /*ignored*/, update->id_, make_tl_object<telegram_api::peerUser>(from_id),
-                                make_tl_object<telegram_api::peerUser>(peer_id), std::move(update->fwd_from_),
+                                make_tl_object<telegram_api::peerUser>(update->user_id_), std::move(update->fwd_from_),
                                 update->via_bot_id_, std::move(update->reply_to_), update->date_, update->message_,
                                 nullptr, nullptr, std::move(update->entities_), 0, 0, nullptr, 0, string(), 0, Auto()),
                             update->pts_, update->pts_count_),
