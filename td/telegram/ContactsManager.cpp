@@ -14609,8 +14609,6 @@ void ContactsManager::memory_cleanup() {
   received_channel_participants_.rehash(0);
   cached_channel_participants_.clear();
   cached_channel_participants_.rehash(0);
-  found_blocked_users_.clear();
-  found_blocked_users_.rehash(0);
   load_contacts_queries_.clear();
   load_imported_contacts_queries_.clear();
   all_imported_contacts_.clear();
