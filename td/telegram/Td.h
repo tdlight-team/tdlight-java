@@ -498,11 +498,13 @@ class Td final : public NetQueryCallback {
 
   void on_request(uint64 id, const td_api::getChatPinnedMessage &request);
 
+  void on_request(uint64 id, const td_api::getMessageThread &request);
+
   void on_request(uint64 id, const td_api::getMessages &request);
 
-  void on_request(uint64 id, const td_api::getPublicMessageLink &request);
-
   void on_request(uint64 id, const td_api::getMessageLink &request);
+
+  void on_request(uint64 id, const td_api::getMessageEmbeddingCode &request);
 
   void on_request(uint64 id, td_api::getMessageLinkInfo &request);
 
@@ -718,6 +720,8 @@ class Td final : public NetQueryCallback {
 
   void on_request(uint64 id, const td_api::toggleChatIsMarkedAsUnread &request);
 
+  void on_request(uint64 id, const td_api::toggleChatIsBlocked &request);
+
   void on_request(uint64 id, const td_api::toggleChatDefaultDisableNotification &request);
 
   void on_request(uint64 id, const td_api::setPinnedChats &request);
@@ -786,11 +790,9 @@ class Td final : public NetQueryCallback {
 
   void on_request(uint64 id, const td_api::deleteFile &request);
 
-  void on_request(uint64 id, const td_api::blockUser &request);
+  void on_request(uint64 id, const td_api::blockChatFromReplies &request);
 
-  void on_request(uint64 id, const td_api::unblockUser &request);
-
-  void on_request(uint64 id, const td_api::getBlockedUsers &request);
+  void on_request(uint64 id, const td_api::getBlockedChats &request);
 
   void on_request(uint64 id, td_api::addContact &request);
 

@@ -23,7 +23,7 @@ class Td;
 
 class CountryInfoManager : public Actor {
  public:
-  explicit CountryInfoManager(Td *td, ActorShared<> parent);
+  CountryInfoManager(Td *td, ActorShared<> parent);
 
   void get_countries(Promise<td_api::object_ptr<td_api::countries>> &&promise);
 
@@ -31,6 +31,12 @@ class CountryInfoManager : public Actor {
 
   void get_phone_number_info(string phone_number_prefix,
                              Promise<td_api::object_ptr<td_api::phoneNumberInfo>> &&promise);
+
+  CountryInfoManager(const CountryInfoManager &) = delete;
+  CountryInfoManager &operator=(const CountryInfoManager &) = delete;
+  CountryInfoManager(CountryInfoManager &&) = delete;
+  CountryInfoManager &operator=(CountryInfoManager &&) = delete;
+  ~CountryInfoManager() override;
 
  private:
   void tear_down() override;
@@ -51,6 +57,9 @@ class CountryInfoManager : public Actor {
 
   void on_get_country_list(const string &language_code,
                            Result<tl_object_ptr<telegram_api::help_CountriesList>> r_country_list);
+
+  void on_get_country_list_impl(const string &language_code,
+                                tl_object_ptr<telegram_api::help_CountriesList> country_list);
 
   const CountryList *get_country_list(const string &language_code);
 

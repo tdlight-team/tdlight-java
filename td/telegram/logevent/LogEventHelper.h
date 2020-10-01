@@ -8,31 +8,24 @@
 
 #include "td/actor/PromiseFuture.h"
 
-#include "td/db/binlog/BinlogHelper.h"
-
-#include "td/telegram/Global.h"
-#include "td/telegram/TdDb.h"
-
 #include "td/utils/common.h"
-#include "td/utils/Status.h"
+#include "td/utils/Slice.h"
+#include "td/utils/StorerBase.h"
 #include "td/utils/Time.h"
 #include "td/utils/tl_helpers.h"
 
 namespace td {
 
-inline Promise<Unit> get_erase_logevent_promise(uint64 logevent_id, Promise<Unit> promise = Promise<Unit>()) {
-  if (logevent_id == 0) {
-    return promise;
-  }
+struct LogEventIdWithGeneration {
+  uint64 log_event_id = 0;
+  uint64 generation = 0;
+};
 
-  return PromiseCreator::lambda([logevent_id, promise = std::move(promise)](Result<Unit> result) mutable {
-    if (!G()->close_flag()) {
-      binlog_erase(G()->td_db()->get_binlog(), logevent_id);
-    }
+void add_log_event(LogEventIdWithGeneration &log_event_id, const Storer &storer, uint32 type, Slice name);
 
-    promise.set_result(std::move(result));
-  });
-}
+void delete_log_event(LogEventIdWithGeneration &log_event_id, uint64 generation, Slice name);
+
+Promise<Unit> get_erase_log_event_promise(uint64 log_event_id, Promise<Unit> promise = Promise<Unit>());
 
 template <class StorerT>
 void store_time(double time_at, StorerT &storer) {

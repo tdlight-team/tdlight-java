@@ -1192,7 +1192,7 @@ Result<FileId> FileManager::register_file(FileData &&data, FileLocationSource fi
 
     auto status = check_local_location(data.local_.full(), data.size_, skip_file_size_checks);
     if (status.is_error()) {
-      LOG(WARNING) << "Invalid " << data.local_.full() << ": " << status << " from " << source;
+      LOG(INFO) << "Invalid " << data.local_.full() << ": " << status << " from " << source;
       data.local_ = LocalFileLocation();
       if (data.remote_.type() == RemoteFileLocation::Type::Partial) {
         data.remote_ = {};
@@ -2940,7 +2940,7 @@ Result<FileId> FileManager::from_persistent_id_v23(Slice binary, FileType file_t
   }
   auto decoded_binary = zero_decode(binary);
   FullRemoteFileLocation remote_location;
-  logevent::WithVersion<TlParser> parser(decoded_binary);
+  log_event::WithVersion<TlParser> parser(decoded_binary);
   parser.set_version(version);
   parse(remote_location, parser);
   parser.fetch_end();

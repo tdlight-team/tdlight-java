@@ -7,6 +7,7 @@
 #pragma once
 
 #include "td/telegram/MessageEntity.h"
+#include "td/telegram/MessageId.h"
 #include "td/telegram/ReplyMarkup.h"
 
 #include "td/utils/common.h"
@@ -18,6 +19,7 @@ struct MessageCopyOptions {
   bool send_copy = false;
   bool replace_caption = false;
   FormattedText new_caption;
+  MessageId top_thread_message_id;
   MessageId reply_to_message_id;
   unique_ptr<ReplyMarkup> reply_markup;
 
@@ -32,8 +34,11 @@ inline StringBuilder &operator<<(StringBuilder &string_builder, MessageCopyOptio
     if (copy_options.replace_caption) {
       string_builder << ", new_caption = " << copy_options.new_caption;
     }
+    if (copy_options.top_thread_message_id.is_valid()) {
+      string_builder << ", in thread of " << copy_options.top_thread_message_id;
+    }
     if (copy_options.reply_to_message_id.is_valid()) {
-      string_builder << ", reply to = " << copy_options.reply_to_message_id;
+      string_builder << ", in reply to " << copy_options.reply_to_message_id;
     }
     if (copy_options.reply_markup != nullptr) {
       string_builder << ", with reply markup";

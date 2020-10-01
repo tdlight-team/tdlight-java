@@ -47,13 +47,12 @@ DialogParticipantStatus DialogParticipantStatus::Administrator(bool is_anonymous
                  (static_cast<uint32>(can_invite_users) * CAN_INVITE_USERS_ADMIN) |
                  (static_cast<uint32>(can_restrict_members) * CAN_RESTRICT_MEMBERS) |
                  (static_cast<uint32>(can_pin_messages) * CAN_PIN_MESSAGES_ADMIN) |
-                 (static_cast<uint32>(can_promote_members) * CAN_PROMOTE_MEMBERS);
+                 (static_cast<uint32>(can_promote_members) * CAN_PROMOTE_MEMBERS) |
+                 (static_cast<uint32>(is_anonymous) * IS_ANONYMOUS);
   if (flags == 0 || flags == CAN_BE_EDITED) {
     return Member();
   }
-  return DialogParticipantStatus(Type::Administrator,
-                                 IS_MEMBER | ALL_RESTRICTED_RIGHTS | flags | (is_anonymous ? IS_ANONYMOUS : 0), 0,
-                                 std::move(rank));
+  return DialogParticipantStatus(Type::Administrator, IS_MEMBER | ALL_RESTRICTED_RIGHTS | flags, 0, std::move(rank));
 }
 
 DialogParticipantStatus DialogParticipantStatus::Member() {
@@ -111,12 +110,12 @@ RestrictedRights DialogParticipantStatus::get_restricted_rights() const {
 tl_object_ptr<td_api::ChatMemberStatus> DialogParticipantStatus::get_chat_member_status_object() const {
   switch (type_) {
     case Type::Creator:
-      return td_api::make_object<td_api::chatMemberStatusCreator>(is_anonymous(), rank_, is_member());
+      return td_api::make_object<td_api::chatMemberStatusCreator>(rank_, is_anonymous(), is_member());
     case Type::Administrator:
       return td_api::make_object<td_api::chatMemberStatusAdministrator>(
-          is_anonymous(), rank_, can_be_edited(), can_change_info_and_settings(), can_post_messages(),
-          can_edit_messages(), can_delete_messages(), can_invite_users(), can_restrict_members(), can_pin_messages(),
-          can_promote_members());
+          rank_, can_be_edited(), can_change_info_and_settings(), can_post_messages(), can_edit_messages(),
+          can_delete_messages(), can_invite_users(), can_restrict_members(), can_pin_messages(), can_promote_members(),
+          is_anonymous());
     case Type::Member:
       return td_api::make_object<td_api::chatMemberStatusMember>();
     case Type::Restricted:
@@ -395,9 +394,9 @@ DialogParticipantStatus get_dialog_participant_status(const tl_object_ptr<td_api
     case td_api::chatMemberStatusAdministrator::ID: {
       auto st = static_cast<const td_api::chatMemberStatusAdministrator *>(status.get());
       return DialogParticipantStatus::Administrator(
-          st->is_anonymous_, st->custom_title_, st->can_be_edited_, st->can_change_info_, st->can_post_messages_,
-          st->can_edit_messages_, st->can_delete_messages_, st->can_invite_users_, st->can_restrict_members_,
-          st->can_pin_messages_, st->can_promote_members_);
+          st->is_anonymous_, st->custom_title_, true /*st->can_be_edited_*/, st->can_change_info_,
+          st->can_post_messages_, st->can_edit_messages_, st->can_delete_messages_, st->can_invite_users_,
+          st->can_restrict_members_, st->can_pin_messages_, st->can_promote_members_);
     }
     case td_api::chatMemberStatusMember::ID:
       return DialogParticipantStatus::Member();

@@ -177,7 +177,6 @@ class ContactsManager : public Actor {
   void on_update_user_photo(UserId user_id, tl_object_ptr<telegram_api::UserProfilePhoto> &&photo_ptr);
   void on_update_user_online(UserId user_id, tl_object_ptr<telegram_api::UserStatus> &&status);
   void on_update_user_local_was_online(UserId user_id, int32 local_was_online);
-  void on_update_user_is_blocked(UserId user_id, bool is_blocked);
   void on_update_user_common_chat_count(UserId user_id, int32 common_chat_count);
   void on_update_user_need_phone_number_privacy_exception(UserId user_id, bool need_phone_number_privacy_exception);
 
@@ -263,7 +262,11 @@ class ContactsManager : public Actor {
 
   MyOnlineStatusInfo get_my_online_status() const;
 
-  UserId get_service_notifications_user_id();
+  static UserId get_service_notifications_user_id();
+
+  UserId add_service_notifications_user();
+
+  static UserId get_replies_bot_user_id();
 
   void on_update_online_status_privacy();
 
@@ -293,17 +296,6 @@ class ContactsManager : public Actor {
   void get_connected_websites(Promise<tl_object_ptr<td_api::connectedWebsites>> &&promise) const;
   void disconnect_website(int64 authorizations_id, Promise<Unit> &&promise) const;
   void disconnect_all_websites(Promise<Unit> &&promise) const;
-
-  Status set_user_is_blocked(UserId user_id, bool is_blocked);
-
-  int64 get_blocked_users(int32 offset, int32 limit, Promise<Unit> &&promise);
-
-  void on_get_blocked_users_result(int32 offset, int32 limit, int64 random_id, int32 total_count,
-                                   vector<tl_object_ptr<telegram_api::contactBlocked>> &&blocked_users);
-
-  void on_failed_get_blocked_users(int64 random_id);
-
-  tl_object_ptr<td_api::users> get_blocked_users_object(int64 random_id);
 
   void add_contact(td_api::object_ptr<td_api::contact> &&contact, bool share_phone_number, Promise<Unit> &&promise);
 
@@ -429,8 +421,6 @@ class ContactsManager : public Actor {
 
   bool is_user_contact(UserId user_id) const;
 
-  bool is_user_blocked(UserId user_id);
-
   bool is_user_deleted(UserId user_id) const;
 
   bool is_user_bot(UserId user_id) const;
@@ -452,7 +442,7 @@ class ContactsManager : public Actor {
   UserId get_me(Promise<Unit> &&promise);
   bool get_user(UserId user_id, int left_tries, Promise<Unit> &&promise);
   void reload_user(UserId user_id, Promise<Unit> &&promise);
-  bool get_user_full(UserId user_id, bool force, Promise<Unit> &&promise);
+  bool load_user_full(UserId user_id, bool force, Promise<Unit> &&promise);
   void reload_user_full(UserId user_id);
 
   std::pair<int32, vector<const Photo *>> get_user_profile_photos(UserId user_id, int32 offset, int32 limit,
@@ -464,7 +454,7 @@ class ContactsManager : public Actor {
   bool have_chat_force(ChatId chat_id);
   bool get_chat(ChatId chat_id, int left_tries, Promise<Unit> &&promise);
   void reload_chat(ChatId chat_id, Promise<Unit> &&promise);
-  bool get_chat_full(ChatId chat_id, bool force, Promise<Unit> &&promise);
+  bool load_chat_full(ChatId chat_id, bool force, Promise<Unit> &&promise);
   FileSourceId get_chat_full_file_source_id(ChatId chat_id);
   void reload_chat_full(ChatId chat_id, Promise<Unit> &&promise);
 
@@ -478,8 +468,8 @@ class ContactsManager : public Actor {
   bool have_channel_force(ChannelId channel_id);
   bool get_channel(ChannelId channel_id, int left_tries, Promise<Unit> &&promise);
   void reload_channel(ChannelId chnanel_id, Promise<Unit> &&promise);
-  bool get_channel_full(ChannelId channel_id, bool force, Promise<Unit> &&promise);
-  bool get_channel_full_internal(ChannelId channel_id, bool force, Promise<Unit> &&promise);
+  bool load_channel_full(ChannelId channel_id, bool force, Promise<Unit> &&promise);
+  bool load_channel_full_internal(ChannelId channel_id, bool force, Promise<Unit> &&promise);
   FileSourceId get_channel_full_file_source_id(ChannelId channel_id);
   void reload_channel_full(ChannelId channel_id, Promise<Unit> &&promise, const char *source);
 
@@ -661,7 +651,7 @@ class ContactsManager : public Actor {
 
     bool is_received_from_server = false;  // true, if the user was received from the server and not the database
 
-    uint64 logevent_id = 0;
+    uint64 log_event_id = 0;
 
     template <class StorerT>
     void store(StorerT &storer) const;
@@ -698,14 +688,12 @@ class ContactsManager : public Actor {
 
     int32 common_chat_count = 0;
 
-    bool is_blocked = false;
     bool can_be_called = false;
     bool supports_video_calls = false;
     bool has_private_calls = false;
     bool can_pin_messages = false;
     bool need_phone_number_privacy_exception = false;
 
-    bool is_is_blocked_changed = true;
     bool is_common_chat_count_changed = true;
     bool is_changed = true;             // have new changes that need to be sent to the client and database
     bool need_send_update = true;       // have new changes that need only to be sent to the client
@@ -755,7 +743,7 @@ class ContactsManager : public Actor {
 
     bool is_received_from_server = false;  // true, if the chat was received from the server and not the database
 
-    uint64 logevent_id = 0;
+    uint64 log_event_id = 0;
 
     template <class StorerT>
     void store(StorerT &storer) const;
@@ -832,7 +820,7 @@ class ContactsManager : public Actor {
 
     bool is_received_from_server = false;  // true, if the channel was received from the server and not the database
 
-    uint64 logevent_id = 0;
+    uint64 log_event_id = 0;
 
     template <class StorerT>
     void store(StorerT &storer) const;
@@ -915,7 +903,7 @@ class ContactsManager : public Actor {
     bool is_saved = false;        // is current secret chat version being saved/is saved to the database
     bool is_being_saved = false;  // is current secret chat being saved to the database
 
-    uint64 logevent_id = 0;
+    uint64 log_event_id = 0;
 
     template <class StorerT>
     void store(StorerT &storer) const;
@@ -1057,6 +1045,7 @@ class ContactsManager : public Actor {
   static constexpr int32 CHANNEL_FULL_FLAG_HAS_SLOW_MODE_NEXT_SEND_DATE = 1 << 18;
   static constexpr int32 CHANNEL_FULL_FLAG_HAS_SCHEDULED_MESSAGES = 1 << 19;
   static constexpr int32 CHANNEL_FULL_FLAG_CAN_VIEW_STATISTICS = 1 << 20;
+  static constexpr int32 CHANNEL_FULL_FLAG_IS_BLOCKED = 1 << 22;
 
   static constexpr int32 CHAT_INVITE_FLAG_IS_CHANNEL = 1 << 0;
   static constexpr int32 CHAT_INVITE_FLAG_IS_BROADCAST = 1 << 1;
@@ -1175,7 +1164,6 @@ class ContactsManager : public Actor {
 
   void register_user_photo(User *u, UserId user_id, const Photo &photo);
 
-  void on_update_user_full_is_blocked(UserFull *user_full, UserId user_id, bool is_blocked);
   void on_update_user_full_common_chat_count(UserFull *user_full, UserId user_id, int32 common_chat_count);
   void on_update_user_full_need_phone_number_privacy_exception(UserFull *user_full, UserId user_id,
                                                                bool need_phone_number_privacy_exception);
@@ -1184,8 +1172,6 @@ class ContactsManager : public Actor {
   bool delete_profile_photo_from_cache(UserId user_id, int64 profile_photo_id, bool send_updates);
   void drop_user_photos(UserId user_id, bool is_empty, bool drop_user_full_photo, const char *source);
   void drop_user_full(UserId user_id);
-
-  void on_set_user_is_blocked_failed(UserId user_id, bool is_blocked, Status error);
 
   void on_update_chat_status(Chat *c, ChatId chat_id, DialogParticipantStatus status);
   void on_update_chat_default_permissions(Chat *c, ChatId chat_id, RestrictedRights default_permissions, int32 version);
@@ -1582,9 +1568,6 @@ class ContactsManager : public Actor {
   std::unordered_map<int64, std::pair<int32, vector<DialogParticipant>>> received_channel_participants_;
 
   std::unordered_map<ChannelId, vector<DialogParticipant>, ChannelIdHash> cached_channel_participants_;
-
-  std::unordered_map<int64, std::pair<int32, vector<UserId>>>
-      found_blocked_users_;  // random_id -> [total_count, [user_id]...]
 
   bool are_contacts_loaded_ = false;
   int32 next_contacts_sync_date_ = 0;
