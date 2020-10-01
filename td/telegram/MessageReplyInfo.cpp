@@ -22,12 +22,12 @@ MessageReplyInfo::MessageReplyInfo(tl_object_ptr<telegram_api::messageReplies> &
   pts = reply_info->replies_pts_;
 
   if (!is_bot) {
-    for (auto &user_id_int : reply_info->recent_repliers_) {
-      UserId user_id(user_id_int);
-      if (user_id.is_valid()) {
-        recent_replier_user_ids.push_back(user_id);
+    for (auto &peer : reply_info->recent_repliers_) {
+      DialogId dialog_id(peer);
+      if (dialog_id.is_valid()) {
+        recent_replier_dialog_ids.push_back(dialog_id);
       } else {
-        LOG(ERROR) << "Receive " << user_id << " as a recent replier";
+        LOG(ERROR) << "Receive " << dialog_id << " as a recent replier";
       }
     }
   }
@@ -50,7 +50,7 @@ bool MessageReplyInfo::need_update_to(const MessageReplyInfo &other) const {
 }
 
 StringBuilder &operator<<(StringBuilder &string_builder, const MessageReplyInfo &reply_info) {
-  return string_builder << reply_info.reply_count << " replies by " << reply_info.recent_replier_user_ids;
+  return string_builder << reply_info.reply_count << " replies by " << reply_info.recent_replier_dialog_ids;
 }
 
 }  // namespace td

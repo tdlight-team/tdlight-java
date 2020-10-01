@@ -323,7 +323,7 @@ class CliClient final : public Actor {
         LOG(ERROR) << (last_message_id >> 20);
         send_request(td_api::make_object<td_api::searchChatMessages>(
             search_chat_id_, "", 0, last_message_id, 0, 100,
-            td_api::make_object<td_api::searchMessagesFilterPhotoAndVideo>()));
+            td_api::make_object<td_api::searchMessagesFilterPhotoAndVideo>(), 0));
       } else {
         search_chat_id_ = 0;
       }
@@ -1869,7 +1869,7 @@ class CliClient final : public Actor {
       search_chat_id_ = as_chat_id(args);
 
       send_request(td_api::make_object<td_api::searchChatMessages>(
-          search_chat_id_, "", 0, 0, 0, 100, td_api::make_object<td_api::searchMessagesFilterPhotoAndVideo>()));
+          search_chat_id_, "", 0, 0, 0, 100, td_api::make_object<td_api::searchMessagesFilterPhotoAndVideo>(), 0));
     } else if (op == "Search" || op == "SearchA" || op == "SearchM") {
       string from_date;
       string limit;
@@ -1890,8 +1890,8 @@ class CliClient final : public Actor {
         chat_list = td_api::make_object<td_api::chatListMain>();
       }
       send_request(td_api::make_object<td_api::searchMessages>(
-          std::move(chat_list), query, to_integer<int32>(from_date), 2147482647, 0, to_integer<int32>(limit),
-          as_search_messages_filter(filter)));
+          std::move(chat_list), query, to_integer<int32>(from_date), 2147483647, 0, to_integer<int32>(limit),
+          as_search_messages_filter(filter), 1, 2147483647));
     } else if (op == "SCM") {
       string chat_id;
       string limit;
@@ -1904,7 +1904,7 @@ class CliClient final : public Actor {
       }
 
       send_request(td_api::make_object<td_api::searchChatMessages>(as_chat_id(chat_id), query, 0, 0, 0,
-                                                                   to_integer<int32>(limit), nullptr));
+                                                                   to_integer<int32>(limit), nullptr, 0));
     } else if (op == "SMME") {
       string chat_id;
       string limit;
@@ -1915,7 +1915,7 @@ class CliClient final : public Actor {
       }
 
       send_request(td_api::make_object<td_api::searchChatMessages>(as_chat_id(chat_id), "", my_id_, 0, 0,
-                                                                   to_integer<int32>(limit), nullptr));
+                                                                   to_integer<int32>(limit), nullptr, 0));
     } else if (op == "SMU") {
       string chat_id;
       string user_id;
@@ -1928,7 +1928,7 @@ class CliClient final : public Actor {
       }
 
       send_request(td_api::make_object<td_api::searchChatMessages>(as_chat_id(chat_id), "", as_user_id(user_id), 0, 0,
-                                                                   to_integer<int32>(limit), nullptr));
+                                                                   to_integer<int32>(limit), nullptr, 0));
     } else if (op == "SM") {
       string chat_id;
       string filter;
@@ -1952,7 +1952,7 @@ class CliClient final : public Actor {
 
       send_request(td_api::make_object<td_api::searchChatMessages>(
           as_chat_id(chat_id), "", 0, as_message_id(offset_message_id), to_integer<int32>(offset),
-          to_integer<int32>(limit), as_search_messages_filter(filter)));
+          to_integer<int32>(limit), as_search_messages_filter(filter), 0));
     } else if (op == "SC") {
       string limit;
       string offset_message_id;
@@ -1997,7 +1997,7 @@ class CliClient final : public Actor {
       }
       send_request(td_api::make_object<td_api::searchChatMessages>(
           as_chat_id(chat_id), query, 0, as_message_id(offset_message_id), 0, to_integer<int32>(limit),
-          td_api::make_object<td_api::searchMessagesFilterAudio>()));
+          td_api::make_object<td_api::searchMessagesFilterAudio>(), 0));
     } else if (op == "SearchDocument") {
       string chat_id;
       string offset_message_id;
@@ -2015,7 +2015,7 @@ class CliClient final : public Actor {
       }
       send_request(td_api::make_object<td_api::searchChatMessages>(
           as_chat_id(chat_id), query, 0, to_integer<int64>(offset_message_id), 0, to_integer<int32>(limit),
-          td_api::make_object<td_api::searchMessagesFilterDocument>()));
+          td_api::make_object<td_api::searchMessagesFilterDocument>(), 0));
     } else if (op == "SearchPhoto") {
       string chat_id;
       string offset_message_id;
@@ -2033,7 +2033,7 @@ class CliClient final : public Actor {
       }
       send_request(td_api::make_object<td_api::searchChatMessages>(
           as_chat_id(chat_id), query, 0, as_message_id(offset_message_id), 0, to_integer<int32>(limit),
-          td_api::make_object<td_api::searchMessagesFilterPhoto>()));
+          td_api::make_object<td_api::searchMessagesFilterPhoto>(), 0));
     } else if (op == "SearchChatPhoto") {
       string chat_id;
       string offset_message_id;
@@ -2051,7 +2051,7 @@ class CliClient final : public Actor {
       }
       send_request(td_api::make_object<td_api::searchChatMessages>(
           as_chat_id(chat_id), query, 0, as_message_id(offset_message_id), 0, to_integer<int32>(limit),
-          td_api::make_object<td_api::searchMessagesFilterChatPhoto>()));
+          td_api::make_object<td_api::searchMessagesFilterChatPhoto>(), 0));
     } else if (op == "gcmc") {
       string chat_id;
       string filter;
