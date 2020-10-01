@@ -378,7 +378,7 @@ inputChatPhotoPrevious chat_photo_id:int64 = InputChatPhoto;
 //@description A static photo in JPEG format @photo Photo to be set as profile photo. Only inputFileLocal and inputFileGenerated are allowed
 inputChatPhotoStatic photo:InputFile = InputChatPhoto;
 
-//@description An animation in MPEG4 format; must be square, shorter than 10 seconds, have width between 160 and 800 and be at most 2MB in size
+//@description An animation in MPEG4 format; must be square, at most 10 seconds long, have width between 160 and 800 and be at most 2MB in size
 //@animation Animation to be set as profile photo. Only inputFileLocal and inputFileGenerated are allowed
 //@main_frame_timestamp Timestamp of the frame, which will be used as static chat photo
 inputChatPhotoAnimation animation:InputFile main_frame_timestamp:double = InputChatPhoto;
@@ -3106,7 +3106,7 @@ updateMessageContent chat_id:int53 message_id:int53 new_content:MessageContent =
 //@description A message was edited. Changes in the message content will come in a separate updateMessageContent @chat_id Chat identifier @message_id Message identifier @edit_date Point in time (Unix timestamp) when the message was edited @reply_markup New message reply markup; may be null
 updateMessageEdited chat_id:int53 message_id:int53 edit_date:int32 reply_markup:ReplyMarkup = Update;
 
-//@description The information about interactions with a message has changed @chat_id Chat identifier @message_id Message identifier @interaction_info New information about interactions with the message
+//@description The information about interactions with a message has changed @chat_id Chat identifier @message_id Message identifier @interaction_info New information about interactions with the message; may be null
 updateMessageInteractionInfo chat_id:int53 message_id:int53 interaction_info:messageInteractionInfo = Update;
 
 //@description The message content was opened. Updates voice note messages to "listened", video note messages to "viewed" and starts the TTL timer for self-destructing messages @chat_id Chat identifier @message_id Message identifier
@@ -3681,8 +3681,9 @@ removeNotificationGroup notification_group_id:int32 max_notification_id:int32 = 
 //@description Returns a public HTTPS link to a message. Available only for messages in supergroups and channels with a username
 //@chat_id Identifier of the chat to which the message belongs
 //@message_id Identifier of the message
-//@for_album Pass true if a link for a whole media album should be returned
-getPublicMessageLink chat_id:int53 message_id:int53 for_album:Bool = PublicMessageLink;
+//@for_album Pass true to create a link for a whole media album
+//@for_comment Pass true to create a link to a message as a channel message comment
+getPublicMessageLink chat_id:int53 message_id:int53 for_album:Bool for_comment:Bool = PublicMessageLink;
 
 //@description Returns a private HTTPS link to a message in a chat. Available only for already sent messages in supergroups and channels. The link will work only for members of the chat
 //@chat_id Identifier of the chat to which the message belongs
@@ -3717,12 +3718,11 @@ sendBotStartMessage bot_user_id:int32 chat_id:int53 parameter:string = Message;
 sendInlineQueryResultMessage chat_id:int53 reply_to_message_id:int53 options:messageSendOptions query_id:int64 result_id:string hide_via_bot:Bool = Message;
 
 //@description Forwards previously sent messages. Returns the forwarded messages in the same order as the message identifiers passed in message_ids. If a message can't be forwarded, null will be returned instead of the message
-//@chat_id Identifier of the chat to which to forward messages @from_chat_id Identifier of the chat from which to forward messages @message_ids Identifiers of the messages to forward
+//@chat_id Identifier of the chat to which to forward messages @from_chat_id Identifier of the chat from which to forward messages @message_ids Identifiers of the messages to forward. Message identifiers must be in a strictly increasing order
 //@options Options to be used to send the messages
-//@as_album True, if the messages should be grouped into an album after forwarding. For this to work, no more than 10 messages may be forwarded, and all of them must be photo or video messages
 //@send_copy True, if content of the messages needs to be copied without links to the original messages. Always true if the messages are forwarded to a secret chat
 //@remove_caption True, if media caption of message copies needs to be removed. Ignored if send_copy is false
-forwardMessages chat_id:int53 from_chat_id:int53 message_ids:vector<int53> options:messageSendOptions as_album:Bool send_copy:Bool remove_caption:Bool = Messages;
+forwardMessages chat_id:int53 from_chat_id:int53 message_ids:vector<int53> options:messageSendOptions send_copy:Bool remove_caption:Bool = Messages;
 
 //@description Resends messages which failed to send. Can be called only for messages for which messageSendingStateFailed.can_retry is true and after specified in messageSendingStateFailed.retry_after time passed.
 //-If a message is re-sent, the corresponding failed to send message is deleted. Returns the sent messages in the same order as the message identifiers passed in message_ids. If a message can't be re-sent, null will be returned instead of the message

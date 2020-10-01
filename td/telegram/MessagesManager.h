@@ -194,6 +194,8 @@ class MessagesManager : public Actor {
 
   static vector<int32> get_scheduled_server_message_ids(const vector<MessageId> &message_ids);
 
+  static MessageId get_message_id(const tl_object_ptr<telegram_api::Message> &message_ptr, bool is_scheduled);
+
   DialogId get_message_dialog_id(const tl_object_ptr<telegram_api::Message> &message_ptr) const;
 
   tl_object_ptr<telegram_api::InputPeer> get_input_peer(DialogId dialog_id, AccessRights access_rights) const;
@@ -213,6 +215,8 @@ class MessagesManager : public Actor {
                                                                            AccessRights access_rights) const;
 
   bool have_input_peer(DialogId dialog_id, AccessRights access_rights) const;
+
+  void on_get_empty_messages(DialogId dialog_id, vector<MessageId> empty_message_ids);
 
   struct MessagesInfo {
     vector<tl_object_ptr<telegram_api::Message>> messages;
@@ -402,7 +406,6 @@ class MessagesManager : public Actor {
   Result<vector<MessageId>> forward_messages(DialogId to_dialog_id, DialogId from_dialog_id,
                                              vector<MessageId> message_ids,
                                              tl_object_ptr<td_api::messageSendOptions> &&options, bool in_game_share,
-                                             bool as_album,
                                              vector<MessageCopyOptions> &&copy_options) TD_WARN_UNUSED_RESULT;
 
   Result<vector<MessageId>> resend_messages(DialogId dialog_id, vector<MessageId> message_ids) TD_WARN_UNUSED_RESULT;
@@ -563,7 +566,7 @@ class MessagesManager : public Actor {
 
   bool is_message_edited_recently(FullMessageId full_message_id, int32 seconds);
 
-  std::pair<string, string> get_public_message_link(FullMessageId full_message_id, bool for_group,
+  std::pair<string, string> get_public_message_link(FullMessageId full_message_id, bool for_group, bool &for_comment,
                                                     Promise<Unit> &&promise);
 
   void on_get_public_message_link(FullMessageId full_message_id, bool for_group, string url, string html);
@@ -734,6 +737,9 @@ class MessagesManager : public Actor {
   void on_dialog_user_is_contact_updated(DialogId dialog_id, bool is_contact);
   void on_dialog_user_is_blocked_updated(DialogId dialog_id, bool is_blocked);
   void on_dialog_user_is_deleted_updated(DialogId dialog_id, bool is_deleted);
+
+  void on_dialog_linked_channel_updated(DialogId dialog_id, ChannelId old_linked_channel_id,
+                                        ChannelId new_linked_channel_id) const;
 
   void on_resolved_username(const string &username, DialogId dialog_id);
   void drop_username(const string &username);
@@ -1632,8 +1638,6 @@ class MessagesManager : public Actor {
 
   static constexpr bool DROP_UPDATES = false;
 
-  static MessageId get_message_id(const tl_object_ptr<telegram_api::Message> &message_ptr, bool is_scheduled);
-
   FullMessageId get_full_message_id(const tl_object_ptr<telegram_api::Message> &message_ptr, bool is_scheduled) const;
 
   static int32 get_message_date(const tl_object_ptr<telegram_api::Message> &message_ptr);
@@ -1691,6 +1695,10 @@ class MessagesManager : public Actor {
                                              const unique_ptr<MessageContent> &content, int32 ttl);
   static Status can_use_message_send_options(const MessageSendOptions &options, const InputMessageContent &content);
 
+  bool is_anonymous_administrator(DialogId dialog_id) const;
+
+  bool is_anonymous_administrator(UserId sender_user_id, DialogId dialog_id, string *author_signature) const;
+
   Message *get_message_to_send(Dialog *d, MessageId reply_to_message_id, const MessageSendOptions &options,
                                unique_ptr<MessageContent> &&content, bool *need_update_dialog_pos,
                                unique_ptr<MessageForwardInfo> forward_info = nullptr, bool is_copy = false);
@@ -1735,7 +1743,8 @@ class MessagesManager : public Actor {
 
   void delete_messages_from_updates(const vector<MessageId> &message_ids);
 
-  void delete_dialog_messages_from_updates(DialogId dialog_id, const vector<MessageId> &message_ids);
+  void delete_dialog_messages_from_updates(DialogId dialog_id, const vector<MessageId> &message_ids,
+                                           bool skip_update_for_not_found_messages);
 
   void do_forward_messages(DialogId to_dialog_id, DialogId from_dialog_id, const vector<Message *> &messages,
                            const vector<MessageId> &message_ids, uint64 logevent_id);
@@ -1764,6 +1773,8 @@ class MessagesManager : public Actor {
   void on_upload_message_media_finished(int64 media_album_id, DialogId dialog_id, MessageId message_id, Status result);
 
   void do_send_message_group(int64 media_album_id);
+
+  void on_text_message_ready_to_send(DialogId dialog_id, MessageId message_id);
 
   void on_media_message_ready_to_send(DialogId dialog_id, MessageId message_id, Promise<Message *> &&promise);
 
@@ -1841,6 +1852,9 @@ class MessagesManager : public Actor {
   void read_all_dialog_mentions_on_server(DialogId dialog_id, uint64 logevent_id, Promise<Unit> &&promise);
 
   static MessageId find_message_by_date(const Message *m, int32 date);
+
+  static void find_discussed_messages(const Message *m, ChannelId old_channel_id, ChannelId new_channel_id,
+                                      vector<MessageId> &message_ids);
 
   static void find_messages_from_user(const Message *m, UserId user_id, vector<MessageId> &message_ids);
 
@@ -2085,6 +2099,8 @@ class MessagesManager : public Actor {
                                    int32 message_date, bool is_content_secret, const char *source) const;
 
   void send_update_message_edited(DialogId dialog_id, const Message *m);
+
+  void send_update_message_interaction_info(DialogId dialog_id, const Message *m) const;
 
   void send_update_message_live_location_viewed(FullMessageId full_message_id);
 
@@ -2461,6 +2477,8 @@ class MessagesManager : public Actor {
   void cancel_send_message_query(DialogId dialog_id, Message *m);
 
   void cancel_send_deleted_message(DialogId dialog_id, Message *m, bool is_permanently_deleted);
+
+  bool has_message_sender_user_id(DialogId dialog_id, const Message *m) const;
 
   static bool get_message_disable_web_page_preview(const Message *m);
 
@@ -2963,7 +2981,10 @@ class MessagesManager : public Actor {
   std::unordered_map<int64, FoundMessages> found_fts_messages_;             // random_id -> FoundMessages
   std::unordered_map<int64, FoundMessages> found_message_public_forwards_;  // random_id -> FoundMessages
 
-  std::unordered_map<FullMessageId, std::pair<string, string>, FullMessageIdHash> public_message_links_[2];
+  struct PublicMessageLinks {
+    std::unordered_map<MessageId, std::pair<string, string>, MessageIdHash> links_;
+  };
+  std::unordered_map<DialogId, PublicMessageLinks, DialogIdHash> public_message_links_[2];
 
   std::unordered_map<int64, tl_object_ptr<td_api::chatEvents>> chat_events_;  // random_id -> chat events
 
