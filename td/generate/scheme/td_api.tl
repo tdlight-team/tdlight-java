@@ -618,7 +618,7 @@ secretChat id:int32 user_id:int32 state:SecretChatState is_outbound:Bool ttl:int
 //@description The message was originally written by a known user @sender_user_id Identifier of the user that originally sent the message
 messageForwardOriginUser sender_user_id:int32 = MessageForwardOrigin;
 
-//@description The message was originally written by an anonimous chat administrator on behalf of the chat @sender_chat_id Identifier of the chat that originally sent the message
+//@description The message was originally written by an anonymous chat administrator on behalf of the chat @sender_chat_id Identifier of the chat that originally sent the message
 messageForwardOriginChat sender_chat_id:int53 = MessageForwardOrigin;
 
 //@description The message was originally written by a user, which is hidden by their privacy settings @sender_name Name of the sender
@@ -662,7 +662,7 @@ messageSendingStateFailed error_code:int32 error_message:string can_retry:Bool r
 
 //@description Describes a message
 //@id Message identifier; unique for the chat to which the message belongs
-//@sender_user_id Identifier of the user who sent the message; 0 if unknown. Currently, it is unknown for channel posts, for channel posts automatically forwarded to discussion group and for anonimously sent supergroup messages
+//@sender_user_id Identifier of the user who sent the message; 0 if unknown. Currently, it is unknown for channel posts, for channel posts automatically forwarded to discussion group and for anonymously sent supergroup messages
 //@sender_chat_id Identifier of the chat on behalf of which the message was sent; 0 if none
 //@chat_id Chat identifier
 //@sending_state Information about the sending state of the message; may be null
@@ -3624,9 +3624,18 @@ getGroupsInCommon user_id:int32 offset_chat_id:int53 limit:int32 = Chats;
 //@chat_id Chat identifier
 //@from_message_id Identifier of the message starting from which history must be fetched; use 0 to get results from the last message
 //@offset Specify 0 to get results from exactly the from_message_id or a negative offset up to 99 to get additionally some newer messages
-//@limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater or equal to -offset. Fewer messages may be returned than specified by the limit, even if the end of the message history has not been reached
+//@limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than or equal to -offset. Fewer messages may be returned than specified by the limit, even if the end of the message history has not been reached
 //@only_local If true, returns only messages that are available locally without sending network requests
 getChatHistory chat_id:int53 from_message_id:int53 offset:int32 limit:int32 only_local:Bool = Messages;
+
+//@description Returns messages in a message thread of a message. Can be used only if message.can_get_message_thread == true. Message thread of a channel message is in the channel's linked supergroup.
+//-The messages are returned in a reverse chronological order (i.e., in order of decreasing message_id). For optimal performance the number of returned messages is chosen by the library
+//@chat_id Chat identifier
+//@message_id Message identifier, which thread history needs to be returned
+//@from_message_id Identifier of the message starting from which history must be fetched; use 0 to get results from the last message
+//@offset Specify 0 to get results from exactly the from_message_id or a negative offset up to 99 to get additionally some newer messages
+//@limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than or equal to -offset. Fewer messages may be returned than specified by the limit, even if the end of the message thread history has not been reached
+getMessageThreadHistory chat_id:int53 message_id:int53 from_message_id:int53 offset:int32 limit:int32 = Messages;
 
 //@description Deletes all messages in the chat. Use Chat.can_be_deleted_only_for_self and Chat.can_be_deleted_for_all_users fields to find whether and how the method can be applied to the chat
 //@chat_id Chat identifier @remove_from_chat_list Pass true if the chat should be removed from the chat list @revoke Pass true to try to delete chat history for all users
