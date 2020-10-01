@@ -1035,6 +1035,7 @@ class MessagesManager : public Actor {
     int64 reply_to_random_id = 0;  // for send_message
     DialogId reply_in_dialog_id;
     MessageId top_thread_message_id;
+    vector<MessageId> local_thread_message_ids;
 
     UserId via_bot_user_id;
 
@@ -1249,6 +1250,9 @@ class MessagesManager : public Actor {
     MessageId last_assigned_message_id;  // identifier of the last local or yet unsent message, assigned after
                                          // application start, used to guarantee that all assigned message identifiers
                                          // are different
+
+    std::unordered_map<MessageId, std::set<MessageId>, MessageIdHash>
+        yet_unsent_thread_message_ids;  // top_thread_message_id -> yet unsent message IDs
 
     std::unordered_map<ScheduledServerMessageId, int32, ScheduledServerMessageIdHash> scheduled_message_date;
 
@@ -2052,6 +2056,8 @@ class MessagesManager : public Actor {
 
   Message *add_scheduled_message_to_dialog(Dialog *d, unique_ptr<Message> message, bool from_update, bool *need_update,
                                            const char *source);
+
+  void register_new_local_message_id(Dialog *d, const Message *m);
 
   void on_message_changed(const Dialog *d, const Message *m, bool need_send_update, const char *source);
 
