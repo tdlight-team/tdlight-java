@@ -20,6 +20,7 @@
 #include "td/telegram/files/FileId.h"
 #include "td/telegram/files/FileSourceId.h"
 #include "td/telegram/FolderId.h"
+#include "td/telegram/FullMessageId.h"
 #include "td/telegram/Location.h"
 #include "td/telegram/MessageId.h"
 #include "td/telegram/net/DcId.h"
@@ -376,6 +377,11 @@ class ContactsManager : public Actor {
   void get_channel_statistics(DialogId dialog_id, bool is_dark,
                               Promise<td_api::object_ptr<td_api::ChatStatistics>> &&promise);
 
+  bool can_get_channel_message_statistics(DialogId dialog_id);
+
+  void get_channel_message_statistics(FullMessageId full_message_id, bool is_dark,
+                                      Promise<td_api::object_ptr<td_api::messageStatistics>> &&promise);
+
   void load_statistics_graph(DialogId dialog_id, const string &token, int64 x,
                              Promise<td_api::object_ptr<td_api::StatisticsGraph>> &&promise);
 
@@ -491,6 +497,7 @@ class ContactsManager : public Actor {
   DialogParticipantStatus get_channel_permissions(ChannelId channel_id) const;
   int32 get_channel_participant_count(ChannelId channel_id) const;
   bool get_channel_sign_messages(ChannelId channel_id) const;
+  bool get_channel_has_linked_channel(ChannelId channel_id) const;
   int32 get_channel_slow_mode_delay(ChannelId channel_id);
 
   std::pair<int32, vector<UserId>> search_among_users(const vector<UserId> &user_ids, const string &query, int32 limit);
@@ -581,10 +588,14 @@ class ContactsManager : public Actor {
   static tl_object_ptr<td_api::statisticsValue> convert_stats_absolute_value(
       const tl_object_ptr<telegram_api::statsAbsValueAndPrev> &obj);
 
-  tl_object_ptr<td_api::ChatStatistics> convert_megagroup_stats(tl_object_ptr<telegram_api::stats_megagroupStats> obj);
+  tl_object_ptr<td_api::chatStatisticsSupergroup> convert_megagroup_stats(
+      tl_object_ptr<telegram_api::stats_megagroupStats> obj);
 
-  static tl_object_ptr<td_api::ChatStatistics> convert_broadcast_stats(
+  static tl_object_ptr<td_api::chatStatisticsChannel> convert_broadcast_stats(
       tl_object_ptr<telegram_api::stats_broadcastStats> obj);
+
+  static tl_object_ptr<td_api::messageStatistics> convert_message_stats(
+      tl_object_ptr<telegram_api::stats_messageStats> obj);
 
  private:
   struct User {
@@ -1133,6 +1144,7 @@ class ContactsManager : public Actor {
   static DialogParticipantStatus get_channel_status(const Channel *c);
   DialogParticipantStatus get_channel_permissions(const Channel *c) const;
   static bool get_channel_sign_messages(const Channel *c);
+  static bool get_channel_has_linked_channel(const Channel *c);
 
   void set_my_id(UserId my_id);
 
@@ -1443,6 +1455,9 @@ class ContactsManager : public Actor {
 
   void send_get_channel_stats_query(DcId dc_id, ChannelId channel_id, bool is_dark,
                                     Promise<td_api::object_ptr<td_api::ChatStatistics>> &&promise);
+
+  void send_get_channel_message_stats_query(DcId dc_id, FullMessageId full_message_id, bool is_dark,
+                                            Promise<td_api::object_ptr<td_api::messageStatistics>> &&promise);
 
   void send_load_async_graph_query(DcId dc_id, string token, int64 x,
                                    Promise<td_api::object_ptr<td_api::StatisticsGraph>> &&promise);

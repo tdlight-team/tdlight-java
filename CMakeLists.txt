@@ -399,6 +399,7 @@ set(TDLIB_SOURCE
   td/telegram/ConfigShared.cpp
   td/telegram/Contact.cpp
   td/telegram/ContactsManager.cpp
+  td/telegram/CountryInfoManager.cpp
   td/telegram/DelayDispatcher.cpp
   td/telegram/Dependencies.cpp
   td/telegram/DeviceTokenManager.cpp
@@ -447,7 +448,9 @@ set(TDLIB_SOURCE
   td/telegram/MessageContentType.cpp
   td/telegram/MessageEntity.cpp
   td/telegram/MessageId.cpp
+  td/telegram/MessageReplyInfo.cpp
   td/telegram/MessagesDb.cpp
+  td/telegram/MessageSearchFilter.cpp
   td/telegram/MessagesManager.cpp
   td/telegram/misc.cpp
   td/telegram/net/AuthDataShared.cpp
@@ -553,6 +556,7 @@ set(TDLIB_SOURCE
   td/telegram/ConfigShared.h
   td/telegram/Contact.h
   td/telegram/ContactsManager.h
+  td/telegram/CountryInfoManager.h
   td/telegram/DelayDispatcher.h
   td/telegram/Dependencies.h
   td/telegram/DeviceTokenManager.h
@@ -618,7 +622,9 @@ set(TDLIB_SOURCE
   td/telegram/MessageCopyOptions.h
   td/telegram/MessageEntity.h
   td/telegram/MessageId.h
+  td/telegram/MessageReplyInfo.h
   td/telegram/MessagesDb.h
+  td/telegram/MessageSearchFilter.h
   td/telegram/MessagesManager.h
   td/telegram/misc.h
   td/telegram/net/AuthDataShared.h

@@ -52,6 +52,7 @@ class CallManager;
 class CallbackQueriesManager;
 class ConfigManager;
 class ContactsManager;
+class CountryInfoManager;
 class DeviceTokenManager;
 class DocumentsManager;
 class FileManager;
@@ -155,6 +156,8 @@ class Td final : public NetQueryCallback {
   ActorOwn<BackgroundManager> background_manager_actor_;
   unique_ptr<ContactsManager> contacts_manager_;
   ActorOwn<ContactsManager> contacts_manager_actor_;
+  unique_ptr<CountryInfoManager> country_info_manager_;
+  ActorOwn<CountryInfoManager> country_info_manager_actor_;
   unique_ptr<FileManager> file_manager_;
   ActorOwn<FileManager> file_manager_actor_;
   unique_ptr<FileReferenceManager> file_reference_manager_;
@@ -352,6 +355,8 @@ class Td final : public NetQueryCallback {
   class UploadFileCallback;
 
   std::shared_ptr<UploadFileCallback> upload_file_callback_;
+
+  std::shared_ptr<ActorContext> old_context_;
 
   static int *get_log_verbosity_level(Slice name);
 
@@ -588,6 +593,8 @@ class Td final : public NetQueryCallback {
   void on_request(uint64 id, td_api::getChatMessageCount &request);
 
   void on_request(uint64 id, const td_api::getChatScheduledMessages &request);
+
+  void on_request(uint64 id, td_api::getMessagePublicForwards &request);
 
   void on_request(uint64 id, const td_api::removeNotification &request);
 
@@ -919,7 +926,9 @@ class Td final : public NetQueryCallback {
 
   void on_request(uint64 id, const td_api::getChatStatistics &request);
 
-  void on_request(uint64 id, td_api::getChatStatisticsGraph &request);
+  void on_request(uint64 id, const td_api::getMessageStatistics &request);
+
+  void on_request(uint64 id, td_api::getStatisticsGraph &request);
 
   void on_request(uint64 id, const td_api::getMapThumbnailFile &request);
 
@@ -1051,7 +1060,11 @@ class Td final : public NetQueryCallback {
 
   void on_request(uint64 id, td_api::acceptTermsOfService &request);
 
+  void on_request(uint64 id, const td_api::getCountries &request);
+
   void on_request(uint64 id, const td_api::getCountryCode &request);
+
+  void on_request(uint64 id, const td_api::getPhoneNumberInfo &request);
 
   void on_request(uint64 id, const td_api::getInviteText &request);
 
@@ -1168,8 +1181,6 @@ class Td final : public NetQueryCallback {
   void close_impl(bool destroy_flag);
   static Status fix_parameters(TdParameters &parameters) TD_WARN_UNUSED_RESULT;
   Status set_parameters(td_api::object_ptr<td_api::tdlibParameters> parameters) TD_WARN_UNUSED_RESULT;
-
-  void send_get_nearest_dc_query(Promise<string> promise);
 
   static td_api::object_ptr<td_api::error> make_error(int32 code, CSlice error) {
     return td_api::make_object<td_api::error>(code, error.str());

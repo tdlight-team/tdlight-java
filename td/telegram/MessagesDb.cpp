@@ -7,6 +7,7 @@
 #include "td/telegram/MessagesDb.h"
 
 #include "td/telegram/logevent/LogEvent.h"
+#include "td/telegram/MessageSearchFilter.h"
 #include "td/telegram/Version.h"
 
 #include "td/db/SqliteConnectionSafe.h"
@@ -85,12 +86,12 @@ Status init_messages_db(SqliteDb &db, int32 version) {
 
     return Status::OK();
   };
-  auto add_call_index = [&db]() {
-    // for (int i = static_cast<int>(SearchMessagesFilter::Call) - 1;
-    //      i < static_cast<int>(SearchMessagesFilter::MissedCall); i++) {
-    //   TRY_STATUS(db.exec(PSLICE() << "CREATE INDEX IF NOT EXISTS full_message_index_" << i
-    //                               << " ON messages (unique_message_id) WHERE (index_mask & " << (1 << i) << ") != 0"));
-    // }
+  auto add_call_index = [&db] {
+//    for (int i = static_cast<int>(MessageSearchFilter::Call) - 1; i < static_cast<int>(MessageSearchFilter::MissedCall);
+//         i++) {
+//      TRY_STATUS(db.exec(PSLICE() << "CREATE INDEX IF NOT EXISTS full_message_index_" << i
+//                                  << " ON messages (unique_message_id) WHERE (index_mask & " << (1 << i) << ") != 0"));
+//    }
     return Status::OK();
   };
   auto add_notification_id_index = [&db] {
@@ -241,8 +242,8 @@ class MessagesDbImpl : public MessagesDbSyncInterface {
       // LOG(ERROR) << get_messages_from_index_stmts_[i].asc_stmt_.explain().ok();
     }
 
-    for (int i = static_cast<int>(SearchMessagesFilter::Call) - 1, pos = 0;
-         i < static_cast<int>(SearchMessagesFilter::MissedCall); i++, pos++) {
+    for (int i = static_cast<int>(MessageSearchFilter::Call) - 1, pos = 0;
+         i < static_cast<int>(MessageSearchFilter::MissedCall); i++, pos++) {
       TRY_RESULT_ASSIGN(
           get_calls_stmts_[pos],
           db_memory_.get_statement(
@@ -765,12 +766,12 @@ class MessagesDbImpl : public MessagesDbSyncInterface {
       return Status::Error("Union is not supported");
     }
     int32 pos;
-    if (index_i + 1 == static_cast<int>(SearchMessagesFilter::Call)) {
+    if (index_i + 1 == static_cast<int>(MessageSearchFilter::Call)) {
       pos = 0;
-    } else if (index_i + 1 == static_cast<int>(SearchMessagesFilter::MissedCall)) {
+    } else if (index_i + 1 == static_cast<int>(MessageSearchFilter::MissedCall)) {
       pos = 1;
     } else {
-      return Status::Error(PSLICE() << "Index_mask is not Call or MissedCall " << query.index_mask);
+      return Status::Error(PSLICE() << "Index mask is not Call or MissedCall " << query.index_mask);
     }
 
     auto &stmt = get_calls_stmts_[pos];

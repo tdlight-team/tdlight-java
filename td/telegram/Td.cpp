@@ -22,6 +22,7 @@
 #include "td/telegram/ConfigManager.h"
 #include "td/telegram/ConfigShared.h"
 #include "td/telegram/ContactsManager.h"
+#include "td/telegram/CountryInfoManager.h"
 #include "td/telegram/DeviceTokenManager.h"
 #include "td/telegram/DialogAdministrator.h"
 #include "td/telegram/DialogFilter.h"
@@ -50,6 +51,7 @@
 #include "td/telegram/MessageCopyOptions.h"
 #include "td/telegram/MessageEntity.h"
 #include "td/telegram/MessageId.h"
+#include "td/telegram/MessageSearchFilter.h"
 #include "td/telegram/MessagesManager.h"
 #include "td/telegram/misc.h"
 #include "td/telegram/net/ConnectionCreator.h"
@@ -154,35 +156,6 @@ void Td::ResultHandler::send_query(NetQueryPtr query) {
   td->add_handler(query->id(), shared_from_this());
   td->send(std::move(query));
 }
-
-class GetNearestDcQuery : public Td::ResultHandler {
-  Promise<string> promise_;
-
- public:
-  explicit GetNearestDcQuery(Promise<string> &&promise) : promise_(std::move(promise)) {
-  }
-
-  void send() {
-    send_query(G()->net_query_creator().create_unauth(telegram_api::help_getNearestDc()));
-  }
-
-  void on_result(uint64 id, BufferSlice packet) override {
-    auto result_ptr = fetch_result<telegram_api::help_getNearestDc>(packet);
-    if (result_ptr.is_error()) {
-      return on_error(id, result_ptr.move_as_error());
-    }
-
-    auto result = result_ptr.move_as_ok();
-    promise_.set_value(std::move(result->country_));
-  }
-
-  void on_error(uint64 id, Status status) override {
-    if (!G()->is_expected_error(status) && status.message() != "BOT_METHOD_INVALID") {
-      LOG(ERROR) << "GetNearestDc returned " << status;
-    }
-    promise_.set_error(std::move(status));
-  }
-};
 
 class GetPromoDataQuery : public Td::ResultHandler {
   Promise<telegram_api::object_ptr<telegram_api::help_PromoData>> promise_;
@@ -1424,7 +1397,7 @@ class SearchChatMessagesRequest : public RequestActor<> {
   MessageId from_message_id_;
   int32 offset_;
   int32 limit_;
-  tl_object_ptr<td_api::SearchMessagesFilter> filter_;
+  MessageSearchFilter filter_;
   int64 random_id_;
 
   std::pair<int32, vector<MessageId>> messages_;
@@ -1459,46 +1432,40 @@ class SearchChatMessagesRequest : public RequestActor<> {
       , from_message_id_(from_message_id)
       , offset_(offset)
       , limit_(limit)
-      , filter_(std::move(filter))
+      , filter_(get_message_search_filter(filter))
       , random_id_(0) {
     set_tries(3);
   }
 };
 
-class OfflineSearchMessagesRequest : public RequestActor<> {
+class SearchSecretMessagesRequest : public RequestActor<> {
   DialogId dialog_id_;
   string query_;
-  int64 from_search_id_;
+  string offset_;
   int32 limit_;
-  tl_object_ptr<td_api::SearchMessagesFilter> filter_;
+  MessageSearchFilter filter_;
   int64 random_id_;
 
-  std::pair<int64, vector<FullMessageId>> messages_;
+  MessagesManager::FoundMessages found_messages_;
 
   void do_run(Promise<Unit> &&promise) override {
-    messages_ = td->messages_manager_->offline_search_messages(dialog_id_, query_, from_search_id_, limit_, filter_,
-                                                               random_id_, std::move(promise));
+    found_messages_ = td->messages_manager_->offline_search_messages(dialog_id_, query_, offset_, limit_, filter_,
+                                                                     random_id_, std::move(promise));
   }
 
   void do_send_result() override {
-    vector<tl_object_ptr<td_api::message>> result;
-    result.reserve(messages_.second.size());
-    for (auto full_message_id : messages_.second) {
-      result.push_back(td->messages_manager_->get_message_object(full_message_id));
-    }
-
-    send_result(make_tl_object<td_api::foundMessages>(std::move(result), messages_.first));
+    send_result(td->messages_manager_->get_found_messages_object(found_messages_));
   }
 
  public:
-  OfflineSearchMessagesRequest(ActorShared<Td> td, uint64 request_id, int64 dialog_id, string query,
-                               int64 from_search_id, int32 limit, tl_object_ptr<td_api::SearchMessagesFilter> filter)
+  SearchSecretMessagesRequest(ActorShared<Td> td, uint64 request_id, int64 dialog_id, string query, string offset,
+                              int32 limit, tl_object_ptr<td_api::SearchMessagesFilter> filter)
       : RequestActor(std::move(td), request_id)
       , dialog_id_(dialog_id)
       , query_(std::move(query))
-      , from_search_id_(from_search_id)
+      , offset_(std::move(offset))
       , limit_(limit)
-      , filter_(std::move(filter))
+      , filter_(get_message_search_filter(filter))
       , random_id_(0) {
   }
 };
@@ -1511,6 +1478,7 @@ class SearchMessagesRequest : public RequestActor<> {
   DialogId offset_dialog_id_;
   MessageId offset_message_id_;
   int32 limit_;
+  MessageSearchFilter filter_;
   int64 random_id_;
 
   std::pair<int32, vector<FullMessageId>> messages_;
@@ -1518,7 +1486,7 @@ class SearchMessagesRequest : public RequestActor<> {
   void do_run(Promise<Unit> &&promise) override {
     messages_ =
         td->messages_manager_->search_messages(folder_id_, ignore_folder_id_, query_, offset_date_, offset_dialog_id_,
-                                               offset_message_id_, limit_, random_id_, std::move(promise));
+                                               offset_message_id_, limit_, filter_, random_id_, std::move(promise));
   }
 
   void do_send_result() override {
@@ -1536,7 +1504,8 @@ class SearchMessagesRequest : public RequestActor<> {
 
  public:
   SearchMessagesRequest(ActorShared<Td> td, uint64 request_id, FolderId folder_id, bool ignore_folder_id, string query,
-                        int32 offset_date, int64 offset_dialog_id, int64 offset_message_id, int32 limit)
+                        int32 offset_date, int64 offset_dialog_id, int64 offset_message_id, int32 limit,
+                        tl_object_ptr<td_api::SearchMessagesFilter> &&filter)
       : RequestActor(std::move(td), request_id)
       , folder_id_(folder_id)
       , ignore_folder_id_(ignore_folder_id)
@@ -1545,6 +1514,7 @@ class SearchMessagesRequest : public RequestActor<> {
       , offset_dialog_id_(offset_dialog_id)
       , offset_message_id_(offset_message_id)
       , limit_(limit)
+      , filter_(get_message_search_filter(filter))
       , random_id_(0) {
   }
 };
@@ -1638,7 +1608,7 @@ class GetChatMessageByDateRequest : public RequestOnceActor {
 
 class GetChatMessageCountRequest : public RequestActor<> {
   DialogId dialog_id_;
-  tl_object_ptr<td_api::SearchMessagesFilter> filter_;
+  MessageSearchFilter filter_;
   bool return_local_;
   int64 random_id_;
 
@@ -1658,7 +1628,7 @@ class GetChatMessageCountRequest : public RequestActor<> {
                              tl_object_ptr<td_api::SearchMessagesFilter> filter, bool return_local)
       : RequestActor(std::move(td), request_id)
       , dialog_id_(dialog_id)
-      , filter_(std::move(filter))
+      , filter_(get_message_search_filter(filter))
       , return_local_(return_local)
       , random_id_(0) {
   }
@@ -1682,6 +1652,34 @@ class GetChatScheduledMessagesRequest : public RequestActor<> {
   GetChatScheduledMessagesRequest(ActorShared<Td> td, uint64 request_id, int64 dialog_id)
       : RequestActor(std::move(td), request_id), dialog_id_(dialog_id) {
     set_tries(4);
+  }
+};
+
+class GetMessagePublicForwardsRequest : public RequestActor<> {
+  FullMessageId full_message_id_;
+  string offset_;
+  int32 limit_;
+  int64 random_id_;
+
+  MessagesManager::FoundMessages messages_;
+
+  void do_run(Promise<Unit> &&promise) override {
+    messages_ = td->messages_manager_->get_message_public_forwards(full_message_id_, offset_, limit_, random_id_,
+                                                                   std::move(promise));
+  }
+
+  void do_send_result() override {
+    send_result(td->messages_manager_->get_found_messages_object(messages_));
+  }
+
+ public:
+  GetMessagePublicForwardsRequest(ActorShared<Td> td, uint64 request_id, int64 dialog_id, int64 message_id,
+                                  string offset, int32 limit)
+      : RequestActor(std::move(td), request_id)
+      , full_message_id_(DialogId(dialog_id), MessageId(message_id))
+      , offset_(std::move(offset))
+      , limit_(limit)
+      , random_id_(0) {
   }
 };
 
@@ -1873,10 +1871,6 @@ class GetChatMemberRequest : public RequestActor<> {
       return send_error(Status::Error(3, "User not found"));
     }
     send_result(td->contacts_manager_->get_chat_member_object(dialog_participant_));
-  }
-
-  void do_send_error(Status &&status) override {
-    send_error(std::move(status));
   }
 
  public:
@@ -2901,7 +2895,8 @@ class GetCallbackQueryAnswerRequest : public RequestOnceActor {
   int64 result_id_;
 
   void do_run(Promise<Unit> &&promise) override {
-    result_id_ = td->callback_queries_manager_->send_callback_query(full_message_id_, payload_, std::move(promise));
+    result_id_ =
+        td->callback_queries_manager_->send_callback_query(full_message_id_, std::move(payload_), std::move(promise));
   }
 
   void do_send_result() override {
@@ -3007,6 +3002,7 @@ class SetBackgroundRequest : public RequestActor<> {
 
 Td::Td(unique_ptr<TdCallback> callback, Options options)
     : callback_(std::move(callback)), td_options_(std::move(options)) {
+  CHECK(callback_ != nullptr);
 }
 
 Td::~Td() = default;
@@ -3302,7 +3298,9 @@ bool Td::is_preauthentication_request(int32 id) {
     case td_api::getNetworkStatistics::ID:
     case td_api::addNetworkStatistics::ID:
     case td_api::resetNetworkStatistics::ID:
+    case td_api::getCountries::ID:
     case td_api::getCountryCode::ID:
+    case td_api::getPhoneNumberInfo::ID:
     case td_api::getDeepLinkInfo::ID:
     case td_api::getApplicationConfig::ID:
     case td_api::saveApplicationLogEvent::ID:
@@ -3724,7 +3722,7 @@ void Td::start_up() {
   }
 
   VLOG(td_init) << "Create Global";
-  set_context(std::make_shared<Global>());
+  old_context_ = set_context(std::make_shared<Global>());
   G()->set_net_query_stats(td_options_.net_query_stats);
   inc_request_actor_refcnt();  // guard
   inc_actor_refcnt();          // guard
@@ -3774,6 +3772,7 @@ void Td::inc_actor_refcnt() {
 
 void Td::dec_actor_refcnt() {
   actor_refcnt_--;
+  LOG(DEBUG) << "Decrease reference count to " << actor_refcnt_;
   if (actor_refcnt_ == 0) {
     if (close_flag_ == 2) {
       create_reference();
@@ -3789,8 +3788,12 @@ void Td::dec_actor_refcnt() {
       LOG(DEBUG) << "AuthManager was cleared" << timer;
       background_manager_.reset();
       LOG(DEBUG) << "BackgroundManager was cleared" << timer;
+      callback_queries_manager_.reset();
+      LOG(DEBUG) << "CallbackQueriesManager was cleared" << timer;
       contacts_manager_.reset();
       LOG(DEBUG) << "ContactsManager was cleared" << timer;
+      country_info_manager_.reset();
+      LOG(DEBUG) << "CountryInfoManager was cleared" << timer;
       documents_manager_.reset();
       LOG(DEBUG) << "DocumentsManager was cleared" << timer;
       file_manager_.reset();
@@ -3847,6 +3850,7 @@ void Td::dec_stop_cnt() {
   stop_cnt_--;
   if (stop_cnt_ == 0) {
     LOG(WARNING) << "Stop Td";
+    set_context(std::move(old_context_));
     stop();
   }
 }
@@ -3857,6 +3861,7 @@ void Td::inc_request_actor_refcnt() {
 
 void Td::dec_request_actor_refcnt() {
   request_actor_refcnt_--;
+  LOG(DEBUG) << "Decrease request actor count to " << request_actor_refcnt_;
   if (request_actor_refcnt_ == 0) {
     LOG(WARNING) << "Have no request actors";
     clear();
@@ -3973,6 +3978,8 @@ void Td::clear() {
   LOG(DEBUG) << "BackgroundManager actor was cleared" << timer;
   contacts_manager_actor_.reset();
   LOG(DEBUG) << "ContactsManager actor was cleared" << timer;
+  country_info_manager_actor_.reset();
+  LOG(DEBUG) << "CountryInfoManager actor was cleared" << timer;
   file_manager_actor_.reset();
   LOG(DEBUG) << "FileManager actor was cleared" << timer;
   file_reference_manager_actor_.reset();
@@ -4205,7 +4212,7 @@ Status Td::init(DbKey key) {
 
   VLOG(td_init) << "Ping datacenter";
   if (!auth_manager_->is_authorized()) {
-    send_get_nearest_dc_query(Promise<string>());
+    country_info_manager_->get_current_country_code(Promise<string>());
   } else {
     updates_manager_->get_difference("init");
     schedule_get_terms_of_service(0);
@@ -4412,6 +4419,8 @@ void Td::init_managers() {
   contacts_manager_ = make_unique<ContactsManager>(this, create_reference());
   contacts_manager_actor_ = register_actor("ContactsManager", contacts_manager_.get());
   G()->set_contacts_manager(contacts_manager_actor_.get());
+  country_info_manager_ = make_unique<CountryInfoManager>(this, create_reference());
+  country_info_manager_actor_ = register_actor("CountryInfoManager", country_info_manager_.get());
   inline_queries_manager_ = make_unique<InlineQueriesManager>(this, create_reference());
   inline_queries_manager_actor_ = register_actor("InlineQueriesManager", inline_queries_manager_.get());
   messages_manager_ = make_unique<MessagesManager>(this, create_reference());
@@ -4452,10 +4461,6 @@ void Td::init_managers() {
   G()->set_top_dialog_manager(top_dialog_manager_.get());
   verify_phone_number_manager_ = create_actor<PhoneNumberManager>(
       "VerifyPhoneNumberManager", PhoneNumberManager::Type::VerifyPhone, create_reference());
-}
-
-void Td::send_get_nearest_dc_query(Promise<string> promise) {
-  create_handler<GetNearestDcQuery>(std::move(promise))->send();
 }
 
 void Td::send_update(tl_object_ptr<td_api::Update> &&object) {
@@ -4516,7 +4521,6 @@ void Td::send_result(uint64 id, tl_object_ptr<td_api::Object> object) {
 
 void Td::send_error_impl(uint64 id, tl_object_ptr<td_api::error> error) {
   CHECK(id != 0);
-  CHECK(callback_ != nullptr);
   CHECK(error != nullptr);
   auto it = request_set_.find(id);
   if (it != request_set_.end()) {
@@ -5479,7 +5483,8 @@ void Td::on_request(uint64 id, td_api::searchChatMessages &request) {
 void Td::on_request(uint64 id, td_api::searchSecretMessages &request) {
   CHECK_IS_USER();
   CLEAN_INPUT_STRING(request.query_);
-  CREATE_REQUEST(OfflineSearchMessagesRequest, request.chat_id_, std::move(request.query_), request.from_search_id_,
+  CLEAN_INPUT_STRING(request.offset_);
+  CREATE_REQUEST(SearchSecretMessagesRequest, request.chat_id_, std::move(request.query_), std::move(request.offset_),
                  request.limit_, std::move(request.filter_));
 }
 
@@ -5492,7 +5497,7 @@ void Td::on_request(uint64 id, td_api::searchMessages &request) {
   }
   CREATE_REQUEST(SearchMessagesRequest, dialog_list_id.get_folder_id(), request.chat_list_ == nullptr,
                  std::move(request.query_), request.offset_date_, request.offset_chat_id_, request.offset_message_id_,
-                 request.limit_);
+                 request.limit_, std::move(request.filter_));
 }
 
 void Td::on_request(uint64 id, td_api::searchCallMessages &request) {
@@ -5522,6 +5527,13 @@ void Td::on_request(uint64 id, td_api::getChatMessageCount &request) {
 void Td::on_request(uint64 id, const td_api::getChatScheduledMessages &request) {
   CHECK_IS_USER();
   CREATE_REQUEST(GetChatScheduledMessagesRequest, request.chat_id_);
+}
+
+void Td::on_request(uint64 id, td_api::getMessagePublicForwards &request) {
+  CHECK_IS_USER();
+  CLEAN_INPUT_STRING(request.offset_);
+  CREATE_REQUEST(GetMessagePublicForwardsRequest, request.chat_id_, request.message_id_, request.offset_,
+                 request.limit_);
 }
 
 void Td::on_request(uint64 id, const td_api::removeNotification &request) {
@@ -6745,7 +6757,14 @@ void Td::on_request(uint64 id, const td_api::getChatStatistics &request) {
   contacts_manager_->get_channel_statistics(DialogId(request.chat_id_), request.is_dark_, std::move(promise));
 }
 
-void Td::on_request(uint64 id, td_api::getChatStatisticsGraph &request) {
+void Td::on_request(uint64 id, const td_api::getMessageStatistics &request) {
+  CHECK_IS_USER();
+  CREATE_REQUEST_PROMISE();
+  contacts_manager_->get_channel_message_statistics({DialogId(request.chat_id_), MessageId(request.message_id_)},
+                                                    request.is_dark_, std::move(promise));
+}
+
+void Td::on_request(uint64 id, td_api::getStatisticsGraph &request) {
   CHECK_IS_USER();
   CREATE_REQUEST_PROMISE();
   CLEAN_INPUT_STRING(request.token_);
@@ -7466,7 +7485,7 @@ void Td::on_request(uint64 id, td_api::getPreferredCountryLanguage &request) {
   CHECK_IS_USER();
   CLEAN_INPUT_STRING(request.country_code_);
   CREATE_REQUEST_PROMISE();
-  send_closure(secure_manager_, &SecureManager::get_preferred_country_code, std::move(request.country_code_),
+  send_closure(secure_manager_, &SecureManager::get_preferred_country_language, std::move(request.country_code_),
                std::move(promise));
 }
 
@@ -7688,6 +7707,11 @@ void Td::on_request(uint64 id, td_api::acceptTermsOfService &request) {
   accept_terms_of_service(this, std::move(request.terms_of_service_id_), std::move(promise));
 }
 
+void Td::on_request(uint64 id, const td_api::getCountries &request) {
+  CREATE_REQUEST_PROMISE();
+  country_info_manager_->get_countries(std::move(promise));
+}
+
 void Td::on_request(uint64 id, const td_api::getCountryCode &request) {
   CREATE_REQUEST_PROMISE();
   auto query_promise = PromiseCreator::lambda([promise = std::move(promise)](Result<string> result) mutable {
@@ -7697,7 +7721,12 @@ void Td::on_request(uint64 id, const td_api::getCountryCode &request) {
       promise.set_value(make_tl_object<td_api::text>(result.move_as_ok()));
     }
   });
-  create_handler<GetNearestDcQuery>(std::move(query_promise))->send();
+  country_info_manager_->get_current_country_code(std::move(query_promise));
+}
+
+void Td::on_request(uint64 id, const td_api::getPhoneNumberInfo &request) {
+  CREATE_REQUEST_PROMISE();
+  country_info_manager_->get_phone_number_info(request.phone_number_prefix_, std::move(promise));
 }
 
 void Td::on_request(uint64 id, const td_api::getInviteText &request) {
