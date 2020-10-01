@@ -7077,6 +7077,9 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
       }
       break;
     case 'd':
+      if (set_integer_option("dialog_unload_delay")) {
+        return;
+      }
       if (!is_bot && set_boolean_option("disable_contact_registered_notifications")) {
         return;
       }
