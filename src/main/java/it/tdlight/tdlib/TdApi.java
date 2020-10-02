@@ -136,6 +136,10 @@ public class TdApi {
 					return new CallProblemSilentRemote(input);
 				case CallProblemDropped.CONSTRUCTOR:
 					return new CallProblemDropped(input);
+				case CallProblemDistortedVideo.CONSTRUCTOR:
+					return new CallProblemDistortedVideo(input);
+				case CallProblemPixelatedVideo.CONSTRUCTOR:
+					return new CallProblemPixelatedVideo(input);
 				case CallProtocol.CONSTRUCTOR:
 					return new CallProtocol(input);
 				case CallServer.CONSTRUCTOR:
@@ -160,6 +164,8 @@ public class TdApi {
 					return new CallbackQueryAnswer(input);
 				case CallbackQueryPayloadData.CONSTRUCTOR:
 					return new CallbackQueryPayloadData(input);
+				case CallbackQueryPayloadDataWithPassword.CONSTRUCTOR:
+					return new CallbackQueryPayloadDataWithPassword(input);
 				case CallbackQueryPayloadGame.CONSTRUCTOR:
 					return new CallbackQueryPayloadGame(input);
 				case CanTransferOwnershipResultOk.CONSTRUCTOR:
@@ -392,6 +398,10 @@ public class TdApi {
 					return new Contact(input);
 				case Count.CONSTRUCTOR:
 					return new Count(input);
+				case Countries.CONSTRUCTOR:
+					return new Countries(input);
+				case CountryInfo.CONSTRUCTOR:
+					return new CountryInfo(input);
 				case CustomRequestResult.CONSTRUCTOR:
 					return new CustomRequestResult(input);
 				case DatabaseStatistics.CONSTRUCTOR:
@@ -502,6 +512,8 @@ public class TdApi {
 					return new InlineKeyboardButtonTypeLoginUrl(input);
 				case InlineKeyboardButtonTypeCallback.CONSTRUCTOR:
 					return new InlineKeyboardButtonTypeCallback(input);
+				case InlineKeyboardButtonTypeCallbackWithPassword.CONSTRUCTOR:
+					return new InlineKeyboardButtonTypeCallbackWithPassword(input);
 				case InlineKeyboardButtonTypeCallbackGame.CONSTRUCTOR:
 					return new InlineKeyboardButtonTypeCallbackGame(input);
 				case InlineKeyboardButtonTypeSwitchInline.CONSTRUCTOR:
@@ -834,12 +846,20 @@ public class TdApi {
 					return new MessageForwardInfo(input);
 				case MessageForwardOriginUser.CONSTRUCTOR:
 					return new MessageForwardOriginUser(input);
+				case MessageForwardOriginChat.CONSTRUCTOR:
+					return new MessageForwardOriginChat(input);
 				case MessageForwardOriginHiddenUser.CONSTRUCTOR:
 					return new MessageForwardOriginHiddenUser(input);
 				case MessageForwardOriginChannel.CONSTRUCTOR:
 					return new MessageForwardOriginChannel(input);
+				case MessageInteractionInfo.CONSTRUCTOR:
+					return new MessageInteractionInfo(input);
+				case MessageLink.CONSTRUCTOR:
+					return new MessageLink(input);
 				case MessageLinkInfo.CONSTRUCTOR:
 					return new MessageLinkInfo(input);
+				case MessageReplyInfo.CONSTRUCTOR:
+					return new MessageReplyInfo(input);
 				case MessageSchedulingStateSendAtDate.CONSTRUCTOR:
 					return new MessageSchedulingStateSendAtDate(input);
 				case MessageSchedulingStateSendWhenOnline.CONSTRUCTOR:
@@ -850,6 +870,10 @@ public class TdApi {
 					return new MessageSendingStatePending(input);
 				case MessageSendingStateFailed.CONSTRUCTOR:
 					return new MessageSendingStateFailed(input);
+				case MessageStatistics.CONSTRUCTOR:
+					return new MessageStatistics(input);
+				case MessageThreadInfo.CONSTRUCTOR:
+					return new MessageThreadInfo(input);
 				case Messages.CONSTRUCTOR:
 					return new Messages(input);
 				case Minithumbnail.CONSTRUCTOR:
@@ -1084,6 +1108,8 @@ public class TdApi {
 					return new PersonalDocument(input);
 				case PhoneNumberAuthenticationSettings.CONSTRUCTOR:
 					return new PhoneNumberAuthenticationSettings(input);
+				case PhoneNumberInfo.CONSTRUCTOR:
+					return new PhoneNumberInfo(input);
 				case Photo.CONSTRUCTOR:
 					return new Photo(input);
 				case PhotoSize.CONSTRUCTOR:
@@ -1112,8 +1138,6 @@ public class TdApi {
 					return new PublicChatTypeHasUsername(input);
 				case PublicChatTypeIsLocationBased.CONSTRUCTOR:
 					return new PublicChatTypeIsLocationBased(input);
-				case PublicMessageLink.CONSTRUCTOR:
-					return new PublicMessageLink(input);
 				case PushMessageContentHidden.CONSTRUCTOR:
 					return new PushMessageContentHidden(input);
 				case PushMessageContentAnimation.CONSTRUCTOR:
@@ -1438,8 +1462,8 @@ public class TdApi {
 					return new UpdateMessageContent(input);
 				case UpdateMessageEdited.CONSTRUCTOR:
 					return new UpdateMessageEdited(input);
-				case UpdateMessageViews.CONSTRUCTOR:
-					return new UpdateMessageViews(input);
+				case UpdateMessageInteractionInfo.CONSTRUCTOR:
+					return new UpdateMessageInteractionInfo(input);
 				case UpdateMessageContentOpened.CONSTRUCTOR:
 					return new UpdateMessageContentOpened(input);
 				case UpdateMessageMentionRead.CONSTRUCTOR:
@@ -1460,6 +1484,8 @@ public class TdApi {
 					return new UpdateChatPosition(input);
 				case UpdateChatIsMarkedAsUnread.CONSTRUCTOR:
 					return new UpdateChatIsMarkedAsUnread(input);
+				case UpdateChatIsBlocked.CONSTRUCTOR:
+					return new UpdateChatIsBlocked(input);
 				case UpdateChatHasScheduledMessages.CONSTRUCTOR:
 					return new UpdateChatHasScheduledMessages(input);
 				case UpdateChatDefaultDisableNotification.CONSTRUCTOR:
@@ -1700,8 +1726,8 @@ public class TdApi {
 					return new AnswerPreCheckoutQuery(input);
 				case AnswerShippingQuery.CONSTRUCTOR:
 					return new AnswerShippingQuery(input);
-				case BlockUser.CONSTRUCTOR:
-					return new BlockUser(input);
+				case BlockChatFromReplies.CONSTRUCTOR:
+					return new BlockChatFromReplies(input);
 				case CanTransferOwnership.CONSTRUCTOR:
 					return new CanTransferOwnership(input);
 				case CancelDownloadFile.CONSTRUCTOR:
@@ -1880,8 +1906,8 @@ public class TdApi {
 					return new GetBasicGroup(input);
 				case GetBasicGroupFullInfo.CONSTRUCTOR:
 					return new GetBasicGroupFullInfo(input);
-				case GetBlockedUsers.CONSTRUCTOR:
-					return new GetBlockedUsers(input);
+				case GetBlockedChats.CONSTRUCTOR:
+					return new GetBlockedChats(input);
 				case GetCallbackQueryAnswer.CONSTRUCTOR:
 					return new GetCallbackQueryAnswer(input);
 				case GetChat.CONSTRUCTOR:
@@ -1912,8 +1938,6 @@ public class TdApi {
 					return new GetChatScheduledMessages(input);
 				case GetChatStatistics.CONSTRUCTOR:
 					return new GetChatStatistics(input);
-				case GetChatStatisticsGraph.CONSTRUCTOR:
-					return new GetChatStatisticsGraph(input);
 				case GetChatStatisticsUrl.CONSTRUCTOR:
 					return new GetChatStatisticsUrl(input);
 				case GetChats.CONSTRUCTOR:
@@ -1922,6 +1946,8 @@ public class TdApi {
 					return new GetConnectedWebsites(input);
 				case GetContacts.CONSTRUCTOR:
 					return new GetContacts(input);
+				case GetCountries.CONSTRUCTOR:
+					return new GetCountries(input);
 				case GetCountryCode.CONSTRUCTOR:
 					return new GetCountryCode(input);
 				case GetCreatedPublicChats.CONSTRUCTOR:
@@ -1992,12 +2018,22 @@ public class TdApi {
 					return new GetMe(input);
 				case GetMessage.CONSTRUCTOR:
 					return new GetMessage(input);
+				case GetMessageEmbeddingCode.CONSTRUCTOR:
+					return new GetMessageEmbeddingCode(input);
 				case GetMessageLink.CONSTRUCTOR:
 					return new GetMessageLink(input);
 				case GetMessageLinkInfo.CONSTRUCTOR:
 					return new GetMessageLinkInfo(input);
 				case GetMessageLocally.CONSTRUCTOR:
 					return new GetMessageLocally(input);
+				case GetMessagePublicForwards.CONSTRUCTOR:
+					return new GetMessagePublicForwards(input);
+				case GetMessageStatistics.CONSTRUCTOR:
+					return new GetMessageStatistics(input);
+				case GetMessageThread.CONSTRUCTOR:
+					return new GetMessageThread(input);
+				case GetMessageThreadHistory.CONSTRUCTOR:
+					return new GetMessageThreadHistory(input);
 				case GetMessages.CONSTRUCTOR:
 					return new GetMessages(input);
 				case GetNetworkStatistics.CONSTRUCTOR:
@@ -2016,6 +2052,8 @@ public class TdApi {
 					return new GetPaymentForm(input);
 				case GetPaymentReceipt.CONSTRUCTOR:
 					return new GetPaymentReceipt(input);
+				case GetPhoneNumberInfo.CONSTRUCTOR:
+					return new GetPhoneNumberInfo(input);
 				case GetPollVoters.CONSTRUCTOR:
 					return new GetPollVoters(input);
 				case GetPreferredCountryLanguage.CONSTRUCTOR:
@@ -2024,8 +2062,6 @@ public class TdApi {
 					return new GetProxies(input);
 				case GetProxyLink.CONSTRUCTOR:
 					return new GetProxyLink(input);
-				case GetPublicMessageLink.CONSTRUCTOR:
-					return new GetPublicMessageLink(input);
 				case GetPushReceiverId.CONSTRUCTOR:
 					return new GetPushReceiverId(input);
 				case GetRecentInlineBots.CONSTRUCTOR:
@@ -2050,6 +2086,8 @@ public class TdApi {
 					return new GetScopeNotificationSettings(input);
 				case GetSecretChat.CONSTRUCTOR:
 					return new GetSecretChat(input);
+				case GetStatisticsGraph.CONSTRUCTOR:
+					return new GetStatisticsGraph(input);
 				case GetStickerEmojis.CONSTRUCTOR:
 					return new GetStickerEmojis(input);
 				case GetStickerSet.CONSTRUCTOR:
@@ -2394,6 +2432,8 @@ public class TdApi {
 					return new TestUseUpdate(input);
 				case ToggleChatDefaultDisableNotification.CONSTRUCTOR:
 					return new ToggleChatDefaultDisableNotification(input);
+				case ToggleChatIsBlocked.CONSTRUCTOR:
+					return new ToggleChatIsBlocked(input);
 				case ToggleChatIsMarkedAsUnread.CONSTRUCTOR:
 					return new ToggleChatIsMarkedAsUnread(input);
 				case ToggleChatIsPinned.CONSTRUCTOR:
@@ -2404,8 +2444,6 @@ public class TdApi {
 					return new ToggleSupergroupSignMessages(input);
 				case TransferChatOwnership.CONSTRUCTOR:
 					return new TransferChatOwnership(input);
-				case UnblockUser.CONSTRUCTOR:
-					return new UnblockUser(input);
 				case UnpinChatMessage.CONSTRUCTOR:
 					return new UnpinChatMessage(input);
 				case UpgradeBasicGroupChatToSupergroupChat.CONSTRUCTOR:
@@ -4638,6 +4676,42 @@ public class TdApi {
 		}
 	}
 
+	public static class CallProblemDistortedVideo extends CallProblem {
+		public static final int CONSTRUCTOR = 385245706;
+
+		public CallProblemDistortedVideo() {}
+
+
+		public CallProblemDistortedVideo(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class CallProblemPixelatedVideo extends CallProblem {
+		public static final int CONSTRUCTOR = 2115315411;
+
+		public CallProblemPixelatedVideo() {}
+
+
+		public CallProblemPixelatedVideo(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
 	public static class CallProtocol extends Object {
 		public boolean udpP2p;
 		public boolean udpReflector;
@@ -5223,6 +5297,55 @@ public class TdApi {
 		}
 	}
 
+	public static class CallbackQueryPayloadDataWithPassword extends CallbackQueryPayload {
+		public String password;
+		public byte[] data;
+
+		public static final int CONSTRUCTOR = 1340266738;
+
+		public CallbackQueryPayloadDataWithPassword() {}
+
+		public CallbackQueryPayloadDataWithPassword(String password, byte[] data) {
+			this.password = password;
+			this.data = data;
+		}
+
+		public CallbackQueryPayloadDataWithPassword(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				byte[] passwordTmp = new byte[input.readInt()];
+				input.readFully(passwordTmp);
+				this.password = new String(passwordTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				this.data = new byte[input.readInt()];
+				input.readFully(this.data);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.password == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] passwordTmp = this.password.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(passwordTmp.length);
+				output.write(passwordTmp);
+			}
+			if (this.data == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.data.length);
+				output.write(this.data);
+			}
+		}
+	}
+
 	public static class CallbackQueryPayloadGame extends CallbackQueryPayload {
 		public String gameShortName;
 
@@ -5354,6 +5477,7 @@ public class TdApi {
 		public Message lastMessage;
 		public ChatPosition[] positions;
 		public boolean isMarkedAsUnread;
+		public boolean isBlocked;
 		public boolean hasScheduledMessages;
 		public boolean canBeDeletedOnlyForSelf;
 		public boolean canBeDeletedForAllUsers;
@@ -5370,11 +5494,11 @@ public class TdApi {
 		public DraftMessage draftMessage;
 		public String clientData;
 
-		public static final int CONSTRUCTOR = 1318398921;
+		public static final int CONSTRUCTOR = 1881489172;
 
 		public Chat() {}
 
-		public Chat(long id, ChatType type, String title, ChatPhotoInfo photo, ChatPermissions permissions, Message lastMessage, ChatPosition[] positions, boolean isMarkedAsUnread, boolean hasScheduledMessages, boolean canBeDeletedOnlyForSelf, boolean canBeDeletedForAllUsers, boolean canBeReported, boolean defaultDisableNotification, int unreadCount, long lastReadInboxMessageId, long lastReadOutboxMessageId, int unreadMentionCount, ChatNotificationSettings notificationSettings, ChatActionBar actionBar, long pinnedMessageId, long replyMarkupMessageId, DraftMessage draftMessage, String clientData) {
+		public Chat(long id, ChatType type, String title, ChatPhotoInfo photo, ChatPermissions permissions, Message lastMessage, ChatPosition[] positions, boolean isMarkedAsUnread, boolean isBlocked, boolean hasScheduledMessages, boolean canBeDeletedOnlyForSelf, boolean canBeDeletedForAllUsers, boolean canBeReported, boolean defaultDisableNotification, int unreadCount, long lastReadInboxMessageId, long lastReadOutboxMessageId, int unreadMentionCount, ChatNotificationSettings notificationSettings, ChatActionBar actionBar, long pinnedMessageId, long replyMarkupMessageId, DraftMessage draftMessage, String clientData) {
 			this.id = id;
 			this.type = type;
 			this.title = title;
@@ -5383,6 +5507,7 @@ public class TdApi {
 			this.lastMessage = lastMessage;
 			this.positions = positions;
 			this.isMarkedAsUnread = isMarkedAsUnread;
+			this.isBlocked = isBlocked;
 			this.hasScheduledMessages = hasScheduledMessages;
 			this.canBeDeletedOnlyForSelf = canBeDeletedOnlyForSelf;
 			this.canBeDeletedForAllUsers = canBeDeletedForAllUsers;
@@ -5453,6 +5578,7 @@ public class TdApi {
 				}
 			}
 			this.isMarkedAsUnread = input.readBoolean();
+			this.isBlocked = input.readBoolean();
 			this.hasScheduledMessages = input.readBoolean();
 			this.canBeDeletedOnlyForSelf = input.readBoolean();
 			this.canBeDeletedForAllUsers = input.readBoolean();
@@ -5553,6 +5679,7 @@ public class TdApi {
 				}
 			}
 			output.writeBoolean(this.isMarkedAsUnread);
+			output.writeBoolean(this.isBlocked);
 			output.writeBoolean(this.hasScheduledMessages);
 			output.writeBoolean(this.canBeDeletedOnlyForSelf);
 			output.writeBoolean(this.canBeDeletedForAllUsers);
@@ -7751,14 +7878,16 @@ public class TdApi {
 
 	public static class ChatMemberStatusCreator extends ChatMemberStatus {
 		public String customTitle;
+		public boolean isAnonymous;
 		public boolean isMember;
 
-		public static final int CONSTRUCTOR = 2038475849;
+		public static final int CONSTRUCTOR = -160019714;
 
 		public ChatMemberStatusCreator() {}
 
-		public ChatMemberStatusCreator(String customTitle, boolean isMember) {
+		public ChatMemberStatusCreator(String customTitle, boolean isAnonymous, boolean isMember) {
 			this.customTitle = customTitle;
+			this.isAnonymous = isAnonymous;
 			this.isMember = isMember;
 		}
 
@@ -7768,6 +7897,7 @@ public class TdApi {
 				input.readFully(customTitleTmp);
 				this.customTitle = new String(customTitleTmp, StandardCharsets.UTF_8);
 			}
+			this.isAnonymous = input.readBoolean();
 			this.isMember = input.readBoolean();
 		}
 
@@ -7785,6 +7915,7 @@ public class TdApi {
 				output.writeInt(customTitleTmp.length);
 				output.write(customTitleTmp);
 			}
+			output.writeBoolean(this.isAnonymous);
 			output.writeBoolean(this.isMember);
 		}
 	}
@@ -7800,12 +7931,13 @@ public class TdApi {
 		public boolean canRestrictMembers;
 		public boolean canPinMessages;
 		public boolean canPromoteMembers;
+		public boolean isAnonymous;
 
-		public static final int CONSTRUCTOR = 1800612058;
+		public static final int CONSTRUCTOR = 222495835;
 
 		public ChatMemberStatusAdministrator() {}
 
-		public ChatMemberStatusAdministrator(String customTitle, boolean canBeEdited, boolean canChangeInfo, boolean canPostMessages, boolean canEditMessages, boolean canDeleteMessages, boolean canInviteUsers, boolean canRestrictMembers, boolean canPinMessages, boolean canPromoteMembers) {
+		public ChatMemberStatusAdministrator(String customTitle, boolean canBeEdited, boolean canChangeInfo, boolean canPostMessages, boolean canEditMessages, boolean canDeleteMessages, boolean canInviteUsers, boolean canRestrictMembers, boolean canPinMessages, boolean canPromoteMembers, boolean isAnonymous) {
 			this.customTitle = customTitle;
 			this.canBeEdited = canBeEdited;
 			this.canChangeInfo = canChangeInfo;
@@ -7816,6 +7948,7 @@ public class TdApi {
 			this.canRestrictMembers = canRestrictMembers;
 			this.canPinMessages = canPinMessages;
 			this.canPromoteMembers = canPromoteMembers;
+			this.isAnonymous = isAnonymous;
 		}
 
 		public ChatMemberStatusAdministrator(DataInput input) throws IOException {
@@ -7833,6 +7966,7 @@ public class TdApi {
 			this.canRestrictMembers = input.readBoolean();
 			this.canPinMessages = input.readBoolean();
 			this.canPromoteMembers = input.readBoolean();
+			this.isAnonymous = input.readBoolean();
 		}
 
 		public int getConstructor() {
@@ -7858,6 +7992,7 @@ public class TdApi {
 			output.writeBoolean(this.canRestrictMembers);
 			output.writeBoolean(this.canPinMessages);
 			output.writeBoolean(this.canPromoteMembers);
+			output.writeBoolean(this.isAnonymous);
 		}
 	}
 
@@ -9616,17 +9751,20 @@ public class TdApi {
 	}
 
 	public static class Chats extends Object {
+		public int totalCount;
 		public long[] chatIds;
 
-		public static final int CONSTRUCTOR = -1687756019;
+		public static final int CONSTRUCTOR = 1809654812;
 
 		public Chats() {}
 
-		public Chats(long[] chatIds) {
+		public Chats(int totalCount, long[] chatIds) {
+			this.totalCount = totalCount;
 			this.chatIds = chatIds;
 		}
 
 		public Chats(DataInput input) throws IOException {
+			this.totalCount = input.readInt();
 			if (input.readBoolean()) {
 				this.chatIds = new long[input.readInt()];
 				for (int i = 0; i < this.chatIds.length; i++) {
@@ -9641,6 +9779,7 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.totalCount);
 			if (this.chatIds == null) {
 				output.writeBoolean(false);
 			} else {
@@ -10154,6 +10293,138 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeInt(this.count);
+		}
+	}
+
+	public static class Countries extends Object {
+		public CountryInfo[] countries;
+
+		public static final int CONSTRUCTOR = 1854211813;
+
+		public Countries() {}
+
+		public Countries(CountryInfo[] countries) {
+			this.countries = countries;
+		}
+
+		public Countries(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				this.countries = new CountryInfo[input.readInt()];
+				for (int i = 0; i < this.countries.length; i++) {
+					if (CountryInfo.CONSTRUCTOR != input.readInt()) {
+						throw new UnsupportedOperationException();
+					}
+					this.countries[i] = new CountryInfo(input);
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.countries == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.countries.length);
+				for (int i = 0; i < this.countries.length; i++) {
+					this.countries[i].serialize(output);
+				}
+			}
+		}
+	}
+
+	public static class CountryInfo extends Object {
+		public String countryCode;
+		public String name;
+		public String englishName;
+		public boolean isHidden;
+		public String[] callingCodes;
+
+		public static final int CONSTRUCTOR = 1617195722;
+
+		public CountryInfo() {}
+
+		public CountryInfo(String countryCode, String name, String englishName, boolean isHidden, String[] callingCodes) {
+			this.countryCode = countryCode;
+			this.name = name;
+			this.englishName = englishName;
+			this.isHidden = isHidden;
+			this.callingCodes = callingCodes;
+		}
+
+		public CountryInfo(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				byte[] countryCodeTmp = new byte[input.readInt()];
+				input.readFully(countryCodeTmp);
+				this.countryCode = new String(countryCodeTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				byte[] nameTmp = new byte[input.readInt()];
+				input.readFully(nameTmp);
+				this.name = new String(nameTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				byte[] englishNameTmp = new byte[input.readInt()];
+				input.readFully(englishNameTmp);
+				this.englishName = new String(englishNameTmp, StandardCharsets.UTF_8);
+			}
+			this.isHidden = input.readBoolean();
+			if (input.readBoolean()) {
+				this.callingCodes = new String[input.readInt()];
+				for (int i = 0; i < this.callingCodes.length; i++) {
+					byte[] callingCodesTmp = new byte[input.readInt()];
+					input.readFully(callingCodesTmp);
+					this.callingCodes[i] = new String(callingCodesTmp, StandardCharsets.UTF_8);
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.countryCode == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] countryCodeTmp = this.countryCode.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(countryCodeTmp.length);
+				output.write(countryCodeTmp);
+			}
+			if (this.name == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] nameTmp = this.name.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(nameTmp.length);
+				output.write(nameTmp);
+			}
+			if (this.englishName == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] englishNameTmp = this.englishName.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(englishNameTmp.length);
+				output.write(englishNameTmp);
+			}
+			output.writeBoolean(this.isHidden);
+			if (this.callingCodes == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.callingCodes.length);
+				for (int i = 0; i < this.callingCodes.length; i++) {
+					byte[] callingCodesTmp = this.callingCodes[i].getBytes(StandardCharsets.UTF_8);
+					output.writeInt(callingCodesTmp.length);
+					output.write(callingCodesTmp);
+				}
+			}
 		}
 	}
 
@@ -11819,19 +12090,22 @@ public class TdApi {
 	}
 
 	public static class FoundMessages extends Object {
+		public int totalCount;
 		public Message[] messages;
-		public long nextFromSearchId;
+		public String nextOffset;
 
-		public static final int CONSTRUCTOR = 2135623881;
+		public static final int CONSTRUCTOR = -529809608;
 
 		public FoundMessages() {}
 
-		public FoundMessages(Message[] messages, long nextFromSearchId) {
+		public FoundMessages(int totalCount, Message[] messages, String nextOffset) {
+			this.totalCount = totalCount;
 			this.messages = messages;
-			this.nextFromSearchId = nextFromSearchId;
+			this.nextOffset = nextOffset;
 		}
 
 		public FoundMessages(DataInput input) throws IOException {
+			this.totalCount = input.readInt();
 			if (input.readBoolean()) {
 				this.messages = new Message[input.readInt()];
 				for (int i = 0; i < this.messages.length; i++) {
@@ -11841,7 +12115,11 @@ public class TdApi {
 					this.messages[i] = new Message(input);
 				}
 			}
-			this.nextFromSearchId = input.readLong();
+			if (input.readBoolean()) {
+				byte[] nextOffsetTmp = new byte[input.readInt()];
+				input.readFully(nextOffsetTmp);
+				this.nextOffset = new String(nextOffsetTmp, StandardCharsets.UTF_8);
+			}
 		}
 
 		public int getConstructor() {
@@ -11850,6 +12128,7 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.totalCount);
 			if (this.messages == null) {
 				output.writeBoolean(false);
 			} else {
@@ -11859,7 +12138,14 @@ public class TdApi {
 					this.messages[i].serialize(output);
 				}
 			}
-			output.writeLong(this.nextFromSearchId);
+			if (this.nextOffset == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] nextOffsetTmp = this.nextOffset.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(nextOffsetTmp.length);
+				output.write(nextOffsetTmp);
+			}
 		}
 	}
 
@@ -12324,6 +12610,9 @@ public class TdApi {
 					case InlineKeyboardButtonTypeCallback.CONSTRUCTOR:
 						this.type = new InlineKeyboardButtonTypeCallback(input);
 						break;
+					case InlineKeyboardButtonTypeCallbackWithPassword.CONSTRUCTOR:
+						this.type = new InlineKeyboardButtonTypeCallbackWithPassword(input);
+						break;
 					case InlineKeyboardButtonTypeCallbackGame.CONSTRUCTOR:
 						this.type = new InlineKeyboardButtonTypeCallbackGame(input);
 						break;
@@ -12465,6 +12754,40 @@ public class TdApi {
 		}
 
 		public InlineKeyboardButtonTypeCallback(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				this.data = new byte[input.readInt()];
+				input.readFully(this.data);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.data == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.data.length);
+				output.write(this.data);
+			}
+		}
+	}
+
+	public static class InlineKeyboardButtonTypeCallbackWithPassword extends InlineKeyboardButtonType {
+		public byte[] data;
+
+		public static final int CONSTRUCTOR = 908018248;
+
+		public InlineKeyboardButtonTypeCallbackWithPassword() {}
+
+		public InlineKeyboardButtonTypeCallbackWithPassword(byte[] data) {
+			this.data = data;
+		}
+
+		public InlineKeyboardButtonTypeCallbackWithPassword(DataInput input) throws IOException {
 			if (input.readBoolean()) {
 				this.data = new byte[input.readInt()];
 				input.readFully(this.data);
@@ -16551,17 +16874,17 @@ public class TdApi {
 	public static class InputMessageDocument extends InputMessageContent {
 		public InputFile document;
 		public InputThumbnail thumbnail;
-		public boolean forceFile;
+		public boolean disableContentTypeDetection;
 		public FormattedText caption;
 
-		public static final int CONSTRUCTOR = 1960124119;
+		public static final int CONSTRUCTOR = 1633383097;
 
 		public InputMessageDocument() {}
 
-		public InputMessageDocument(InputFile document, InputThumbnail thumbnail, boolean forceFile, FormattedText caption) {
+		public InputMessageDocument(InputFile document, InputThumbnail thumbnail, boolean disableContentTypeDetection, FormattedText caption) {
 			this.document = document;
 			this.thumbnail = thumbnail;
-			this.forceFile = forceFile;
+			this.disableContentTypeDetection = disableContentTypeDetection;
 			this.caption = caption;
 		}
 
@@ -16590,7 +16913,7 @@ public class TdApi {
 				}
 				this.thumbnail = new InputThumbnail(input);
 			}
-			this.forceFile = input.readBoolean();
+			this.disableContentTypeDetection = input.readBoolean();
 			if (input.readBoolean()) {
 				if (FormattedText.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
@@ -16617,7 +16940,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.thumbnail.serialize(output);
 			}
-			output.writeBoolean(this.forceFile);
+			output.writeBoolean(this.disableContentTypeDetection);
 			if (this.caption == null) {
 				output.writeBoolean(false);
 			} else {
@@ -19840,14 +20163,16 @@ public class TdApi {
 	public static class LogStreamFile extends LogStream {
 		public String path;
 		public long maxFileSize;
+		public boolean redirectStderr;
 
-		public static final int CONSTRUCTOR = -1880085930;
+		public static final int CONSTRUCTOR = 1532136933;
 
 		public LogStreamFile() {}
 
-		public LogStreamFile(String path, long maxFileSize) {
+		public LogStreamFile(String path, long maxFileSize, boolean redirectStderr) {
 			this.path = path;
 			this.maxFileSize = maxFileSize;
+			this.redirectStderr = redirectStderr;
 		}
 
 		public LogStreamFile(DataInput input) throws IOException {
@@ -19857,6 +20182,7 @@ public class TdApi {
 				this.path = new String(pathTmp, StandardCharsets.UTF_8);
 			}
 			this.maxFileSize = input.readLong();
+			this.redirectStderr = input.readBoolean();
 		}
 
 		public int getConstructor() {
@@ -19874,6 +20200,7 @@ public class TdApi {
 				output.write(pathTmp);
 			}
 			output.writeLong(this.maxFileSize);
+			output.writeBoolean(this.redirectStderr);
 		}
 	}
 
@@ -20195,6 +20522,7 @@ public class TdApi {
 	public static class Message extends Object {
 		public long id;
 		public int senderUserId;
+		public long senderChatId;
 		public long chatId;
 		public MessageSendingState sendingState;
 		public MessageSchedulingState schedulingState;
@@ -20203,29 +20531,34 @@ public class TdApi {
 		public boolean canBeForwarded;
 		public boolean canBeDeletedOnlyForSelf;
 		public boolean canBeDeletedForAllUsers;
+		public boolean canGetStatistics;
+		public boolean canGetMessageThread;
 		public boolean isChannelPost;
 		public boolean containsUnreadMention;
 		public int date;
 		public int editDate;
 		public MessageForwardInfo forwardInfo;
+		public MessageInteractionInfo interactionInfo;
+		public long replyInChatId;
 		public long replyToMessageId;
+		public long messageThreadId;
 		public int ttl;
 		public double ttlExpiresIn;
 		public int viaBotUserId;
 		public String authorSignature;
-		public int views;
 		public long mediaAlbumId;
 		public String restrictionReason;
 		public MessageContent content;
 		public ReplyMarkup replyMarkup;
 
-		public static final int CONSTRUCTOR = 1169109781;
+		public static final int CONSTRUCTOR = 81067037;
 
 		public Message() {}
 
-		public Message(long id, int senderUserId, long chatId, MessageSendingState sendingState, MessageSchedulingState schedulingState, boolean isOutgoing, boolean canBeEdited, boolean canBeForwarded, boolean canBeDeletedOnlyForSelf, boolean canBeDeletedForAllUsers, boolean isChannelPost, boolean containsUnreadMention, int date, int editDate, MessageForwardInfo forwardInfo, long replyToMessageId, int ttl, double ttlExpiresIn, int viaBotUserId, String authorSignature, int views, long mediaAlbumId, String restrictionReason, MessageContent content, ReplyMarkup replyMarkup) {
+		public Message(long id, int senderUserId, long senderChatId, long chatId, MessageSendingState sendingState, MessageSchedulingState schedulingState, boolean isOutgoing, boolean canBeEdited, boolean canBeForwarded, boolean canBeDeletedOnlyForSelf, boolean canBeDeletedForAllUsers, boolean canGetStatistics, boolean canGetMessageThread, boolean isChannelPost, boolean containsUnreadMention, int date, int editDate, MessageForwardInfo forwardInfo, MessageInteractionInfo interactionInfo, long replyInChatId, long replyToMessageId, long messageThreadId, int ttl, double ttlExpiresIn, int viaBotUserId, String authorSignature, long mediaAlbumId, String restrictionReason, MessageContent content, ReplyMarkup replyMarkup) {
 			this.id = id;
 			this.senderUserId = senderUserId;
+			this.senderChatId = senderChatId;
 			this.chatId = chatId;
 			this.sendingState = sendingState;
 			this.schedulingState = schedulingState;
@@ -20234,17 +20567,21 @@ public class TdApi {
 			this.canBeForwarded = canBeForwarded;
 			this.canBeDeletedOnlyForSelf = canBeDeletedOnlyForSelf;
 			this.canBeDeletedForAllUsers = canBeDeletedForAllUsers;
+			this.canGetStatistics = canGetStatistics;
+			this.canGetMessageThread = canGetMessageThread;
 			this.isChannelPost = isChannelPost;
 			this.containsUnreadMention = containsUnreadMention;
 			this.date = date;
 			this.editDate = editDate;
 			this.forwardInfo = forwardInfo;
+			this.interactionInfo = interactionInfo;
+			this.replyInChatId = replyInChatId;
 			this.replyToMessageId = replyToMessageId;
+			this.messageThreadId = messageThreadId;
 			this.ttl = ttl;
 			this.ttlExpiresIn = ttlExpiresIn;
 			this.viaBotUserId = viaBotUserId;
 			this.authorSignature = authorSignature;
-			this.views = views;
 			this.mediaAlbumId = mediaAlbumId;
 			this.restrictionReason = restrictionReason;
 			this.content = content;
@@ -20254,6 +20591,7 @@ public class TdApi {
 		public Message(DataInput input) throws IOException {
 			this.id = input.readLong();
 			this.senderUserId = input.readInt();
+			this.senderChatId = input.readLong();
 			this.chatId = input.readLong();
 			if (input.readBoolean()) {
 				switch(input.readInt()) {
@@ -20284,6 +20622,8 @@ public class TdApi {
 			this.canBeForwarded = input.readBoolean();
 			this.canBeDeletedOnlyForSelf = input.readBoolean();
 			this.canBeDeletedForAllUsers = input.readBoolean();
+			this.canGetStatistics = input.readBoolean();
+			this.canGetMessageThread = input.readBoolean();
 			this.isChannelPost = input.readBoolean();
 			this.containsUnreadMention = input.readBoolean();
 			this.date = input.readInt();
@@ -20294,7 +20634,15 @@ public class TdApi {
 				}
 				this.forwardInfo = new MessageForwardInfo(input);
 			}
+			if (input.readBoolean()) {
+				if (MessageInteractionInfo.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.interactionInfo = new MessageInteractionInfo(input);
+			}
+			this.replyInChatId = input.readLong();
 			this.replyToMessageId = input.readLong();
+			this.messageThreadId = input.readLong();
 			this.ttl = input.readInt();
 			this.ttlExpiresIn = input.readDouble();
 			this.viaBotUserId = input.readInt();
@@ -20303,7 +20651,6 @@ public class TdApi {
 				input.readFully(authorSignatureTmp);
 				this.authorSignature = new String(authorSignatureTmp, StandardCharsets.UTF_8);
 			}
-			this.views = input.readInt();
 			this.mediaAlbumId = input.readLong();
 			if (input.readBoolean()) {
 				byte[] restrictionReasonTmp = new byte[input.readInt()];
@@ -20467,6 +20814,7 @@ public class TdApi {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.id);
 			output.writeInt(this.senderUserId);
+			output.writeLong(this.senderChatId);
 			output.writeLong(this.chatId);
 			if (this.sendingState == null) {
 				output.writeBoolean(false);
@@ -20485,6 +20833,8 @@ public class TdApi {
 			output.writeBoolean(this.canBeForwarded);
 			output.writeBoolean(this.canBeDeletedOnlyForSelf);
 			output.writeBoolean(this.canBeDeletedForAllUsers);
+			output.writeBoolean(this.canGetStatistics);
+			output.writeBoolean(this.canGetMessageThread);
 			output.writeBoolean(this.isChannelPost);
 			output.writeBoolean(this.containsUnreadMention);
 			output.writeInt(this.date);
@@ -20495,7 +20845,15 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.forwardInfo.serialize(output);
 			}
+			if (this.interactionInfo == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.interactionInfo.serialize(output);
+			}
+			output.writeLong(this.replyInChatId);
 			output.writeLong(this.replyToMessageId);
+			output.writeLong(this.messageThreadId);
 			output.writeInt(this.ttl);
 			output.writeDouble(this.ttlExpiresIn);
 			output.writeInt(this.viaBotUserId);
@@ -20507,7 +20865,6 @@ public class TdApi {
 				output.writeInt(authorSignatureTmp.length);
 				output.write(authorSignatureTmp);
 			}
-			output.writeInt(this.views);
 			output.writeLong(this.mediaAlbumId);
 			if (this.restrictionReason == null) {
 				output.writeBoolean(false);
@@ -22325,6 +22682,9 @@ public class TdApi {
 					case MessageForwardOriginUser.CONSTRUCTOR:
 						this.origin = new MessageForwardOriginUser(input);
 						break;
+					case MessageForwardOriginChat.CONSTRUCTOR:
+						this.origin = new MessageForwardOriginChat(input);
+						break;
 					case MessageForwardOriginHiddenUser.CONSTRUCTOR:
 						this.origin = new MessageForwardOriginHiddenUser(input);
 						break;
@@ -22393,6 +22753,31 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeInt(this.senderUserId);
+		}
+	}
+
+	public static class MessageForwardOriginChat extends MessageForwardOrigin {
+		public long senderChatId;
+
+		public static final int CONSTRUCTOR = 872598889;
+
+		public MessageForwardOriginChat() {}
+
+		public MessageForwardOriginChat(long senderChatId) {
+			this.senderChatId = senderChatId;
+		}
+
+		public MessageForwardOriginChat(DataInput input) throws IOException {
+			this.senderChatId = input.readLong();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.senderChatId);
 		}
 	}
 
@@ -22476,21 +22861,106 @@ public class TdApi {
 		}
 	}
 
+	public static class MessageInteractionInfo extends Object {
+		public int viewCount;
+		public int forwardCount;
+		public MessageReplyInfo replyInfo;
+
+		public static final int CONSTRUCTOR = -620714966;
+
+		public MessageInteractionInfo() {}
+
+		public MessageInteractionInfo(int viewCount, int forwardCount, MessageReplyInfo replyInfo) {
+			this.viewCount = viewCount;
+			this.forwardCount = forwardCount;
+			this.replyInfo = replyInfo;
+		}
+
+		public MessageInteractionInfo(DataInput input) throws IOException {
+			this.viewCount = input.readInt();
+			this.forwardCount = input.readInt();
+			if (input.readBoolean()) {
+				if (MessageReplyInfo.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.replyInfo = new MessageReplyInfo(input);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.viewCount);
+			output.writeInt(this.forwardCount);
+			if (this.replyInfo == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.replyInfo.serialize(output);
+			}
+		}
+	}
+
+	public static class MessageLink extends Object {
+		public String link;
+		public boolean isPublic;
+
+		public static final int CONSTRUCTOR = -1354089818;
+
+		public MessageLink() {}
+
+		public MessageLink(String link, boolean isPublic) {
+			this.link = link;
+			this.isPublic = isPublic;
+		}
+
+		public MessageLink(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				byte[] linkTmp = new byte[input.readInt()];
+				input.readFully(linkTmp);
+				this.link = new String(linkTmp, StandardCharsets.UTF_8);
+			}
+			this.isPublic = input.readBoolean();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.link == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(linkTmp.length);
+				output.write(linkTmp);
+			}
+			output.writeBoolean(this.isPublic);
+		}
+	}
+
 	public static class MessageLinkInfo extends Object {
 		public boolean isPublic;
 		public long chatId;
 		public Message message;
 		public boolean forAlbum;
+		public boolean forComment;
 
-		public static final int CONSTRUCTOR = 657372995;
+		public static final int CONSTRUCTOR = -1002342529;
 
 		public MessageLinkInfo() {}
 
-		public MessageLinkInfo(boolean isPublic, long chatId, Message message, boolean forAlbum) {
+		public MessageLinkInfo(boolean isPublic, long chatId, Message message, boolean forAlbum, boolean forComment) {
 			this.isPublic = isPublic;
 			this.chatId = chatId;
 			this.message = message;
 			this.forAlbum = forAlbum;
+			this.forComment = forComment;
 		}
 
 		public MessageLinkInfo(DataInput input) throws IOException {
@@ -22503,6 +22973,7 @@ public class TdApi {
 				this.message = new Message(input);
 			}
 			this.forAlbum = input.readBoolean();
+			this.forComment = input.readBoolean();
 		}
 
 		public int getConstructor() {
@@ -22520,6 +22991,61 @@ public class TdApi {
 				this.message.serialize(output);
 			}
 			output.writeBoolean(this.forAlbum);
+			output.writeBoolean(this.forComment);
+		}
+	}
+
+	public static class MessageReplyInfo extends Object {
+		public int replyCount;
+		public int[] recentReplierUserIds;
+		public long lastReadInboxMessageId;
+		public long lastReadOutboxMessageId;
+		public long lastMessageId;
+
+		public static final int CONSTRUCTOR = -67189409;
+
+		public MessageReplyInfo() {}
+
+		public MessageReplyInfo(int replyCount, int[] recentReplierUserIds, long lastReadInboxMessageId, long lastReadOutboxMessageId, long lastMessageId) {
+			this.replyCount = replyCount;
+			this.recentReplierUserIds = recentReplierUserIds;
+			this.lastReadInboxMessageId = lastReadInboxMessageId;
+			this.lastReadOutboxMessageId = lastReadOutboxMessageId;
+			this.lastMessageId = lastMessageId;
+		}
+
+		public MessageReplyInfo(DataInput input) throws IOException {
+			this.replyCount = input.readInt();
+			if (input.readBoolean()) {
+				this.recentReplierUserIds = new int[input.readInt()];
+				for (int i = 0; i < this.recentReplierUserIds.length; i++) {
+					this.recentReplierUserIds[i] = input.readInt();
+				}
+			}
+			this.lastReadInboxMessageId = input.readLong();
+			this.lastReadOutboxMessageId = input.readLong();
+			this.lastMessageId = input.readLong();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeInt(this.replyCount);
+			if (this.recentReplierUserIds == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.recentReplierUserIds.length);
+				for (int i = 0; i < this.recentReplierUserIds.length; i++) {
+					output.writeInt(this.recentReplierUserIds[i]);
+				}
+			}
+			output.writeLong(this.lastReadInboxMessageId);
+			output.writeLong(this.lastReadOutboxMessageId);
+			output.writeLong(this.lastMessageId);
 		}
 	}
 
@@ -22678,6 +23204,113 @@ public class TdApi {
 			}
 			output.writeBoolean(this.canRetry);
 			output.writeDouble(this.retryAfter);
+		}
+	}
+
+	public static class MessageStatistics extends Object {
+		public StatisticsGraph messageInteractionGraph;
+
+		public static final int CONSTRUCTOR = 1148915634;
+
+		public MessageStatistics() {}
+
+		public MessageStatistics(StatisticsGraph messageInteractionGraph) {
+			this.messageInteractionGraph = messageInteractionGraph;
+		}
+
+		public MessageStatistics(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case StatisticsGraphData.CONSTRUCTOR:
+						this.messageInteractionGraph = new StatisticsGraphData(input);
+						break;
+					case StatisticsGraphAsync.CONSTRUCTOR:
+						this.messageInteractionGraph = new StatisticsGraphAsync(input);
+						break;
+					case StatisticsGraphError.CONSTRUCTOR:
+						this.messageInteractionGraph = new StatisticsGraphError(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.messageInteractionGraph == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.messageInteractionGraph.serialize(output);
+			}
+		}
+	}
+
+	public static class MessageThreadInfo extends Object {
+		public long chatId;
+		public long messageThreadId;
+		public Message[] messages;
+		public DraftMessage draftMessage;
+
+		public static final int CONSTRUCTOR = -800726069;
+
+		public MessageThreadInfo() {}
+
+		public MessageThreadInfo(long chatId, long messageThreadId, Message[] messages, DraftMessage draftMessage) {
+			this.chatId = chatId;
+			this.messageThreadId = messageThreadId;
+			this.messages = messages;
+			this.draftMessage = draftMessage;
+		}
+
+		public MessageThreadInfo(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			this.messageThreadId = input.readLong();
+			if (input.readBoolean()) {
+				this.messages = new Message[input.readInt()];
+				for (int i = 0; i < this.messages.length; i++) {
+					if (Message.CONSTRUCTOR != input.readInt()) {
+						throw new UnsupportedOperationException();
+					}
+					this.messages[i] = new Message(input);
+				}
+			}
+			if (input.readBoolean()) {
+				if (DraftMessage.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.draftMessage = new DraftMessage(input);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			output.writeLong(this.messageThreadId);
+			if (this.messages == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.messages.length);
+				for (int i = 0; i < this.messages.length; i++) {
+					this.messages[i].serialize(output);
+				}
+			}
+			if (this.draftMessage == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.draftMessage.serialize(output);
+			}
 		}
 	}
 
@@ -23436,17 +24069,19 @@ public class TdApi {
 	public static class NotificationTypeNewPushMessage extends NotificationType {
 		public long messageId;
 		public int senderUserId;
+		public long senderChatId;
 		public String senderName;
 		public boolean isOutgoing;
 		public PushMessageContent content;
 
-		public static final int CONSTRUCTOR = 999250657;
+		public static final int CONSTRUCTOR = -728846585;
 
 		public NotificationTypeNewPushMessage() {}
 
-		public NotificationTypeNewPushMessage(long messageId, int senderUserId, String senderName, boolean isOutgoing, PushMessageContent content) {
+		public NotificationTypeNewPushMessage(long messageId, int senderUserId, long senderChatId, String senderName, boolean isOutgoing, PushMessageContent content) {
 			this.messageId = messageId;
 			this.senderUserId = senderUserId;
+			this.senderChatId = senderChatId;
 			this.senderName = senderName;
 			this.isOutgoing = isOutgoing;
 			this.content = content;
@@ -23455,6 +24090,7 @@ public class TdApi {
 		public NotificationTypeNewPushMessage(DataInput input) throws IOException {
 			this.messageId = input.readLong();
 			this.senderUserId = input.readInt();
+			this.senderChatId = input.readLong();
 			if (input.readBoolean()) {
 				byte[] senderNameTmp = new byte[input.readInt()];
 				input.readFully(senderNameTmp);
@@ -23555,6 +24191,7 @@ public class TdApi {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.messageId);
 			output.writeInt(this.senderUserId);
+			output.writeLong(this.senderChatId);
 			if (this.senderName == null) {
 				output.writeBoolean(false);
 			} else {
@@ -23635,18 +24272,18 @@ public class TdApi {
 	}
 
 	public static class OptionValueInteger extends OptionValue {
-		public int value;
+		public long value;
 
-		public static final int CONSTRUCTOR = -1400911104;
+		public static final int CONSTRUCTOR = -186858780;
 
 		public OptionValueInteger() {}
 
-		public OptionValueInteger(int value) {
+		public OptionValueInteger(long value) {
 			this.value = value;
 		}
 
 		public OptionValueInteger(DataInput input) throws IOException {
-			this.value = input.readInt();
+			this.value = input.readLong();
 		}
 
 		public int getConstructor() {
@@ -23655,7 +24292,7 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
-			output.writeInt(this.value);
+			output.writeLong(this.value);
 		}
 	}
 
@@ -29104,6 +29741,71 @@ public class TdApi {
 		}
 	}
 
+	public static class PhoneNumberInfo extends Object {
+		public CountryInfo country;
+		public String countryCallingCode;
+		public String formattedPhoneNumber;
+
+		public static final int CONSTRUCTOR = 560180961;
+
+		public PhoneNumberInfo() {}
+
+		public PhoneNumberInfo(CountryInfo country, String countryCallingCode, String formattedPhoneNumber) {
+			this.country = country;
+			this.countryCallingCode = countryCallingCode;
+			this.formattedPhoneNumber = formattedPhoneNumber;
+		}
+
+		public PhoneNumberInfo(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				if (CountryInfo.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.country = new CountryInfo(input);
+			}
+			if (input.readBoolean()) {
+				byte[] countryCallingCodeTmp = new byte[input.readInt()];
+				input.readFully(countryCallingCodeTmp);
+				this.countryCallingCode = new String(countryCallingCodeTmp, StandardCharsets.UTF_8);
+			}
+			if (input.readBoolean()) {
+				byte[] formattedPhoneNumberTmp = new byte[input.readInt()];
+				input.readFully(formattedPhoneNumberTmp);
+				this.formattedPhoneNumber = new String(formattedPhoneNumberTmp, StandardCharsets.UTF_8);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.country == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.country.serialize(output);
+			}
+			if (this.countryCallingCode == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] countryCallingCodeTmp = this.countryCallingCode.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(countryCallingCodeTmp.length);
+				output.write(countryCallingCodeTmp);
+			}
+			if (this.formattedPhoneNumber == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] formattedPhoneNumberTmp = this.formattedPhoneNumber.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(formattedPhoneNumberTmp.length);
+				output.write(formattedPhoneNumberTmp);
+			}
+		}
+	}
+
 	public static class Photo extends Object {
 		public boolean hasStickers;
 		public Minithumbnail minithumbnail;
@@ -29168,16 +29870,18 @@ public class TdApi {
 		public File photo;
 		public int width;
 		public int height;
+		public int[] progressiveSizes;
 
-		public static final int CONSTRUCTOR = 421980227;
+		public static final int CONSTRUCTOR = 1609182352;
 
 		public PhotoSize() {}
 
-		public PhotoSize(String type, File photo, int width, int height) {
+		public PhotoSize(String type, File photo, int width, int height, int[] progressiveSizes) {
 			this.type = type;
 			this.photo = photo;
 			this.width = width;
 			this.height = height;
+			this.progressiveSizes = progressiveSizes;
 		}
 
 		public PhotoSize(DataInput input) throws IOException {
@@ -29194,6 +29898,12 @@ public class TdApi {
 			}
 			this.width = input.readInt();
 			this.height = input.readInt();
+			if (input.readBoolean()) {
+				this.progressiveSizes = new int[input.readInt()];
+				for (int i = 0; i < this.progressiveSizes.length; i++) {
+					this.progressiveSizes[i] = input.readInt();
+				}
+			}
 		}
 
 		public int getConstructor() {
@@ -29218,6 +29928,15 @@ public class TdApi {
 			}
 			output.writeInt(this.width);
 			output.writeInt(this.height);
+			if (this.progressiveSizes == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				output.writeInt(this.progressiveSizes.length);
+				for (int i = 0; i < this.progressiveSizes.length; i++) {
+					output.writeInt(this.progressiveSizes[i]);
+				}
+			}
 		}
 	}
 
@@ -29802,57 +30521,6 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
-		}
-	}
-
-	public static class PublicMessageLink extends Object {
-		public String link;
-		public String html;
-
-		public static final int CONSTRUCTOR = -679603433;
-
-		public PublicMessageLink() {}
-
-		public PublicMessageLink(String link, String html) {
-			this.link = link;
-			this.html = html;
-		}
-
-		public PublicMessageLink(DataInput input) throws IOException {
-			if (input.readBoolean()) {
-				byte[] linkTmp = new byte[input.readInt()];
-				input.readFully(linkTmp);
-				this.link = new String(linkTmp, StandardCharsets.UTF_8);
-			}
-			if (input.readBoolean()) {
-				byte[] htmlTmp = new byte[input.readInt()];
-				input.readFully(htmlTmp);
-				this.html = new String(htmlTmp, StandardCharsets.UTF_8);
-			}
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			if (this.link == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				byte[] linkTmp = this.link.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(linkTmp.length);
-				output.write(linkTmp);
-			}
-			if (this.html == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				byte[] htmlTmp = this.html.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(htmlTmp.length);
-				output.write(htmlTmp);
-			}
 		}
 	}
 
@@ -34508,7 +35176,7 @@ public class TdApi {
 		public boolean canSetUsername;
 		public boolean canSetStickerSet;
 		public boolean canSetLocation;
-		public boolean canViewStatistics;
+		public boolean canGetStatistics;
 		public boolean isAllHistoryAvailable;
 		public long stickerSetId;
 		public ChatLocation location;
@@ -34516,11 +35184,11 @@ public class TdApi {
 		public int upgradedFromBasicGroupId;
 		public long upgradedFromMaxMessageId;
 
-		public static final int CONSTRUCTOR = -739402159;
+		public static final int CONSTRUCTOR = -1112328416;
 
 		public SupergroupFullInfo() {}
 
-		public SupergroupFullInfo(ChatPhoto photo, String description, int memberCount, int administratorCount, int restrictedCount, int bannedCount, long linkedChatId, int slowModeDelay, double slowModeDelayExpiresIn, boolean canGetMembers, boolean canSetUsername, boolean canSetStickerSet, boolean canSetLocation, boolean canViewStatistics, boolean isAllHistoryAvailable, long stickerSetId, ChatLocation location, String inviteLink, int upgradedFromBasicGroupId, long upgradedFromMaxMessageId) {
+		public SupergroupFullInfo(ChatPhoto photo, String description, int memberCount, int administratorCount, int restrictedCount, int bannedCount, long linkedChatId, int slowModeDelay, double slowModeDelayExpiresIn, boolean canGetMembers, boolean canSetUsername, boolean canSetStickerSet, boolean canSetLocation, boolean canGetStatistics, boolean isAllHistoryAvailable, long stickerSetId, ChatLocation location, String inviteLink, int upgradedFromBasicGroupId, long upgradedFromMaxMessageId) {
 			this.photo = photo;
 			this.description = description;
 			this.memberCount = memberCount;
@@ -34534,7 +35202,7 @@ public class TdApi {
 			this.canSetUsername = canSetUsername;
 			this.canSetStickerSet = canSetStickerSet;
 			this.canSetLocation = canSetLocation;
-			this.canViewStatistics = canViewStatistics;
+			this.canGetStatistics = canGetStatistics;
 			this.isAllHistoryAvailable = isAllHistoryAvailable;
 			this.stickerSetId = stickerSetId;
 			this.location = location;
@@ -34566,7 +35234,7 @@ public class TdApi {
 			this.canSetUsername = input.readBoolean();
 			this.canSetStickerSet = input.readBoolean();
 			this.canSetLocation = input.readBoolean();
-			this.canViewStatistics = input.readBoolean();
+			this.canGetStatistics = input.readBoolean();
 			this.isAllHistoryAvailable = input.readBoolean();
 			this.stickerSetId = input.readLong();
 			if (input.readBoolean()) {
@@ -34615,7 +35283,7 @@ public class TdApi {
 			output.writeBoolean(this.canSetUsername);
 			output.writeBoolean(this.canSetStickerSet);
 			output.writeBoolean(this.canSetLocation);
-			output.writeBoolean(this.canViewStatistics);
+			output.writeBoolean(this.canGetStatistics);
 			output.writeBoolean(this.isAllHistoryAvailable);
 			output.writeLong(this.stickerSetId);
 			if (this.location == null) {
@@ -36861,25 +37529,30 @@ public class TdApi {
 		}
 	}
 
-	public static class UpdateMessageViews extends Update {
+	public static class UpdateMessageInteractionInfo extends Update {
 		public long chatId;
 		public long messageId;
-		public int views;
+		public MessageInteractionInfo interactionInfo;
 
-		public static final int CONSTRUCTOR = -1854131125;
+		public static final int CONSTRUCTOR = -1417659394;
 
-		public UpdateMessageViews() {}
+		public UpdateMessageInteractionInfo() {}
 
-		public UpdateMessageViews(long chatId, long messageId, int views) {
+		public UpdateMessageInteractionInfo(long chatId, long messageId, MessageInteractionInfo interactionInfo) {
 			this.chatId = chatId;
 			this.messageId = messageId;
-			this.views = views;
+			this.interactionInfo = interactionInfo;
 		}
 
-		public UpdateMessageViews(DataInput input) throws IOException {
+		public UpdateMessageInteractionInfo(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			this.messageId = input.readLong();
-			this.views = input.readInt();
+			if (input.readBoolean()) {
+				if (MessageInteractionInfo.CONSTRUCTOR != input.readInt()) {
+					throw new UnsupportedOperationException();
+				}
+				this.interactionInfo = new MessageInteractionInfo(input);
+			}
 		}
 
 		public int getConstructor() {
@@ -36890,7 +37563,12 @@ public class TdApi {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
 			output.writeLong(this.messageId);
-			output.writeInt(this.views);
+			if (this.interactionInfo == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.interactionInfo.serialize(output);
+			}
 		}
 	}
 
@@ -37262,6 +37940,35 @@ public class TdApi {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
 			output.writeBoolean(this.isMarkedAsUnread);
+		}
+	}
+
+	public static class UpdateChatIsBlocked extends Update {
+		public long chatId;
+		public boolean isBlocked;
+
+		public static final int CONSTRUCTOR = -1998946752;
+
+		public UpdateChatIsBlocked() {}
+
+		public UpdateChatIsBlocked(long chatId, boolean isBlocked) {
+			this.chatId = chatId;
+			this.isBlocked = isBlocked;
+		}
+
+		public UpdateChatIsBlocked(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			this.isBlocked = input.readBoolean();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			output.writeBoolean(this.isBlocked);
 		}
 	}
 
@@ -38017,21 +38724,24 @@ public class TdApi {
 
 	public static class UpdateUserChatAction extends Update {
 		public long chatId;
+		public long messageThreadId;
 		public int userId;
 		public ChatAction action;
 
-		public static final int CONSTRUCTOR = 1444133514;
+		public static final int CONSTRUCTOR = 2066409603;
 
 		public UpdateUserChatAction() {}
 
-		public UpdateUserChatAction(long chatId, int userId, ChatAction action) {
+		public UpdateUserChatAction(long chatId, long messageThreadId, int userId, ChatAction action) {
 			this.chatId = chatId;
+			this.messageThreadId = messageThreadId;
 			this.userId = userId;
 			this.action = action;
 		}
 
 		public UpdateUserChatAction(DataInput input) throws IOException {
 			this.chatId = input.readLong();
+			this.messageThreadId = input.readLong();
 			this.userId = input.readInt();
 			if (input.readBoolean()) {
 				switch(input.readInt()) {
@@ -38087,6 +38797,7 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
+			output.writeLong(this.messageThreadId);
 			output.writeInt(this.userId);
 			if (this.action == null) {
 				output.writeBoolean(false);
@@ -39880,6 +40591,9 @@ public class TdApi {
 					case CallbackQueryPayloadData.CONSTRUCTOR:
 						this.payload = new CallbackQueryPayloadData(input);
 						break;
+					case CallbackQueryPayloadDataWithPassword.CONSTRUCTOR:
+						this.payload = new CallbackQueryPayloadDataWithPassword(input);
+						break;
 					case CallbackQueryPayloadGame.CONSTRUCTOR:
 						this.payload = new CallbackQueryPayloadGame(input);
 						break;
@@ -39941,6 +40655,9 @@ public class TdApi {
 				switch(input.readInt()) {
 					case CallbackQueryPayloadData.CONSTRUCTOR:
 						this.payload = new CallbackQueryPayloadData(input);
+						break;
+					case CallbackQueryPayloadDataWithPassword.CONSTRUCTOR:
+						this.payload = new CallbackQueryPayloadDataWithPassword(input);
 						break;
 					case CallbackQueryPayloadGame.CONSTRUCTOR:
 						this.payload = new CallbackQueryPayloadGame(input);
@@ -40323,8 +41040,8 @@ public class TdApi {
 						case UpdateMessageEdited.CONSTRUCTOR:
 							this.updates[i] = new UpdateMessageEdited(input);
 							break;
-						case UpdateMessageViews.CONSTRUCTOR:
-							this.updates[i] = new UpdateMessageViews(input);
+						case UpdateMessageInteractionInfo.CONSTRUCTOR:
+							this.updates[i] = new UpdateMessageInteractionInfo(input);
 							break;
 						case UpdateMessageContentOpened.CONSTRUCTOR:
 							this.updates[i] = new UpdateMessageContentOpened(input);
@@ -40355,6 +41072,9 @@ public class TdApi {
 							break;
 						case UpdateChatIsMarkedAsUnread.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatIsMarkedAsUnread(input);
+							break;
+						case UpdateChatIsBlocked.CONSTRUCTOR:
+							this.updates[i] = new UpdateChatIsBlocked(input);
 							break;
 						case UpdateChatHasScheduledMessages.CONSTRUCTOR:
 							this.updates[i] = new UpdateChatHasScheduledMessages(input);
@@ -40777,7 +41497,6 @@ public class TdApi {
 
 	public static class UserFullInfo extends Object {
 		public ChatPhoto photo;
-		public boolean isBlocked;
 		public boolean canBeCalled;
 		public boolean supportsVideoCalls;
 		public boolean hasPrivateCalls;
@@ -40787,13 +41506,12 @@ public class TdApi {
 		public int groupInCommonCount;
 		public BotInfo botInfo;
 
-		public static final int CONSTRUCTOR = -710655904;
+		public static final int CONSTRUCTOR = -1067749716;
 
 		public UserFullInfo() {}
 
-		public UserFullInfo(ChatPhoto photo, boolean isBlocked, boolean canBeCalled, boolean supportsVideoCalls, boolean hasPrivateCalls, boolean needPhoneNumberPrivacyException, String bio, String shareText, int groupInCommonCount, BotInfo botInfo) {
+		public UserFullInfo(ChatPhoto photo, boolean canBeCalled, boolean supportsVideoCalls, boolean hasPrivateCalls, boolean needPhoneNumberPrivacyException, String bio, String shareText, int groupInCommonCount, BotInfo botInfo) {
 			this.photo = photo;
-			this.isBlocked = isBlocked;
 			this.canBeCalled = canBeCalled;
 			this.supportsVideoCalls = supportsVideoCalls;
 			this.hasPrivateCalls = hasPrivateCalls;
@@ -40811,7 +41529,6 @@ public class TdApi {
 				}
 				this.photo = new ChatPhoto(input);
 			}
-			this.isBlocked = input.readBoolean();
 			this.canBeCalled = input.readBoolean();
 			this.supportsVideoCalls = input.readBoolean();
 			this.hasPrivateCalls = input.readBoolean();
@@ -40847,7 +41564,6 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.photo.serialize(output);
 			}
-			output.writeBoolean(this.isBlocked);
 			output.writeBoolean(this.canBeCalled);
 			output.writeBoolean(this.supportsVideoCalls);
 			output.writeBoolean(this.hasPrivateCalls);
@@ -43515,19 +44231,28 @@ public class TdApi {
 		}
 	}
 
-	public static class BlockUser extends Function {
-		public int userId;
+	public static class BlockChatFromReplies extends Function {
+		public long messageId;
+		public boolean deleteMessage;
+		public boolean deleteAllMessages;
+		public boolean reportSpam;
 
-		public static final int CONSTRUCTOR = -1239315139;
+		public static final int CONSTRUCTOR = -869244252;
 
-		public BlockUser() {}
+		public BlockChatFromReplies() {}
 
-		public BlockUser(int userId) {
-			this.userId = userId;
+		public BlockChatFromReplies(long messageId, boolean deleteMessage, boolean deleteAllMessages, boolean reportSpam) {
+			this.messageId = messageId;
+			this.deleteMessage = deleteMessage;
+			this.deleteAllMessages = deleteAllMessages;
+			this.reportSpam = reportSpam;
 		}
 
-		public BlockUser(DataInput input) throws IOException {
-			this.userId = input.readInt();
+		public BlockChatFromReplies(DataInput input) throws IOException {
+			this.messageId = input.readLong();
+			this.deleteMessage = input.readBoolean();
+			this.deleteAllMessages = input.readBoolean();
+			this.reportSpam = input.readBoolean();
 		}
 
 		public int getConstructor() {
@@ -43536,7 +44261,10 @@ public class TdApi {
 
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
-			output.writeInt(this.userId);
+			output.writeLong(this.messageId);
+			output.writeBoolean(this.deleteMessage);
+			output.writeBoolean(this.deleteAllMessages);
+			output.writeBoolean(this.reportSpam);
 		}
 	}
 
@@ -46607,20 +47335,18 @@ public class TdApi {
 		public long fromChatId;
 		public long[] messageIds;
 		public MessageSendOptions options;
-		public boolean asAlbum;
 		public boolean sendCopy;
 		public boolean removeCaption;
 
-		public static final int CONSTRUCTOR = 705611900;
+		public static final int CONSTRUCTOR = 2086130821;
 
 		public ForwardMessages() {}
 
-		public ForwardMessages(long chatId, long fromChatId, long[] messageIds, MessageSendOptions options, boolean asAlbum, boolean sendCopy, boolean removeCaption) {
+		public ForwardMessages(long chatId, long fromChatId, long[] messageIds, MessageSendOptions options, boolean sendCopy, boolean removeCaption) {
 			this.chatId = chatId;
 			this.fromChatId = fromChatId;
 			this.messageIds = messageIds;
 			this.options = options;
-			this.asAlbum = asAlbum;
 			this.sendCopy = sendCopy;
 			this.removeCaption = removeCaption;
 		}
@@ -46640,7 +47366,6 @@ public class TdApi {
 				}
 				this.options = new MessageSendOptions(input);
 			}
-			this.asAlbum = input.readBoolean();
 			this.sendCopy = input.readBoolean();
 			this.removeCaption = input.readBoolean();
 		}
@@ -46668,7 +47393,6 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.options.serialize(output);
 			}
-			output.writeBoolean(this.asAlbum);
 			output.writeBoolean(this.sendCopy);
 			output.writeBoolean(this.removeCaption);
 		}
@@ -47071,20 +47795,20 @@ public class TdApi {
 		}
 	}
 
-	public static class GetBlockedUsers extends Function {
+	public static class GetBlockedChats extends Function {
 		public int offset;
 		public int limit;
 
-		public static final int CONSTRUCTOR = -742912777;
+		public static final int CONSTRUCTOR = -733106443;
 
-		public GetBlockedUsers() {}
+		public GetBlockedChats() {}
 
-		public GetBlockedUsers(int offset, int limit) {
+		public GetBlockedChats(int offset, int limit) {
 			this.offset = offset;
 			this.limit = limit;
 		}
 
-		public GetBlockedUsers(DataInput input) throws IOException {
+		public GetBlockedChats(DataInput input) throws IOException {
 			this.offset = input.readInt();
 			this.limit = input.readInt();
 		}
@@ -47122,6 +47846,9 @@ public class TdApi {
 				switch(input.readInt()) {
 					case CallbackQueryPayloadData.CONSTRUCTOR:
 						this.payload = new CallbackQueryPayloadData(input);
+						break;
+					case CallbackQueryPayloadDataWithPassword.CONSTRUCTOR:
+						this.payload = new CallbackQueryPayloadDataWithPassword(input);
 						break;
 					case CallbackQueryPayloadGame.CONSTRUCTOR:
 						this.payload = new CallbackQueryPayloadGame(input);
@@ -47683,50 +48410,6 @@ public class TdApi {
 		}
 	}
 
-	public static class GetChatStatisticsGraph extends Function {
-		public long chatId;
-		public String token;
-		public long x;
-
-		public static final int CONSTRUCTOR = -1643545293;
-
-		public GetChatStatisticsGraph() {}
-
-		public GetChatStatisticsGraph(long chatId, String token, long x) {
-			this.chatId = chatId;
-			this.token = token;
-			this.x = x;
-		}
-
-		public GetChatStatisticsGraph(DataInput input) throws IOException {
-			this.chatId = input.readLong();
-			if (input.readBoolean()) {
-				byte[] tokenTmp = new byte[input.readInt()];
-				input.readFully(tokenTmp);
-				this.token = new String(tokenTmp, StandardCharsets.UTF_8);
-			}
-			this.x = input.readLong();
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			output.writeLong(this.chatId);
-			if (this.token == null) {
-				output.writeBoolean(false);
-			} else {
-				output.writeBoolean(true);
-				byte[] tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
-				output.writeInt(tokenTmp.length);
-				output.write(tokenTmp);
-			}
-			output.writeLong(this.x);
-		}
-	}
-
 	public static class GetChatStatisticsUrl extends Function {
 		public long chatId;
 		public String parameters;
@@ -47852,6 +48535,24 @@ public class TdApi {
 
 
 		public GetContacts(DataInput input) throws IOException {
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+		}
+	}
+
+	public static class GetCountries extends Function {
+		public static final int CONSTRUCTOR = -51902050;
+
+		public GetCountries() {}
+
+
+		public GetCountries(DataInput input) throws IOException {
 		}
 
 		public int getConstructor() {
@@ -49017,22 +49718,25 @@ public class TdApi {
 		}
 	}
 
-	public static class GetMessageLink extends Function {
+	public static class GetMessageEmbeddingCode extends Function {
 		public long chatId;
 		public long messageId;
+		public boolean forAlbum;
 
-		public static final int CONSTRUCTOR = 1362732326;
+		public static final int CONSTRUCTOR = 1654967561;
 
-		public GetMessageLink() {}
+		public GetMessageEmbeddingCode() {}
 
-		public GetMessageLink(long chatId, long messageId) {
+		public GetMessageEmbeddingCode(long chatId, long messageId, boolean forAlbum) {
 			this.chatId = chatId;
 			this.messageId = messageId;
+			this.forAlbum = forAlbum;
 		}
 
-		public GetMessageLink(DataInput input) throws IOException {
+		public GetMessageEmbeddingCode(DataInput input) throws IOException {
 			this.chatId = input.readLong();
 			this.messageId = input.readLong();
+			this.forAlbum = input.readBoolean();
 		}
 
 		public int getConstructor() {
@@ -49043,6 +49747,44 @@ public class TdApi {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
 			output.writeLong(this.messageId);
+			output.writeBoolean(this.forAlbum);
+		}
+	}
+
+	public static class GetMessageLink extends Function {
+		public long chatId;
+		public long messageId;
+		public boolean forAlbum;
+		public boolean forComment;
+
+		public static final int CONSTRUCTOR = -177667137;
+
+		public GetMessageLink() {}
+
+		public GetMessageLink(long chatId, long messageId, boolean forAlbum, boolean forComment) {
+			this.chatId = chatId;
+			this.messageId = messageId;
+			this.forAlbum = forAlbum;
+			this.forComment = forComment;
+		}
+
+		public GetMessageLink(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			this.messageId = input.readLong();
+			this.forAlbum = input.readBoolean();
+			this.forComment = input.readBoolean();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			output.writeLong(this.messageId);
+			output.writeBoolean(this.forAlbum);
+			output.writeBoolean(this.forComment);
 		}
 	}
 
@@ -49108,6 +49850,157 @@ public class TdApi {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
 			output.writeLong(this.messageId);
+		}
+	}
+
+	public static class GetMessagePublicForwards extends Function {
+		public long chatId;
+		public long messageId;
+		public String offset;
+		public int limit;
+
+		public static final int CONSTRUCTOR = 1611049289;
+
+		public GetMessagePublicForwards() {}
+
+		public GetMessagePublicForwards(long chatId, long messageId, String offset, int limit) {
+			this.chatId = chatId;
+			this.messageId = messageId;
+			this.offset = offset;
+			this.limit = limit;
+		}
+
+		public GetMessagePublicForwards(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			this.messageId = input.readLong();
+			if (input.readBoolean()) {
+				byte[] offsetTmp = new byte[input.readInt()];
+				input.readFully(offsetTmp);
+				this.offset = new String(offsetTmp, StandardCharsets.UTF_8);
+			}
+			this.limit = input.readInt();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			output.writeLong(this.messageId);
+			if (this.offset == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] offsetTmp = this.offset.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(offsetTmp.length);
+				output.write(offsetTmp);
+			}
+			output.writeInt(this.limit);
+		}
+	}
+
+	public static class GetMessageStatistics extends Function {
+		public long chatId;
+		public long messageId;
+		public boolean isDark;
+
+		public static final int CONSTRUCTOR = 1270194648;
+
+		public GetMessageStatistics() {}
+
+		public GetMessageStatistics(long chatId, long messageId, boolean isDark) {
+			this.chatId = chatId;
+			this.messageId = messageId;
+			this.isDark = isDark;
+		}
+
+		public GetMessageStatistics(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			this.messageId = input.readLong();
+			this.isDark = input.readBoolean();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			output.writeLong(this.messageId);
+			output.writeBoolean(this.isDark);
+		}
+	}
+
+	public static class GetMessageThread extends Function {
+		public long chatId;
+		public long messageId;
+
+		public static final int CONSTRUCTOR = 2062695998;
+
+		public GetMessageThread() {}
+
+		public GetMessageThread(long chatId, long messageId) {
+			this.chatId = chatId;
+			this.messageId = messageId;
+		}
+
+		public GetMessageThread(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			this.messageId = input.readLong();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			output.writeLong(this.messageId);
+		}
+	}
+
+	public static class GetMessageThreadHistory extends Function {
+		public long chatId;
+		public long messageId;
+		public long fromMessageId;
+		public int offset;
+		public int limit;
+
+		public static final int CONSTRUCTOR = -1808411608;
+
+		public GetMessageThreadHistory() {}
+
+		public GetMessageThreadHistory(long chatId, long messageId, long fromMessageId, int offset, int limit) {
+			this.chatId = chatId;
+			this.messageId = messageId;
+			this.fromMessageId = fromMessageId;
+			this.offset = offset;
+			this.limit = limit;
+		}
+
+		public GetMessageThreadHistory(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			this.messageId = input.readLong();
+			this.fromMessageId = input.readLong();
+			this.offset = input.readInt();
+			this.limit = input.readInt();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			output.writeLong(this.messageId);
+			output.writeLong(this.fromMessageId);
+			output.writeInt(this.offset);
+			output.writeInt(this.limit);
 		}
 	}
 
@@ -49489,6 +50382,42 @@ public class TdApi {
 		}
 	}
 
+	public static class GetPhoneNumberInfo extends Function {
+		public String phoneNumberPrefix;
+
+		public static final int CONSTRUCTOR = -1608344583;
+
+		public GetPhoneNumberInfo() {}
+
+		public GetPhoneNumberInfo(String phoneNumberPrefix) {
+			this.phoneNumberPrefix = phoneNumberPrefix;
+		}
+
+		public GetPhoneNumberInfo(DataInput input) throws IOException {
+			if (input.readBoolean()) {
+				byte[] phoneNumberPrefixTmp = new byte[input.readInt()];
+				input.readFully(phoneNumberPrefixTmp);
+				this.phoneNumberPrefix = new String(phoneNumberPrefixTmp, StandardCharsets.UTF_8);
+			}
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			if (this.phoneNumberPrefix == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] phoneNumberPrefixTmp = this.phoneNumberPrefix.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(phoneNumberPrefixTmp.length);
+				output.write(phoneNumberPrefixTmp);
+			}
+		}
+	}
+
 	public static class GetPollVoters extends Function {
 		public long chatId;
 		public long messageId;
@@ -49606,39 +50535,6 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeInt(this.proxyId);
-		}
-	}
-
-	public static class GetPublicMessageLink extends Function {
-		public long chatId;
-		public long messageId;
-		public boolean forAlbum;
-
-		public static final int CONSTRUCTOR = -374642839;
-
-		public GetPublicMessageLink() {}
-
-		public GetPublicMessageLink(long chatId, long messageId, boolean forAlbum) {
-			this.chatId = chatId;
-			this.messageId = messageId;
-			this.forAlbum = forAlbum;
-		}
-
-		public GetPublicMessageLink(DataInput input) throws IOException {
-			this.chatId = input.readLong();
-			this.messageId = input.readLong();
-			this.forAlbum = input.readBoolean();
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			output.writeLong(this.chatId);
-			output.writeLong(this.messageId);
-			output.writeBoolean(this.forAlbum);
 		}
 	}
 
@@ -50040,6 +50936,50 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeInt(this.secretChatId);
+		}
+	}
+
+	public static class GetStatisticsGraph extends Function {
+		public long chatId;
+		public String token;
+		public long x;
+
+		public static final int CONSTRUCTOR = 687537922;
+
+		public GetStatisticsGraph() {}
+
+		public GetStatisticsGraph(long chatId, String token, long x) {
+			this.chatId = chatId;
+			this.token = token;
+			this.x = x;
+		}
+
+		public GetStatisticsGraph(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			if (input.readBoolean()) {
+				byte[] tokenTmp = new byte[input.readInt()];
+				input.readFully(tokenTmp);
+				this.token = new String(tokenTmp, StandardCharsets.UTF_8);
+			}
+			this.x = input.readLong();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			if (this.token == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] tokenTmp = this.token.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(tokenTmp.length);
+				output.write(tokenTmp);
+			}
+			output.writeLong(this.x);
 		}
 	}
 
@@ -52740,12 +53680,13 @@ public class TdApi {
 		public int offset;
 		public int limit;
 		public SearchMessagesFilter filter;
+		public long messageThreadId;
 
-		public static final int CONSTRUCTOR = -1528846671;
+		public static final int CONSTRUCTOR = 1445943052;
 
 		public SearchChatMessages() {}
 
-		public SearchChatMessages(long chatId, String query, int senderUserId, long fromMessageId, int offset, int limit, SearchMessagesFilter filter) {
+		public SearchChatMessages(long chatId, String query, int senderUserId, long fromMessageId, int offset, int limit, SearchMessagesFilter filter, long messageThreadId) {
 			this.chatId = chatId;
 			this.query = query;
 			this.senderUserId = senderUserId;
@@ -52753,6 +53694,7 @@ public class TdApi {
 			this.offset = offset;
 			this.limit = limit;
 			this.filter = filter;
+			this.messageThreadId = messageThreadId;
 		}
 
 		public SearchChatMessages(DataInput input) throws IOException {
@@ -52823,6 +53765,7 @@ public class TdApi {
 						throw new UnsupportedOperationException();
 				}
 			}
+			this.messageThreadId = input.readLong();
 		}
 
 		public int getConstructor() {
@@ -52850,6 +53793,7 @@ public class TdApi {
 				output.writeBoolean(true);
 				this.filter.serialize(output);
 			}
+			output.writeLong(this.messageThreadId);
 		}
 	}
 
@@ -53189,18 +54133,24 @@ public class TdApi {
 		public long offsetChatId;
 		public long offsetMessageId;
 		public int limit;
+		public SearchMessagesFilter filter;
+		public int minDate;
+		public int maxDate;
 
-		public static final int CONSTRUCTOR = -455843835;
+		public static final int CONSTRUCTOR = -225214062;
 
 		public SearchMessages() {}
 
-		public SearchMessages(ChatList chatList, String query, int offsetDate, long offsetChatId, long offsetMessageId, int limit) {
+		public SearchMessages(ChatList chatList, String query, int offsetDate, long offsetChatId, long offsetMessageId, int limit, SearchMessagesFilter filter, int minDate, int maxDate) {
 			this.chatList = chatList;
 			this.query = query;
 			this.offsetDate = offsetDate;
 			this.offsetChatId = offsetChatId;
 			this.offsetMessageId = offsetMessageId;
 			this.limit = limit;
+			this.filter = filter;
+			this.minDate = minDate;
+			this.maxDate = maxDate;
 		}
 
 		public SearchMessages(DataInput input) throws IOException {
@@ -53228,6 +54178,65 @@ public class TdApi {
 			this.offsetChatId = input.readLong();
 			this.offsetMessageId = input.readLong();
 			this.limit = input.readInt();
+			if (input.readBoolean()) {
+				switch(input.readInt()) {
+					case SearchMessagesFilterEmpty.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterEmpty(input);
+						break;
+					case SearchMessagesFilterAnimation.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterAnimation(input);
+						break;
+					case SearchMessagesFilterAudio.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterAudio(input);
+						break;
+					case SearchMessagesFilterDocument.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterDocument(input);
+						break;
+					case SearchMessagesFilterPhoto.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterPhoto(input);
+						break;
+					case SearchMessagesFilterVideo.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterVideo(input);
+						break;
+					case SearchMessagesFilterVoiceNote.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterVoiceNote(input);
+						break;
+					case SearchMessagesFilterPhotoAndVideo.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterPhotoAndVideo(input);
+						break;
+					case SearchMessagesFilterUrl.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterUrl(input);
+						break;
+					case SearchMessagesFilterChatPhoto.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterChatPhoto(input);
+						break;
+					case SearchMessagesFilterCall.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterCall(input);
+						break;
+					case SearchMessagesFilterMissedCall.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterMissedCall(input);
+						break;
+					case SearchMessagesFilterVideoNote.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterVideoNote(input);
+						break;
+					case SearchMessagesFilterVoiceAndVideoNote.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterVoiceAndVideoNote(input);
+						break;
+					case SearchMessagesFilterMention.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterMention(input);
+						break;
+					case SearchMessagesFilterUnreadMention.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterUnreadMention(input);
+						break;
+					case SearchMessagesFilterFailedToSend.CONSTRUCTOR:
+						this.filter = new SearchMessagesFilterFailedToSend(input);
+						break;
+					default:
+						throw new UnsupportedOperationException();
+				}
+			}
+			this.minDate = input.readInt();
+			this.maxDate = input.readInt();
 		}
 
 		public int getConstructor() {
@@ -53254,6 +54263,14 @@ public class TdApi {
 			output.writeLong(this.offsetChatId);
 			output.writeLong(this.offsetMessageId);
 			output.writeInt(this.limit);
+			if (this.filter == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				this.filter.serialize(output);
+			}
+			output.writeInt(this.minDate);
+			output.writeInt(this.maxDate);
 		}
 	}
 
@@ -53332,18 +54349,18 @@ public class TdApi {
 	public static class SearchSecretMessages extends Function {
 		public long chatId;
 		public String query;
-		public long fromSearchId;
+		public String offset;
 		public int limit;
 		public SearchMessagesFilter filter;
 
-		public static final int CONSTRUCTOR = -1670627915;
+		public static final int CONSTRUCTOR = -852865892;
 
 		public SearchSecretMessages() {}
 
-		public SearchSecretMessages(long chatId, String query, long fromSearchId, int limit, SearchMessagesFilter filter) {
+		public SearchSecretMessages(long chatId, String query, String offset, int limit, SearchMessagesFilter filter) {
 			this.chatId = chatId;
 			this.query = query;
-			this.fromSearchId = fromSearchId;
+			this.offset = offset;
 			this.limit = limit;
 			this.filter = filter;
 		}
@@ -53355,7 +54372,11 @@ public class TdApi {
 				input.readFully(queryTmp);
 				this.query = new String(queryTmp, StandardCharsets.UTF_8);
 			}
-			this.fromSearchId = input.readLong();
+			if (input.readBoolean()) {
+				byte[] offsetTmp = new byte[input.readInt()];
+				input.readFully(offsetTmp);
+				this.offset = new String(offsetTmp, StandardCharsets.UTF_8);
+			}
 			this.limit = input.readInt();
 			if (input.readBoolean()) {
 				switch(input.readInt()) {
@@ -53431,7 +54452,14 @@ public class TdApi {
 				output.writeInt(queryTmp.length);
 				output.write(queryTmp);
 			}
-			output.writeLong(this.fromSearchId);
+			if (this.offset == null) {
+				output.writeBoolean(false);
+			} else {
+				output.writeBoolean(true);
+				byte[] offsetTmp = this.offset.getBytes(StandardCharsets.UTF_8);
+				output.writeInt(offsetTmp.length);
+				output.write(offsetTmp);
+			}
 			output.writeInt(this.limit);
 			if (this.filter == null) {
 				output.writeBoolean(false);
@@ -53688,6 +54716,12 @@ public class TdApi {
 						case CallProblemDropped.CONSTRUCTOR:
 							this.problems[i] = new CallProblemDropped(input);
 							break;
+						case CallProblemDistortedVideo.CONSTRUCTOR:
+							this.problems[i] = new CallProblemDistortedVideo(input);
+							break;
+						case CallProblemPixelatedVideo.CONSTRUCTOR:
+							this.problems[i] = new CallProblemPixelatedVideo(input);
+							break;
 						default:
 							throw new UnsupportedOperationException();
 					}
@@ -53763,19 +54797,22 @@ public class TdApi {
 
 	public static class SendChatAction extends Function {
 		public long chatId;
+		public long messageThreadId;
 		public ChatAction action;
 
-		public static final int CONSTRUCTOR = -841357536;
+		public static final int CONSTRUCTOR = 2096947540;
 
 		public SendChatAction() {}
 
-		public SendChatAction(long chatId, ChatAction action) {
+		public SendChatAction(long chatId, long messageThreadId, ChatAction action) {
 			this.chatId = chatId;
+			this.messageThreadId = messageThreadId;
 			this.action = action;
 		}
 
 		public SendChatAction(DataInput input) throws IOException {
 			this.chatId = input.readLong();
+			this.messageThreadId = input.readLong();
 			if (input.readBoolean()) {
 				switch(input.readInt()) {
 					case ChatActionTyping.CONSTRUCTOR:
@@ -53830,6 +54867,7 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
+			output.writeLong(this.messageThreadId);
 			if (this.action == null) {
 				output.writeBoolean(false);
 			} else {
@@ -53982,18 +55020,20 @@ public class TdApi {
 
 	public static class SendInlineQueryResultMessage extends Function {
 		public long chatId;
+		public long messageThreadId;
 		public long replyToMessageId;
 		public MessageSendOptions options;
 		public long queryId;
 		public String resultId;
 		public boolean hideViaBot;
 
-		public static final int CONSTRUCTOR = -1624402875;
+		public static final int CONSTRUCTOR = -948639588;
 
 		public SendInlineQueryResultMessage() {}
 
-		public SendInlineQueryResultMessage(long chatId, long replyToMessageId, MessageSendOptions options, long queryId, String resultId, boolean hideViaBot) {
+		public SendInlineQueryResultMessage(long chatId, long messageThreadId, long replyToMessageId, MessageSendOptions options, long queryId, String resultId, boolean hideViaBot) {
 			this.chatId = chatId;
+			this.messageThreadId = messageThreadId;
 			this.replyToMessageId = replyToMessageId;
 			this.options = options;
 			this.queryId = queryId;
@@ -54003,6 +55043,7 @@ public class TdApi {
 
 		public SendInlineQueryResultMessage(DataInput input) throws IOException {
 			this.chatId = input.readLong();
+			this.messageThreadId = input.readLong();
 			this.replyToMessageId = input.readLong();
 			if (input.readBoolean()) {
 				if (MessageSendOptions.CONSTRUCTOR != input.readInt()) {
@@ -54026,6 +55067,7 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
+			output.writeLong(this.messageThreadId);
 			output.writeLong(this.replyToMessageId);
 			if (this.options == null) {
 				output.writeBoolean(false);
@@ -54048,17 +55090,19 @@ public class TdApi {
 
 	public static class SendMessage extends Function {
 		public long chatId;
+		public long messageThreadId;
 		public long replyToMessageId;
 		public MessageSendOptions options;
 		public ReplyMarkup replyMarkup;
 		public InputMessageContent inputMessageContent;
 
-		public static final int CONSTRUCTOR = -1693468857;
+		public static final int CONSTRUCTOR = 960453021;
 
 		public SendMessage() {}
 
-		public SendMessage(long chatId, long replyToMessageId, MessageSendOptions options, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
+		public SendMessage(long chatId, long messageThreadId, long replyToMessageId, MessageSendOptions options, ReplyMarkup replyMarkup, InputMessageContent inputMessageContent) {
 			this.chatId = chatId;
+			this.messageThreadId = messageThreadId;
 			this.replyToMessageId = replyToMessageId;
 			this.options = options;
 			this.replyMarkup = replyMarkup;
@@ -54067,6 +55111,7 @@ public class TdApi {
 
 		public SendMessage(DataInput input) throws IOException {
 			this.chatId = input.readLong();
+			this.messageThreadId = input.readLong();
 			this.replyToMessageId = input.readLong();
 			if (input.readBoolean()) {
 				if (MessageSendOptions.CONSTRUCTOR != input.readInt()) {
@@ -54158,6 +55203,7 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
+			output.writeLong(this.messageThreadId);
 			output.writeLong(this.replyToMessageId);
 			if (this.options == null) {
 				output.writeBoolean(false);
@@ -54182,16 +55228,18 @@ public class TdApi {
 
 	public static class SendMessageAlbum extends Function {
 		public long chatId;
+		public long messageThreadId;
 		public long replyToMessageId;
 		public MessageSendOptions options;
 		public InputMessageContent[] inputMessageContents;
 
-		public static final int CONSTRUCTOR = 1301182434;
+		public static final int CONSTRUCTOR = 983360432;
 
 		public SendMessageAlbum() {}
 
-		public SendMessageAlbum(long chatId, long replyToMessageId, MessageSendOptions options, InputMessageContent[] inputMessageContents) {
+		public SendMessageAlbum(long chatId, long messageThreadId, long replyToMessageId, MessageSendOptions options, InputMessageContent[] inputMessageContents) {
 			this.chatId = chatId;
+			this.messageThreadId = messageThreadId;
 			this.replyToMessageId = replyToMessageId;
 			this.options = options;
 			this.inputMessageContents = inputMessageContents;
@@ -54199,6 +55247,7 @@ public class TdApi {
 
 		public SendMessageAlbum(DataInput input) throws IOException {
 			this.chatId = input.readLong();
+			this.messageThreadId = input.readLong();
 			this.replyToMessageId = input.readLong();
 			if (input.readBoolean()) {
 				if (MessageSendOptions.CONSTRUCTOR != input.readInt()) {
@@ -54275,6 +55324,7 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
+			output.writeLong(this.messageThreadId);
 			output.writeLong(this.replyToMessageId);
 			if (this.options == null) {
 				output.writeBoolean(false);
@@ -55007,19 +56057,22 @@ public class TdApi {
 
 	public static class SetChatDraftMessage extends Function {
 		public long chatId;
+		public long messageThreadId;
 		public DraftMessage draftMessage;
 
-		public static final int CONSTRUCTOR = -588175579;
+		public static final int CONSTRUCTOR = 1683889946;
 
 		public SetChatDraftMessage() {}
 
-		public SetChatDraftMessage(long chatId, DraftMessage draftMessage) {
+		public SetChatDraftMessage(long chatId, long messageThreadId, DraftMessage draftMessage) {
 			this.chatId = chatId;
+			this.messageThreadId = messageThreadId;
 			this.draftMessage = draftMessage;
 		}
 
 		public SetChatDraftMessage(DataInput input) throws IOException {
 			this.chatId = input.readLong();
+			this.messageThreadId = input.readLong();
 			if (input.readBoolean()) {
 				if (DraftMessage.CONSTRUCTOR != input.readInt()) {
 					throw new UnsupportedOperationException();
@@ -55035,6 +56088,7 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
+			output.writeLong(this.messageThreadId);
 			if (this.draftMessage == null) {
 				output.writeBoolean(false);
 			} else {
@@ -57388,6 +58442,35 @@ public class TdApi {
 		}
 	}
 
+	public static class ToggleChatIsBlocked extends Function {
+		public long chatId;
+		public boolean isBlocked;
+
+		public static final int CONSTRUCTOR = 202580115;
+
+		public ToggleChatIsBlocked() {}
+
+		public ToggleChatIsBlocked(long chatId, boolean isBlocked) {
+			this.chatId = chatId;
+			this.isBlocked = isBlocked;
+		}
+
+		public ToggleChatIsBlocked(DataInput input) throws IOException {
+			this.chatId = input.readLong();
+			this.isBlocked = input.readBoolean();
+		}
+
+		public int getConstructor() {
+			return CONSTRUCTOR;
+		}
+
+		public void serialize(DataOutputStream output) throws IOException {
+			output.writeInt(CONSTRUCTOR);
+			output.writeLong(this.chatId);
+			output.writeBoolean(this.isBlocked);
+		}
+	}
+
 	public static class ToggleChatIsMarkedAsUnread extends Function {
 		public long chatId;
 		public boolean isMarkedAsUnread;
@@ -57568,31 +58651,6 @@ public class TdApi {
 				output.writeInt(passwordTmp.length);
 				output.write(passwordTmp);
 			}
-		}
-	}
-
-	public static class UnblockUser extends Function {
-		public int userId;
-
-		public static final int CONSTRUCTOR = -307286367;
-
-		public UnblockUser() {}
-
-		public UnblockUser(int userId) {
-			this.userId = userId;
-		}
-
-		public UnblockUser(DataInput input) throws IOException {
-			this.userId = input.readInt();
-		}
-
-		public int getConstructor() {
-			return CONSTRUCTOR;
-		}
-
-		public void serialize(DataOutputStream output) throws IOException {
-			output.writeInt(CONSTRUCTOR);
-			output.writeInt(this.userId);
 		}
 	}
 
@@ -57859,21 +58917,24 @@ public class TdApi {
 
 	public static class ViewMessages extends Function {
 		public long chatId;
+		public long messageThreadId;
 		public long[] messageIds;
 		public boolean forceRead;
 
-		public static final int CONSTRUCTOR = -1925784915;
+		public static final int CONSTRUCTOR = -1155961496;
 
 		public ViewMessages() {}
 
-		public ViewMessages(long chatId, long[] messageIds, boolean forceRead) {
+		public ViewMessages(long chatId, long messageThreadId, long[] messageIds, boolean forceRead) {
 			this.chatId = chatId;
+			this.messageThreadId = messageThreadId;
 			this.messageIds = messageIds;
 			this.forceRead = forceRead;
 		}
 
 		public ViewMessages(DataInput input) throws IOException {
 			this.chatId = input.readLong();
+			this.messageThreadId = input.readLong();
 			if (input.readBoolean()) {
 				this.messageIds = new long[input.readInt()];
 				for (int i = 0; i < this.messageIds.length; i++) {
@@ -57890,6 +58951,7 @@ public class TdApi {
 		public void serialize(DataOutputStream output) throws IOException {
 			output.writeInt(CONSTRUCTOR);
 			output.writeLong(this.chatId);
+			output.writeLong(this.messageThreadId);
 			if (this.messageIds == null) {
 				output.writeBoolean(false);
 			} else {
