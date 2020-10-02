@@ -10238,6 +10238,7 @@ void MessagesManager::delete_all_channel_messages_from_user_on_server(ChannelId 
 int32 MessagesManager::get_unload_dialog_delay() const {
   constexpr int32 DIALOG_UNLOAD_DELAY = 60;        // seconds
   constexpr int32 DIALOG_UNLOAD_BOT_DELAY = 1800;  // seconds
+
   CHECK(is_message_unload_enabled());
   auto default_unload_delay = td_->auth_manager_->is_bot() ? DIALOG_UNLOAD_BOT_DELAY : DIALOG_UNLOAD_DELAY;
   return narrow_cast<int32>(G()->shared_config().get_option_integer("message_unload_delay", default_unload_delay));
@@ -12600,6 +12601,8 @@ std::pair<DialogId, unique_ptr<MessagesManager::Message>> MessagesManager::creat
                << ", flags = " << flags << " for " << message_id << " in " << dialog_id;
     is_outgoing = supposed_to_be_outgoing;
 
+    /*
+    // it is useless to call getChannelsDifference, because the channel pts will be increased already
     if (dialog_type == DialogType::Channel && !running_get_difference_ && !running_get_channel_difference(dialog_id) &&
         get_channel_difference_to_log_event_id_.count(dialog_id) == 0) {
       // it is safer to completely ignore the message and re-get it through getChannelsDifference
@@ -12609,6 +12612,7 @@ std::pair<DialogId, unique_ptr<MessagesManager::Message>> MessagesManager::creat
         return {DialogId(), nullptr};
       }
     }
+    */
   }
 
   MessageId reply_to_message_id = message_info.reply_to_message_id;
@@ -15990,14 +15994,23 @@ Result<FullMessageId> MessagesManager::get_top_thread_full_message_id(DialogId d
   if (m->message_id.is_scheduled()) {
     return Status::Error(400, "Message is scheduled");
   }
-  if (m->reply_info.is_comment) {
+  if (dialog_id.get_type() != DialogType::Channel) {
+    return Status::Error(400, "Chat can't have message threads");
+  }
+  if (!m->reply_info.is_empty() && m->reply_info.is_comment) {
     if (!is_visible_message_reply_info(dialog_id, m)) {
       return Status::Error(400, "Message has no comments");
     }
     return FullMessageId{DialogId(m->reply_info.channel_id), m->linked_top_thread_message_id};
   } else {
-    if (!m->top_thread_message_id.is_valid() || !is_visible_message_reply_info(dialog_id, m)) {
+    if (!m->top_thread_message_id.is_valid()) {
       return Status::Error(400, "Message has no thread");
+    }
+    if (!m->message_id.is_server()) {
+      return Status::Error(400, "Message thread is unavailable for the message");
+    }
+    if (!td_->contacts_manager_->get_channel_has_linked_channel(dialog_id.get_channel_id())) {
+      return Status::Error(400, "Message threads are unavailable in the chat");
     }
     return FullMessageId{dialog_id, m->top_thread_message_id};
   }
