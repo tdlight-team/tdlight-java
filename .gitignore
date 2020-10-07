@@ -62,3 +62,10 @@ src/main/jni/jtdlib/build/
 
 src/main/jni/bin/
 tdlight-java.iml
+
+/tdapi
+/tdapi-build
+/bin-td
+/build-td
+/build-tdlight
+/dependencies/tdlight/bin-td-cross
