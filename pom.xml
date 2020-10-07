@@ -18,7 +18,7 @@
         <repository>
             <id>mchv-snapshot</id>
             <name>MCHV Snapshot Apache Maven Packages</name>
-            <url>https://mvn.mchv.eu/repository/mchv</url>
+            <url>https://mvn.mchv.eu/repository/mchv-snapshot</url>
         </repository>
     </repositories>
 
