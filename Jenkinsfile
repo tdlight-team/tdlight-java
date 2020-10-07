@@ -45,6 +45,8 @@ pipeline {
 				expression { params.RELEASE }
 			}
 			steps {
+				sh "git config user.email \"jenkins@mchv.eu\""
+				sh "git config user.name \"Jenkins\""
 				sh "mvn -s $MVN_SET -DpushChanges=false -DlocalCheckout=true -DpreparationGoals=initialize release:prepare release:perform -B"
 			}
 		}
