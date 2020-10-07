@@ -111,19 +111,19 @@ public class LoadLibrary {
 						break;
 				}
 				break;
-			// Unsupported platforms:
+			// Unsupported platform:
 			/*
 			case osx:
 				if (arch == Arch.amd64) {
 					classForResource = it.tdlight.tdlight.osx.amd64.LoadLibrary.class;
 				}
 				break;
+			 */
 			case win:
 				if (arch == Arch.amd64) {
 					classForResource = it.tdlight.tdlight.win.amd64.LoadLibrary.class;
 				}
 				break;
-			 */
 		}
 		if (classForResource == null) {
 			throw new IOException("Native libraries for platform " + os + "-" + arch + " not found!");
