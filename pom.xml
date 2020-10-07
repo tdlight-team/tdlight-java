@@ -11,27 +11,27 @@
 
     <repositories>
         <repository>
-            <id>mchv</id>
-            <name>MCHV Apache Maven Packages</name>
-            <url>https://mvn.mchv.eu/repository/mchv/</url>
+            <id>mchv-release</id>
+            <name>MCHV Release Apache Maven Packages</name>
+            <url>https://mvn.mchv.eu/repository/mchv</url>
         </repository>
         <repository>
             <id>mchv-snapshot</id>
-            <name>MCHV Apache Maven Packages</name>
-            <url>https://mvn.mchv.eu/repository/mchv-snapshot/</url>
+            <name>MCHV Snapshot Apache Maven Packages</name>
+            <url>https://mvn.mchv.eu/repository/mchv</url>
         </repository>
     </repositories>
 
     <distributionManagement>
         <repository>
-            <id>mchv</id>
-            <name>MCHV Apache Maven Packages</name>
-            <url>https://mvn.mchv.eu/repository/mchv/</url>
+            <id>mchv-release-distribution</id>
+            <name>MCHV Release Apache Maven Packages Distribution</name>
+            <url>https://mvn.mchv.eu/repository/mchv</url>
         </repository>
         <snapshotRepository>
-            <id>mchv</id>
-            <name>MCHV Apache Maven Packages</name>
-            <url>https://mvn.mchv.eu/repository/mchv-snapshot/</url>
+            <id>mchv-snapshot-distribution</id>
+            <name>MCHV Snapshot Apache Maven Packages Distribution</name>
+            <url>https://mvn.mchv.eu/repository/mchv-snapshot</url>
         </snapshotRepository>
     </distributionManagement>
     <scm>
