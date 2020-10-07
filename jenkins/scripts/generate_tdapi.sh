@@ -25,3 +25,6 @@ python3 $TDLIB_SERIALIZER_DIR $JAVA_SRC_DIR/it/tdlight/tdlib/TdApi.java $JAVA_SR
 rm $JAVA_SRC_DIR/it/tdlight/tdlib/TdApi.java
 unexpand --tabs=2 $JAVA_SRC_DIR/it/tdlight/tdlib/new_TdApi.java > $JAVA_SRC_DIR/it/tdlight/tdlib/TdApi.java
 rm $JAVA_SRC_DIR/it/tdlight/tdlib/new_TdApi.java
+
+# ====== Clean unwanted directories
+rm -r "${TD_BIN_DIR}"

@@ -24,7 +24,7 @@ pipeline {
 				sh "chown 1000:1000 -R \"/var/jenkins_cache/.m2\""
 				sh "mkdir -p \"/var/jenkins_cache/.ccache\""
 				sh "chown 1000:1000 -R \"/var/jenkins_cache/.ccache\""
-				sh "mkdir -p \"${workspace}/tdlight-java/src/main\""
+				//sh "mkdir -p \"${workspace}/tdlight-java/src/main\""
 				//sh "chown 1000:1000 -R \"${workspace}\""
 				//sh "chmod 771 -R \"${workspace}\""
 			}
