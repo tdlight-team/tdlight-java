@@ -7,9 +7,6 @@ pipeline {
 		JAVA_TOOL_OPTIONS = '-Duser.home=/var/maven'
 	}
 	agent any
-	triggers {
-		pollSCM "* * * * *"
-	}
 	options {
 		timestamps()
 		ansiColor("xterm")
@@ -23,7 +20,7 @@ pipeline {
 		stage("Build & Deploy SNAPSHOT") {
 			agent {
 				docker {
-					image 'maven:3.6.3'
+					image 'maven:3.6.3-openjdk-11'
 					args '-v $HOME:/var/maven'
 					reuseNode true
 				}
@@ -36,7 +33,7 @@ pipeline {
 		stage("Release") {
 			agent {
 				docker {
-					image 'maven:3.6.3'
+					image 'maven:3.6.3-openjdk-11'
 					args '-v $HOME:/var/maven'
 					reuseNode true
 				}
