@@ -16,7 +16,7 @@ nice -n 5 chrt -b 0 cmake --build . --target td_generate_java_api --parallel ${T
 # ====== Build TdApi
 cd $TDNATIVES_CPP_BUILD_DIR
 nice -n 5 chrt -b 0 cmake -DCMAKE_BUILD_TYPE=Release -DTD_SRC_DIR=${TD_SRC_DIR} -DTD_GENERATED_BINARIES_DIR=${TD_BIN_DIR}/td/generate \
- -DTDNATIVES_BIN_DIR=${TDNATIVES_BIN_DIR} -DTDNATIVES_DOCS_BIN_DIR=${TDNATIVES_DOCS_BIN_DIR} -DJAVA_SRC_DIR=${JAVA_SRC_DIR} -DTDNATIVES_CPP_SRC_DIR:PATH=$TDNATIVES_CPP_SRC_DIR $TDNATIVES_CPP_SRC_DIR
+ -DTDNATIVES_DOCS_BIN_DIR=${TDNATIVES_DOCS_BIN_DIR} -DJAVA_SRC_DIR=${JAVA_SRC_DIR} $TDNATIVES_CPP_SRC_DIR
 nice -n 5 chrt -b 0 cmake --build $TDNATIVES_CPP_BUILD_DIR --target td_generate_java_api --config Release -- -j${TRAVIS_CPU_CORES}
 
 # ====== Patch generated java code
