@@ -44,12 +44,12 @@
         <dependency>
             <groupId>it.tdlight</groupId>
             <artifactId>tdlight-natives-linux-amd64</artifactId>
-            <version>2.0.2-SNAPSHOT</version>
+            <version>2.0.2</version>
         </dependency>
         <dependency>
             <groupId>it.tdlight</groupId>
             <artifactId>tdlight-natives-linux-aarch64</artifactId>
-            <version>2.0.2-SNAPSHOT</version>
+            <version>2.0.2</version>
         </dependency>
         <!-- Currently unsupported platform
         <dependency>
