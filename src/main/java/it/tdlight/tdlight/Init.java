@@ -40,6 +40,7 @@ public class Init {
             if (os == Os.win) {
                 LoadLibrary.load("libstdc++-6");
                 LoadLibrary.load("libwinpthread-1");
+                LoadLibrary.load("libgcc_s_seh-1.dll");
                 LoadLibrary.load("libcrypto-3-x64");
                 LoadLibrary.load("libssl-3-x64");
                 LoadLibrary.load("zlib1");
