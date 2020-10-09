@@ -38,6 +38,8 @@ public class Init {
             Os os = LoadLibrary.getOs();
 
             if (os == Os.win) {
+                LoadLibrary.load("libstdc++-6");
+                LoadLibrary.load("libwinpthread-1");
                 LoadLibrary.load("libcrypto-3-x64");
                 LoadLibrary.load("libssl-3-x64");
                 LoadLibrary.load("zlib1");
