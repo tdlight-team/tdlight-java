@@ -21,10 +21,10 @@ nice -n 5 chrt -b 0 cmake --build $TDNATIVES_CPP_BUILD_DIR --target td_generate_
 
 # ====== Patch generated java code
 echo "Compilation done. Patching TdApi.java"
-python3 $TDLIB_SERIALIZER_DIR $JAVA_SRC_DIR/it/tdlight/tdlib/TdApi.java $JAVA_SRC_DIR/it/tdlight/tdlib/new_TdApi.java $TDLIB_SERIALIZER_DIR/headers.txt
-rm $JAVA_SRC_DIR/it/tdlight/tdlib/TdApi.java
-unexpand --tabs=2 $JAVA_SRC_DIR/it/tdlight/tdlib/new_TdApi.java > $JAVA_SRC_DIR/it/tdlight/tdlib/TdApi.java
-rm $JAVA_SRC_DIR/it/tdlight/tdlib/new_TdApi.java
+python3 $TDLIB_SERIALIZER_DIR $JAVA_SRC_DIR/it/tdlight/jni/TdApi.java $JAVA_SRC_DIR/it/tdlight/jni/new_TdApi.java $TDLIB_SERIALIZER_DIR/headers.txt
+rm $JAVA_SRC_DIR/it/tdlight/jni/TdApi.java
+unexpand --tabs=2 $JAVA_SRC_DIR/it/tdlight/jni/new_TdApi.java > $JAVA_SRC_DIR/it/tdlight/jni/TdApi.java
+rm $JAVA_SRC_DIR/it/tdlight/jni/new_TdApi.java
 
 # ====== Clean unwanted directories
 rm -r "${TD_BIN_DIR}"
