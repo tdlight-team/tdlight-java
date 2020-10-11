@@ -76,8 +76,8 @@ pipeline {
 				sh "cd ${workspace}"
 				sh "git add --all || true"
 				sh "git commit -m \"Add generated files\" || true"
-				sh "cd tdlib; mvn -s $MVN_SET -DpushChanges=false -DlocalCheckout=true -DpreparationGoals=initialize release:prepare release:perform -B"
-				sh "cd tdlight; mvn -s $MVN_SET -DpushChanges=false -DlocalCheckout=true -DpreparationGoals=initialize release:prepare release:perform -B"
+				sh "cd tdlib; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} clean deploy"
+				sh "cd tdlight; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} clean deploy"
 			}
 		}
 	}
