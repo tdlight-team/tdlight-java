@@ -340,7 +340,7 @@ if (WIN32)
     target_link_libraries(tdutils PRIVATE ws2_32 Mswsock Normaliz psapi)
   endif()
   if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-    target_link_libraries(tdutils PRIVATE shell32)
+    target_link_libraries(tdutils PRIVATE shell32 crypt32)
   endif()
 endif()
 
