@@ -68,4 +68,4 @@ tdlight-java.iml
 /build-td
 /build-tdlight
 /dependencies/tdlight/bin-td-cross
-*/it/tdlight/jni/TdApi.java
+/src/main/java/it/tdlight/jni/TdApi.java
