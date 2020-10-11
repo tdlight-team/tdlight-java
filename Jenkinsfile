@@ -54,7 +54,8 @@ pipeline {
 				}
 			}
 			steps {
-				sh "mvn -s $MVN_SET -B deploy"
+				sh "cd tdlib; mvn -s $MVN_SET -B deploy"
+				sh "cd tdlight; mvn -s $MVN_SET -B deploy"
 			}
 		}
 
@@ -75,7 +76,8 @@ pipeline {
 				sh "cd ${workspace}"
 				sh "git add --all || true"
 				sh "git commit -m \"Add generated files\" || true"
-				sh "mvn -s $MVN_SET -DpushChanges=false -DlocalCheckout=true -DpreparationGoals=initialize release:prepare release:perform -B"
+				sh "cd tdlib; mvn -s $MVN_SET -DpushChanges=false -DlocalCheckout=true -DpreparationGoals=initialize release:prepare release:perform -B"
+				sh "cd tdlight; mvn -s $MVN_SET -DpushChanges=false -DlocalCheckout=true -DpreparationGoals=initialize release:prepare release:perform -B"
 			}
 		}
 	}
