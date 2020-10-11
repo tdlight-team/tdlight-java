@@ -15,11 +15,11 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight;
+package it.tdlight.common;
 
-import it.tdlight.tdlight.utils.CantLoadLibrary;
-import it.tdlight.tdlight.utils.LoadLibrary;
-import it.tdlight.tdlight.utils.Os;
+import it.tdlight.common.utils.CantLoadLibrary;
+import it.tdlight.common.utils.LoadLibrary;
+import it.tdlight.common.utils.Os;
 
 /**
  * Init class to successfully initialize Tdlib
@@ -38,12 +38,7 @@ public class Init {
             Os os = LoadLibrary.getOs();
 
             if (os == Os.win) {
-                LoadLibrary.load("libstdc++-6");
-                LoadLibrary.load("libwinpthread-1");
-                LoadLibrary.load("libgcc_s_seh-1");
-                LoadLibrary.load("libcrypto-3-x64");
-                LoadLibrary.load("libssl-3-x64");
-                LoadLibrary.load("zlib1");
+                // Since 3.0.0, libraries for windows are statically compiled into tdjni.dll
             }
 
             LoadLibrary.load("tdjni");

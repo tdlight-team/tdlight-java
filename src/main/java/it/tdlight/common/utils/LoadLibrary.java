@@ -15,7 +15,7 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight.utils;
+package it.tdlight.common.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LoadLibrary {
 	private static ConcurrentHashMap<String, Boolean> libraryLoaded = new ConcurrentHashMap<>();
-	private static Path librariesPath = Paths.get(".tdlight-libs-cache");
+	private static Path librariesPath = Paths.get("."+ LibraryVersion.IMPLEMENTATION_NAME + "-libs-cache");
 	private static final String libsVersion = LibraryVersion.VERSION;
 
 	static {

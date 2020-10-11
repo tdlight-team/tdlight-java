@@ -15,16 +15,14 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight.utils;
+package it.tdlight.common.utils;
 
 /**
- * Enumeration with all architectures recognized by this library.
+ * Enumeration with all operating systems recognized by this library.
  */
-public enum Arch {
-    amd64,
-    i386,
-    armhf,
-    aarch64,
-	ppc64le,
+public enum  Os {
+    linux,
+    win,
+    osx,
     unknown
 }

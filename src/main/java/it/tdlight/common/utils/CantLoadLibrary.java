@@ -15,14 +15,16 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight.utils;
+package it.tdlight.common.utils;
 
 /**
- * Interface of callback for receive notification of closing Tdlib.
+ * An exception that is thrown when the LoadLibrary class fails to load the library.
  */
-public interface CloseCallback {
+public class CantLoadLibrary extends Exception {
     /**
-     * This method is called when tdlib is closing
+     * Creates a new CantLoadLibrary exception.
      */
-    void onClosed();
+    CantLoadLibrary() {
+        super("FATAL: Init failled when load tdlib library, execution can't continue");
+    }
 }

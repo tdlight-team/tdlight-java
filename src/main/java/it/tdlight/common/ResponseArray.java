@@ -15,7 +15,7 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight;
+package it.tdlight.common;
 
 /**
  * An array of incoming updates from TDLib.

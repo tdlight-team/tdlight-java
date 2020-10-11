@@ -15,14 +15,17 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight.utils;
+package it.tdlight.common.utils;
+
+import it.tdlight.common.Response;
 
 /**
- * Enumeration with all operating systems recognized by this library.
+ * Interface of callback for receive incoming error response.
  */
-public enum  Os {
-    linux,
-    win,
-    osx,
-    unknown
+public interface ErrorCallback {
+    /**
+     * This method is called when the library receives error responses
+     * @param error The incoming error response.
+     */
+    void onError(Response error);
 }

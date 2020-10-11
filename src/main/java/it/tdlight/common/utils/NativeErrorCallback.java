@@ -15,9 +15,9 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight.utils;
+package it.tdlight.common.utils;
 
-import it.tdlight.tdlight.Response;
+import it.tdlight.common.Response;
 
 /**
  * Interface of callback for receive incoming error response.

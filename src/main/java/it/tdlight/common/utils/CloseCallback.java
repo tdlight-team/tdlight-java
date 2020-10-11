@@ -15,17 +15,14 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight.utils;
-
-import it.tdlight.tdlight.Response;
+package it.tdlight.common.utils;
 
 /**
- * Interface of callback for receive incoming error response.
+ * Interface of callback for receive notification of closing Tdlib.
  */
-public interface ErrorCallback {
+public interface CloseCallback {
     /**
-     * This method is called when the library receives error responses
-     * @param error The incoming error response.
+     * This method is called when tdlib is closing
      */
-    void onError(Response error);
+    void onClosed();
 }

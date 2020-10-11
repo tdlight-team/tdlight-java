@@ -15,16 +15,16 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight.utils;
+package it.tdlight.common.utils;
 
 /**
- * An exception that is thrown when the LoadLibrary class fails to load the library.
+ * Enumeration with all architectures recognized by this library.
  */
-public class CantLoadLibrary extends Exception {
-    /**
-     * Creates a new CantLoadLibrary exception.
-     */
-    CantLoadLibrary() {
-        super("FATAL: Init failled when load tdlib library, execution can't continue");
-    }
+public enum Arch {
+    amd64,
+    i386,
+    armhf,
+    aarch64,
+	ppc64le,
+    unknown
 }

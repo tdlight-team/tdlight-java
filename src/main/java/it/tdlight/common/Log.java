@@ -1,5 +1,6 @@
-package it.tdlight.tdlight;
+package it.tdlight.common;
 
+import it.tdlight.common.Init;
 import it.tdlight.jni.FatalErrorCallbackPtr;
 import it.tdlight.jni.NativeLog;
 import it.tdlight.jni.TdApi;

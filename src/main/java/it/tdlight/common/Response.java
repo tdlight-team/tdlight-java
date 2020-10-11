@@ -15,7 +15,7 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlight;
+package it.tdlight.common;
 
 import it.tdlight.jni.TdApi.Object;
 

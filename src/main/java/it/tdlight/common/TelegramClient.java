@@ -1,4 +1,4 @@
-package it.tdlight.tdlight;
+package it.tdlight.common;
 
 import java.io.IOException;
 import java.util.List;

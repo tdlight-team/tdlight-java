@@ -1,10 +1,9 @@
-package it.tdlight.tdlight;
+package it.tdlight.tdlib;
 
-import it.tdlight.common.ClientState;
+import it.cavallium.concurrentlocks.ReentrantReadWriteUpdateLock;
 import it.tdlight.common.Init;
 import it.tdlight.common.Request;
 import it.tdlight.common.Response;
-import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.NativeClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationStateClosed;
@@ -14,11 +13,12 @@ import it.tdlight.jni.TdApi.GetOption;
 import it.tdlight.jni.TdApi.Object;
 import it.tdlight.jni.TdApi.SetOption;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
+import it.tdlight.common.TelegramClient;
+import it.tdlight.common.ClientState;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Interface for interaction with TDLib.
@@ -26,9 +26,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class Client extends NativeClient implements TelegramClient {
 
 	private ClientState state = ClientState.of(false, 0, false, false, false);
-	private final ReentrantReadWriteLock stateLock = new ReentrantReadWriteLock();
-	private final ReentrantReadWriteLock updatesLock = new ReentrantReadWriteLock();
-	private final ReentrantReadWriteLock responsesLock = new ReentrantReadWriteLock();
+	private final ReentrantReadWriteUpdateLock stateLock = new ReentrantReadWriteUpdateLock();
 
 	/**
 	 * Creates a new TDLib client.
@@ -60,34 +58,23 @@ public class Client extends NativeClient implements TelegramClient {
 
 	@Override
 	public List<Response> receive(double timeout, int eventsSize, boolean receiveResponses, boolean receiveUpdates) {
-		if (receiveResponses) responsesLock.readLock().lock();
+		long clientId;
+		stateLock.updateLock().lock();
 		try {
-			if (receiveUpdates) updatesLock.readLock().lock();
-			try {
-				long clientId;
-				stateLock.readLock().lock();
-				try {
-					if (!state.isInitialized()) {
-						sleep(timeout);
-						return Collections.emptyList();
-					}
-					requireInitialized();
-					if (!state.isReadyToReceive()) {
-						sleep(timeout);
-						return Collections.emptyList();
-					}
-					requireReadyToReceive();
-					clientId = state.getClientId();
-				} finally {
-					stateLock.readLock().unlock();
-				}
-
-				return Arrays.asList(this.internalReceive(clientId, timeout, eventsSize, receiveResponses, receiveUpdates));
-			} finally {
-				if (receiveUpdates) updatesLock.readLock().unlock();
+			if (!state.isInitialized()) {
+				sleep(timeout);
+				return Collections.emptyList();
 			}
+			requireInitialized();
+			if (!state.isReadyToReceive()) {
+				sleep(timeout);
+				return Collections.emptyList();
+			}
+			requireReadyToReceive();
+			clientId = state.getClientId();
+			return Arrays.asList(this.internalReceive(clientId, timeout, eventsSize, receiveResponses, receiveUpdates));
 		} finally {
-			if (receiveResponses) responsesLock.readLock().unlock();
+			stateLock.updateLock().unlock();
 		}
 	}
 
@@ -104,40 +91,30 @@ public class Client extends NativeClient implements TelegramClient {
 
 	@Override
 	public Response receive(double timeout, boolean receiveResponses, boolean receiveUpdates) {
-		responsesLock.readLock().lock();
+		long clientId;
+		stateLock.updateLock().lock();
 		try {
-			updatesLock.readLock().lock();
-			try {
-				long clientId;
-				stateLock.readLock().lock();
-				try {
-					if (!state.isInitialized()) {
-						sleep(timeout);
-						return null;
-					}
-					requireInitialized();
-					if (!state.isReadyToReceive()) {
-						sleep(timeout);
-						return null;
-					}
-					requireReadyToReceive();
-					clientId = state.getClientId();
-				} finally {
-					stateLock.readLock().unlock();
-				}
-
-				Response[] responses = this.internalReceive(clientId, timeout, 1, receiveResponses, receiveUpdates);
-
-				if (responses.length > 0) {
-					return responses[0];
-				}
-
+			if (!state.isInitialized()) {
+				sleep(timeout);
 				return null;
-			} finally {
-				updatesLock.readLock().unlock();
 			}
+			requireInitialized();
+			if (!state.isReadyToReceive()) {
+				sleep(timeout);
+				return null;
+			}
+			requireReadyToReceive();
+			clientId = state.getClientId();
+
+			Response[] responses = this.internalReceive(clientId, timeout, 1, receiveResponses, receiveUpdates);
+
+			if (responses.length > 0) {
+				return responses[0];
+			}
+
+			return null;
 		} finally {
-			responsesLock.readLock().unlock();
+			stateLock.updateLock().unlock();
 		}
 	}
 
@@ -145,7 +122,11 @@ public class Client extends NativeClient implements TelegramClient {
 		long[] eventIds = new long[eventsSize];
 		TdApi.Object[] events = new TdApi.Object[eventsSize];
 
-		int resultSize = nativeClientReceive(clientId, eventIds, events, timeout, receiveResponses, receiveUpdates);
+		if (!(receiveResponses && receiveUpdates)) {
+			throw new IllegalArgumentException("The variables receiveResponses and receiveUpdates must be both true, because you are using the original TDLib!");
+		}
+
+		int resultSize = nativeClientReceive(clientId, eventIds, events, timeout);
 
 		Response[] responses = new Response[resultSize];
 
@@ -214,50 +195,30 @@ public class Client extends NativeClient implements TelegramClient {
 
 	@Override
 	public void destroyClient() {
-		responsesLock.writeLock().lock();
+		stateLock.writeLock().lock();
 		try {
-			updatesLock.writeLock().lock();
-			try {
-				stateLock.writeLock().lock();
-				try {
-					if (state.isInitialized() && state.hasClientId()) {
-						if (state.isReadyToSend() || state.isReadyToReceive()) {
-							throw new IllegalStateException("You need to close the Client before destroying it!");
-						}
-						destroyNativeClient(this.state.getClientId());
-						state = ClientState.of(false, 0, false, false, false);
-					}
-				} finally {
-					stateLock.writeLock().unlock();
+			if (state.isInitialized() && state.hasClientId()) {
+				if (state.isReadyToSend() || state.isReadyToReceive()) {
+					throw new IllegalStateException("You need to close the Client before destroying it!");
 				}
-			} finally {
-				updatesLock.writeLock().unlock();
+				destroyNativeClient(this.state.getClientId());
+				state = ClientState.of(false, 0, false, false, false);
 			}
 		} finally {
-			responsesLock.writeLock().unlock();
+			stateLock.writeLock().unlock();
 		}
 	}
 
 	@Override
 	public void initializeClient() {
-		responsesLock.writeLock().lock();
+		stateLock.writeLock().lock();
 		try {
-			updatesLock.writeLock().lock();
-			try {
-				stateLock.writeLock().lock();
-				try {
-					if (!state.isInitialized() && !state.hasClientId()) {
-						long clientId = createNativeClient();
-						state = ClientState.of(true, clientId, true, true, false);
-					}
-				} finally {
-					stateLock.writeLock().unlock();
-				}
-			} finally {
-				updatesLock.writeLock().unlock();
+			if (!state.isInitialized() && !state.hasClientId()) {
+				long clientId = createNativeClient();
+				state = ClientState.of(true, clientId, true, true, false);
 			}
 		} finally {
-			responsesLock.writeLock().unlock();
+			stateLock.writeLock().unlock();
 		}
 	}
 

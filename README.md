@@ -89,11 +89,11 @@ dependencies {
 ## Usage
 Simple initialization of a native TDLib client
 ```java
-import java.io.File;
+
 
 import it.tdlight.tdlight.Client;
-import it.tdlight.tdlight.Init;
-import it.tdlight.tdlight.Log;
+import it.tdlight.common.Init;
+import it.tdlight.common.Log;
 
 public class Example {
     public static void main(String[] args) {
