@@ -104,24 +104,21 @@ public class LoadLibrary {
 			case linux:
 				switch (arch) {
 					case amd64:
-						classForResource = it.tdlight.tdlight.linux.amd64.LoadLibrary.class;
+						classForResource = LibraryVersion.LINUX_AMD64_CLASS;
 						break;
 					case aarch64:
-						classForResource = it.tdlight.tdlight.linux.aarch64.LoadLibrary.class;
+						classForResource = LibraryVersion.LINUX_AARCH64_CLASS;
 						break;
 				}
 				break;
-			// Unsupported platform:
-			/*
 			case osx:
 				if (arch == Arch.amd64) {
-					classForResource = it.tdlight.tdlight.osx.amd64.LoadLibrary.class;
+					classForResource = LibraryVersion.OSX_AMD64_CLASS;
 				}
 				break;
-			 */
 			case win:
 				if (arch == Arch.amd64) {
-					classForResource = it.tdlight.tdlight.win.amd64.LoadLibrary.class;
+					classForResource = LibraryVersion.WINDOWS_AMD64_CLASS;
 				}
 				break;
 		}
