@@ -1,14 +1,14 @@
 package it.tdlight.tdlight;
 
-import it.tdlight.tdlib.NativeClient;
-import it.tdlight.tdlib.TdApi;
-import it.tdlight.tdlib.TdApi.AuthorizationStateClosed;
-import it.tdlight.tdlib.TdApi.AuthorizationStateClosing;
-import it.tdlight.tdlib.TdApi.AuthorizationStateWaitTdlibParameters;
-import it.tdlight.tdlib.TdApi.GetOption;
-import it.tdlight.tdlib.TdApi.Object;
-import it.tdlight.tdlib.TdApi.SetOption;
-import it.tdlight.tdlib.TdApi.UpdateAuthorizationState;
+import it.tdlight.jni.NativeClient;
+import it.tdlight.jni.TdApi;
+import it.tdlight.jni.TdApi.AuthorizationStateClosed;
+import it.tdlight.jni.TdApi.AuthorizationStateClosing;
+import it.tdlight.jni.TdApi.AuthorizationStateWaitTdlibParameters;
+import it.tdlight.jni.TdApi.GetOption;
+import it.tdlight.jni.TdApi.Object;
+import it.tdlight.jni.TdApi.SetOption;
+import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;

@@ -15,7 +15,7 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.tdlib;
+package it.tdlight.jni;
 
 /**
  * Class used for managing internal TDLib logging.

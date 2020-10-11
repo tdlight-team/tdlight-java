@@ -17,7 +17,7 @@
 
 package it.tdlight.tdlight;
 
-import it.tdlight.tdlib.TdApi.Object;
+import it.tdlight.jni.TdApi.Object;
 
 /**
  * A response to a request, or an incoming update from TDLib.
