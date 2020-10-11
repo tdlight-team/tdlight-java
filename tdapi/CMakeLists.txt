@@ -9,8 +9,6 @@ if (POLICY CMP0054)
   cmake_policy(SET CMP0054 NEW)
 endif()
 
-cmake_policy(SET CMP0074 NEW)
-
 #find_package(Td REQUIRED)
 
 if (NOT JNI_FOUND)
@@ -19,7 +17,7 @@ endif()
 message(STATUS "Found JNI: ${JNI_INCLUDE_DIRS} ${JNI_LIBRARIES}")
 
 if (NOT Java_FOUND)
-  find_package(Java 1.6 REQUIRED)
+  find_package(Java REQUIRED)
 endif()
 message(STATUS "Found Java: ${Java_JAVAC_EXECUTABLE} ${Java_JAVADOC_EXECUTABLE}")
 
@@ -30,7 +28,7 @@ find_program(PHP_EXECUTABLE php)
 
 message(STATUS "PHP Executable: ${PHP_EXECUTABLE}")
 
-set(TD_API_JAVA_PACKAGE "it/tdlight/tdlib")
+set(TD_API_JAVA_PACKAGE "it/tdlight/jni")
 set(TD_API_JAVA_PATH ${JAVA_SRC_DIR})
 set(TD_API_TLO_PATH ${TD_SRC_DIR}/td/generate/scheme/td_api.tlo)
 set(TD_API_TL_PATH ${TD_SRC_DIR}/td/generate/scheme/td_api.tl)
@@ -47,7 +45,7 @@ add_custom_target(td_generate_java_api
 )
 
 add_custom_target(generate_javadoc
-  COMMAND ${Java_JAVADOC_EXECUTABLE} -d ${TDNATIVES_DOCS_BIN_DIR} it.tdlight.tdlib
+  COMMAND ${Java_JAVADOC_EXECUTABLE} -d ${TDNATIVES_DOCS_BIN_DIR} it.tdlight.jni
   WORKING_DIRECTORY ${TD_API_JAVA_PATH}
   COMMENT "Generating Javadoc documentation"
   DEPENDS td_generate_java_api
