@@ -2416,7 +2416,7 @@ class FileManager::ForceUploadActor : public Actor {
       if (callback_.empty()) {
         return;
       }
-      send_closure(std::move(callback_), &ForceUploadActor::on_upload_error, td::Status::Error("Cancelled"));
+      send_closure(std::move(callback_), &ForceUploadActor::on_upload_error, Status::Error("Cancelled"));
     }
 
    private:

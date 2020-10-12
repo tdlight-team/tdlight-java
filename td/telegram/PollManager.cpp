@@ -643,7 +643,7 @@ void PollManager::unregister_poll(PollId poll_id, FullMessageId full_message_id,
   }
   LOG(INFO) << "Unregister " << poll_id << " from " << full_message_id << " from " << source;
   auto &message_ids = poll_messages_[poll_id];
-  auto is_deleted = message_ids.erase(full_message_id);
+  auto is_deleted = message_ids.erase(full_message_id) > 0;
   LOG_CHECK(is_deleted) << source << " " << poll_id << " " << full_message_id;
   if (message_ids.empty()) {
     poll_messages_.erase(poll_id);
@@ -1653,7 +1653,7 @@ void PollManager::on_binlog_events(vector<BinlogEvent> &&events) {
 
         Dependencies dependencies;
         add_dialog_dependencies(dependencies, dialog_id);  // do not load the dialog itself
-        resolve_dependencies_force(td_, dependencies);
+        resolve_dependencies_force(td_, dependencies, "SetPollAnswerLogEvent");
 
         do_set_poll_answer(log_event.poll_id_, log_event.full_message_id_, std::move(log_event.options_), event.id_,
                            Auto());
@@ -1672,7 +1672,7 @@ void PollManager::on_binlog_events(vector<BinlogEvent> &&events) {
 
         Dependencies dependencies;
         add_dialog_dependencies(dependencies, dialog_id);  // do not load the dialog itself
-        resolve_dependencies_force(td_, dependencies);
+        resolve_dependencies_force(td_, dependencies, "StopPollLogEvent");
 
         do_stop_poll(log_event.poll_id_, log_event.full_message_id_, nullptr, event.id_, Auto());
         break;

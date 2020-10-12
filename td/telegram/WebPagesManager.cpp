@@ -741,8 +741,9 @@ void WebPagesManager::unregister_web_page(WebPageId web_page_id, FullMessageId f
   if (find_message_ids == web_page_messages_.end()) { return; }
   auto &message_ids = find_message_ids->second;
   // End custom-patches
-  auto is_deleted = message_ids.erase(full_message_id);
+  auto is_deleted = message_ids.erase(full_message_id) > 0;
   if (!is_deleted) { return; }
+  LOG_CHECK(is_deleted) << source << " " << web_page_id << " " << full_message_id;
 
   if (message_ids.empty()) {
     web_page_messages_.erase(web_page_id);

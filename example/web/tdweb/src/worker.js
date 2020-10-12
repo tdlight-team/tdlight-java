@@ -63,18 +63,19 @@ async function initLocalForage() {
 
 async function loadTdlibWasm(onFS, wasmUrl) {
   console.log('loadTdlibWasm');
-  const Module = await import('./prebuilt/release/td_wasm.js');
-  log.info('got td_wasm.js');
+  const td_module = await import('./prebuilt/release/td_wasm.js');
+  const createTdwebModule = td_module.default;
+  log.info('got td_wasm.js', td_module, createTdwebModule);
   let td_wasm = td_wasm_release;
   if (wasmUrl) {
     td_wasm = wasmUrl;
   }
-  const module = Module.default({
+  let module = createTdwebModule({
     onRuntimeInitialized: () => {
       log.info('runtime intialized');
     },
     instantiateWasm: (imports, successCallback) => {
-      log.info('start instantiateWasm', td_wasm);
+      log.info('start instantiateWasm', td_wasm, imports);
       const next = instance => {
         log.info('finish instantiateWasm');
         successCallback(instance);
@@ -84,25 +85,22 @@ async function loadTdlibWasm(onFS, wasmUrl) {
     },
     ENVIROMENT: 'WORKER'
   });
+  onFS(module.FS); // hack
+  log.info('Wait module');
+  module = await module;
   log.info('Got module', module);
-  onFS(module.FS);
-  const TdModule = new Promise((resolve, reject) =>
-    module.then(m => {
-      delete m.then;
-      resolve(m);
-    })
-  );
-
-  return TdModule;
+  //onFS(module.FS);
+  return module;
 }
 
 async function loadTdlibAsmjs(onFS) {
   console.log('loadTdlibAsmjs');
-  const Module = await import('./prebuilt/release/td_asmjs.js');
-  console.log('got td_asm.js');
+  const createTdwebModule = (await import('./prebuilt/release/td_asmjs.js'))
+    .default;
+  console.log('got td_asm.js', createTdwebModule);
   const fromFile = 'td_asmjs.js.mem';
   const toFile = td_asmjs_mem_release;
-  const module = Module.default({
+  let module = createTdwebModule({
     onRuntimeInitialized: () => {
       console.log('runtime intialized');
     },
@@ -114,15 +112,12 @@ async function loadTdlibAsmjs(onFS) {
     },
     ENVIROMENT: 'WORKER'
   });
-  onFS(module.FS);
-  const TdModule = new Promise((resolve, reject) =>
-    module.then(m => {
-      delete m.then;
-      resolve(m);
-    })
-  );
-
-  return TdModule;
+  onFS(module.FS); // hack
+  log.info('Wait module');
+  module = await module;
+  log.info('Got module', module);
+  //onFS(module.FS);
+  return module;
 }
 
 async function loadTdlib(mode, onFS, wasmUrl) {
@@ -620,7 +615,10 @@ class TdClient {
     log.info('got TdModule');
     this.td_functions = {
       td_create: this.TdModule.cwrap('td_emscripten_create', 'number', []),
-      td_send: this.TdModule.cwrap('td_emscripten_send', null, ['number', 'string']),
+      td_send: this.TdModule.cwrap('td_emscripten_send', null, [
+        'number',
+        'string'
+      ]),
       td_execute: this.TdModule.cwrap('td_emscripten_execute', 'string', [
         'string'
       ]),
@@ -633,7 +631,11 @@ class TdClient {
           })
         );
       },
-      td_get_timeout: this.TdModule.cwrap('td_emscripten_get_timeout', 'number', [])
+      td_get_timeout: this.TdModule.cwrap(
+        'td_emscripten_get_timeout',
+        'number',
+        []
+      )
     };
     //this.onFS(this.TdModule.FS);
     this.FS = this.TdModule.FS;

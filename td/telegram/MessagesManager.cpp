@@ -6576,18 +6576,8 @@ td_api::object_ptr<td_api::messageInteractionInfo> MessagesManager::get_message_
 
   td_api::object_ptr<td_api::messageReplyInfo> reply_info;
   if (is_visible_reply_info) {
-    vector<UserId> recent_replier_user_ids;
-    for (auto recent_replier_dialog_id : m->reply_info.recent_replier_dialog_ids) {
-      if (recent_replier_dialog_id.get_type() == DialogType::User) {
-        recent_replier_user_ids.push_back(recent_replier_dialog_id.get_user_id());
-      }
-    }
-    reply_info = td_api::make_object<td_api::messageReplyInfo>(
-        m->reply_info.reply_count,
-        td_->contacts_manager_->get_user_ids_object(recent_replier_user_ids, "get_message_interaction_info_object"),
-        m->reply_info.last_read_inbox_message_id.get(), m->reply_info.last_read_outbox_message_id.get(),
-        m->reply_info.max_message_id.get());
-    CHECK(reply_info->reply_count_ >= 0);
+    reply_info = m->reply_info.get_message_reply_info_object(td_->contacts_manager_.get());
+    CHECK(reply_info != nullptr);
   }
 
   return td_api::make_object<td_api::messageInteractionInfo>(m->view_count, m->forward_count, std::move(reply_info));
@@ -14456,8 +14446,8 @@ unique_ptr<MessagesManager::Message> MessagesManager::do_delete_scheduled_messag
   auto result = treap_delete_message(v);
 
   if (message_id.is_scheduled_server()) {
-    size_t erased = d->scheduled_message_date.erase(message_id.get_scheduled_server_message_id());
-    CHECK(erased != 0);
+    size_t erased_count = d->scheduled_message_date.erase(message_id.get_scheduled_server_message_id());
+    CHECK(erased_count != 0);
   }
 
   cancel_send_deleted_message(d->dialog_id, result.get(), is_permanently_deleted);
@@ -14507,7 +14497,7 @@ void MessagesManager::load_dialogs(vector<DialogId> dialog_ids, Promise<Unit> &&
       add_dialog_dependencies(dependencies, dialog_id);
     }
   }
-  resolve_dependencies_force(td_, dependencies);
+  resolve_dependencies_force(td_, dependencies, "load_dialogs");
 
   for (auto dialog_id : dialog_ids) {
     if (dialog_id.is_valid()) {
@@ -16125,13 +16115,22 @@ td_api::object_ptr<td_api::messageThreadInfo> MessagesManager::get_message_threa
 
   Dialog *d = get_dialog(info.dialog_id);
   CHECK(d != nullptr);
+  td_api::object_ptr<td_api::messageReplyInfo> reply_info;
   vector<td_api::object_ptr<td_api::message>> messages;
   messages.reserve(info.message_ids.size());
   for (auto message_id : info.message_ids) {
-    auto message = get_message_object(d->dialog_id, get_message_force(d, message_id, "get_message_thread_info_object"));
+    const Message *m = get_message_force(d, message_id, "get_message_thread_info_object");
+    auto message = get_message_object(d->dialog_id, m);
     if (message != nullptr) {
+      if (message->interaction_info_ != nullptr && message->interaction_info_->reply_info_ != nullptr) {
+        reply_info = m->reply_info.get_message_reply_info_object(td_->contacts_manager_.get());
+        CHECK(reply_info != nullptr);
+      }
       messages.push_back(std::move(message));
     }
+  }
+  if (reply_info == nullptr) {
+    return nullptr;
   }
 
   MessageId top_thread_message_id;
@@ -16146,7 +16145,8 @@ td_api::object_ptr<td_api::messageThreadInfo> MessagesManager::get_message_threa
     }
   }
   return td_api::make_object<td_api::messageThreadInfo>(d->dialog_id.get(), top_thread_message_id.get(),
-                                                        std::move(messages), std::move(draft_message));
+                                                        std::move(reply_info), std::move(messages),
+                                                        std::move(draft_message));
 }
 
 void MessagesManager::get_dialog_info_full(DialogId dialog_id, Promise<Unit> &&promise) {
@@ -20929,8 +20929,8 @@ void MessagesManager::on_get_dialog_message_by_date_success(DialogId dialog_id, 
 }
 
 void MessagesManager::on_get_dialog_message_by_date_fail(int64 random_id) {
-  auto erased = get_dialog_message_by_date_results_.erase(random_id);
-  CHECK(erased > 0);
+  auto erased_count = get_dialog_message_by_date_results_.erase(random_id);
+  CHECK(erased_count > 0);
 }
 
 tl_object_ptr<td_api::message> MessagesManager::get_dialog_message_by_date_object(int64 random_id) {
@@ -21199,7 +21199,7 @@ void MessagesManager::on_get_history_from_database(DialogId dialog_id, MessageId
     is_first = false;
     pos++;
   }
-  resolve_dependencies_force(td_, dependencies);
+  resolve_dependencies_force(td_, dependencies, "get_history");
 
   if (from_the_end && !last_added_message_id.is_valid() && last_received_message_id < d->first_database_message_id &&
       !d->have_full_history) {
@@ -21514,7 +21514,7 @@ void MessagesManager::on_get_scheduled_messages_from_database(DialogId dialog_id
       added_message_ids.push_back(m->message_id);
     }
   }
-  resolve_dependencies_force(td_, dependencies);
+  resolve_dependencies_force(td_, dependencies, "get_scheduled_messages");
 
   // for (auto message_id : added_message_ids) {
   //   send_update_new_message(d, get_message(d, message_id));
@@ -30329,7 +30329,7 @@ MessagesManager::Message *MessagesManager::on_get_message_from_database(DialogId
 
   Dependencies dependencies;
   add_message_dependencies(dependencies, d->dialog_id, m.get());
-  resolve_dependencies_force(td_, dependencies);
+  resolve_dependencies_force(td_, dependencies, "get_message");
 
   m->have_previous = false;
   m->have_next = false;
@@ -33331,7 +33331,7 @@ unique_ptr<MessagesManager::Dialog> MessagesManager::parse_dialog(DialogId dialo
   if (d->draft_message != nullptr) {
     add_formatted_text_dependencies(dependencies, &d->draft_message->input_message_text.text);
   }
-  resolve_dependencies_force(td_, dependencies);
+  resolve_dependencies_force(td_, dependencies, "parse_dialog");
 
   return d;
 }
@@ -34523,7 +34523,7 @@ void MessagesManager::on_binlog_events(vector<BinlogEvent> &&events) {
         Dependencies dependencies;
         add_dialog_dependencies(dependencies, dialog_id);
         add_message_dependencies(dependencies, dialog_id, m.get());
-        resolve_dependencies_force(td_, dependencies);
+        resolve_dependencies_force(td_, dependencies, "SendMessageLogEvent");
 
         m->content =
             dup_message_content(td_, dialog_id, m->content.get(), MessageContentDupType::Send, MessageCopyOptions());
@@ -34553,7 +34553,7 @@ void MessagesManager::on_binlog_events(vector<BinlogEvent> &&events) {
         Dependencies dependencies;
         add_dialog_dependencies(dependencies, dialog_id);
         add_message_dependencies(dependencies, dialog_id, m.get());
-        resolve_dependencies_force(td_, dependencies);
+        resolve_dependencies_force(td_, dependencies, "SendBotStartMessageLogEvent");
 
         auto bot_user_id = log_event.bot_user_id;
         if (!td_->contacts_manager_->have_user_force(bot_user_id)) {
@@ -34590,7 +34590,7 @@ void MessagesManager::on_binlog_events(vector<BinlogEvent> &&events) {
         Dependencies dependencies;
         add_dialog_dependencies(dependencies, dialog_id);
         add_message_dependencies(dependencies, dialog_id, m.get());
-        resolve_dependencies_force(td_, dependencies);
+        resolve_dependencies_force(td_, dependencies, "SendInlineQueryResultMessageLogEvent");
 
         m->content = dup_message_content(td_, dialog_id, m->content.get(), MessageContentDupType::SendViaBot,
                                          MessageCopyOptions());
@@ -34619,7 +34619,7 @@ void MessagesManager::on_binlog_events(vector<BinlogEvent> &&events) {
         Dependencies dependencies;
         add_dialog_dependencies(dependencies, dialog_id);
         add_message_dependencies(dependencies, dialog_id, m.get());
-        resolve_dependencies_force(td_, dependencies);
+        resolve_dependencies_force(td_, dependencies, "SendScreenshotTakenNotificationMessageLogEvent");
 
         auto result_message = continue_send_message(dialog_id, std::move(m), event.id_);
         if (result_message != nullptr) {
@@ -34646,7 +34646,7 @@ void MessagesManager::on_binlog_events(vector<BinlogEvent> &&events) {
         for (auto &m : messages) {
           add_message_dependencies(dependencies, to_dialog_id, m.get());
         }
-        resolve_dependencies_force(td_, dependencies);
+        resolve_dependencies_force(td_, dependencies, "ForwardMessagesLogEvent");
 
         Dialog *to_dialog = get_dialog_force(to_dialog_id);
         if (to_dialog == nullptr) {
@@ -35128,7 +35128,7 @@ void MessagesManager::on_binlog_events(vector<BinlogEvent> &&events) {
         auto dialog_id = log_event.dialog_id_;
         Dependencies dependencies;
         add_dialog_dependencies(dependencies, dialog_id);
-        resolve_dependencies_force(td_, dependencies);
+        resolve_dependencies_force(td_, dependencies, "GetDialogFromServerLogEvent");
 
         get_dialog_force(dialog_id);  // load it if exists
 

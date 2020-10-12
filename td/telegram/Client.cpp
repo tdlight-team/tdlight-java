@@ -153,9 +153,10 @@ class ClientManager::Impl final {
       ConcurrentScheduler::emscripten_clear_main_timeout();
     }
     if (response.request_id == 0 && response.object != nullptr &&
-        response.object->get_id() == td::td_api::updateAuthorizationState::ID &&
-        static_cast<const td::td_api::updateAuthorizationState *>(response.object.get())
-                ->authorization_state_->get_id() == td::td_api::authorizationStateClosed::ID) {
+        response.object->get_id() == td_api::updateAuthorizationState::ID &&
+        static_cast<const td_api::updateAuthorizationState *>(response.object.get())->authorization_state_->get_id() ==
+            td_api::authorizationStateClosed::ID) {
+      auto guard = concurrent_scheduler_->get_main_guard();
       auto it = tds_.find(response.client_id);
       CHECK(it != tds_.end());
       it->second.reset();
@@ -239,7 +240,7 @@ class MultiTd : public Actor {
     CHECK(td.empty());
 
     string name = "Td";
-    auto context = std::make_shared<td::ActorContext>();
+    auto context = std::make_shared<ActorContext>();
     auto old_context = set_context(context);
     auto old_tag = set_tag(to_string(td_id));
     td = create_actor<Td>("Td", std::move(callback), options_);
@@ -255,8 +256,8 @@ class MultiTd : public Actor {
   }
 
   void close(int32 td_id) {
-    size_t erased = tds_.erase(td_id);
-    CHECK(erased > 0);
+    size_t erased_count = tds_.erase(td_id);
+    CHECK(erased_count > 0);
   }
 
  private:
@@ -283,11 +284,15 @@ class TdReceiver {
     bool is_updates_locked = false;
     if (include_responses) {
       is_responses_locked = receive_responses_lock_.exchange(true);
-      CHECK(!is_responses_locked);
+      if (is_responses_locked) {
+        LOG(FATAL) << "Receive is called after Client destroy, or simultaneously from different threads";
+      }
     }
     if (include_updates) {
       is_updates_locked = receive_updates_lock_.exchange(true);
-      CHECK(!is_updates_locked);
+      if (is_updates_locked) {
+        LOG(FATAL) << "Receive is called after Client destroy, or simultaneously from different threads";
+      }
     }
     auto response = receive_unlocked(timeout, include_responses, include_updates);
     if (include_updates) {
@@ -298,7 +303,8 @@ class TdReceiver {
       is_responses_locked = receive_responses_lock_.exchange(false);
       CHECK(is_responses_locked);
     }
-    VLOG(td_requests) << "End to wait for updates, returning object " << response.request_id << ' ' << response.object.get();
+    VLOG(td_requests) << "End to wait for updates, returning object " << response.request_id << ' '
+                      << response.object.get();
     return response;
   }
 
@@ -530,9 +536,9 @@ class ClientManager::Impl final {
   Response receive(double timeout, bool include_responses, bool include_updates) {
     auto response = receiver_->receive(timeout, include_responses, include_updates);
     if (response.request_id == 0 && response.object != nullptr &&
-        response.object->get_id() == td::td_api::updateAuthorizationState::ID &&
-        static_cast<const td::td_api::updateAuthorizationState *>(response.object.get())
-                ->authorization_state_->get_id() == td::td_api::authorizationStateClosed::ID) {
+        response.object->get_id() == td_api::updateAuthorizationState::ID &&
+        static_cast<const td_api::updateAuthorizationState *>(response.object.get())->authorization_state_->get_id() ==
+            td_api::authorizationStateClosed::ID) {
       auto lock = impls_mutex_.lock_write().move_as_ok();
       close_impl(response.client_id);
     }
