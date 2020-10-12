@@ -278,8 +278,14 @@ LogInterface *log_interface = default_log_interface;
 
 static OnFatalErrorCallback on_fatal_error_callback = nullptr;
 
+static bool use_death_handler = true;
+
 void set_log_fatal_error_callback(OnFatalErrorCallback callback) {
   on_fatal_error_callback = callback;
+}
+
+void set_log_disable_death_handler(bool disabled) {
+  use_death_handler = !disabled;
 }
 
 void process_fatal_error(CSlice message) {
@@ -292,7 +298,12 @@ void process_fatal_error(CSlice message) {
     std::abort();
   #else
     struct sigaction sa{};
-    Debug::DeathHandler::HandleSignal(SIGABRT, &sa, nullptr);
+
+    if (use_death_handler) {
+      Debug::DeathHandler::HandleSignal(SIGABRT, &sa, nullptr);
+    } else {
+      std::abort();
+    }
   #endif
 #else
   std::abort();

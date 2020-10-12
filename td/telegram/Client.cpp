@@ -20,6 +20,10 @@
 #include "td/utils/port/RwMutex.h"
 #include "td/utils/port/thread.h"
 
+#ifndef _WIN32
+#include "td/utils/death_handler.h"
+#endif
+
 #include <algorithm>
 #include <atomic>
 #include <memory>
@@ -616,6 +620,9 @@ Client::Client(Client &&other) = default;
 Client &Client::operator=(Client &&other) = default;
 
 ClientManager::ClientManager() : impl_(std::make_unique<Impl>()) {
+  #ifndef _WIN32
+    Debug::DeathHandler dh;
+  #endif
 }
 
 ClientManager::ClientId ClientManager::create_client() {

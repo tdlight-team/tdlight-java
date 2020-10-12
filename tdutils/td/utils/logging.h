@@ -199,6 +199,7 @@ extern LogInterface *log_interface;
 
 using OnFatalErrorCallback = void (*)(CSlice message);
 void set_log_fatal_error_callback(OnFatalErrorCallback callback);
+void set_log_disable_death_handler(bool disabled);
 
 [[noreturn]] void process_fatal_error(CSlice message);
 

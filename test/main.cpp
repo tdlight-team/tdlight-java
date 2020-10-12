@@ -10,6 +10,7 @@
 #include "td/utils/OptionParser.h"
 #include "td/utils/Slice.h"
 #include "td/utils/tests.h"
+#include "td/telegram/Log.h"
 
 #ifndef _WIN32
 #include "td/utils/death_handler.h"
@@ -20,9 +21,10 @@
 #endif
 
 int main(int argc, char **argv) {
-#ifndef _WIN32
-  Debug::DeathHandler dh;
-#endif
+  #ifndef _WIN32
+    td::Log::set_disable_death_handler(true);
+    Debug::DeathHandler dh;
+  #endif
   td::init_openssl_threads();
 
   td::TestsRunner &runner = td::TestsRunner::get_default();
