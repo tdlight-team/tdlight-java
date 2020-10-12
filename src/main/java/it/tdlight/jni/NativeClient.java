@@ -8,7 +8,5 @@ public class NativeClient {
 
     protected static native int nativeClientReceive(int[] clientIds, long[] eventIds, TdApi.Object[] events, double timeout);
 
-    protected static native int nativeClientReceive(int[] clientIds, long[] eventIds, TdApi.Object[] events, double timeout, boolean include_responses, boolean include_updates);
-
     protected static native TdApi.Object nativeClientExecute(TdApi.Function function);
 }
