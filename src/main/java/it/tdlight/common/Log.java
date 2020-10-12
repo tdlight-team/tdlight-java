@@ -1,9 +1,8 @@
 package it.tdlight.common;
 
-import it.tdlight.common.Init;
-import it.tdlight.jni.FatalErrorCallbackPtr;
 import it.tdlight.jni.NativeLog;
 import it.tdlight.jni.TdApi;
+import java.util.function.Consumer;
 
 /**
  * Class used for managing internal TDLib logging.
@@ -70,7 +69,7 @@ public class Log {
 	 * Sets the callback that will be called when a fatal error happens. None of the TDLib methods can be called from the callback. The TDLib will crash as soon as callback returns. By default the callback set to print in stderr.
 	 * @param fatalErrorCallback Callback that will be called when a fatal error happens. Pass null to restore default callback.
 	 */
-	public static synchronized void setFatalErrorCallback(FatalErrorCallbackPtr fatalErrorCallback) {
+	public static synchronized void setFatalErrorCallback(Consumer<String> fatalErrorCallback) {
 		NativeLog.setFatalErrorCallback(fatalErrorCallback);
 	}
 }

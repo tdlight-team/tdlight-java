@@ -1,21 +1,6 @@
-/*
- * Copyright (c) 2018. Ernesto Castellotti <erny.castell@gmail.com>
- * This file is part of JTdlib.
- *
- *     JTdlib is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published by
- *     the Free Software Foundation, either version 3 of the License.
- *
- *     JTdlib is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package it.tdlight.jni;
+
+import java.util.function.Consumer;
 
 /**
  * Class used for managing internal TDLib logging.
@@ -23,8 +8,8 @@ package it.tdlight.jni;
  */
 public class NativeLog {
 
-    private static final FatalErrorCallbackPtr defaultFatalErrorCallbackPtr = System.err::println;
-    private static FatalErrorCallbackPtr fatalErrorCallback = defaultFatalErrorCallbackPtr;
+    private static final Consumer<String> defaultFatalErrorCallbackPtr = System.err::println;
+    private static Consumer<String> fatalErrorCallback = defaultFatalErrorCallbackPtr;
 
     /**
      * Sets file path for writing TDLib internal log. By default TDLib writes logs to the System.err.
@@ -72,14 +57,14 @@ public class NativeLog {
      * @param errorMessage Error message.
      */
     private static synchronized void onFatalError(String errorMessage) {
-        new Thread(() -> NativeLog.fatalErrorCallback.onFatalError(errorMessage)).start();
+        new Thread(() -> NativeLog.fatalErrorCallback.accept(errorMessage)).start();
     }
 
     /**
      * Sets the callback that will be called when a fatal error happens. None of the TDLib methods can be called from the callback. The TDLib will crash as soon as callback returns. By default the callback set to print in stderr.
      * @param fatalErrorCallback Callback that will be called when a fatal error happens. Pass null to restore default callback.
      */
-    public static synchronized void setFatalErrorCallback(FatalErrorCallbackPtr fatalErrorCallback) {
+    public static synchronized void setFatalErrorCallback(Consumer<String> fatalErrorCallback) {
         NativeLog.fatalErrorCallback = ObjectsUtils.requireNonNullElse(fatalErrorCallback, defaultFatalErrorCallbackPtr);
     }
 }
