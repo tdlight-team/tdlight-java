@@ -115,8 +115,7 @@ const char *ClientJson::execute(Slice request) {
 }
 
 static ClientManager *get_manager() {
-  static ClientManager client_manager;
-  return &client_manager;
+  return ClientManager::get_manager_singleton();
 }
 
 static std::mutex extra_mutex;

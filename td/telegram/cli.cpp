@@ -20,6 +20,7 @@
 #include "td/utils/buffer.h"
 #include "td/utils/common.h"
 #include "td/utils/crypto.h"
+#include "td/utils/ExitGuard.h"
 #include "td/utils/FileLog.h"
 #include "td/utils/format.h"
 #include "td/utils/JsonBuilder.h"
@@ -4450,6 +4451,8 @@ void main(int argc, char **argv) {
 #ifndef _WIN32
   Debug::DeathHandler dh;
 #endif
+
+  ExitGuard exit_guard;
   ignore_signal(SignalType::HangUp).ensure();
   ignore_signal(SignalType::Pipe).ensure();
   set_signal_handler(SignalType::Error, fail_signal).ensure();

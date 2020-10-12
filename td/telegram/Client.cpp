@@ -13,6 +13,7 @@
 
 #include "td/utils/common.h"
 #include "td/utils/crypto.h"
+#include "td/utils/ExitGuard.h"
 #include "td/utils/logging.h"
 #include "td/utils/misc.h"
 #include "td/utils/MpscPollableQueue.h"
@@ -203,10 +204,12 @@ class ClientManager::Impl final {
         td.second.reset();
       }
     }
-    while (!tds_.empty()) {
-      receive(10, false, true);
+    while (!tds_.empty() && !ExitGuard::is_exited()) {
+      receive(0.1, false, true);
     }
-    concurrent_scheduler_->finish();
+    if (!ExitGuard::is_exited()) {  // prevent closing of schedulers from already killed by OS threads
+      concurrent_scheduler_->finish();
+    }
   }
 
  private:
@@ -475,7 +478,9 @@ class MultiImpl {
       Scheduler::instance()->finish();
     }
     scheduler_thread_.join();
-    concurrent_scheduler_->finish();
+    if (!ExitGuard::is_exited()) {  // prevent closing of schedulers from already killed by OS threads
+      concurrent_scheduler_->finish();
+    }
   }
 
  private:
@@ -618,11 +623,14 @@ class ClientManager::Impl final {
   Impl(Impl &&) = delete;
   Impl &operator=(Impl &&) = delete;
   ~Impl() {
+    if (ExitGuard::is_exited()) {
+      return;
+    }
     for (auto &it : impls_) {
       close_impl(it.first);
     }
-    while (!impls_.empty()) {
-      receive(10, false, true);
+    while (!impls_.empty() && !ExitGuard::is_exited()) {
+      receive(0.1, false, true);
     }
   }
 
@@ -673,8 +681,8 @@ class Client::Impl final {
   Impl &operator=(Impl &&) = delete;
   ~Impl() {
     multi_impl_->close(td_id_);
-    while (true) {
-      auto response = receiver_.receive(10.0, false, true);
+    while (!ExitGuard::is_exited()) {
+      auto response = receiver_.receive(0.1, false, true);
       if (response.object == nullptr && response.client_id != 0 && response.request_id == 0) {
         break;
       }
@@ -741,5 +749,11 @@ td_api::object_ptr<td_api::Object> ClientManager::execute(td_api::object_ptr<td_
 ClientManager::~ClientManager() = default;
 ClientManager::ClientManager(ClientManager &&other) = default;
 ClientManager &ClientManager::operator=(ClientManager &&other) = default;
+
+ClientManager *ClientManager::get_manager_singleton() {
+  static ClientManager client_manager;
+  static ExitGuard exit_guard;
+  return &client_manager;
+}
 
 }  // namespace td

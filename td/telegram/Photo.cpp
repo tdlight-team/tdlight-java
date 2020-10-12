@@ -581,12 +581,15 @@ static vector<td_api::object_ptr<td_api::photoSize>> get_photo_sizes_object(File
   auto sizes = transform(photo_sizes, [file_manager](const PhotoSize &photo_size) {
     return get_photo_size_object(file_manager, &photo_size);
   });
-  std::sort(sizes.begin(), sizes.end(), [](const auto &lhs, const auto &rhs) {
+  std::stable_sort(sizes.begin(), sizes.end(), [](const auto &lhs, const auto &rhs) {
     if (lhs->photo_->expected_size_ != rhs->photo_->expected_size_) {
       return lhs->photo_->expected_size_ < rhs->photo_->expected_size_;
     }
     return static_cast<uint32>(lhs->width_) * static_cast<uint32>(lhs->height_) <
            static_cast<uint32>(rhs->width_) * static_cast<uint32>(rhs->height_);
+  });
+  td::remove_if(sizes, [](const auto &size) {
+    return !size->photo_->local_->can_be_downloaded_ && !size->photo_->local_->is_downloading_completed_;
   });
   return sizes;
 }

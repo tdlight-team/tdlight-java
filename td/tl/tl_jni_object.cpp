@@ -85,7 +85,10 @@ std::unique_ptr<JNIEnv, JvmThreadDetacher> get_jni_env(JavaVM *java_vm, jint jni
 #else
     auto p_env = &env;
 #endif
-    java_vm->AttachCurrentThread(p_env, nullptr);
+    if (java_vm->AttachCurrentThread(p_env, nullptr) != JNI_OK) {
+      java_vm = nullptr;
+      env = nullptr;
+    }
   } else {
     java_vm = nullptr;
   }

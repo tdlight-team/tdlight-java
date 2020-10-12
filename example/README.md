@@ -18,6 +18,7 @@ Choose your preferred programming language to see examples of usage and a detail
 - [C++](#cxx)
 - [Swift](#swift)
 - [Objective-C](#objective-c)
+- [Object Pascal](#object-pascal)
 - [Dart](#dart)
 - [Rust](#rust)
 - [Erlang](#erlang)
@@ -134,6 +135,15 @@ See [example/ios](https://github.com/tdlib/td/tree/master/example/ios) for an ex
 TDLib can be used from the Objective-C programming language through [JSON](https://github.com/tdlib/td#using-json) interface and can be linked statically or dynamically.
 
 See [example/ios](https://github.com/tdlib/td/tree/master/example/ios) for an example of building TDLib for iOS, watchOS, tvOS, and macOS.
+
+<a name="object-pascal"></a>
+## Using TDLib in Object Pascal projects with Delphi and Lazarus
+
+TDLib can be used from the Object Pascal programming language through the [JSON](https://github.com/tdlib/td#using-json).
+
+See [tdlib-delphi](https://github.com/dieletro/tdlib-delphi) for an example of TDLib usage from Delphi.
+
+See [tdlib-lazarus](https://github.com/dieletro/tdlib-lazarus) for an example of TDLib usage from Lazarus.
 
 <a name="dart"></a>
 ## Using TDLib in Dart projects
