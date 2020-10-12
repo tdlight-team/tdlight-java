@@ -6,23 +6,33 @@
 //
 #include "td/telegram/Logging.h"
 
+#include "td/mtproto/SessionConnection.h"
+#include "td/mtproto/Transport.h"
+
 #include "td/telegram/ConfigManager.h"
 #include "td/telegram/FileReferenceManager.h"
 #include "td/telegram/files/FileGcWorker.h"
+#include "td/telegram/files/FileLoaderUtils.h"
 #include "td/telegram/files/FileManager.h"
 #include "td/telegram/net/ConnectionCreator.h"
+#include "td/telegram/net/DcAuthManager.h"
+#include "td/telegram/net/NetQuery.h"
 #include "td/telegram/NotificationManager.h"
 #include "td/telegram/Td.h"
 #include "td/telegram/UpdatesManager.h"
 
 #include "td/db/binlog/BinlogEvent.h"
+#include "td/db/SqliteStatement.h"
 
 #include "td/net/GetHostByNameActor.h"
 #include "td/net/TransparentProxy.h"
 
+#include "td/actor/actor.h"
+
 #include "td/utils/FileLog.h"
 #include "td/utils/logging.h"
 #include "td/utils/misc.h"
+#include "td/utils/port/detail/NativeFd.h"
 
 #include <atomic>
 #include <map>
@@ -38,11 +48,11 @@ static NullLog null_log;
 #define ADD_TAG(tag) \
   { #tag, &VERBOSITY_NAME(tag) }
 static const std::map<Slice, int *> log_tags{
-    ADD_TAG(td_init), ADD_TAG(update_file),      ADD_TAG(connections),   ADD_TAG(binlog),
-    ADD_TAG(proxy),   ADD_TAG(net_query),        ADD_TAG(td_requests),   ADD_TAG(dc),
-    ADD_TAG(files),   ADD_TAG(mtproto),          ADD_TAG(raw_mtproto),   ADD_TAG(fd),
-    ADD_TAG(actor),   ADD_TAG(sqlite),           ADD_TAG(notifications), ADD_TAG(get_difference),
-    ADD_TAG(file_gc), ADD_TAG(config_recoverer), ADD_TAG(dns_resolver),  ADD_TAG(file_references)};
+    ADD_TAG(td_init),     ADD_TAG(update_file),      ADD_TAG(connections),   ADD_TAG(binlog),
+    ADD_TAG(proxy),       ADD_TAG(net_query),        ADD_TAG(td_requests),   ADD_TAG(dc),
+    ADD_TAG(file_loader), ADD_TAG(mtproto),          ADD_TAG(raw_mtproto),   ADD_TAG(fd),
+    ADD_TAG(actor),       ADD_TAG(sqlite),           ADD_TAG(notifications), ADD_TAG(get_difference),
+    ADD_TAG(file_gc),     ADD_TAG(config_recoverer), ADD_TAG(dns_resolver),  ADD_TAG(file_references)};
 #undef ADD_TAG
 
 Status Logging::set_current_stream(td_api::object_ptr<td_api::LogStream> stream) {

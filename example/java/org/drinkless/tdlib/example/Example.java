@@ -161,7 +161,7 @@ public final class Example {
             case TdApi.AuthorizationStateClosed.CONSTRUCTOR:
                 print("Closed");
                 if (!quiting) {
-                    client = Client.create(new UpdatesHandler(), null, null); // recreate client after previous has closed
+                    client = Client.create(new UpdateHandler(), null, null); // recreate client after previous has closed
                 }
                 break;
             default:
@@ -310,7 +310,7 @@ public final class Example {
         }
 
         // create client
-        client = Client.create(new UpdatesHandler(), null, null);
+        client = Client.create(new UpdateHandler(), null, null);
 
         // test Client.execute
         defaultHandler.onResult(Client.execute(new TdApi.GetTextEntities("@telegram /test_command https://telegram.org telegram.me @gif @test")));
@@ -367,7 +367,7 @@ public final class Example {
         }
     }
 
-    private static class UpdatesHandler implements Client.ResultHandler {
+    private static class UpdateHandler implements Client.ResultHandler {
         @Override
         public void onResult(TdApi.Object object) {
             switch (object.getConstructor()) {
@@ -546,6 +546,14 @@ public final class Example {
                     TdApi.Chat chat = chats.get(update.chatId);
                     synchronized (chat) {
                         chat.isMarkedAsUnread = update.isMarkedAsUnread;
+                    }
+                    break;
+                }
+                case TdApi.UpdateChatIsBlocked.CONSTRUCTOR: {
+                    TdApi.UpdateChatIsBlocked update = (TdApi.UpdateChatIsBlocked) object;
+                    TdApi.Chat chat = chats.get(update.chatId);
+                    synchronized (chat) {
+                        chat.isBlocked = update.isBlocked;
                     }
                     break;
                 }

@@ -104,37 +104,6 @@ public final class Client implements Runnable {
     }
 
     /**
-     * Replaces handler for incoming updates from the TDLib.
-     *
-     * @param updatesHandler   Handler with onResult method which will be called for every incoming
-     *                         update from the TDLib.
-     * @param exceptionHandler Exception handler with onException method which will be called on
-     *                         exception thrown from updatesHandler, if it is null, defaultExceptionHandler will be invoked.
-     */
-    public void setUpdatesHandler(ResultHandler updatesHandler, ExceptionHandler exceptionHandler) {
-        handlers.put(0L, new Handler(updatesHandler, exceptionHandler));
-    }
-
-    /**
-     * Replaces handler for incoming updates from the TDLib. Sets empty ExceptionHandler.
-     *
-     * @param updatesHandler Handler with onResult method which will be called for every incoming
-     *                       update from the TDLib.
-     */
-    public void setUpdatesHandler(ResultHandler updatesHandler) {
-        setUpdatesHandler(updatesHandler, null);
-    }
-
-    /**
-     * Replaces default exception handler to be invoked on exceptions thrown from updatesHandler and all other ResultHandler.
-     *
-     * @param defaultExceptionHandler Default exception handler. If null Exceptions are ignored.
-     */
-    public void setDefaultExceptionHandler(Client.ExceptionHandler defaultExceptionHandler) {
-        this.defaultExceptionHandler = defaultExceptionHandler;
-    }
-
-    /**
      * Overridden method from Runnable, do not call it directly.
      */
     @Override
@@ -147,13 +116,13 @@ public final class Client implements Runnable {
     /**
      * Creates new Client.
      *
-     * @param updatesHandler          Handler for incoming updates.
-     * @param updatesExceptionHandler Handler for exceptions thrown from updatesHandler. If it is null, exceptions will be iggnored.
+     * @param updateHandler           Handler for incoming updates.
+     * @param updateExceptionHandler  Handler for exceptions thrown from updateHandler. If it is null, exceptions will be iggnored.
      * @param defaultExceptionHandler Default handler for exceptions thrown from all ResultHandler. If it is null, exceptions will be iggnored.
      * @return created Client
      */
-    public static Client create(ResultHandler updatesHandler, ExceptionHandler updatesExceptionHandler, ExceptionHandler defaultExceptionHandler) {
-        Client client = new Client(updatesHandler, updatesExceptionHandler, defaultExceptionHandler);
+    public static Client create(ResultHandler updateHandler, ExceptionHandler updateExceptionHandler, ExceptionHandler defaultExceptionHandler) {
+        Client client = new Client(updateHandler, updateExceptionHandler, defaultExceptionHandler);
         new Thread(client, "TDLib thread").start();
         return client;
     }
@@ -174,9 +143,11 @@ public final class Client implements Runnable {
             while (!stopFlag) {
                 Thread.yield();
             }
-            while (handlers.size() != 1) {
+            while (!handlers.isEmpty()) {
                 receiveQueries(300.0);
             }
+            updateHandlers.remove(nativeClientId);
+            defaultExceptionHandlers.remove(nativeClientId);
             destroyNativeClient(nativeClientId);
         } finally {
             writeLock.unlock();
@@ -191,10 +162,11 @@ public final class Client implements Runnable {
     private volatile boolean isClientDestroyed = false;
     private final long nativeClientId;
 
+    private static final ConcurrentHashMap<Long, ExceptionHandler> defaultExceptionHandlers = new ConcurrentHashMap<Long, ExceptionHandler>();
+    private static final ConcurrentHashMap<Long, Handler> updateHandlers = new ConcurrentHashMap<Long, Handler>();
+
     private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
     private final AtomicLong currentQueryId = new AtomicLong();
-
-    private volatile ExceptionHandler defaultExceptionHandler = null;
 
     private static final int MAX_EVENTS = 1000;
     private final long[] eventIds = new long[MAX_EVENTS];
@@ -210,10 +182,12 @@ public final class Client implements Runnable {
         }
     }
 
-    private Client(ResultHandler updatesHandler, ExceptionHandler updateExceptionHandler, ExceptionHandler defaultExceptionHandler) {
+    private Client(ResultHandler updateHandler, ExceptionHandler updateExceptionHandler, ExceptionHandler defaultExceptionHandler) {
         nativeClientId = createNativeClient();
-        handlers.put(0L, new Handler(updatesHandler, updateExceptionHandler));
-        this.defaultExceptionHandler = defaultExceptionHandler;
+        updateHandlers.put(nativeClientId, new Handler(updateHandler, updateExceptionHandler));
+        if (defaultExceptionHandler != null) {
+          defaultExceptionHandlers.put(nativeClientId, defaultExceptionHandler);
+        }
     }
 
     @Override
@@ -234,7 +208,7 @@ public final class Client implements Runnable {
         Handler handler;
         if (id == 0) {
             // update handler stays forever
-            handler = handlers.get(id);
+            handler = updateHandlers.get(nativeClientId);
         } else {
             handler = handlers.remove(id);
         }
@@ -254,7 +228,7 @@ public final class Client implements Runnable {
             resultHandler.onResult(object);
         } catch (Throwable cause) {
             if (exceptionHandler == null) {
-                exceptionHandler = defaultExceptionHandler;
+                exceptionHandler = defaultExceptionHandlers.get(nativeClientId);
             }
             if (exceptionHandler != null) {
                 try {

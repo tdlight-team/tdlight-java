@@ -138,6 +138,9 @@
 
 namespace td {
 
+int VERBOSITY_NAME(td_init) = VERBOSITY_NAME(DEBUG) + 3;
+int VERBOSITY_NAME(td_requests) = VERBOSITY_NAME(INFO);
+
 void Td::ResultHandler::set_td(Td *new_td) {
   CHECK(td == nullptr);
   td = new_td;
@@ -3454,7 +3457,7 @@ void Td::request(uint64 id, tl_object_ptr<td_api::Function> function) {
             pending_preauthentication_requests_.emplace_back(id, std::move(function));
             return;
           }
-          return send_error_raw(id, 401, "Initialization parameters are needed: call setTdlibParameters first");
+          return send_error_raw(id, 400, "Initialization parameters are needed: call setTdlibParameters first");
       }
       break;
     }
@@ -3483,12 +3486,16 @@ void Td::request(uint64 id, tl_object_ptr<td_api::Function> function) {
             pending_preauthentication_requests_.emplace_back(id, std::move(function));
             return;
           }
-          return send_error_raw(id, 401, "Database encryption key is needed: call checkDatabaseEncryptionKey first");
+          return send_error_raw(id, 400, "Database encryption key is needed: call checkDatabaseEncryptionKey first");
       }
       return answer_ok_query(id, init(as_db_key(encryption_key)));
     }
     case State::Close:
-      return send_error_raw(id, 401, "Unauthorized");
+      if (destroy_flag_) {
+        return send_error_raw(id, 401, "Unauthorized");
+      } else {
+        return send_error_raw(id, 500, "Request aborted");
+      }
     case State::Run:
       break;
   }
@@ -4131,8 +4138,6 @@ class Td::UploadFileCallback : public FileManager::UploadCallback {
   void on_upload_error(FileId file_id, Status error) override {
   }
 };
-
-int VERBOSITY_NAME(td_init) = VERBOSITY_NAME(DEBUG) + 3;
 
 template <class T>
 void Td::complete_pending_preauthentication_requests(const T &func) {

@@ -22,9 +22,9 @@ class ClientJson final {
  public:
   void send(Slice request);
 
-  CSlice receive(double timeout);
+  const char *receive(double timeout);
 
-  static CSlice execute(Slice request);
+  static const char *execute(Slice request);
 
  private:
   Client client_;
@@ -32,5 +32,13 @@ class ClientJson final {
   std::unordered_map<std::int64_t, std::string> extra_;
   std::atomic<std::uint64_t> extra_id_{1};
 };
+
+int td_json_create_client();
+
+void td_json_send(int client_id, Slice request);
+
+const char *td_json_receive(double timeout);
+
+const char *td_json_execute(Slice request);
 
 }  // namespace td
