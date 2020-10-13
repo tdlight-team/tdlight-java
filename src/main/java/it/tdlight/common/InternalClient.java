@@ -1,9 +1,7 @@
 package it.tdlight.common;
 
-import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.Object;
-import it.tdlight.jni.TdApi.Update;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,21 +80,8 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 				}
 			}
 
-			eventsToFilter.removeIf(event -> {
-				if (event instanceof Error) {
-					handleException(updatesHandler.getExceptionHandler(), new TDLibException((Error) event));
-					return true;
-				}
-				return false;
-			});
-
-			ObjectArrayList<Update> updates = new ObjectArrayList<>(eventsToFilter.size());
-			for (Object object : eventsToFilter) {
-				updates.add((Update) object);
-			}
-
 			try {
-				updatesHandler.getUpdatesHandler().onUpdates(updates);
+				updatesHandler.getUpdatesHandler().onUpdates(eventsToFilter);
 			} catch (Throwable cause) {
 				handleException(updatesHandler.getExceptionHandler(), cause);
 			}
@@ -117,11 +102,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 	private void handleResponse(long eventId, Object event, Handler handler) {
 		if (handler != null) {
 			try {
-				if (event instanceof Error) {
-					handleException(handler.getExceptionHandler(), new TDLibException((Error) event));
-				} else {
-					handler.getResultHandler().onResult(event);
-				}
+				handler.getResultHandler().onResult(event);
 			} catch (Throwable cause) {
 				handleException(handler.getExceptionHandler(), cause);
 			}

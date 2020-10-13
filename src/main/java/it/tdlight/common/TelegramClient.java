@@ -35,7 +35,7 @@ public interface TelegramClient {
 	 * Synchronously executes a TDLib request. Only a few marked accordingly requests can be executed synchronously.
 	 *
 	 * @param query Object representing a query to the TDLib.
-	 * @return request result.
+	 * @return request result or {@link TdApi.Error}.
 	 * @throws NullPointerException if query is null.
 	 */
 	TdApi.Object execute(TdApi.Function query);

@@ -2,6 +2,7 @@ package it.tdlight.common;
 
 import static it.tdlight.common.InternalClient.clientInitializationLock;
 
+import it.tdlight.common.utils.IntSwapper;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
 import java.util.ArrayList;
