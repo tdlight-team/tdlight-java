@@ -89,29 +89,56 @@ dependencies {
 ## Usage
 Simple initialization of a native TDLib client
 ```java
+package it.tdlight.example;
 
-
-import it.tdlight.tdlight.Client;
+import it.tdlight.common.TelegramClient;
+import it.tdlight.tdlight.ClientManager;
 import it.tdlight.common.Init;
 import it.tdlight.common.Log;
+import it.tdlight.common.TDLibException;
+
+import it.tdlight.jni.TdApi;
 
 public class Example {
     public static void main(String[] args) {
         // Initialize TDLight native libraries
         Init.start();
 
-        // Set TDLib log level to 1
-        Log.setVerbosityLevel(1);
+        // Create a client
+        TelegramClient client = ClientManager.create(Example::onUpdate, Example::onUpdateError, Example::onError);
 
-        // Uncomment this line to print TDLib logs to a file
-        // Log.setFilePath("logs" + File.separatorChar + "tdlib.log");
-        
-        Client client = new Client();
-        
-        // Initialize the TDLib client
-        client.initializeClient();
+        // Here you can use the client.
 
-        // Now you can use the client
+        // Documentation of tdlib methods can be found here:
+        // https://tdlight-team.github.io/tdlight-docs
+
+        // A similar example on how to use tdlib can be found here:
+        // https://github.com/tdlib/td/blob/master/example/java/org/drinkless/tdlib/example/Example.java
+    }
+
+    private static void onUpdate(TdApi.Object object) {
+        TdApi.Update update = (TdApi.Update) object;
+        System.out.println("Received update: " + update);
+    }
+
+    private static void onUpdateError(Throwable exception) {
+        if (exception instanceof TDLibException) {
+        	String errorMessage = ((TDLibException) exception).getErrorMessage();
+            System.out.println("Received an error from updates: " + errorMessage);
+        } else {
+            System.out.println("Received an error from updates:");
+            exception.printStackTrace();
+        }
+    }
+
+    private static void onError(Throwable exception) {
+        if (exception instanceof TDLibException) {
+        	String errorMessage = ((TDLibException) exception).getErrorMessage();
+            System.out.println("Received an error: " + errorMessage);
+        } else {
+            System.out.println("Received an error:");
+            exception.printStackTrace();
+        }
     }
 }
 ```

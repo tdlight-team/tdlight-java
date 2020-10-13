@@ -16,6 +16,12 @@ public class InternalClientManager implements AutoCloseable {
 	private final AtomicLong currentQueryId = new AtomicLong();
 
 	private InternalClientManager(String implementationName) {
+		try {
+			Init.start();
+		} catch (Throwable ex) {
+			ex.printStackTrace();
+			System.exit(1);
+		}
 		this.implementationName = implementationName;
 	}
 
