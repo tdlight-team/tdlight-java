@@ -10,9 +10,9 @@ JVM: Oracle JVM or OpenJDK
 
 Java versions: Java 8, 9, 10, 11, 12, 13, 14, 15
 
-Operating system: Windows, Linux
+Operating system: Linux, Windows, macOS
 
-Supported CPU architectures: amd64 (linux, windows), aarch64 (linux)
+Supported CPU architectures: amd64 (linux, windows, macos), aarch64 (linux)
 
 Required libraries for linux: OpenSSL and zlib
 
