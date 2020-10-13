@@ -8,6 +8,7 @@
 
 #include "td/telegram/Td.h"
 #include "td/telegram/TdCallback.h"
+#include "td/telegram/Log.h"
 
 #include "td/actor/actor.h"
 
@@ -19,10 +20,6 @@
 #include "td/utils/MpscPollableQueue.h"
 #include "td/utils/port/RwMutex.h"
 #include "td/utils/port/thread.h"
-
-#ifndef _WIN32
-#include "td/utils/death_handler.h"
-#endif
 
 #include <algorithm>
 #include <atomic>
@@ -621,7 +618,7 @@ Client &Client::operator=(Client &&other) = default;
 
 ClientManager::ClientManager() : impl_(std::make_unique<Impl>()) {
   #ifndef _WIN32
-    Debug::DeathHandler dh;
+    td::Log::set_disable_death_handler(true);
   #endif
 }
 
