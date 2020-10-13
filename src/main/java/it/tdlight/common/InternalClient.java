@@ -26,11 +26,12 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 			ExceptionHandler defaultExceptionHandler) {
 		this.updateHandler = new Handler(updateHandler, updateExceptionHandler);
 		this.updatesHandler = null;
-		this.clientManager = clientManager;
-		this.clientId = NativeClientAccess.create();
 		this.defaultExceptionHandler = defaultExceptionHandler;
+		this.clientManager = clientManager;
 
-		clientManager.registerClient(this);
+		clientManager.preregisterClient(this);
+		this.clientId = NativeClientAccess.create();
+		clientManager.registerClient(clientId, this);
 	}
 
 	public InternalClient(InternalClientManager clientManager,
@@ -40,10 +41,11 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 		this.updateHandler = null;
 		this.updatesHandler = new MultiHandler(updatesHandler, updateExceptionHandler);
 		this.clientManager = clientManager;
-		this.clientId = NativeClientAccess.create();
 		this.defaultExceptionHandler = defaultExceptionHandler;
 
-		clientManager.registerClient(this);
+		clientManager.preregisterClient(this);
+		this.clientId = NativeClientAccess.create();
+		clientManager.registerClient(clientId, this);
 	}
 
 	@Override

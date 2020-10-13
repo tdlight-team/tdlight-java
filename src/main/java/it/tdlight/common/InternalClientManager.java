@@ -1,8 +1,7 @@
 package it.tdlight.common;
 
 import it.tdlight.jni.TdApi.Object;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -12,7 +11,8 @@ public class InternalClientManager implements AutoCloseable {
 
 	private final String implementationName;
 	private final ResponseReceiver responseReceiver = new ResponseReceiver(this::handleClientEvents);
-	private final Int2ObjectMap<ClientEventsHandler> clientEventsHandlerMap = new Int2ObjectOpenHashMap<>();
+	private final ConcurrentHashMap<Integer, ClientEventsHandler> registeredClientEventHandlers = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<ClientEventsHandler, java.lang.Object> unregisteredClientEventHandlers = new ConcurrentHashMap<>();
 	private final AtomicLong currentQueryId = new AtomicLong();
 
 	private InternalClientManager(String implementationName) {
@@ -30,7 +30,16 @@ public class InternalClientManager implements AutoCloseable {
 	}
 
 	private void handleClientEvents(int clientId, boolean isClosed, long[] clientEventIds, Object[] clientEvents) {
-		ClientEventsHandler handler = clientEventsHandlerMap.get(clientId);
+		ClientEventsHandler handler = registeredClientEventHandlers.get(clientId);
+
+		if (handler == null) {
+			handler = unregisteredClientEventHandlers
+					.keySet()
+					.stream()
+					.filter(item -> item.getClientId() == clientId)
+					.findAny()
+					.orElse(null);
+		}
 
 		if (handler != null) {
 			handler.handleEvents(isClosed, clientEventIds, clientEvents);
@@ -39,12 +48,17 @@ public class InternalClientManager implements AutoCloseable {
 		}
 
 		if (isClosed) {
-			clientEventsHandlerMap.remove(clientId);
+			registeredClientEventHandlers.remove(clientId);
 		}
 	}
 
-	public void registerClient(ClientEventsHandler client) {
-		this.clientEventsHandlerMap.put(client.getClientId(), client);
+	public void preregisterClient(ClientEventsHandler client) {
+		this.unregisteredClientEventHandlers.put(client, new java.lang.Object());
+	}
+
+	public void registerClient(int clientId, InternalClient internalClient) {
+		registeredClientEventHandlers.put(clientId, internalClient);
+		unregisteredClientEventHandlers.remove(internalClient);
 	}
 
 	public String getImplementationName() {
