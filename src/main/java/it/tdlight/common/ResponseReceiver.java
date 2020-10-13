@@ -70,12 +70,16 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 							eventsHandler.handleClientEvents(clientId, lastClientClosed, clientEventIds, clientEvents);
 						}
 
-						lastClientId = clientIds[sortIndex[i]];
-						lastClientIdEventsCount = 0;
-						lastClientClosed = false;
+						if (i < resultsCount) {
+							lastClientId = clientIds[sortIndex[i]];
+							lastClientIdEventsCount = 0;
+							lastClientClosed = false;
+						}
 					}
 
-					lastClientIdEventsCount++;
+					if (i < resultsCount) {
+						lastClientIdEventsCount++;
+					}
 				}
 				Arrays.fill(events, null);
 			}
