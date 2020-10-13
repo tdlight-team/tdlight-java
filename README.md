@@ -1,4 +1,4 @@
-TDLight Java
+TDLight Java [![Build Status](https://travis-ci.org/tdlight-team/tdlight-java-natives.svg?branch=master)](https://travis-ci.org/tdlight-team/tdlight-java-natives)
 ====================
 
 A barebone java wrapper for TDLib (and TDLight)
@@ -19,8 +19,8 @@ Required libraries for linux: OpenSSL and zlib
 ## Including TDLight Java in a project
 
 There are two packages of TDLight:
-  - [TDLight](#For-TDLight-Java-with-optimized-TDLight), with our optimized fork of TDLib (Reccomended for bots) [![Build Status](https://travis-ci.org/tdlight-team/tdlight-java.svg?branch=dev)](https://travis-ci.org/tdlight-team/tdlight-java)
-  - [TDLight with official TDLib](#For-TDLight-Java-with-official-TDLib) (Reccomended for GUI clients) [![Build Status](https://travis-ci.org/tdlight-team/tdlight-java.svg?branch=td-dev)](https://travis-ci.org/tdlight-team/tdlight-java)
+  - [TDLight](#For-TDLight-Java-with-optimized-TDLight), with our optimized fork of TDLib (Reccomended for bots)
+  - [TDLight with official TDLib](#For-TDLight-Java-with-official-TDLib) (Reccomended for GUI clients)
 
 The two packages are compatible, but while TDLight is focused on long term resources usage and speed, TDLib is more focused on stability.
 
