@@ -1,5 +1,8 @@
-TDLight Java [![Build Status](https://travis-ci.org/tdlight-team/tdlight-java-natives.svg?branch=master)](https://travis-ci.org/tdlight-team/tdlight-java-natives)
+TDLight Java
 ====================
+
+[![Build Status](https://travis-ci.org/tdlight-team/tdlight-java-natives.svg?branch=master)](https://travis-ci.org/tdlight-team/tdlight-java-natives)
+[![Release tag](https://img.shields.io/github/v/release/tdlight-team/tdlight-java.svg?include_prereleases)](https://github.com/tdlight-team/tdlight-java/releases)
 
 A barebone java wrapper for TDLib (and TDLight)
 
