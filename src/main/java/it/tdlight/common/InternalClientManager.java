@@ -52,7 +52,7 @@ public class InternalClientManager implements AutoCloseable {
 	}
 
 	public long getNextQueryId() {
-		return currentQueryId.getAndUpdate(value -> (value >= Long.MAX_VALUE ? 0 : value) + 1);
+		return currentQueryId.updateAndGet(value -> (value >= Long.MAX_VALUE ? 0 : value) + 1);
 	}
 
 	@Override
