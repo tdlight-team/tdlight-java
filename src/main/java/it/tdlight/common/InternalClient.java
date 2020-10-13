@@ -7,10 +7,11 @@ import it.tdlight.jni.TdApi.Update;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class InternalClient implements ClientEventsHandler, TelegramClient {
 
-	static final java.lang.Object CLIENT_CREATION_LOCK = new java.lang.Object();
+	static final ReentrantReadWriteLock clientInitializationLock = new ReentrantReadWriteLock(true);
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
 
 	private final int clientId;
@@ -25,7 +26,8 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 			ResultHandler updateHandler,
 			ExceptionHandler updateExceptionHandler,
 			ExceptionHandler defaultExceptionHandler) {
-		synchronized (CLIENT_CREATION_LOCK) {
+		clientInitializationLock.writeLock().lock();
+		try {
 			this.updateHandler = new Handler(updateHandler, updateExceptionHandler);
 			this.updatesHandler = null;
 			this.defaultExceptionHandler = defaultExceptionHandler;
@@ -33,6 +35,8 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 			this.clientId = NativeClientAccess.create();
 
 			clientManager.registerClient(clientId, this);
+		} finally {
+			clientInitializationLock.writeLock().unlock();
 		}
 	}
 
@@ -40,7 +44,8 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 			UpdatesHandler updatesHandler,
 			ExceptionHandler updateExceptionHandler,
 			ExceptionHandler defaultExceptionHandler) {
-		synchronized (CLIENT_CREATION_LOCK) {
+		clientInitializationLock.writeLock().lock();
+		try {
 			this.updateHandler = null;
 			this.updatesHandler = new MultiHandler(updatesHandler, updateExceptionHandler);
 			this.clientManager = clientManager;
@@ -48,6 +53,8 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 			this.clientId = NativeClientAccess.create();
 
 			clientManager.registerClient(clientId, this);
+		} finally {
+			clientInitializationLock.writeLock().unlock();
 		}
 	}
 
