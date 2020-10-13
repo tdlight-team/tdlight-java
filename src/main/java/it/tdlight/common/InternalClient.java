@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class InternalClient implements ClientEventsHandler, TelegramClient {
 
-	private static final java.lang.Object CLIENT_CREATION_LOCK = new java.lang.Object();
+	static final java.lang.Object CLIENT_CREATION_LOCK = new java.lang.Object();
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
 
 	private final int clientId;
@@ -30,9 +30,8 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 			this.updatesHandler = null;
 			this.defaultExceptionHandler = defaultExceptionHandler;
 			this.clientManager = clientManager;
-
-			clientManager.preregisterClient(this);
 			this.clientId = NativeClientAccess.create();
+
 			clientManager.registerClient(clientId, this);
 		}
 	}
@@ -46,9 +45,8 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 			this.updatesHandler = new MultiHandler(updatesHandler, updateExceptionHandler);
 			this.clientManager = clientManager;
 			this.defaultExceptionHandler = defaultExceptionHandler;
-
-			clientManager.preregisterClient(this);
 			this.clientId = NativeClientAccess.create();
+
 			clientManager.registerClient(clientId, this);
 		}
 	}

@@ -12,7 +12,6 @@ public class InternalClientManager implements AutoCloseable {
 	private final String implementationName;
 	private final ResponseReceiver responseReceiver = new ResponseReceiver(this::handleClientEvents);
 	private final ConcurrentHashMap<Integer, ClientEventsHandler> registeredClientEventHandlers = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<ClientEventsHandler, java.lang.Object> unregisteredClientEventHandlers = new ConcurrentHashMap<>();
 	private final AtomicLong currentQueryId = new AtomicLong();
 
 	private InternalClientManager(String implementationName) {
@@ -32,15 +31,6 @@ public class InternalClientManager implements AutoCloseable {
 	private void handleClientEvents(int clientId, boolean isClosed, long[] clientEventIds, Object[] clientEvents) {
 		ClientEventsHandler handler = registeredClientEventHandlers.get(clientId);
 
-		if (handler == null) {
-			handler = unregisteredClientEventHandlers
-					.keySet()
-					.stream()
-					.filter(item -> item.getClientId() == clientId)
-					.findAny()
-					.orElse(null);
-		}
-
 		if (handler != null) {
 			handler.handleEvents(isClosed, clientEventIds, clientEvents);
 		} else {
@@ -48,17 +38,17 @@ public class InternalClientManager implements AutoCloseable {
 		}
 
 		if (isClosed) {
+			System.err.println("Unregister client " + clientId);
 			registeredClientEventHandlers.remove(clientId);
 		}
 	}
 
-	public void preregisterClient(ClientEventsHandler client) {
-		this.unregisteredClientEventHandlers.put(client, new java.lang.Object());
-	}
-
 	public void registerClient(int clientId, InternalClient internalClient) {
-		registeredClientEventHandlers.put(clientId, internalClient);
-		unregisteredClientEventHandlers.remove(internalClient);
+		System.err.println("Register client " + clientId + ", " + internalClient);
+		boolean replaced = registeredClientEventHandlers.put(clientId, internalClient) != null;
+		if (replaced) {
+			throw new IllegalStateException("Client " + clientId + " already registered");
+		}
 	}
 
 	public String getImplementationName() {
