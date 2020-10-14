@@ -43,6 +43,7 @@ public class InternalClientManager implements AutoCloseable {
 	}
 
 	public void registerClient(int clientId, InternalClient internalClient) {
+		responseReceiver.registerClient();
 		boolean replaced = registeredClientEventHandlers.put(clientId, internalClient) != null;
 		if (replaced) {
 			throw new IllegalStateException("Client " + clientId + " already registered");

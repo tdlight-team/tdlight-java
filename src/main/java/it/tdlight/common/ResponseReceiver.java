@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class ResponseReceiver extends Thread implements AutoCloseable {
@@ -32,6 +33,8 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 	private final TdApi.Object[] events = new TdApi.Object[MAX_EVENTS];
 
 	private final CountDownLatch closeWait = new CountDownLatch(1);
+	private AtomicInteger registeredClients = new AtomicInteger(0);
+	private volatile boolean closeRequested = false;
 
 
 	public ResponseReceiver(EventsHandler eventsHandler) {
@@ -48,7 +51,7 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 	public void run() {
 		int[] sortIndex;
 		try {
-			while(true) {
+			while(!closeRequested || registeredClients.get() > 0) {
 				int resultsCount;
 				clientInitializationLock.readLock().lock();
 				try {
@@ -59,6 +62,8 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 
 				if (resultsCount <= 0)
 					continue;
+
+				int closedClients = 0;
 
 				if (USE_OPTIMIZED_DISPATCHER) {
 					// Generate a list of indices sorted by client id, from 0 to resultsCount
@@ -82,6 +87,7 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 										TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) clientEvents[j]).authorizationState;
 										if (authorizationState instanceof TdApi.AuthorizationStateClosed) {
 											lastClientClosed = true;
+											closedClients++;
 										}
 									}
 								}
@@ -133,15 +139,21 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 								TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) e.event).authorizationState;
 								if (authorizationState instanceof TdApi.AuthorizationStateClosed) {
 									closed = true;
+									closedClients++;
 								}
 							}
 						}
 						eventsHandler.handleClientEvents(clientId, closed, clientEventIds, clientEvents);
 					}
 				}
+
 				Arrays.fill(clientIds, 0);
 				Arrays.fill(eventIds, 0);
 				Arrays.fill(events, null);
+
+				if (closedClients > 0) {
+					this.registeredClients.addAndGet(-closedClients);
+				}
 			}
 		} finally {
 			this.closeWait.countDown();
@@ -157,8 +169,13 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 		return sortedIndices;
 	}
 
+	public void registerClient() {
+		registeredClients.incrementAndGet();
+	}
+
 	@Override
 	public void close() throws InterruptedException {
+		this.closeRequested = true;
 		this.closeWait.await();
 	}
 }
