@@ -3582,7 +3582,13 @@ void StickersManager::unregister_dice(const string &emoji, int32 value, FullMess
             << source;
   auto &message_ids = dice_messages_[emoji];
   auto is_deleted = message_ids.erase(full_message_id) > 0;
+  // Start custom-patches
+  if (is_deleted) {
+  // End custom-patches
   LOG_CHECK(is_deleted) << source << " " << emoji << " " << value << " " << full_message_id;
+  // Start custom-patches
+  }
+  // End custom-patches
 
   if (message_ids.empty()) {
     dice_messages_.erase(emoji);
