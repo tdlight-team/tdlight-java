@@ -12521,8 +12521,8 @@ MessagesManager::MessageInfo MessagesManager::parse_telegram_api_message(
       }
       message_info.date = message->date_;
       message_info.flags = message->flags_;
-      auto reply_to_message_id = MessageId(
-          ServerMessageId(message_info.reply_header == nullptr ? 0 : message_info.reply_header->reply_to_msg_id_));
+      auto reply_to_message_id =
+          MessageId(ServerMessageId(message->reply_to_ == nullptr ? 0 : message->reply_to_->reply_to_msg_id_));
       message_info.content =
           get_action_message_content(td_, std::move(message->action_), message_info.dialog_id, reply_to_message_id);
       break;
@@ -12565,9 +12565,9 @@ std::pair<DialogId, unique_ptr<MessagesManager::Message>> MessagesManager::creat
     }
     if (!is_broadcast_channel(dialog_id) && td_->auth_manager_->is_bot()) {
       if (dialog_id == sender_dialog_id) {
-        sender_user_id = td_->contacts_manager_->add_anonymous_bot_user();
+        td_->contacts_manager_->add_anonymous_bot_user();
       } else {
-        sender_user_id = td_->contacts_manager_->add_service_notifications_user();
+        td_->contacts_manager_->add_service_notifications_user();
       }
     }
   }
@@ -19590,7 +19590,6 @@ void MessagesManager::do_read_history_on_server(DialogId dialog_id) {
 
   Dialog *d = get_dialog(dialog_id);
   CHECK(d != nullptr);
-  CHECK(!d->updated_read_history_message_ids.empty());
 
   for (auto top_thread_message_id : d->updated_read_history_message_ids) {
     if (!top_thread_message_id.is_valid()) {

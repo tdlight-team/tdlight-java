@@ -988,6 +988,28 @@ install(TARGETS tdjson TdJson tdjson_static TdJsonStatic tdjson_private tdclient
   INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
+# generate pkg-config files
+include(GeneratePkgConfig)
+
+generate_pkgconfig(tdutils "Telegram Library - Utils")
+generate_pkgconfig(tdactor "Telegram Library - Actor")
+generate_pkgconfig(tdnet "Telegram Library - Net")
+generate_pkgconfig(tdsqlite "Telegram Library - SQLite")
+generate_pkgconfig(tddb "Telegram Library - Database")
+if (MEMPROF)
+  # generate_pkgconfig(memprof "memprof - simple library for memory usage profiling")
+endif()
+generate_pkgconfig(tdcore "Telegram Library - Core")
+generate_pkgconfig(tdclient "Telegram Library - C++ Interface")
+if (TD_ENABLE_DOTNET)
+  # generate_pkgconfig(tddotnet "Telegram Library - C# Interface")
+endif()
+# generate_pkgconfig(tdc "Telegram Library - C interface")
+generate_pkgconfig(tdapi "Telegram Library - API")
+generate_pkgconfig(tdjson_private "Telegram Library - JSON interface (private)")
+generate_pkgconfig(tdjson "Telegram Library - JSON interface (shared)")
+generate_pkgconfig(tdjson_static "Telegram Library - JSON interface (static)")
+
 install(EXPORT TdTargets
   FILE TdTargets.cmake
   NAMESPACE Td::
