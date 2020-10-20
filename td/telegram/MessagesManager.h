@@ -190,6 +190,8 @@ class MessagesManager : public Actor {
   MessagesManager &operator=(MessagesManager &&) = delete;
   ~MessagesManager() override;
 
+  void memory_cleanup();
+
   static vector<MessageId> get_message_ids(const vector<int64> &input_message_ids);
 
   static vector<int32> get_server_message_ids(const vector<MessageId> &message_ids);

@@ -5234,6 +5234,7 @@ void Td::on_request(uint64 id, td_api::getDatabaseStatistics &request) {
 }
 
 void Td::on_request(uint64 id, td_api::optimizeStorage &request) {
+  messages_manager_->memory_cleanup();
   contacts_manager_->memory_cleanup();
   web_pages_manager_->memory_cleanup();
   stickers_manager_->memory_cleanup();

@@ -5732,6 +5732,23 @@ tl_object_ptr<telegram_api::InputMessage> MessagesManager::get_input_message(Mes
   return make_tl_object<telegram_api::inputMessageID>(message_id.get_server_message_id().get());
 }
 
+
+void MessagesManager::memory_cleanup() {
+  /* CLEAR DELETED MESSAGES CACHE */
+  {
+    auto it = dialogs_.begin();
+    while (it != dialogs_.end()) {
+      auto &dialog = it->second;
+
+      auto &deleted_message_ids = dialog->deleted_message_ids;
+      deleted_message_ids.clear();
+      deleted_message_ids.rehash(0);
+
+      it++;
+    }
+  }
+}
+
 tl_object_ptr<telegram_api::InputPeer> MessagesManager::get_input_peer(DialogId dialog_id,
                                                                        AccessRights access_rights) const {
   switch (dialog_id.get_type()) {

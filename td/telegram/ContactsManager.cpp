@@ -14539,10 +14539,10 @@ void ContactsManager::memory_cleanup() {
   {
     auto it = users_.begin();
     while (it != users_.end()) {
-      auto &user = it->second;
+      //auto &user = it->second;
       auto user_id = it->first;
 
-      auto is_invalid = it->first.get_time() > user_ttl;
+      auto is_invalid = user_id.get_time() > user_ttl;
 
       if (is_invalid) {
         user_id.reset_time();
@@ -14572,10 +14572,10 @@ void ContactsManager::memory_cleanup() {
   {
     auto it = chats_.begin();
     while (it != chats_.end()) {
-      auto &chat = it->second;
+      //auto &chat = it->second;
       auto chat_id = it->first;
 
-      auto is_invalid = it->first.get_time() > chat_ttl;
+      auto is_invalid = chat_id.get_time() > chat_ttl;
 
       if (is_invalid) {
         chat_id.reset_time();
@@ -14600,10 +14600,10 @@ void ContactsManager::memory_cleanup() {
   {
     auto it = channels_.begin();
     while (it != channels_.end()) {
-      auto &channel = it->second;
+      //auto &channel = it->second;
       auto channel_id = it->first;
 
-      auto is_invalid = it->first.get_time() > chat_ttl;
+      auto is_invalid = channel_id.get_time() > chat_ttl;
 
       if (is_invalid) {
         channel_id.reset_time();
