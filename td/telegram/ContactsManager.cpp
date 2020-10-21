@@ -3016,7 +3016,7 @@ void ContactsManager::on_channel_unban_timeout_callback(void *contacts_manager_p
 
 void ContactsManager::on_channel_unban_timeout(ChannelId channel_id) {
   auto c = get_channel(channel_id);
-  CHECK(c != nullptr);
+  if (c == nullptr) { return; }
 
   auto old_status = c->status;
   c->status.update_restrictions();
@@ -3049,7 +3049,7 @@ void ContactsManager::on_user_nearby_timeout(UserId user_id) {
   }
 
   auto u = get_user(user_id);
-  CHECK(u != nullptr);
+  if (u == nullptr) { return; }
 
   LOG(INFO) << "Remove " << user_id << " from nearby list";
   DialogId dialog_id(user_id);
