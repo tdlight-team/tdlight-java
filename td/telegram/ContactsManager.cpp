@@ -14533,6 +14533,8 @@ void ContactsManager::get_current_state(vector<td_api::object_ptr<td_api::Update
 void ContactsManager::memory_cleanup() {
   std::lock_guard<std::shared_timed_mutex> writerLock(memory_cleanup_mutex);
 
+  auto time = std::time(nullptr);
+
   auto user_ttl = !G()->shared_config().get_option_integer("delete_user_reference_after_seconds", 3600);
   auto chat_ttl = !G()->shared_config().get_option_integer("delete_chat_reference_after_seconds", 3600);
 
@@ -14543,7 +14545,7 @@ void ContactsManager::memory_cleanup() {
       //auto &user = it->second;
       auto user_id = it->first;
 
-      auto is_invalid = user_id.get_time() > user_ttl;
+      auto is_invalid = time - user_id.get_time() > user_ttl || user_id.get_time() > time;
 
       if (is_invalid) {
         user_id.reset_time();
@@ -14576,7 +14578,7 @@ void ContactsManager::memory_cleanup() {
       //auto &chat = it->second;
       auto chat_id = it->first;
 
-      auto is_invalid = chat_id.get_time() > chat_ttl;
+      auto is_invalid = time - chat_id.get_time() > chat_ttl || chat_id.get_time() > time;
 
       if (is_invalid) {
         chat_id.reset_time();
@@ -14604,7 +14606,7 @@ void ContactsManager::memory_cleanup() {
       //auto &channel = it->second;
       auto channel_id = it->first;
 
-      auto is_invalid = channel_id.get_time() > chat_ttl;
+      auto is_invalid = time - channel_id.get_time() > chat_ttl || channel_id.get_time() > time;
 
       if (is_invalid) {
         channel_id.reset_time();
