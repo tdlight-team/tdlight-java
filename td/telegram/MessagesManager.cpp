@@ -9474,10 +9474,7 @@ void MessagesManager::delete_messages_from_updates(const vector<MessageId> &mess
     }
     if (last_clear_history_message_id_to_dialog_id_.count(message_id)) {
       d = get_dialog(last_clear_history_message_id_to_dialog_id_[message_id]);
-      if (d == nullptr) {
-        LOG(ERROR) << "Unknown dialog " << dialog_id;
-        continue;
-      }
+      CHECK(d != nullptr);
       auto message = delete_message(d, message_id, true, &need_update_dialog_pos[d->dialog_id], "updates");
       CHECK(message == nullptr);
     }
@@ -30463,10 +30460,7 @@ const MessagesManager::Message *MessagesManager::get_message(const Dialog *d, Me
     return nullptr;
   }
 
-  if (d == nullptr) {
-    LOG(ERROR) << "Unknown dialog " << dialog_id;
-    return nullptr;
-  }
+  CHECK(d != nullptr);
   bool is_scheduled = message_id.is_scheduled();
   if (is_scheduled && message_id.is_scheduled_server()) {
     auto server_message_id = message_id.get_scheduled_server_message_id();
