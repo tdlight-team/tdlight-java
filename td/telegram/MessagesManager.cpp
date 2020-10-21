@@ -5626,10 +5626,7 @@ void MessagesManager::try_reuse_notification_group(NotificationGroupInfo &group_
 }
 
 void MessagesManager::invalidate_message_indexes(Dialog *d) {
-  if (d == nullptr) {
-    LOG(ERROR) << "Unknown dialog " << dialog_id;
-    return;
-  }
+  CHECK(d != nullptr);
   bool is_secret = d->dialog_id.get_type() == DialogType::SecretChat;
   for (size_t i = 0; i < d->message_count_by_index.size(); i++) {
     if (is_secret || i == static_cast<size_t>(message_search_filter_index(MessageSearchFilter::FailedToSend))) {
@@ -6237,10 +6234,7 @@ void MessagesManager::on_update_service_notification(tl_object_ptr<telegram_api:
   }
   if (has_date && is_user) {
     Dialog *d = get_service_notifications_dialog();
-    if (d == nullptr) {
-      LOG(ERROR) << "Unknown dialog " << dialog_id;
-      return;
-    }
+    CHECK(d != nullptr);
     auto dialog_id = d->dialog_id;
     CHECK(dialog_id.get_type() == DialogType::User);
 
@@ -7427,10 +7421,7 @@ void MessagesManager::update_dialog_unmute_timeout(Dialog *d, bool &old_use_defa
   if (old_use_default == new_use_default && old_mute_until == new_mute_until) {
     return;
   }
-  if (d == nullptr) {
-    LOG(ERROR) << "Unknown dialog " << dialog_id;
-    return;
-  }
+  CHECK(d != nullptr);
   CHECK(old_mute_until >= 0);
 
   schedule_dialog_unmute(d->dialog_id, new_use_default, new_mute_until);
