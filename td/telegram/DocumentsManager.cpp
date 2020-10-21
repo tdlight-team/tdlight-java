@@ -54,10 +54,11 @@ tl_object_ptr<td_api::document> DocumentsManager::get_document_object(FileId fil
   }
 
   LOG(INFO) << "Return document " << file_id << " object";
-  auto &document = documents_[file_id];
-  if (document == nullptr) {
+  auto document_it = documents_.find(file_id);
+  if (document_it == documents_.end() || document_it->second == nullptr) {
       return nullptr;
   }
+  auto &document = document_it->second;
   LOG_CHECK(document != nullptr) << tag("file_id", file_id);
   document->is_changed = false;
   return make_tl_object<td_api::document>(
@@ -629,11 +630,11 @@ FileId DocumentsManager::get_document_thumbnail_file_id(FileId file_id) const {
 }
 
 void DocumentsManager::delete_document_thumbnail(FileId file_id) {
-  auto &document = documents_[file_id];
-  if (document == nullptr) {
+  auto document_it = documents_.find(file_id);
+  if (document_it == documents_.end() || document_it->second == nullptr) {
       return;
   }
-  document->thumbnail = PhotoSize();
+  document_it->second->thumbnail = PhotoSize();
 }
 
 FileId DocumentsManager::dup_document(FileId new_id, FileId old_id) {
@@ -662,13 +663,16 @@ bool DocumentsManager::merge_documents(FileId new_id, FileId old_id, bool can_de
 
   auto new_it = documents_.find(new_id);
   if (new_it == documents_.end() || new_it->second == nullptr) {
-    auto &old = documents_[old_id];
+    auto old_it = documents_.find(old_id);
+    if (old_it != documents_.end() && old_it->second != nullptr) {
+    auto &old = old_it->second;
     old->is_changed = true;
     if (!can_delete_old) {
       dup_document(new_id, old_id);
     } else {
       old->file_id = new_id;
       documents_.emplace(new_id, std::move(old));
+    }
     }
   } else {
     GeneralDocument *new_ = new_it->second.get();
