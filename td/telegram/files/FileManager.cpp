@@ -3882,7 +3882,7 @@ void FileManager::memory_cleanup() {
       if (find_node != file_nodes_.end()) {
         auto &node = find_node->second;
 
-        if (time - node->main_file_id_.get_time() > file_ttl || node->main_file_id_.get_time() > time) {
+        if (time - node->main_file_id_.get_time() > file_ttl) {
           auto can_reset = node->download_priority_ == 0;
           can_reset &= node->generate_download_priority_ == 0;
           can_reset &= node->download_id_ == 0;
@@ -3895,7 +3895,7 @@ void FileManager::memory_cleanup() {
               if (find_file != file_id_info_.end()) {
                 auto &file = find_file->second;
                 can_reset &= file.download_priority_ == 0;
-                can_reset &= time - file_ids_it->get_time() > file_ttl || file_ids_it->get_time() > time;
+                can_reset &= time - file_ids_it->get_time() > file_ttl;
               }
               file_ids_it++;
             }
