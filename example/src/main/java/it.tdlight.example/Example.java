@@ -6,8 +6,10 @@
 //
 package it.tdlight.example;
 
+import it.tdlight.common.Init;
 import it.tdlight.common.ResultHandler;
 import it.tdlight.common.TelegramClient;
+import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
 import it.tdlight.tdlight.ClientManager;
 import java.io.BufferedReader;
@@ -55,14 +57,6 @@ public final class Example {
 	private static final String newLine = System.getProperty("line.separator");
 	private static final String commandsLine = "Enter command (gcs - GetChats, gc <chatId> - GetChat, me - GetMe, sm <chatId> <message> - SendMessage, lo - LogOut, q - Quit): ";
 	private static volatile String currentPrompt = null;
-
-	static {
-		try {
-			System.loadLibrary("tdjni");
-		} catch (UnsatisfiedLinkError e) {
-			e.printStackTrace();
-		}
-	}
 
 	private static void print(String str) {
 		if (currentPrompt != null) {
@@ -307,9 +301,10 @@ public final class Example {
 		client.send(new TdApi.SendMessage(chatId, 0, 0, null, replyMarkup, content), defaultHandler);
 	}
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, CantLoadLibrary {
 
 		// create client
+		Init.start();
 		client = ClientManager.create(new UpdateHandler(), null, null);
 
 		client.execute(new TdApi.SetLogVerbosityLevel(0));
