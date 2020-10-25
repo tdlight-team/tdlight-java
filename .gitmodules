@@ -1,3 +1,3 @@
 [submodule "td/generate/tl-parser"]
 	path = td/generate/tl-parser
-	url = https://github.com/vysheng/tl-parser
+	url = https://git.ignuranza.net/andreacavalli/tl-parser
