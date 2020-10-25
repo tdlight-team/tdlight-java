@@ -158,7 +158,7 @@ if (NOT CMAKE_CROSSCOMPILING)
 
   add_custom_target(generate_secret_api_tlo
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-          COMMAND ./tl-parser/bin/tl-parser -v -e scheme/secret_api.tlo scheme/secret_api.tl
+          COMMAND ${TL_PARSER_BIN} -v -e scheme/secret_api.tlo scheme/secret_api.tl
           COMMENT "Build tl-parser"
           DEPENDS scheme/secret_api.tl
           )
@@ -166,7 +166,7 @@ if (NOT CMAKE_CROSSCOMPILING)
 
   add_custom_target(generate_telegram_api_tlo
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-          COMMAND ./tl-parser/bin/tl-parser -v -e scheme/telegram_api.tlo scheme/telegram_api.tl
+          COMMAND ${TL_PARSER_BIN} -v -e scheme/telegram_api.tlo scheme/telegram_api.tl
           COMMENT "Build tl-parser"
           DEPENDS scheme/telegram_api.tl
           )
@@ -174,7 +174,7 @@ if (NOT CMAKE_CROSSCOMPILING)
 
   add_custom_target(generate_td_api_tlo
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-          COMMAND ./tl-parser/bin/tl-parser -v -e scheme/td_api.tlo scheme/td_api.tl
+          COMMAND ${TL_PARSER_BIN} -v -e scheme/td_api.tlo scheme/td_api.tl
           COMMENT "Build tl-parser"
           DEPENDS scheme/td_api.tl
           )
