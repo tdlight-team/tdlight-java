@@ -129,7 +129,7 @@ if (NOT CMAKE_CROSSCOMPILING)
             COMMENT "Build tl-parser"
             DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
             )
-    set(TL_PARSER_BIN ./tl-parser/contrib/vs/build/x64/Release/tl-parser.exe)
+    set(TL_PARSER_BIN "${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/contrib/vs/build/x64/Release/tl-parser")
   else()
     add_custom_target(configure_tl_parser
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser
