@@ -79,7 +79,7 @@ void MemoryManager::tear_down() {
 }
 
 void MemoryManager::init() {
-  if (!td_->auth_manager_->is_authorized() || td_->auth_manager_->is_bot() || G()->close_flag()) {
+  if (!td_->auth_manager_->is_authorized() || G()->close_flag()) {
     return;
   }
   LOG(INFO) << "Init MemoryManager";
@@ -94,63 +94,63 @@ void MemoryManager::get_memory_stats(bool full, Promise<MemoryStats> promise) co
 
   vector<string> output = {"{\"memory_stats\":{"};
 
-  output.push_back("\"messages_manager_\":[");
+  output.push_back("\"messages_manager_\":{");
   td_->messages_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back(",");
 
-  output.push_back("\"contacts_manager_\":[");
+  output.push_back("\"contacts_manager_\":{");
   td_->contacts_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back(",");
 
-  output.push_back("\"web_pages_manager_\":[");
+  output.push_back("\"web_pages_manager_\":{");
   td_->web_pages_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back(",");
 
-  output.push_back("\"stickers_manager_\":[");
+  output.push_back("\"stickers_manager_\":{");
   td_->stickers_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back(",");
 
-  output.push_back("\"documents_manager_\":[");
+  output.push_back("\"documents_manager_\":{");
   td_->documents_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back(",");
 
-  output.push_back("\"video_notes_manager_\":[");
+  output.push_back("\"video_notes_manager_\":{");
   td_->video_notes_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back(",");
 
-  output.push_back("\"videos_manager_\":[");
+  output.push_back("\"videos_manager_\":{");
   td_->videos_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back(",");
 
-  output.push_back("\"audios_manager_\":[");
+  output.push_back("\"audios_manager_\":{");
   td_->audios_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back(",");
 
-  output.push_back("\"animations_manager_\":[");
+  output.push_back("\"animations_manager_\":{");
   td_->animations_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back(",");
 
-  output.push_back("\"file_manager_\":[");
+  output.push_back("\"file_manager_\":{");
   td_->file_manager_->memory_stats(output);
-  output.push_back("]");
+  output.push_back("}");
 
   output.push_back("}}");
 
