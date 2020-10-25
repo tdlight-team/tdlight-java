@@ -695,6 +695,9 @@ void DocumentsManager::memory_cleanup() {
   documents_.clear();
   documents_.rehash(0);
 }
+void DocumentsManager::memory_stats(vector<string> &output) {
+  output.push_back("documents_:"); output.push_back(std::to_string(documents_.size()));
+}
 
 string DocumentsManager::get_document_search_text(FileId file_id) const {
   auto document = get_document(file_id);

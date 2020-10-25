@@ -87,6 +87,7 @@
 #include "td/telegram/StickerSetId.h"
 #include "td/telegram/StickersManager.h"
 #include "td/telegram/StorageManager.h"
+#include "td/telegram/MemoryManager.h"
 #include "td/telegram/SuggestedAction.h"
 #include "td/telegram/TdDb.h"
 #include "td/telegram/TopDialogCategory.h"
@@ -3347,6 +3348,8 @@ bool Td::is_preauthentication_request(int32 id) {
     case td_api::getStorageStatistics::ID:
     case td_api::getStorageStatisticsFast::ID:
     case td_api::getDatabaseStatistics::ID:
+    case td_api::getMemoryStatistics::ID:
+    case td_api::optimizeMemory::ID:
     case td_api::setNetworkType::ID:
     case td_api::getNetworkStatistics::ID:
     case td_api::addNetworkStatistics::ID:
@@ -3872,6 +3875,8 @@ void Td::dec_actor_refcnt() {
       LOG(DEBUG) << "PollManager was cleared" << timer;
       stickers_manager_.reset();
       LOG(DEBUG) << "StickersManager was cleared" << timer;
+      memory_manager_.reset();
+      LOG(DEBUG) << "MemoryManager was cleared" << timer;
       updates_manager_.reset();
       LOG(DEBUG) << "UpdatesManager was cleared" << timer;
       video_notes_manager_.reset();
@@ -4056,6 +4061,8 @@ void Td::clear() {
   LOG(DEBUG) << "PollManager actor was cleared" << timer;
   stickers_manager_actor_.reset();
   LOG(DEBUG) << "StickersManager actor was cleared" << timer;
+  memory_manager_actor_.reset();
+  LOG(DEBUG) << "MemoryManager actor was cleared" << timer;
   updates_manager_actor_.reset();
   LOG(DEBUG) << "UpdatesManager actor was cleared" << timer;
   web_pages_manager_actor_.reset();
@@ -4496,6 +4503,9 @@ void Td::init_managers() {
   stickers_manager_ = make_unique<StickersManager>(this, create_reference());
   stickers_manager_actor_ = register_actor("StickersManager", stickers_manager_.get());
   G()->set_stickers_manager(stickers_manager_actor_.get());
+  memory_manager_ = make_unique<MemoryManager>(this, create_reference());
+  memory_manager_actor_ = register_actor("MemoryManager", memory_manager_.get());
+  G()->set_memory_manager(memory_manager_actor_.get());
   updates_manager_ = make_unique<UpdatesManager>(this, create_reference());
   updates_manager_actor_ = register_actor("UpdatesManager", updates_manager_.get());
   G()->set_updates_manager(updates_manager_actor_.get());
@@ -4890,6 +4900,8 @@ void Td::on_request(uint64 id, const td_api::getCurrentState &request) {
 
     stickers_manager_->get_current_state(updates);
 
+    memory_manager_->get_current_state(updates);
+
     messages_manager_->get_current_state(updates);
 
     notification_manager_->get_current_state(updates);
@@ -5232,23 +5244,32 @@ void Td::on_request(uint64 id, td_api::getDatabaseStatistics &request) {
   });
   send_closure(storage_manager_, &StorageManager::get_database_stats, std::move(query_promise));
 }
+void Td::on_request(uint64 id, td_api::getMemoryStatistics &request) {
+  CREATE_REQUEST_PROMISE();
+  auto query_promise = PromiseCreator::lambda([promise = std::move(promise)](Result<MemoryStats> result) mutable {
+    if (result.is_error()) {
+      promise.set_error(result.move_as_error());
+    } else {
+      promise.set_value(result.ok().get_memory_statistics_object());
+    }
+  });
+
+  memory_manager_->get_memory_stats(request.full_, std::move(query_promise));
+}
+void Td::on_request(uint64 id, td_api::optimizeMemory &request) {
+  CREATE_REQUEST_PROMISE();
+  auto query_promise = PromiseCreator::lambda([promise = std::move(promise)](Result<Unit> result) mutable {
+    if (result.is_error()) {
+      promise.set_error(result.move_as_error());
+    } else {
+      promise.set_value(make_tl_object<td_api::ok>());
+    }
+  });
+
+  memory_manager_->clean_memory(request.full_, std::move(query_promise));
+}
 
 void Td::on_request(uint64 id, td_api::optimizeStorage &request) {
-  messages_manager_->memory_cleanup();
-  contacts_manager_->memory_cleanup();
-  web_pages_manager_->memory_cleanup();
-  stickers_manager_->memory_cleanup();
-  documents_manager_->memory_cleanup();
-  video_notes_manager_->memory_cleanup();
-  videos_manager_->memory_cleanup();
-  audios_manager_->memory_cleanup();
-  animations_manager_->memory_cleanup();
-  file_manager_->memory_cleanup();
-
-  #ifdef __linux__
-    malloc_trim(0);
-  #endif
-
   std::vector<FileType> file_types;
   for (auto &file_type : request.file_types_) {
     if (file_type == nullptr) {

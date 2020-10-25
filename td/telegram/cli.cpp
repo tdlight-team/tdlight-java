@@ -2365,6 +2365,8 @@ class CliClient final : public Actor {
       send_request(td_api::make_object<td_api::getStorageStatisticsFast>());
     } else if (op == "database") {
       send_request(td_api::make_object<td_api::getDatabaseStatistics>());
+    } else if (op == "memory") {
+      send_request(td_api::make_object<td_api::getMemoryStatistics>());
     } else if (op == "optimize_storage" || op == "optimize_storage_all") {
       string chat_ids;
       string exclude_chat_ids;

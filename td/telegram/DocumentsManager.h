@@ -78,6 +78,8 @@ class DocumentsManager {
 
   void memory_cleanup();
 
+  void memory_stats(vector<string> &output);
+
   Document on_get_document(RemoteDocument remote_document, DialogId owner_dialog_id,
                            MultiPromiseActor *load_data_multipromise_ptr = nullptr,
                            Document::Type default_document_type = Document::Type::General, bool is_background = false,

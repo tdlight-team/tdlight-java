@@ -28,6 +28,8 @@ class VideoNotesManager {
 
   void memory_cleanup();
 
+  void memory_stats(vector<string> &output);
+
   int32 get_video_note_duration(FileId file_id) const;
 
   tl_object_ptr<td_api::videoNote> get_video_note_object(FileId file_id);

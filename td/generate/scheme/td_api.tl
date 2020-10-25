@@ -2829,6 +2829,10 @@ storageStatisticsFast files_size:int53 file_count:int32 database_size:int53 lang
 //@statistics Database statistics in an unspecified human-readable format
 databaseStatistics statistics:string = DatabaseStatistics;
 
+//@description Contains memory statistics
+//@statistics Memory statistics in an unspecified human-readable format
+memoryStatistics statistics:string = MemoryStatistics;
+
 
 //@class NetworkType @description Represents the type of a network
 
@@ -4585,6 +4589,14 @@ getStorageStatisticsFast = StorageStatisticsFast;
 
 //@description Returns database statistics
 getDatabaseStatistics = DatabaseStatistics;
+
+//@description Returns memory statistics
+//@full Full memory statistics calculation
+getMemoryStatistics full:Bool = MemoryStatistics;
+
+//@description Optimize memory
+//@full Full memory optimization
+optimizeMemory full:Bool = Ok;
 
 //@description Optimizes storage usage, i.e. deletes some files and returns new storage usage statistics. Secret thumbnails can't be deleted
 //@size Limit on the total size of files after deletion. Pass -1 to use the default limit

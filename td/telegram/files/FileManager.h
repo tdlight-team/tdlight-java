@@ -349,6 +349,8 @@ class FileManager : public FileLoadManager::Callback {
  public:
   void memory_cleanup();
 
+  void memory_stats(vector<string> &output);
+
   class DownloadCallback {
    public:
     DownloadCallback() = default;

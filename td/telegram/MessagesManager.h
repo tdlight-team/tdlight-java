@@ -192,6 +192,8 @@ class MessagesManager : public Actor {
 
   void memory_cleanup();
 
+  void memory_stats(vector<string> &output);
+
   static vector<MessageId> get_message_ids(const vector<int64> &input_message_ids);
 
   static vector<int32> get_server_message_ids(const vector<MessageId> &message_ids);

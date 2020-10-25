@@ -112,7 +112,7 @@ if (NOT CMAKE_CROSSCOMPILING)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND ${GENERATE_COMMON_CMD}
     COMMENT "Generate common tl source files"
-    DEPENDS generate_common scheme/mtproto_api.tlo scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
+    DEPENDS generate_common scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
   )
   if (TD_ENABLE_JNI)
     target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)
@@ -120,6 +120,57 @@ if (NOT CMAKE_CROSSCOMPILING)
   if (TD_ENABLE_DOTNET)
     target_compile_definitions(generate_common PRIVATE DISABLE_HPP_DOCUMENTATION=1)
   endif()
+
+  # Start of .tlo update
+  add_custom_target(configure_tl_parser
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser
+          COMMAND "./configure"
+          COMMENT "Configure tl-parser"
+          DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
+          )
+
+  add_custom_target(build_tl_parser
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser
+          COMMAND "make"
+          COMMENT "Build tl-parser"
+          DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
+          )
+  add_dependencies(build_tl_parser configure_tl_parser)
+
+  add_custom_target(generate_mtproto_api_tlo
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMAND "./tl-parser/bin/tl-parser" -v scheme/mtproto_api.tl -e scheme/mtproto_api.tlo
+          COMMENT "Build tl-parser"
+          DEPENDS scheme/mtproto_api.tl
+          )
+  add_dependencies(generate_mtproto_api_tlo build_tl_parser)
+
+  add_custom_target(generate_secret_api_tlo
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMAND "./tl-parser/bin/tl-parser" -v scheme/secret_api.tl -e scheme/secret_api.tlo
+          COMMENT "Build tl-parser"
+          DEPENDS scheme/secret_api.tl
+          )
+  add_dependencies(generate_secret_api_tlo build_tl_parser)
+
+  add_custom_target(generate_telegram_api_tlo
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMAND "./tl-parser/bin/tl-parser" -v scheme/telegram_api.tl -e scheme/telegram_api.tlo
+          COMMENT "Build tl-parser"
+          DEPENDS scheme/telegram_api.tl
+          )
+  add_dependencies(generate_telegram_api_tlo build_tl_parser)
+
+  add_custom_target(generate_td_api_tlo
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMAND "./tl-parser/bin/tl-parser" -v scheme/td_api.tl -e scheme/td_api.tlo
+          COMMENT "Build tl-parser"
+          DEPENDS scheme/td_api.tl
+          )
+  add_dependencies(generate_td_api_tlo build_tl_parser)
+
+  add_dependencies(tl_generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo)
+  # End of .tlo update
 
   add_executable(generate_c ${TL_GENERATE_C_SOURCE})
   target_link_libraries(generate_c PRIVATE tdtl)

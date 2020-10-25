@@ -71,6 +71,7 @@ class SecureManager;
 class SecretChatsManager;
 class StickersManager;
 class StorageManager;
+class MemoryManager;
 class TopDialogManager;
 class UpdatesManager;
 class VideoNotesManager;
@@ -175,6 +176,8 @@ class Td final : public NetQueryCallback {
   ActorOwn<StickersManager> stickers_manager_actor_;
   unique_ptr<UpdatesManager> updates_manager_;
   ActorOwn<UpdatesManager> updates_manager_actor_;
+  unique_ptr<MemoryManager> memory_manager_;
+  ActorOwn<MemoryManager> memory_manager_actor_;
   unique_ptr<WebPagesManager> web_pages_manager_;
   ActorOwn<WebPagesManager> web_pages_manager_actor_;
 
@@ -518,6 +521,10 @@ class Td final : public NetQueryCallback {
   void on_request(uint64 id, td_api::getStorageStatisticsFast &request);
 
   void on_request(uint64 id, td_api::getDatabaseStatistics &request);
+
+  void on_request(uint64 id, td_api::getMemoryStatistics &request);
+
+  void on_request(uint64 id, td_api::optimizeMemory &request);
 
   void on_request(uint64 id, td_api::optimizeStorage &request);
 

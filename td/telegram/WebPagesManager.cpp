@@ -1775,4 +1775,18 @@ void WebPagesManager::memory_cleanup() {
     url_to_file_source_id_.clear();
     url_to_file_source_id_.rehash(0);
 }
+void WebPagesManager::memory_stats(vector<string> &output) {
+  output.push_back("web_pages_:"); output.push_back(std::to_string(web_pages_.size()));
+  output.push_back(",");
+  output.push_back("loaded_from_database_web_pages_:"); output.push_back(std::to_string(loaded_from_database_web_pages_.size()));
+  output.push_back(",");
+  output.push_back("web_page_messages_:"); output.push_back(std::to_string(web_page_messages_.size()));
+  output.push_back(",");
+  output.push_back("got_web_page_previews_:"); output.push_back(std::to_string(got_web_page_previews_.size()));
+  output.push_back(",");
+  output.push_back("url_to_web_page_id_:"); output.push_back(std::to_string(url_to_web_page_id_.size()));
+  output.push_back(",");
+  output.push_back("url_to_file_source_id_:"); output.push_back(std::to_string(url_to_file_source_id_.size()));
+
+}
 }  // namespace td

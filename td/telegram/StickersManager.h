@@ -44,6 +44,8 @@ class StickersManager : public Actor {
 
   void memory_cleanup();
 
+  void memory_stats(vector<string> &output);
+
   static vector<StickerSetId> convert_sticker_set_ids(const vector<int64> &sticker_set_ids);
   static vector<int64> convert_sticker_set_ids(const vector<StickerSetId> &sticker_set_ids);
 

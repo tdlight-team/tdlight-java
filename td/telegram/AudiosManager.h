@@ -28,6 +28,8 @@ class AudiosManager {
 
   void memory_cleanup();
 
+  void memory_stats(vector<string> &output);
+
   int32 get_audio_duration(FileId file_id) const;
 
   tl_object_ptr<td_api::audio> get_audio_object(FileId file_id);

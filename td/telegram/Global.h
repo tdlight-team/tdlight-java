@@ -48,6 +48,7 @@ class SecretChatsManager;
 class StateManager;
 class StickersManager;
 class StorageManager;
+class MemoryManager;
 class Td;
 class TdDb;
 class TempAuthKeyWatchdog;
@@ -264,6 +265,13 @@ class Global : public ActorContext {
     storage_manager_ = storage_manager;
   }
 
+  ActorId<MemoryManager> memory_manager() const {
+    return memory_manager_;
+  }
+  void set_memory_manager(ActorId<MemoryManager> memory_manager) {
+    memory_manager_ = memory_manager;
+  }
+
   ActorId<TopDialogManager> top_dialog_manager() const {
     return top_dialog_manager_;
   }
@@ -392,6 +400,7 @@ class Global : public ActorContext {
   ActorId<SecretChatsManager> secret_chats_manager_;
   ActorId<StickersManager> stickers_manager_;
   ActorId<StorageManager> storage_manager_;
+  ActorId<MemoryManager> memory_manager_;
   ActorId<TopDialogManager> top_dialog_manager_;
   ActorId<UpdatesManager> updates_manager_;
   ActorId<WebPagesManager> web_pages_manager_;

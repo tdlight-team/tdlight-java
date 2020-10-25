@@ -501,6 +501,7 @@ set(TDLIB_SOURCE
   td/telegram/StateManager.cpp
   td/telegram/StickersManager.cpp
   td/telegram/StorageManager.cpp
+  td/telegram/MemoryManager.cpp
   td/telegram/SuggestedAction.cpp
   td/telegram/Td.cpp
   td/telegram/TdDb.cpp
@@ -696,6 +697,7 @@ set(TDLIB_SOURCE
   td/telegram/StickerSetId.h
   td/telegram/StickersManager.h
   td/telegram/StorageManager.h
+  td/telegram/MemoryManager.h
   td/telegram/SuggestedAction.h
   td/telegram/Td.h
   td/telegram/TdCallback.h

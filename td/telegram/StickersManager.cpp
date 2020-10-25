@@ -6316,5 +6316,34 @@ void StickersManager::memory_cleanup() {
     dice_messages_.clear();
     dice_messages_.rehash(0);
 }
+void StickersManager::memory_stats(vector<string> &output) {
+  output.push_back("found_stickers_:"); output.push_back(std::to_string(found_stickers_.size()));
+  output.push_back(",");
+  output.push_back("found_sticker_sets_:"); output.push_back(std::to_string(found_sticker_sets_.size()));
+  output.push_back(",");
+  output.push_back("archived_sticker_set_ids_:"); output.push_back(std::to_string(archived_sticker_set_ids_->size()));
+  output.push_back(",");
+  output.push_back("attached_sticker_sets_:"); output.push_back(std::to_string(attached_sticker_sets_.size()));
+  output.push_back(",");
+  output.push_back("favorite_sticker_file_ids_:"); output.push_back(std::to_string(favorite_sticker_file_ids_.size()));
+  output.push_back(",");
+  output.push_back("favorite_sticker_ids_:"); output.push_back(std::to_string(favorite_sticker_ids_.size()));
+  output.push_back(",");
+  output.push_back("featured_sticker_set_ids_:"); output.push_back(std::to_string(featured_sticker_set_ids_.size()));
+  output.push_back(",");
+  output.push_back("installed_sticker_set_ids_:"); output.push_back(std::to_string(installed_sticker_set_ids_->size()));
+  output.push_back(",");
+  output.push_back("recent_sticker_file_ids_:"); output.push_back(std::to_string(recent_sticker_file_ids_->size()));
+  output.push_back(",");
+  output.push_back("recent_sticker_ids_:"); output.push_back(std::to_string(recent_sticker_ids_->size()));
+  output.push_back(",");
+  output.push_back("short_name_to_sticker_set_id_:"); output.push_back(std::to_string(short_name_to_sticker_set_id_.size()));
+  output.push_back(",");
+  output.push_back("special_sticker_sets_:"); output.push_back(std::to_string(special_sticker_sets_.size()));
+  output.push_back(",");
+  output.push_back("sticker_sets_:"); output.push_back(std::to_string(sticker_sets_.size()));
+  output.push_back(",");
+  output.push_back("stickers_:"); output.push_back(std::to_string(stickers_.size()));
+}
 
 }  // namespace td

@@ -33,6 +33,8 @@ class AnimationsManager : public Actor {
 
   void memory_cleanup();
 
+  void memory_stats(vector<string> &output);
+
   int32 get_animation_duration(FileId file_id) const;
 
   tl_object_ptr<td_api::animation> get_animation_object(FileId file_id, const char *source);
