@@ -4150,15 +4150,15 @@ void FileManager::memory_cleanup() {
   LOG(ERROR) << "Final registered ids: " << file_id_info_.size() << " registered nodes: " << file_nodes_.size();
 }
 void FileManager::memory_stats(vector<string> &output) {
-  output.push_back("file_id_info_:"); output.push_back(std::to_string(file_id_info_.size()));
+  output.push_back("\"file_id_info_\":"); output.push_back(std::to_string(file_id_info_.size()));
   output.push_back(",");
-  output.push_back("file_nodes_:"); output.push_back(std::to_string(file_nodes_.size()));
+  output.push_back("\"file_nodes_\":"); output.push_back(std::to_string(file_nodes_.size()));
   output.push_back(",");
-  output.push_back("file_hash_to_file_id_:"); output.push_back(std::to_string(file_hash_to_file_id_.size()));
+  output.push_back("\"file_hash_to_file_id_\":"); output.push_back(std::to_string(file_hash_to_file_id_.size()));
   output.push_back(",");
-  output.push_back("file_id_seqno:"); output.push_back(std::to_string(file_id_seqno));
+  output.push_back("\"file_id_seqno\":"); output.push_back(std::to_string(file_id_seqno));
   output.push_back(",");
-  output.push_back("file_node_seqno:"); output.push_back(std::to_string(file_node_seqno));
+  output.push_back("\"file_node_seqno\":"); output.push_back(std::to_string(file_node_seqno));
 }
 
 void FileManager::tear_down() {

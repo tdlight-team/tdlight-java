@@ -124,7 +124,7 @@ if (NOT CMAKE_CROSSCOMPILING)
   # Start of .tlo update
   add_custom_target(configure_tl_parser
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser
-          COMMAND "./configure"
+          COMMAND bash ./configure
           COMMENT "Configure tl-parser"
           DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
           )

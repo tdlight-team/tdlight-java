@@ -280,7 +280,7 @@ void AudiosManager::memory_cleanup() {
   audios_.rehash(0);
 }
 void AudiosManager::memory_stats(vector<string> &output) {
-  output.push_back("animations_:"); output.push_back(std::to_string(audios_.size()));
+  output.push_back("\"animations_\":"); output.push_back(std::to_string(audios_.size()));
 
 }
 

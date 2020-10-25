@@ -251,7 +251,7 @@ void VideoNotesManager::memory_cleanup() {
   video_notes_.rehash(0);
 }
 void VideoNotesManager::memory_stats(vector<string> &output) {
-  output.push_back("video_notes_:"); output.push_back(std::to_string(video_notes_.size()));
+  output.push_back("\"video_notes_\":"); output.push_back(std::to_string(video_notes_.size()));
 }
 
 }  // namespace td

@@ -965,9 +965,9 @@ void AnimationsManager::memory_cleanup() {
   animations_.rehash(0);
 }
 void AnimationsManager::memory_stats(vector<string> &output) {
-  output.push_back("animations_:"); output.push_back(std::to_string(animations_.size()));
+  output.push_back("\"animations_\":"); output.push_back(std::to_string(animations_.size()));
   output.push_back(",");
-  output.push_back("saved_animation_file_ids_:"); output.push_back(std::to_string(this->saved_animation_file_ids_.size()));
+  output.push_back("\"saved_animation_file_ids_\":"); output.push_back(std::to_string(this->saved_animation_file_ids_.size()));
 }
 
 }  // namespace td

@@ -330,7 +330,7 @@ void VideosManager::memory_cleanup() {
   videos_.rehash(0);
 }
 void VideosManager::memory_stats(vector<string> &output) {
-  output.push_back("videos_:"); output.push_back(std::to_string(videos_.size()));
+  output.push_back("\"videos_\":"); output.push_back(std::to_string(videos_.size()));
 }
 
 }  // namespace td

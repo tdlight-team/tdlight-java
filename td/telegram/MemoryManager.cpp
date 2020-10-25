@@ -92,29 +92,67 @@ void MemoryManager::get_memory_stats(bool full, Promise<MemoryStats> promise) co
     return;
   }
 
-  vector<string> output = {"{memory_stats:["};
+  vector<string> output = {"{\"memory_stats\":{"};
 
+  output.push_back("\"messages_manager_\":[");
   td_->messages_manager_->memory_stats(output);
-  output.push_back(",");
-  td_->contacts_manager_->memory_stats(output);
-  output.push_back(",");
-  td_->web_pages_manager_->memory_stats(output);
-  output.push_back(",");
-  td_->stickers_manager_->memory_stats(output);
-  output.push_back(",");
-  td_->documents_manager_->memory_stats(output);
-  output.push_back(",");
-  td_->video_notes_manager_->memory_stats(output);
-  output.push_back(",");
-  td_->videos_manager_->memory_stats(output);
-  output.push_back(",");
-  td_->audios_manager_->memory_stats(output);
-  output.push_back(",");
-  td_->animations_manager_->memory_stats(output);
-  output.push_back(",");
-  td_->file_manager_->memory_stats(output);
+  output.push_back("]");
 
-  output.push_back("]}");
+  output.push_back(",");
+
+  output.push_back("\"contacts_manager_\":[");
+  td_->contacts_manager_->memory_stats(output);
+  output.push_back("]");
+
+  output.push_back(",");
+
+  output.push_back("\"web_pages_manager_\":[");
+  td_->web_pages_manager_->memory_stats(output);
+  output.push_back("]");
+
+  output.push_back(",");
+
+  output.push_back("\"stickers_manager_\":[");
+  td_->stickers_manager_->memory_stats(output);
+  output.push_back("]");
+
+  output.push_back(",");
+
+  output.push_back("\"documents_manager_\":[");
+  td_->documents_manager_->memory_stats(output);
+  output.push_back("]");
+
+  output.push_back(",");
+
+  output.push_back("\"video_notes_manager_\":[");
+  td_->video_notes_manager_->memory_stats(output);
+  output.push_back("]");
+
+  output.push_back(",");
+
+  output.push_back("\"videos_manager_\":[");
+  td_->videos_manager_->memory_stats(output);
+  output.push_back("]");
+
+  output.push_back(",");
+
+  output.push_back("\"audios_manager_\":[");
+  td_->audios_manager_->memory_stats(output);
+  output.push_back("]");
+
+  output.push_back(",");
+
+  output.push_back("\"animations_manager_\":[");
+  td_->animations_manager_->memory_stats(output);
+  output.push_back("]");
+
+  output.push_back(",");
+
+  output.push_back("\"file_manager_\":[");
+  td_->file_manager_->memory_stats(output);
+  output.push_back("]");
+
+  output.push_back("}}");
 
   string s = accumulate(output.begin(), output.end(), s);
   auto value = MemoryStats(s);
