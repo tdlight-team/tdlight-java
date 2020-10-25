@@ -129,6 +129,7 @@ if (NOT CMAKE_CROSSCOMPILING)
             COMMENT "Build tl-parser"
             DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
             )
+    set(TL_PARSER_BIN ./tl-parser/contrib/vs/build/x64/Release/tl-parser.exe)
   else()
     add_custom_target(configure_tl_parser
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser
@@ -144,11 +145,12 @@ if (NOT CMAKE_CROSSCOMPILING)
             DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
             )
     add_dependencies(build_tl_parser configure_tl_parser)
+    set(TL_PARSER_BIN ./tl-parser/bin/tl-parser)
   endif()
 
   add_custom_target(generate_mtproto_api_tlo
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-          COMMAND ./tl-parser/bin/tl-parser -v -e scheme/mtproto_api.tlo scheme/mtproto_api.tl
+          COMMAND ${TL_PARSER_BIN} -v -e scheme/mtproto_api.tlo scheme/mtproto_api.tl
           COMMENT "Build tl-parser"
           DEPENDS scheme/mtproto_api.tl
           )
