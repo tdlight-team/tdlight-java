@@ -42,22 +42,22 @@
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-linux-amd64</artifactId>
-			<version>3.0.106</version>
+			<version>3.0.119</version>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-linux-aarch64</artifactId>
-			<version>3.0.106</version>
+			<version>3.0.119</version>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-windows-amd64</artifactId>
-			<version>3.0.106</version>
+			<version>3.0.119</version>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-osx-amd64</artifactId>
-			<version>3.0.106</version>
+			<version>3.0.119</version>
 		</dependency>
 		<dependency>
 			<groupId>it.cavallium</groupId>
