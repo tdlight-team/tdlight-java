@@ -125,7 +125,7 @@ if (NOT CMAKE_CROSSCOMPILING)
   if (WIN32 OR CYGWIN)
     add_custom_target(build_tl_parser
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/contrib/vs/
-            COMMAND MSBuild.exe .\tl-parser.sln
+            COMMAND msbuild tl-parser.sln -t:Rebuild -p:Configuration=Release
             COMMENT "Build tl-parser"
             DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
             )
