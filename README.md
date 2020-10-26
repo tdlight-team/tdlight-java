@@ -5,9 +5,9 @@ TDLight is 100% compatible with tdlib, if you don't use the sqlite database.
 
 ## Added features
 ### Memory cleanup
-TDLight can clean itself and release some ram to the OS if you want. Look at **TdApi.OptimizeStorage** in "Modified features" paragraph to see how.
+TDLight can clean itself and release some ram to the OS if you want. Look at **TdApi.OptimizeMemory** in "Modified features" paragraph to see how.
 ### Constant memory usage
-TDLight if used with care doesn't grow in memory usage with time. Look at **TdApi.OptimizeStorage** in "Modified features" paragraph to see how
+TDLight if used with care doesn't grow in memory usage with time. Look at **TdApi.OptimizeMemory** in "Modified features" paragraph to see how
 ### Custom options
 We added some options:
 * **disable_minithumbnails** (true/false) This setting removes minithumbnails everywhere. It reduces memory usage because tdlib keeps them in RAM.
@@ -21,19 +21,23 @@ We added some options:
 * **delete_user_reference_after_seconds** (positive number) During cleanup, free the memory of the users that have not been touched for more than X seconds
 * **delete_file_reference_after_seconds** (positive number) During cleanup, free the memory of the files that have not been touched for more than X seconds
 
-## Modified features
-### TdApi.OptimizeStorage
-This method was used to optimize the database originally.
-Now it also cleans the RAM, removing almost all cached values from it and releasing the memory back to the OS.
+## Custom API functions
+### TdApi.OptimizeMemory
+This method is used to optimize the memory usage, but it must be used carefully.
+It removes almost all cached values and releases the memory back to the OS.
 
 Removing cached values can cause problems if you don't take the following precautions:
-  1. Before calling *TdApi.OptimizeStorage* you must:
+  1. Before calling *TdApi.OptimizeMemory* you must:
       1. Read all the pending updates to empty the pending updates queue.
-      2. Disable internet connection using *TdApi.AddProxy* and *TdApi.SetProxy* pointing to a random domain that doesn't exist.
-  2. Call *TdApi.OptimizeStorage*
-  3. After calling *TdApi.OptimizeStorage* you must:
-      1. **NOT** use again the old file ids because they have been deleted! (Example: If you receive the file 12 after OptimizeStorage is not the same file 12 that you received before *TdApi.OptimizeStorage*, because the id 12 has been reused)
-      2. Re-enable internet connection using *TdApi.DisableProxy*
+      2. Disable internet connection using *TdApi.SetNetworkType(TdApi.NetworkTypeNone)*
+  2. Call *TdApi.OptimizeMemory*
+  3. After calling *TdApi.OptimizeMemory* you must:
+      1. **NOT** use the old file ids because they have been deleted! (Example: If you receive the file 12 after OptimizeMemory is not the same file 12 that you received before *TdApi.OptimizeMemory*, because the id 12 has been reused)
+      2. Re-enable internet connection using *TdApi.SetNetworkType(TdApi.NetworkTypeOther)*
+
+### TdApi.GetMemoryStatistics
+This method is used to read the size of all the biggest data maps inside tdlib implementation.
+The output contains a string that can be parsed as a JSON.
 
 ## Removed features
 ### Local databases encryption
