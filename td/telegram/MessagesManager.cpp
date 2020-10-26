@@ -5757,6 +5757,8 @@ void MessagesManager::memory_cleanup() {
   found_public_dialogs_.rehash(0);
   found_on_server_dialogs_.clear();
   found_on_server_dialogs_.rehash(0);
+  full_message_id_to_file_source_id_.clear();
+  full_message_id_to_file_source_id_.rehash(0);
 }
 void MessagesManager::memory_stats(vector<string> &output) {
   output.push_back("\"being_sent_messages_\":"); output.push_back(std::to_string(this->being_sent_messages_.size()));
