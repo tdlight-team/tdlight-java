@@ -8,6 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
+		<natives-version>3.0.122</natives-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -42,22 +43,22 @@
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-linux-amd64</artifactId>
-			<version>3.0.121</version>
+			<version>${natives-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-linux-aarch64</artifactId>
-			<version>3.0.121</version>
+			<version>${natives-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-windows-amd64</artifactId>
-			<version>3.0.121</version>
+			<version>${natives-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-osx-amd64</artifactId>
-			<version>3.0.121</version>
+			<version>${natives-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.cavallium</groupId>
