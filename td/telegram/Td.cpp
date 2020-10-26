@@ -7222,6 +7222,9 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
       if (set_boolean_option("ignore_inline_thumbnails")) {
         return;
       }
+      if (set_boolean_option("ignore_server_deletes_and_reads")) {
+        return;
+      }
       if (set_boolean_option("ignore_platform_restrictions")) {
         return;
       }

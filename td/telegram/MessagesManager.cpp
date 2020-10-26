@@ -9534,6 +9534,9 @@ void MessagesManager::on_failed_get_message_public_forwards(int64 random_id) {
 }
 
 void MessagesManager::delete_messages_from_updates(const vector<MessageId> &message_ids) {
+  if (G()->shared_config().get_option_boolean("ignore_server_deletes_and_reads", false)) {
+    return;
+  }
   std::unordered_map<DialogId, vector<int64>, DialogIdHash> deleted_message_ids;
   std::unordered_map<DialogId, bool, DialogIdHash> need_update_dialog_pos;
   for (auto message_id : message_ids) {
@@ -10605,6 +10608,9 @@ void MessagesManager::read_all_dialog_mentions_on_server(DialogId dialog_id, uin
 }
 
 void MessagesManager::read_message_content_from_updates(MessageId message_id) {
+  if (G()->shared_config().get_option_boolean("ignore_server_deletes_and_reads", false)) {
+    return;
+  }
   if (!message_id.is_valid() || !message_id.is_server()) {
     LOG(ERROR) << "Incoming update tries to read content of " << message_id;
     return;
@@ -14571,7 +14577,9 @@ void MessagesManager::on_message_deleted(Dialog *d, Message *m, bool is_permanen
     case DialogType::User:
     case DialogType::Chat:
       if (m->message_id.is_server()) {
-        message_id_to_dialog_id_.erase(m->message_id);
+        if (!G()->shared_config().get_option_boolean("ignore_server_deletes_and_reads", false)) {
+          message_id_to_dialog_id_.erase(m->message_id);
+        }
       }
       break;
     case DialogType::Channel:
@@ -31404,7 +31412,9 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
     case DialogType::User:
     case DialogType::Chat:
       if (m->message_id.is_server()) {
-        message_id_to_dialog_id_[m->message_id] = dialog_id;
+        if (!G()->shared_config().get_option_boolean("ignore_server_deletes_and_reads", false)) {
+          message_id_to_dialog_id_[m->message_id] = dialog_id;
+        }
       }
       break;
     case DialogType::Channel:
@@ -32402,6 +32412,10 @@ bool MessagesManager::update_message_content(DialogId dialog_id, Message *old_me
 }
 
 MessagesManager::Dialog *MessagesManager::get_dialog_by_message_id(MessageId message_id) {
+  if (G()->shared_config().get_option_boolean("ignore_server_deletes_and_reads", false)) {
+    LOG(INFO) << "Can't find the chat by " << message_id << " because this function is disabled";
+    return nullptr;
+  }
   CHECK(message_id.is_valid() && message_id.is_server());
   auto it = message_id_to_dialog_id_.find(message_id);
   if (it == message_id_to_dialog_id_.end()) {
