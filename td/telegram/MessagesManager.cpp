@@ -10146,63 +10146,19 @@ void MessagesManager::delete_dialog_history_from_server(DialogId dialog_id, Mess
   }
 }
 
-void MessagesManager::find_discussed_messages(const Message *m, ChannelId old_channel_id, ChannelId new_channel_id,
-                                              vector<MessageId> &message_ids) {
+void MessagesManager::find_messages(const Message *m, vector<MessageId> &message_ids,
+                                    const std::function<bool(const Message *)> &condition) {
   if (m == nullptr) {
     return;
   }
 
-  find_discussed_messages(m->left.get(), old_channel_id, new_channel_id, message_ids);
+  find_messages(m->left.get(), message_ids, condition);
 
-  if (!m->reply_info.is_empty() && m->reply_info.channel_id.is_valid() &&
-      (m->reply_info.channel_id == old_channel_id || m->reply_info.channel_id == new_channel_id)) {
+  if (condition(m)) {
     message_ids.push_back(m->message_id);
   }
 
-  find_discussed_messages(m->right.get(), old_channel_id, new_channel_id, message_ids);
-}
-
-void MessagesManager::find_messages_from_user(const Message *m, UserId user_id, vector<MessageId> &message_ids) {
-  if (m == nullptr) {
-    return;
-  }
-
-  find_messages_from_user(m->left.get(), user_id, message_ids);
-
-  if (m->sender_user_id == user_id) {
-    message_ids.push_back(m->message_id);
-  }
-
-  find_messages_from_user(m->right.get(), user_id, message_ids);
-}
-
-void MessagesManager::find_incoming_messages_forwarded_from_user(const Message *m, UserId user_id,
-                                                                 vector<MessageId> &message_ids) {
-  if (m == nullptr) {
-    return;
-  }
-
-  find_incoming_messages_forwarded_from_user(m->left.get(), user_id, message_ids);
-
-  if (!m->is_outgoing && m->forward_info != nullptr && m->forward_info->sender_user_id == user_id) {
-    message_ids.push_back(m->message_id);
-  }
-
-  find_incoming_messages_forwarded_from_user(m->right.get(), user_id, message_ids);
-}
-
-void MessagesManager::find_unread_mentions(const Message *m, vector<MessageId> &message_ids) {
-  if (m == nullptr) {
-    return;
-  }
-
-  find_unread_mentions(m->left.get(), message_ids);
-
-  if (m->contains_unread_mention) {
-    message_ids.push_back(m->message_id);
-  }
-
-  find_unread_mentions(m->right.get(), message_ids);
+  find_messages(m->right.get(), message_ids, condition);
 }
 
 void MessagesManager::find_old_messages(const Message *m, MessageId max_message_id, vector<MessageId> &message_ids) {
@@ -10307,7 +10263,7 @@ void MessagesManager::delete_dialog_messages_from_user(DialogId dialog_id, UserI
   }
 
   vector<MessageId> message_ids;
-  find_messages_from_user(d->messages.get(), user_id, message_ids);
+  find_messages(d->messages.get(), message_ids, [user_id](const Message *m) { return m->sender_user_id == user_id; });
 
   vector<int64> deleted_message_ids;
   bool need_update_dialog_pos = false;
@@ -10544,7 +10500,7 @@ void MessagesManager::read_all_dialog_mentions(DialogId dialog_id, Promise<Unit>
   }
 
   vector<MessageId> message_ids;
-  find_unread_mentions(d->messages.get(), message_ids);
+  find_messages(d->messages.get(), message_ids, [](const Message *m) { return m->contains_unread_mention; });
 
   LOG(INFO) << "Found " << message_ids.size() << " messages with unread mentions in memory";
   bool is_update_sent = false;
@@ -13498,7 +13454,7 @@ void MessagesManager::remove_dialog_mention_notifications(Dialog *d) {
 
   vector<MessageId> message_ids;
   std::unordered_set<NotificationId, NotificationIdHash> removed_notification_ids_set;
-  find_unread_mentions(d->messages.get(), message_ids);
+  find_messages(d->messages.get(), message_ids, [](const Message *m) { return m->contains_unread_mention; });
   VLOG(notifications) << "Found unread mentions in " << message_ids;
   for (auto &message_id : message_ids) {
     auto m = get_message(d, message_id);
@@ -15908,7 +15864,9 @@ void MessagesManager::block_dialog_from_replies(MessageId message_id, bool delet
   }
   if (delete_all_messages && sender_user_id.is_valid()) {
     vector<MessageId> message_ids;
-    find_incoming_messages_forwarded_from_user(d->messages.get(), sender_user_id, message_ids);
+    find_messages(d->messages.get(), message_ids, [sender_user_id](const Message *m) {
+      return !m->is_outgoing && m->forward_info != nullptr && m->forward_info->sender_user_id == sender_user_id;
+    });
 
     for (auto user_message_id : message_ids) {
       auto p = this->delete_message(d, user_message_id, true, &need_update_dialog_pos, "block_dialog_from_replies 2");
@@ -22025,21 +21983,18 @@ tl_object_ptr<td_api::messages> MessagesManager::get_messages_object(
   return td_api::make_object<td_api::messages>(total_count, std::move(messages));
 }
 
-bool MessagesManager::is_anonymous_administrator(DialogId dialog_id) const {
+bool MessagesManager::is_anonymous_administrator(DialogId dialog_id, string *author_signature) const {
+  CHECK(dialog_id.is_valid());
+
   if (is_broadcast_channel(dialog_id)) {
     return true;
   }
-  return is_anonymous_administrator(td_->contacts_manager_->get_my_id(), dialog_id, nullptr);
-}
 
-bool MessagesManager::is_anonymous_administrator(UserId sender_user_id, DialogId dialog_id,
-                                                 string *author_signature) const {
-  if (!sender_user_id.is_valid()) {
+  if (td_->auth_manager_->is_bot()) {
     return false;
   }
-  CHECK(dialog_id.is_valid());
 
-  if (dialog_id.get_type() != DialogType::Channel || is_broadcast_channel(dialog_id)) {
+  if (dialog_id.get_type() != DialogType::Channel) {
     return false;
   }
 
@@ -22081,7 +22036,7 @@ MessagesManager::Message *MessagesManager::get_message_to_send(
     }
     m->sender_dialog_id = d->dialog_id;
   } else {
-    if (is_anonymous_administrator(my_id, d->dialog_id, &m->author_signature)) {
+    if (is_anonymous_administrator(d->dialog_id, &m->author_signature)) {
       m->sender_dialog_id = d->dialog_id;
     } else {
       m->sender_user_id = my_id;
@@ -23483,11 +23438,14 @@ void MessagesManager::on_yet_unsent_media_queue_updated(DialogId dialog_id) {
     }
 
     auto m = get_message({dialog_id, MessageId(first_it->first)});
+    auto promise = std::move(first_it->second);
+    queue.erase(first_it);
     if (m != nullptr) {
       LOG(INFO) << "Can send " << FullMessageId{dialog_id, m->message_id};
-      first_it->second.set_value(std::move(m));
+      promise.set_value(std::move(m));
+    } else {
+      promise.set_error(Status::Error(400, "Message not found"));
     }
-    queue.erase(first_it);
   }
   LOG(INFO) << "Queue for " << dialog_id << " now has size " << queue.size();
   if (queue.empty()) {
@@ -25064,7 +25022,7 @@ Result<unique_ptr<ReplyMarkup>> MessagesManager::get_dialog_reply_markup(
   }
 
   auto dialog_type = dialog_id.get_type();
-  bool is_anonymous = is_anonymous_administrator(dialog_id);
+  bool is_anonymous = is_anonymous_administrator(dialog_id, nullptr);
 
   bool only_inline_keyboard = is_anonymous;
   bool request_buttons_allowed = dialog_type == DialogType::User;
@@ -25746,11 +25704,7 @@ Result<MessageId> MessagesManager::add_local_message(
     }
     m->sender_dialog_id = dialog_id;
   } else {
-    if (is_anonymous_administrator(sender_user_id, dialog_id, &m->author_signature)) {
-      m->sender_dialog_id = dialog_id;
-    } else {
-      m->sender_user_id = sender_user_id;
-    }
+    m->sender_user_id = sender_user_id;
   }
   m->date = G()->unix_time();
   m->reply_to_message_id = get_reply_to_message_id(d, MessageId(), reply_to_message_id);
@@ -26000,6 +25954,9 @@ Result<MessagesManager::MessagePushNotificationInfo> MessagesManager::get_messag
   if (is_pinned) {
     contains_mention = !is_dialog_pinned_message_notifications_disabled(d);
   } else if (contains_mention && is_dialog_mention_notifications_disabled(d)) {
+    contains_mention = false;
+  }
+  if (dialog_id.get_type() == DialogType::User) {
     contains_mention = false;
   }
 
@@ -28814,7 +28771,10 @@ void MessagesManager::on_dialog_linked_channel_updated(DialogId dialog_id, Chann
   auto d = get_dialog(dialog_id);  // no need to create the dialog
   if (d != nullptr && d->is_update_new_chat_sent) {
     vector<MessageId> message_ids;
-    find_discussed_messages(d->messages.get(), old_linked_channel_id, new_linked_channel_id, message_ids);
+    find_messages(d->messages.get(), message_ids, [old_linked_channel_id, new_linked_channel_id](const Message *m) {
+      return !m->reply_info.is_empty() && m->reply_info.channel_id.is_valid() &&
+             (m->reply_info.channel_id == old_linked_channel_id || m->reply_info.channel_id == new_linked_channel_id);
+    });
     LOG(INFO) << "Found discussion messages " << message_ids;
     for (auto message_id : message_ids) {
       send_update_message_interaction_info(dialog_id, get_message(d, message_id));
@@ -29180,7 +29140,7 @@ bool MessagesManager::get_dialog_has_scheduled_messages(const Dialog *d) const {
 }
 
 bool MessagesManager::is_dialog_action_unneeded(DialogId dialog_id) const {
-  if (is_anonymous_administrator(dialog_id)) {
+  if (is_anonymous_administrator(dialog_id, nullptr)) {
     return true;
   }
 
@@ -34127,6 +34087,12 @@ void MessagesManager::get_channel_difference(DialogId dialog_id, int32 pts, bool
     after_get_channel_difference(dialog_id, false);
     return;
   }
+  if (!have_input_peer(dialog_id, AccessRights::Read)) {
+    LOG(INFO) << "Skip running channels.getDifference for " << dialog_id << " from " << source
+              << " because have no read access to it";
+    after_get_channel_difference(dialog_id, false);
+    return;
+  }
 
   if (force && get_channel_difference_to_log_event_id_.count(dialog_id) == 0 && !G()->ignore_backgrond_updates()) {
     auto channel_id = dialog_id.get_channel_id();
@@ -34149,14 +34115,6 @@ void MessagesManager::do_get_channel_difference(DialogId dialog_id, int32 pts, b
   if (!inserted.second) {
     LOG(INFO) << "Skip running channels.getDifference for " << dialog_id << " from " << source
               << " because it has already been run";
-    return;
-  }
-  bool have_access = have_input_peer(dialog_id, AccessRights::Read);
-  if (!have_access) {
-    LOG(INFO) << "Skip running channels.getDifference for " << dialog_id << " from " << source
-              << " because have no read access to it";
-    active_get_channel_differencies_.erase(dialog_id);
-    after_get_channel_difference(dialog_id, false);
     return;
   }
 
