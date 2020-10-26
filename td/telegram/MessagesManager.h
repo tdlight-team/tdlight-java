@@ -1757,8 +1757,8 @@ class MessagesManager : public Actor {
 
   Message *get_message_to_send(Dialog *d, MessageId top_thread_message_id, MessageId reply_to_message_id,
                                const MessageSendOptions &options, unique_ptr<MessageContent> &&content,
-                               bool *need_update_dialog_pos, unique_ptr<MessageForwardInfo> forward_info = nullptr,
-                               bool is_copy = false);
+                               bool *need_update_dialog_pos, bool suppress_reply_info = false,
+                               unique_ptr<MessageForwardInfo> forward_info = nullptr, bool is_copy = false);
 
   int64 begin_send_message(DialogId dialog_id, const Message *m);
 
@@ -2278,6 +2278,8 @@ class MessagesManager : public Actor {
   static void set_dialog_unread_mention_count(Dialog *d, int32 unread_mention_count);
 
   void set_dialog_is_empty(Dialog *d, const char *source);
+
+  void remove_dialog_newer_messages(Dialog *d, MessageId from_message_id, const char *source);
 
   static int32 get_pinned_dialogs_limit(DialogListId dialog_list_id);
 
@@ -3208,7 +3210,7 @@ class MessagesManager : public Actor {
   int64 viewed_live_location_task_id_ = 0;
   std::unordered_map<int64, FullMessageId> viewed_live_location_tasks_;  // task_id -> task
 
-  std::unordered_map<uint64, std::map<int64, Promise<Message *>>> yet_unsent_media_queues_;
+  std::unordered_map<uint64, std::map<MessageId, Promise<Message *>>> yet_unsent_media_queues_;
 
   std::unordered_map<DialogId, NetQueryRef, DialogIdHash> set_typing_query_;
 

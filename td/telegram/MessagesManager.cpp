@@ -13131,6 +13131,40 @@ void MessagesManager::set_dialog_last_database_message_id(Dialog *d, MessageId l
   }
 }
 
+void MessagesManager::remove_dialog_newer_messages(Dialog *d, MessageId from_message_id, const char *source) {
+  LOG(INFO) << "Remove messages in " << d->dialog_id << " newer than " << from_message_id << " from " << source;
+  CHECK(!d->last_new_message_id.is_valid());
+
+  delete_all_dialog_messages_from_database(d, MessageId::max(), "remove_dialog_newer_messages");
+  set_dialog_first_database_message_id(d, MessageId(), "remove_dialog_newer_messages");
+  set_dialog_last_database_message_id(d, MessageId(), source);
+  if (d->dialog_id.get_type() != DialogType::SecretChat) {
+    d->have_full_history = false;
+  }
+  invalidate_message_indexes(d);
+
+  vector<MessageId> to_delete_message_ids;
+  find_newer_messages(d->messages.get(), from_message_id, to_delete_message_ids);
+  td::remove_if(to_delete_message_ids, [](MessageId message_id) { return message_id.is_yet_unsent(); });
+  if (!to_delete_message_ids.empty()) {
+    LOG(INFO) << "Delete " << format::as_array(to_delete_message_ids) << " newer than " << from_message_id << " in "
+              << d->dialog_id << " from " << source;
+
+    vector<int64> deleted_message_ids;
+    bool need_update_dialog_pos = false;
+    for (auto message_id : to_delete_message_ids) {
+      auto message = delete_message(d, message_id, false, &need_update_dialog_pos, "remove_dialog_newer_messages");
+      if (message != nullptr) {
+        deleted_message_ids.push_back(message->message_id.get());
+      }
+    }
+    if (need_update_dialog_pos) {
+      send_update_chat_last_message(d, "remove_dialog_newer_messages");
+    }
+    send_update_delete_messages(d->dialog_id, std::move(deleted_message_ids), false, false);
+  }
+}
+
 void MessagesManager::set_dialog_last_new_message_id(Dialog *d, MessageId last_new_message_id, const char *source) {
   CHECK(!last_new_message_id.is_scheduled());
 
@@ -13138,34 +13172,7 @@ void MessagesManager::set_dialog_last_new_message_id(Dialog *d, MessageId last_n
       << last_new_message_id << " " << d->last_new_message_id << " " << source;
   CHECK(d->dialog_id.get_type() == DialogType::SecretChat || last_new_message_id.is_server());
   if (!d->last_new_message_id.is_valid()) {
-    delete_all_dialog_messages_from_database(d, MessageId::max(), "set_dialog_last_new_message_id");
-    set_dialog_first_database_message_id(d, MessageId(), "set_dialog_last_new_message_id");
-    set_dialog_last_database_message_id(d, MessageId(), source);
-    if (d->dialog_id.get_type() != DialogType::SecretChat) {
-      d->have_full_history = false;
-    }
-    invalidate_message_indexes(d);
-
-    vector<MessageId> to_delete_message_ids;
-    find_newer_messages(d->messages.get(), last_new_message_id, to_delete_message_ids);
-    td::remove_if(to_delete_message_ids, [](MessageId message_id) { return message_id.is_yet_unsent(); });
-    if (!to_delete_message_ids.empty()) {
-      LOG(WARNING) << "Delete " << format::as_array(to_delete_message_ids) << " because of received last new "
-                   << last_new_message_id << " in " << d->dialog_id << " from " << source;
-
-      vector<int64> deleted_message_ids;
-      bool need_update_dialog_pos = false;
-      for (auto message_id : to_delete_message_ids) {
-        auto message = delete_message(d, message_id, false, &need_update_dialog_pos, "set_dialog_last_new_message_id");
-        if (message != nullptr) {
-          deleted_message_ids.push_back(message->message_id.get());
-        }
-      }
-      if (need_update_dialog_pos) {
-        send_update_chat_last_message(d, "set_dialog_last_new_message_id");
-      }
-      send_update_delete_messages(d->dialog_id, std::move(deleted_message_ids), false, false);
-    }
+    remove_dialog_newer_messages(d, last_new_message_id, source);
 
     auto last_new_message = get_message(d, last_new_message_id);
     if (last_new_message != nullptr) {
@@ -22011,8 +22018,8 @@ bool MessagesManager::is_anonymous_administrator(DialogId dialog_id, string *aut
 
 MessagesManager::Message *MessagesManager::get_message_to_send(
     Dialog *d, MessageId top_thread_message_id, MessageId reply_to_message_id, const MessageSendOptions &options,
-    unique_ptr<MessageContent> &&content, bool *need_update_dialog_pos, unique_ptr<MessageForwardInfo> forward_info,
-    bool is_copy) {
+    unique_ptr<MessageContent> &&content, bool *need_update_dialog_pos, bool suppress_reply_info,
+    unique_ptr<MessageForwardInfo> forward_info, bool is_copy) {
   CHECK(d != nullptr);
   CHECK(!reply_to_message_id.is_scheduled());
   CHECK(content != nullptr);
@@ -22058,6 +22065,9 @@ MessagesManager::Message *MessagesManager::get_message_to_send(
   m->view_count = is_channel_post && !is_scheduled ? 1 : 0;
   m->forward_count = 0;
   if ([&] {
+        if (suppress_reply_info) {
+          return false;
+        }
         if (is_scheduled) {
           return false;
         }
@@ -22491,7 +22501,7 @@ void MessagesManager::cancel_send_message_query(DialogId dialog_id, Message *m) 
       if (queue_it != yet_unsent_media_queues_.end()) {
         auto &queue = queue_it->second;
         LOG(INFO) << "Delete " << m->message_id << " from queue " << queue_id;
-        if (queue.erase(m->message_id.get()) != 0) {
+        if (queue.erase(m->message_id) != 0) {
           if (queue.empty()) {
             yet_unsent_media_queues_.erase(queue_it);
           } else {
@@ -22625,7 +22635,7 @@ Result<MessageId> MessagesManager::send_message(DialogId dialog_id, MessageId to
   Message *m = get_message_to_send(d, top_thread_message_id, reply_to_message_id, message_send_options,
                                    dup_message_content(td_, dialog_id, message_content.content.get(),
                                                        MessageContentDupType::Send, MessageCopyOptions()),
-                                   &need_update_dialog_pos, nullptr, message_content.via_bot_user_id.is_valid());
+                                   &need_update_dialog_pos, false, nullptr, message_content.via_bot_user_id.is_valid());
   m->reply_markup = std::move(message_reply_markup);
   m->via_bot_user_id = message_content.via_bot_user_id;
   m->disable_web_page_preview = message_content.disable_web_page_preview;
@@ -22861,11 +22871,12 @@ Result<vector<MessageId>> MessagesManager::send_message_group(
 
   vector<MessageId> result;
   bool need_update_dialog_pos = false;
-  for (auto &message_content : message_contents) {
+  for (size_t i = 0; i < message_contents.size(); i++) {
+    auto &message_content = message_contents[i];
     Message *m = get_message_to_send(d, top_thread_message_id, reply_to_message_id, message_send_options,
                                      dup_message_content(td_, dialog_id, message_content.first.get(),
                                                          MessageContentDupType::Send, MessageCopyOptions()),
-                                     &need_update_dialog_pos);
+                                     &need_update_dialog_pos, i != 0);
     result.push_back(m->message_id);
     auto ttl = message_content.second;
     if (ttl > 0) {
@@ -23231,8 +23242,10 @@ void MessagesManager::on_upload_message_media_finished(int64 media_album_id, Dia
   if (request.finished_count == request.message_ids.size() || request.results[pos].is_error()) {
     // must use send_closure_later if some messages may be being deleted now
     // but this function is called only through send_closure_later, so there should be no being deleted messages
-    // we must to use synchronous calls to keep the correct message order during copying of multiple messages
-    for (auto request_message_id : request.message_ids) {
+    // we must use synchronous calls to keep the correct message order during copying of multiple messages
+    // but "request" iterator can be invalidated by do_send_message_group, so it must not be used below
+    auto message_ids = request.message_ids;
+    for (auto request_message_id : message_ids) {
       LOG(INFO) << "Send on_media_message_ready_to_send for " << request_message_id << " in " << dialog_id;
       auto promise = PromiseCreator::lambda([this, media_album_id](Result<Message *> result) {
         if (result.is_error() || G()->close_flag()) {
@@ -23404,7 +23417,7 @@ void MessagesManager::on_media_message_ready_to_send(DialogId dialog_id, Message
   auto queue_id = get_sequence_dispatcher_id(dialog_id, MessageContentType::Photo);
   CHECK(queue_id & 1);
   auto &queue = yet_unsent_media_queues_[queue_id];
-  auto it = queue.find(message_id.get());
+  auto it = queue.find(message_id);
   if (it == queue.end()) {
     if (queue.empty()) {
       yet_unsent_media_queues_.erase(queue_id);
@@ -23429,27 +23442,33 @@ void MessagesManager::on_media_message_ready_to_send(DialogId dialog_id, Message
 void MessagesManager::on_yet_unsent_media_queue_updated(DialogId dialog_id) {
   auto queue_id = get_sequence_dispatcher_id(dialog_id, MessageContentType::Photo);
   CHECK(queue_id & 1);
-  auto &queue = yet_unsent_media_queues_[queue_id];
-  LOG(INFO) << "Queue for " << dialog_id << " is updated to size of " << queue.size();
-  while (!queue.empty()) {
+  while (true) {
+    auto it = yet_unsent_media_queues_.find(queue_id);
+    if (it == yet_unsent_media_queues_.end()) {
+      return;
+    }
+    auto &queue = it->second;
+    if (queue.empty()) {
+      yet_unsent_media_queues_.erase(it);
+      return;
+    }
     auto first_it = queue.begin();
     if (!first_it->second) {
-      break;
+      return;
     }
 
-    auto m = get_message({dialog_id, MessageId(first_it->first)});
+    auto m = get_message({dialog_id, first_it->first});
     auto promise = std::move(first_it->second);
     queue.erase(first_it);
+    LOG(INFO) << "Queue for " << dialog_id << " now has size " << queue.size();
+
+    // don't use it/queue/first_it after promise is called
     if (m != nullptr) {
       LOG(INFO) << "Can send " << FullMessageId{dialog_id, m->message_id};
       promise.set_value(std::move(m));
     } else {
       promise.set_error(Status::Error(400, "Message not found"));
     }
-  }
-  LOG(INFO) << "Queue for " << dialog_id << " now has size " << queue.size();
-  if (queue.empty()) {
-    yet_unsent_media_queues_.erase(queue_id);
   }
 }
 
@@ -23661,7 +23680,7 @@ Result<MessageId> MessagesManager::send_inline_query_result_message(DialogId dia
   Message *m = get_message_to_send(d, top_thread_message_id, reply_to_message_id, message_send_options,
                                    dup_message_content(td_, dialog_id, content->message_content.get(),
                                                        MessageContentDupType::SendViaBot, MessageCopyOptions()),
-                                   &need_update_dialog_pos, nullptr, true);
+                                   &need_update_dialog_pos, false, nullptr, true);
   m->hide_via_bot = hide_via_bot;
   if (!hide_via_bot) {
     m->via_bot_user_id = td_->inline_queries_manager_->get_inline_bot_user_id(query_id);
@@ -25312,7 +25331,7 @@ Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_i
     }
 
     Message *m = get_message_to_send(to_dialog, MessageId(), MessageId(), message_send_options, std::move(content),
-                                     &need_update_dialog_pos, std::move(forward_info));
+                                     &need_update_dialog_pos, i + 1 != message_ids.size(), std::move(forward_info));
     m->real_forward_from_dialog_id = from_dialog_id;
     m->real_forward_from_message_id = message_id;
     m->via_bot_user_id = forwarded_message->via_bot_user_id;
@@ -25389,9 +25408,9 @@ Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_i
 
   if (!copied_messages.empty()) {
     for (auto &copied_message : copied_messages) {
-      Message *m = get_message_to_send(to_dialog, copied_message.top_thread_message_id,
-                                       copied_message.reply_to_message_id, message_send_options,
-                                       std::move(copied_message.content), &need_update_dialog_pos, nullptr, true);
+      Message *m = get_message_to_send(
+          to_dialog, copied_message.top_thread_message_id, copied_message.reply_to_message_id, message_send_options,
+          std::move(copied_message.content), &need_update_dialog_pos, false, nullptr, true);
       m->disable_web_page_preview = copied_message.disable_web_page_preview;
       if (copied_message.media_album_id != 0) {
         m->media_album_id = new_media_album_ids[copied_message.media_album_id].first;
@@ -25502,10 +25521,10 @@ Result<vector<MessageId>> MessagesManager::resend_messages(DialogId dialog_id, v
 
     MessageSendOptions options(message->disable_notification, message->from_background,
                                get_message_schedule_date(message.get()));
-    Message *m =
-        get_message_to_send(d, message->top_thread_message_id,
-                            get_reply_to_message_id(d, message->top_thread_message_id, message->reply_to_message_id),
-                            options, std::move(new_contents[i]), &need_update_dialog_pos, nullptr, message->is_copy);
+    Message *m = get_message_to_send(
+        d, message->top_thread_message_id,
+        get_reply_to_message_id(d, message->top_thread_message_id, message->reply_to_message_id), options,
+        std::move(new_contents[i]), &need_update_dialog_pos, false, nullptr, message->is_copy);
     m->reply_markup = std::move(message->reply_markup);
     m->via_bot_user_id = message->via_bot_user_id;
     m->disable_web_page_preview = message->disable_web_page_preview;
@@ -29231,12 +29250,11 @@ void MessagesManager::on_send_dialog_action_timeout(DialogId dialog_id) {
   pending_send_dialog_action_timeout_.add_timeout_in(dialog_id.get(), 4.0);
 
   CHECK(!queue_it->second.empty());
-  MessageId message_id(queue_it->second.begin()->first);
-  const Message *m = get_message(d, message_id);
+  const Message *m = get_message(d, queue_it->second.begin()->first);
   if (m == nullptr) {
     return;
   }
-  if (m->forward_info != nullptr || m->had_forward_info || message_id.is_scheduled()) {
+  if (m->forward_info != nullptr || m->had_forward_info || m->message_id.is_scheduled()) {
     return;
   }
 
@@ -31056,7 +31074,7 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
     auto queue_id = get_sequence_dispatcher_id(dialog_id, message_content_type);
     if (queue_id & 1) {
       LOG(INFO) << "Add " << message_id << " from " << source << " to queue " << queue_id;
-      yet_unsent_media_queues_[queue_id][message_id.get()];  // reserve place for promise
+      yet_unsent_media_queues_[queue_id][message_id];  // reserve place for promise
       if (!td_->auth_manager_->is_bot()) {
         pending_send_dialog_action_timeout_.add_timeout_in(dialog_id.get(), 1.0);
       }
@@ -34258,9 +34276,8 @@ void MessagesManager::on_get_channel_dialog(DialogId dialog_id, MessageId last_m
   // TODO properly support last_message_id <= d->last_new_message_id
   if (last_message_id > d->last_new_message_id) {  // if last message is really a new message
     if (!d->last_new_message_id.is_valid() && last_message_id <= d->max_added_message_id) {
-      set_dialog_last_new_message_id(d, last_message_id, "on_get_channel_dialog 15");  // remove too new messages
-      set_dialog_first_database_message_id(d, MessageId(), "on_get_channel_dialog 16");
-      set_dialog_last_database_message_id(d, MessageId(), "on_get_channel_dialog 17");
+      auto prev_message_id = MessageId(ServerMessageId(last_message_id.get_server_message_id().get() - 1));
+      remove_dialog_newer_messages(d, prev_message_id, "on_get_channel_dialog 15");
     }
     d->last_new_message_id = MessageId();
     set_dialog_last_message_id(d, MessageId(), "on_get_channel_dialog 20");
@@ -34544,7 +34561,9 @@ void MessagesManager::after_get_channel_difference(DialogId dialog_id, bool succ
       LOG(ERROR) << "Unknown dialog " << dialog_id;
       return;
     }
-    for (auto &request : it_get_message_requests->second) {
+    auto requests = std::move(it_get_message_requests->second);
+    postponed_get_message_requests_.erase(it_get_message_requests);
+    for (auto &request : requests) {
       auto message_id = request.message_id;
       LOG(INFO) << "Run postponed getMessage request for " << message_id << " in " << dialog_id;
       CHECK(message_id.is_valid());
@@ -34555,7 +34574,6 @@ void MessagesManager::after_get_channel_difference(DialogId dialog_id, bool succ
         get_message_from_server({dialog_id, message_id}, std::move(request.promise), std::move(request.input_message));
       }
     }
-    postponed_get_message_requests_.erase(it_get_message_requests);
   }
 
   auto it = pending_channel_on_get_dialogs_.find(dialog_id);
