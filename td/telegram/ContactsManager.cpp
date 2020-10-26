@@ -12387,6 +12387,7 @@ bool ContactsManager::get_user(UserId user_id, int left_tries, Promise<Unit> &&p
     return false;
   }
 
+  user_id.set_time();
   promise.set_value(Unit());
   return true;
 }
@@ -12397,6 +12398,7 @@ ContactsManager::User *ContactsManager::add_user(UserId user_id, const char *sou
   if (user_ptr == nullptr) {
     user_ptr = make_unique<User>();
   }
+  user_id.set_time();
   return user_ptr.get();
 }
 
@@ -12405,6 +12407,7 @@ const ContactsManager::UserFull *ContactsManager::get_user_full(UserId user_id) 
   if (p == users_full_.end()) {
     return nullptr;
   } else {
+    user_id.set_time();
     return p->second.get();
   }
 }
@@ -12414,6 +12417,7 @@ ContactsManager::UserFull *ContactsManager::get_user_full(UserId user_id) {
   if (p == users_full_.end()) {
     return nullptr;
   } else {
+    user_id.set_time();
     return p->second.get();
   }
 }
@@ -12425,6 +12429,7 @@ ContactsManager::UserFull *ContactsManager::add_user_full(UserId user_id) {
     user_full_ptr = make_unique<UserFull>();
     user_full_ptr->can_pin_messages = (user_id == get_my_id());
   }
+  user_id.set_time();
   return user_full_ptr.get();
 }
 
@@ -12438,6 +12443,7 @@ void ContactsManager::reload_user(UserId user_id, Promise<Unit> &&promise) {
   if (input_user == nullptr) {
     return promise.set_error(Status::Error(6, "User info not found"));
   }
+  user_id.set_time();
 
   // there is no much reason to combine different requests into one request
   vector<tl_object_ptr<telegram_api::InputUser>> users;
@@ -12474,6 +12480,7 @@ bool ContactsManager::load_user_full(UserId user_id, bool force, Promise<Unit> &
     }
   }
 
+  user_id.set_time();
   promise.set_value(Unit());
   return true;
 }
@@ -12481,6 +12488,7 @@ bool ContactsManager::load_user_full(UserId user_id, bool force, Promise<Unit> &
 void ContactsManager::reload_user_full(UserId user_id) {
   auto input_user = get_input_user(user_id);
   if (input_user != nullptr) {
+    user_id.set_time();
     send_get_user_full_query(user_id, std::move(input_user), Auto(), "reload_user_full");
   }
 }
@@ -12502,6 +12510,7 @@ const ContactsManager::BotInfo *ContactsManager::get_bot_info(UserId user_id) co
   if (p == bot_infos_.end()) {
     return nullptr;
   } else {
+    user_id.set_time();
     return p->second.get();
   }
 }
@@ -12511,6 +12520,7 @@ ContactsManager::BotInfo *ContactsManager::get_bot_info(UserId user_id) {
   if (p == bot_infos_.end()) {
     return nullptr;
   } else {
+    user_id.set_time();
     return p->second.get();
   }
 }
@@ -12521,6 +12531,7 @@ ContactsManager::BotInfo *ContactsManager::add_bot_info(UserId user_id) {
   if (bot_info_ptr == nullptr) {
     bot_info_ptr = make_unique<BotInfo>();
   }
+  user_id.set_time();
   return bot_info_ptr.get();
 }
 

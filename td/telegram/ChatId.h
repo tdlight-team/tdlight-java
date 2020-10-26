@@ -20,9 +20,12 @@ class ChatId {
   int64 time_ = INT64_MAX;
 
  public:
-  ChatId() = default;
+  explicit ChatId() {
+    set_time();
+  };
 
   explicit ChatId(int32 chat_id) : id(chat_id) {
+    set_time();
   }
   template <class T, typename = std::enable_if_t<std::is_convertible<T, int32>::value>>
   ChatId(T chat_id) = delete;

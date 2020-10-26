@@ -20,9 +20,12 @@ class UserId {
   int64 time_ = INT64_MAX;
 
  public:
-  UserId() = default;
+  explicit UserId() {
+    set_time();
+  }
 
   explicit UserId(int32 user_id) : id(user_id) {
+    set_time();
   }
   template <class T, typename = std::enable_if_t<std::is_convertible<T, int32>::value>>
   UserId(T user_id) = delete;

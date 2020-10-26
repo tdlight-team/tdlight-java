@@ -21,9 +21,12 @@ class FileId {
   int64 time_ = INT64_MAX;
 
  public:
-  FileId() = default;
+  FileId() {
+    set_time();
+  }
 
   FileId(int32 file_id, int32 remote_id) : id(file_id), remote_id(remote_id) {
+    set_time();
   }
   template <class T1, class T2, typename = std::enable_if_t<std::is_convertible<T1, int32>::value>,
             typename = std::enable_if_t<std::is_convertible<T2, int32>::value>>
