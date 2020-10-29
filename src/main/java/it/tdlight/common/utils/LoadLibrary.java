@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.reflect.InvocationTargetException;
+import it.tdlight.jni.ObjectsUtils;
 
 /**
  * The class to load the libraries needed to run Tdlib
@@ -144,8 +145,8 @@ public class LoadLibrary {
 		}
 		InputStream libInputStream;
 		try {
-			libInputStream = (InputStream) classForResource.getDeclaredMethod("getLibraryAsStream").invoke(InputStream.class);
-		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			libInputStream = ObjectsUtils.requireNonNull((InputStream) classForResource.getDeclaredMethod("getLibraryAsStream").invoke(InputStream.class));
+		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NullPointerException e) {
 			throw new IOException("Native libraries for platform " + os + "-" + arch + " not found!", e);
 		}
 		if (Files.notExists(tempFile)) {
