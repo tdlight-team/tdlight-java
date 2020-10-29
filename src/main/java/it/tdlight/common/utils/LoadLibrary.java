@@ -144,7 +144,7 @@ public class LoadLibrary {
 		}
 		InputStream libInputStream;
 		try {
-			libInputStream = (InputStream) this.getClass().getDeclaredMethod("getLibraryAsStream").invoke(InputStream.class);
+			libInputStream = (InputStream) classForResource.getDeclaredMethod("getLibraryAsStream").invoke(InputStream.class);
 		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 			throw new IOException("Native libraries for platform " + os + "-" + arch + " not found!", e);
 		}
