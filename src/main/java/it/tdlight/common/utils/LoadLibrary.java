@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * The class to load the libraries needed to run Tdlib
@@ -104,29 +105,49 @@ public class LoadLibrary {
 			case linux:
 				switch (arch) {
 					case amd64:
-						classForResource = LibraryVersion.LINUX_AMD64_CLASS;
+						try {
+							classForResource = Class.forName(LibraryVersion.LINUX_AMD64_CLASS);
+						} catch (ClassNotFoundException e) {
+							// not found
+						}
 						break;
 					case aarch64:
-						classForResource = LibraryVersion.LINUX_AARCH64_CLASS;
+						try {
+							classForResource = Class.forName(LibraryVersion.LINUX_AARCH64_CLASS);
+						} catch (ClassNotFoundException e) {
+							// not found
+						}
 						break;
 				}
 				break;
 			case osx:
 				if (arch == Arch.amd64) {
-					classForResource = LibraryVersion.OSX_AMD64_CLASS;
+					try {
+						classForResource = Class.forName(LibraryVersion.OSX_AMD64_CLASS);
+					} catch (ClassNotFoundException e) {
+						// not found
+					}
 				}
 				break;
 			case win:
 				if (arch == Arch.amd64) {
-					classForResource = LibraryVersion.WINDOWS_AMD64_CLASS;
+					try {
+						classForResource = Class.forName(LibraryVersion.WINDOWS_AMD64_CLASS);
+					} catch (ClassNotFoundException e) {
+						// not found
+					}
 				}
 				break;
 		}
 		if (classForResource == null) {
 			throw new IOException("Native libraries for platform " + os + "-" + arch + " not found!");
 		}
-		String libPath = createPath("libs", os.name(), arch.name(), libname) + getExt(os);
-		InputStream libInputStream = classForResource.getResourceAsStream(libPath);
+		InputStream libInputStream;
+		try {
+			libInputStream = (InputStream) this.getClass().getDeclaredMethod("getLibraryAsStream").invoke(InputStream.class);
+		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			throw new IOException("Native libraries for platform " + os + "-" + arch + " not found!", e);
+		}
 		if (Files.notExists(tempFile)) {
 			Files.copy(libInputStream, tempFile);
 		}
