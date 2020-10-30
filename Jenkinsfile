@@ -78,7 +78,21 @@ pipeline {
 				sh "git commit -m \"Add generated files\" || true"
 				sh "cd tdlib; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} clean deploy"
 				sh "cd tdlight; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} clean deploy"
-				/* Publish javadocs */
+			}
+		}
+
+		stage("Publish Javadocs") {
+			agent {
+				docker {
+					image 'maven:3.6.3-openjdk-11'
+					args '-v $HOME:/var/maven'
+					reuseNode true
+				}
+			}
+			when {
+				expression { params.RELEASE }
+			}
+			steps {
 				sh "\
 					cd tdlight/target/apidocs; \
 					git remote add origin https://git.ignuranza.net/tdlight-team/tdlight-docs; \
