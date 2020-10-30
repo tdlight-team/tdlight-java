@@ -44,62 +44,68 @@ pipeline {
 				sh "./jenkins/scripts/generate_tdapi.sh"
 			}
 		}
-
-		stage("Build & Deploy SNAPSHOT") {
-			agent {
-				docker {
-					image 'maven:3.6.3-openjdk-11'
-					args '-v $HOME:/var/maven'
-					reuseNode true
+		
+		stage("Build & Deploy") {
+			parallel {
+				stage("Deploy SNAPSHOT") {
+					agent {
+						docker {
+							image 'maven:3.6.3-openjdk-11'
+							args '-v $HOME:/var/maven'
+							reuseNode true
+						}
+					}
+					steps {
+						sh "cd tdlib; mvn -s $MVN_SET -B -Ptarget-snapshot deploy"
+						sh "cd tdlight; mvn -s $MVN_SET -B -Ptarget-snapshot deploy"
+					}
 				}
-			}
-			steps {
-				sh "cd tdlib; mvn -s $MVN_SET -B deploy"
-				sh "cd tdlight; mvn -s $MVN_SET -B deploy"
-			}
-		}
 
-		stage("Release") {
-			agent {
-				docker {
-					image 'maven:3.6.3-openjdk-11'
-					args '-v $HOME:/var/maven'
-					reuseNode true
-				}
-			}
-			when {
-				expression { params.RELEASE }
-			}
-			steps {
-				sh "git config user.email \"jenkins@mchv.eu\""
-				sh "git config user.name \"Jenkins\""
-				sh "cd ${workspace}"
-				sh "git add --all || true"
-				sh "git commit -m \"Add generated files\" || true"
-				sh "cd tdlib; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} clean deploy"
-				sh "cd tdlight; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} clean deploy"
-			}
-		}
+				stage("Release") {
+					stage("Deploy Release") {
+						agent {
+							docker {
+								image 'maven:3.6.3-openjdk-11'
+								args '-v $HOME:/var/maven'
+								reuseNode true
+							}
+						}
+						when {
+							expression { params.RELEASE }
+						}
+						steps {
+							sh "git config user.email \"jenkins@mchv.eu\""
+							sh "git config user.name \"Jenkins\""
+							sh "cd ${workspace}"
+							sh "git add --all || true"
+							sh "git commit -m \"Add generated files\" || true"
+							sh "cd tdlib; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -Ptarget-release clean deploy"
+							sh "cd tdlight; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -Ptarget-release clean deploy"
+						}
+					}
 
-		stage("Publish Javadocs") {
-			agent {
-				docker {
-					image 'maven:3.6.3-openjdk-11'
-					args '-v $HOME:/var/maven'
-					reuseNode true
+					stage("Publish Javadocs") {
+						agent {
+							docker {
+								image 'maven:3.6.3-openjdk-11'
+								args '-v $HOME:/var/maven'
+								reuseNode true
+							}
+						}
+						when {
+							expression { params.RELEASE }
+						}
+						steps {
+							sh "\
+								cd tdlight/target-release/apidocs; \
+								git remote add origin https://git.ignuranza.net/tdlight-team/tdlight-docs; \
+								git add -A; \
+								git commit -m \"Update javadocs\"; \
+								git push --set-upstream origin master --force; \
+								"
+						}
+					}
 				}
-			}
-			when {
-				expression { params.RELEASE }
-			}
-			steps {
-				sh "\
-					cd tdlight/target/apidocs; \
-					git remote add origin https://git.ignuranza.net/tdlight-team/tdlight-docs; \
-					git add -A; \
-					git commit -m \"Update javadocs\"; \
-					git push --set-upstream origin master --force; \
-					"
 			}
 		}
 	}
