@@ -101,8 +101,8 @@ pipeline {
 									cd tdlight/target-release/apidocs; \
 									git init; \
 									git remote add origin https://git.ignuranza.net/tdlight-team/tdlight-docs; \
-									git config user.email \"jenkins@mchv.eu\"; \
-									git config user.name \"Jenkins\"; \
+									git config user.email \"andrea@warp.ovh\"; \
+									git config user.name \"Andrea Cavalli\"; \
 									git add -A; \
 									git commit -m \"Update javadocs\"; \
 									git push --set-upstream origin master --force; \
