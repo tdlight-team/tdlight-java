@@ -97,16 +97,21 @@ pipeline {
 								expression { params.RELEASE }
 							}
 							steps {
-								sh "\
-									cd tdlight/target-release/apidocs; \
-									git init; \
-									git remote add origin https://git.ignuranza.net/tdlight-team/tdlight-docs; \
-									git config user.email \"andrea@warp.ovh\"; \
-									git config user.name \"Andrea Cavalli\"; \
-									git add -A; \
-									git commit -m \"Update javadocs\"; \
-									git push --set-upstream origin master --force; \
-									"
+								withCredentials([usernamePassword(credentialsId: "gitignuranzapassword", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+										script {
+												env.encodedPass=URLEncoder.encode(PASS, "UTF-8")
+										}
+										sh "\
+											cd tdlight/target-release/apidocs; \
+											git init; \
+											git remote add origin https://${USER}:${encodedPass}@git.ignuranza.net/tdlight-team/tdlight-docs; \
+											git config user.email \"andrea@warp.ovh\"; \
+											git config user.name \"Andrea Cavalli\"; \
+											git add -A; \
+											git commit -m \"Update javadocs\"; \
+											git push --set-upstream origin master --force; \
+											"
+								}
 							}
 						}
 					}
