@@ -71,6 +71,20 @@
 			<version>8.3.1</version>
 		</dependency>
 	</dependencies>
+	<profiles>
+		<profile>
+			<id>releaseDir</id>
+			<build>
+				<directory>target-release</directory>
+			</build>
+		</profile>
+		<profile>
+			<id>snapshotDir</id>
+			<build>
+				<directory>target-snapshot</directory>
+			</build>
+		</profile>
+	</profiles>
 	<build>
 		<sourceDirectory>../src/main/java</sourceDirectory>
 		<plugins>

@@ -56,8 +56,8 @@ pipeline {
 						}
 					}
 					steps {
-						sh "cd tdlib; mvn -s $MVN_SET -B -Ptarget-snapshot deploy"
-						sh "cd tdlight; mvn -s $MVN_SET -B -Ptarget-snapshot deploy"
+						sh "cd tdlib; mvn -s $MVN_SET -B -PsnapshotDir deploy"
+						sh "cd tdlight; mvn -s $MVN_SET -B -PsnapshotDir deploy"
 					}
 				}
 
@@ -80,8 +80,8 @@ pipeline {
 								sh "cd ${workspace}"
 								sh "git add --all || true"
 								sh "git commit -m \"Add generated files\" || true"
-								sh "cd tdlib; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -Ptarget-release clean deploy"
-								sh "cd tdlight; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -Ptarget-release clean deploy"
+								sh "cd tdlib; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -PreleaseDir clean deploy"
+								sh "cd tdlight; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -PreleaseDir clean deploy"
 							}
 						}
 
