@@ -62,47 +62,49 @@ pipeline {
 				}
 
 				stage("Release") {
-					stage("Deploy Release") {
-						agent {
-							docker {
-								image 'maven:3.6.3-openjdk-11'
-								args '-v $HOME:/var/maven'
-								reuseNode true
+					stages {
+						stage("Deploy Release") {
+							agent {
+								docker {
+									image 'maven:3.6.3-openjdk-11'
+									args '-v $HOME:/var/maven'
+									reuseNode true
+								}
+							}
+							when {
+								expression { params.RELEASE }
+							}
+							steps {
+								sh "git config user.email \"jenkins@mchv.eu\""
+								sh "git config user.name \"Jenkins\""
+								sh "cd ${workspace}"
+								sh "git add --all || true"
+								sh "git commit -m \"Add generated files\" || true"
+								sh "cd tdlib; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -Ptarget-release clean deploy"
+								sh "cd tdlight; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -Ptarget-release clean deploy"
 							}
 						}
-						when {
-							expression { params.RELEASE }
-						}
-						steps {
-							sh "git config user.email \"jenkins@mchv.eu\""
-							sh "git config user.name \"Jenkins\""
-							sh "cd ${workspace}"
-							sh "git add --all || true"
-							sh "git commit -m \"Add generated files\" || true"
-							sh "cd tdlib; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -Ptarget-release clean deploy"
-							sh "cd tdlight; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} -Ptarget-release clean deploy"
-						}
-					}
 
-					stage("Publish Javadocs") {
-						agent {
-							docker {
-								image 'maven:3.6.3-openjdk-11'
-								args '-v $HOME:/var/maven'
-								reuseNode true
+						stage("Publish Javadocs") {
+							agent {
+								docker {
+									image 'maven:3.6.3-openjdk-11'
+									args '-v $HOME:/var/maven'
+									reuseNode true
+								}
 							}
-						}
-						when {
-							expression { params.RELEASE }
-						}
-						steps {
-							sh "\
-								cd tdlight/target-release/apidocs; \
-								git remote add origin https://git.ignuranza.net/tdlight-team/tdlight-docs; \
-								git add -A; \
-								git commit -m \"Update javadocs\"; \
-								git push --set-upstream origin master --force; \
-								"
+							when {
+								expression { params.RELEASE }
+							}
+							steps {
+								sh "\
+									cd tdlight/target-release/apidocs; \
+									git remote add origin https://git.ignuranza.net/tdlight-team/tdlight-docs; \
+									git add -A; \
+									git commit -m \"Update javadocs\"; \
+									git push --set-upstream origin master --force; \
+									"
+							}
 						}
 					}
 				}
