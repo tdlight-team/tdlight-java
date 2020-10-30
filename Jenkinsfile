@@ -78,6 +78,14 @@ pipeline {
 				sh "git commit -m \"Add generated files\" || true"
 				sh "cd tdlib; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} clean deploy"
 				sh "cd tdlight; mvn -B -s $MVN_SET -Drevision=${BUILD_NUMBER} clean deploy"
+				/* Publish javadocs */
+				sh "\
+					cd tdlight/target/apidocs; \
+					git remote add origin https://git.ignuranza.net/tdlight-team/tdlight-docs; \
+					git add -A; \
+					git commit -m \"Update javadocs\"; \
+					git push --set-upstream origin master --force; \
+					"
 			}
 		}
 	}
