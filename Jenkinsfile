@@ -103,7 +103,7 @@ pipeline {
 										}
 										sh "\
 											cd tdlight/target-release/apidocs; \
-											find . -name '*.html' -exec sed -i -r 's/<head>/<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">/' {} \\; \
+											find . -name '*.html' -exec sed -i -r 's/<head>/<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>#memberSummary_tabpanel \{overflow-x: auto;\}\n#search \{width: 400px;max-width: 65vw;\}</style>/' {} \\; \
 											git init; \
 											git remote add origin https://${USER}:${encodedPass}@git.ignuranza.net/tdlight-team/tdlight-docs; \
 											git config user.email \"andrea@warp.ovh\"; \
