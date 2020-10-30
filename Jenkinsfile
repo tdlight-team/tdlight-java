@@ -99,6 +99,7 @@ pipeline {
 							steps {
 								sh "\
 									cd tdlight/target-release/apidocs; \
+									git init; \
 									git remote add origin https://git.ignuranza.net/tdlight-team/tdlight-docs; \
 									git add -A; \
 									git commit -m \"Update javadocs\"; \
