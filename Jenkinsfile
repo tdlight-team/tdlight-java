@@ -102,8 +102,9 @@ pipeline {
 												env.encodedPass=URLEncoder.encode(PASS, "UTF-8")
 										}
 										sh "\
+											set -e; \
 											cd tdlight/target-release/apidocs; \
-											find . -name '*.html' -exec sed -i -r 's/<head>/<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>#memberSummary_tabpanel \\{overflow-x: auto;\\}\n#search \\{width: 400px;max-width: 65vw;\\}</style>/' {} \\;; \
+											find . -name '*.html' -exec sed -i -r 's/<head>/<head>\\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><style>\\n\\t#memberSummary_tabpanel{overflow-x: auto;}\\n\\t#search{width: 400px;max-width: 65vw;}\\n<\\/style>/' {} \\;; \
 											git init; \
 											git remote add origin https://${USER}:${encodedPass}@git.ignuranza.net/tdlight-team/tdlight-docs; \
 											git config user.email \"andrea@warp.ovh\"; \
