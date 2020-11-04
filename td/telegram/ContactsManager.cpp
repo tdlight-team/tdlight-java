@@ -3317,7 +3317,7 @@ void ContactsManager::UserFull::store(StorerT &storer) const {
   bool has_photo = !photo.is_empty();
   BEGIN_STORE_FLAGS();
   STORE_FLAG(has_about);
-  STORE_FLAG(false);
+  STORE_FLAG(is_blocked);
   STORE_FLAG(can_be_called);
   STORE_FLAG(has_private_calls);
   STORE_FLAG(can_pin_messages);
@@ -3340,10 +3340,9 @@ void ContactsManager::UserFull::parse(ParserT &parser) {
   using td::parse;
   bool has_about;
   bool has_photo;
-  bool legacy_is_blocked;
   BEGIN_PARSE_FLAGS();
   PARSE_FLAG(has_about);
-  PARSE_FLAG(legacy_is_blocked);
+  PARSE_FLAG(is_blocked);
   PARSE_FLAG(can_be_called);
   PARSE_FLAG(has_private_calls);
   PARSE_FLAG(can_pin_messages);
@@ -3358,10 +3357,6 @@ void ContactsManager::UserFull::parse(ParserT &parser) {
   parse_time(expires_at, parser);
   if (has_photo) {
     parse(photo, parser);
-  }
-
-  if (legacy_is_blocked) {
-    LOG(DEBUG) << "Ignore legacy is_blocked flag";
   }
 }
 
@@ -4213,8 +4208,7 @@ RestrictedRights ContactsManager::get_user_default_permissions(UserId user_id) c
     return RestrictedRights(false, false, false, false, false, false, false, false, false, false, false);
   }
 
-  bool can_pin_messages = user_id == get_my_id(); /* TODO */
-  return RestrictedRights(true, true, true, true, true, true, true, true, false, false, can_pin_messages);
+  return RestrictedRights(true, true, true, true, true, true, true, true, false, false, true);
 }
 
 RestrictedRights ContactsManager::get_chat_default_permissions(ChatId chat_id) const {
@@ -9166,15 +9160,11 @@ void ContactsManager::on_get_user_full(tl_object_ptr<telegram_api::userFull> &&u
                                                            "on_get_user_full");
 
   {
-    bool is_blocked = (user_full->flags_ & USER_FULL_FLAG_IS_BLOCKED) != 0;
-    td_->messages_manager_->on_update_dialog_is_blocked(DialogId(user_id), is_blocked);
-  }
-  {
     MessageId pinned_message_id;
     if ((user_full->flags_ & USER_FULL_FLAG_HAS_PINNED_MESSAGE) != 0) {
       pinned_message_id = MessageId(ServerMessageId(user_full->pinned_msg_id_));
     }
-    td_->messages_manager_->on_update_dialog_pinned_message_id(DialogId(user_id), pinned_message_id);
+    td_->messages_manager_->on_update_dialog_last_pinned_message_id(DialogId(user_id), pinned_message_id);
   }
   {
     FolderId folder_id;
@@ -9188,6 +9178,12 @@ void ContactsManager::on_get_user_full(tl_object_ptr<telegram_api::userFull> &&u
 
   UserFull *user = add_user_full(user_id);
   user->expires_at = Time::now() + USER_FULL_EXPIRE_TIME;
+
+  {
+    bool is_blocked = (user_full->flags_ & USER_FULL_FLAG_IS_BLOCKED) != 0;
+    on_update_user_full_is_blocked(user, user_id, is_blocked);
+    td_->messages_manager_->on_update_dialog_is_blocked(DialogId(user_id), is_blocked);
+  }
 
   on_update_user_full_common_chat_count(user, user_id, user_full->common_chats_count_);
   on_update_user_full_need_phone_number_privacy_exception(
@@ -9412,7 +9408,7 @@ void ContactsManager::on_get_chat_full(tl_object_ptr<telegram_api::ChatFull> &&c
       } else if (c->version >= c->pinned_message_version) {
         LOG(INFO) << "Receive pinned " << pinned_message_id << " in " << chat_id << " with version " << c->version
                   << ". Current version is " << c->pinned_message_version;
-        td_->messages_manager_->on_update_dialog_pinned_message_id(DialogId(chat_id), pinned_message_id);
+        td_->messages_manager_->on_update_dialog_last_pinned_message_id(DialogId(chat_id), pinned_message_id);
         if (c->version > c->pinned_message_version) {
           c->pinned_message_version = c->version;
           c->need_save_to_database = true;
@@ -9581,7 +9577,7 @@ void ContactsManager::on_get_chat_full(tl_object_ptr<telegram_api::ChatFull> &&c
       if ((channel_full->flags_ & CHANNEL_FULL_FLAG_HAS_PINNED_MESSAGE) != 0) {
         pinned_message_id = MessageId(ServerMessageId(channel_full->pinned_msg_id_));
       }
-      td_->messages_manager_->on_update_dialog_pinned_message_id(DialogId(channel_id), pinned_message_id);
+      td_->messages_manager_->on_update_dialog_last_pinned_message_id(DialogId(channel_id), pinned_message_id);
     }
     {
       FolderId folder_id;
@@ -9974,6 +9970,29 @@ void ContactsManager::on_update_user_local_was_online(User *u, UserId user_id, i
   }
 }
 
+void ContactsManager::on_update_user_is_blocked(UserId user_id, bool is_blocked) {
+  if (!user_id.is_valid()) {
+    LOG(ERROR) << "Receive invalid " << user_id;
+    return;
+  }
+
+  UserFull *user_full = get_user_full_force(user_id);
+  if (user_full == nullptr) {
+    return;
+  }
+  on_update_user_full_is_blocked(user_full, user_id, is_blocked);
+  update_user_full(user_full, user_id);
+}
+
+void ContactsManager::on_update_user_full_is_blocked(UserFull *user_full, UserId user_id, bool is_blocked) {
+  CHECK(user_full != nullptr);
+  if (user_full->is_blocked != is_blocked) {
+    LOG(INFO) << "Receive update user full is blocked with " << user_id << " and is_blocked = " << is_blocked;
+    user_full->is_blocked = is_blocked;
+    user_full->is_changed = true;
+  }
+}
+
 void ContactsManager::on_update_user_common_chat_count(UserId user_id, int32 common_chat_count) {
   LOG(INFO) << "Receive " << common_chat_count << " common chat count with " << user_id;
   if (!user_id.is_valid()) {
@@ -10249,6 +10268,7 @@ void ContactsManager::drop_user_full(UserId user_id) {
   user_full->expires_at = 0.0;
 
   user_full->photo = Photo();
+  user_full->is_blocked = false;
   user_full->can_be_called = false;
   user_full->supports_video_calls = false;
   user_full->has_private_calls = false;
@@ -11747,7 +11767,7 @@ void ContactsManager::on_update_chat_pinned_message(ChatId chat_id, MessageId pi
       c->version = version;
       c->need_save_to_database = true;
     }
-    td_->messages_manager_->on_update_dialog_pinned_message_id(DialogId(chat_id), pinned_message_id);
+    td_->messages_manager_->on_update_dialog_last_pinned_message_id(DialogId(chat_id), pinned_message_id);
     if (version > c->pinned_message_version) {
       LOG(INFO) << "Change pinned message version of " << chat_id << " from " << c->pinned_message_version << " to "
                 << version;
@@ -12278,9 +12298,9 @@ Result<BotData> ContactsManager::get_bot_data(UserId user_id) const {
   return bot_data;
 }
 
-bool ContactsManager::is_user_online(UserId user_id) const {
+bool ContactsManager::is_user_online(UserId user_id, int32 tolerance) const {
   int32 was_online = get_user_was_online(get_user(user_id), user_id);
-  return was_online > G()->unix_time();
+  return was_online > G()->unix_time() - tolerance;
 }
 
 bool ContactsManager::is_user_status_exact(UserId user_id) const {
@@ -12341,7 +12361,7 @@ void ContactsManager::reload_dialog_info(DialogId dialog_id, Promise<Unit> &&pro
     case DialogType::Channel:
       return reload_channel(dialog_id.get_channel_id(), std::move(promise));
     default:
-      promise.set_error(Status::Error("Invalid dialog ID to reload"));
+      return promise.set_error(Status::Error("Invalid dialog ID to reload"));
   }
 }
 
@@ -12433,7 +12453,6 @@ ContactsManager::UserFull *ContactsManager::add_user_full(UserId user_id) {
   auto &user_full_ptr = users_full_[user_id];
   if (user_full_ptr == nullptr) {
     user_full_ptr = make_unique<UserFull>();
-    user_full_ptr->can_pin_messages = (user_id == get_my_id());
   }
   user_id.set_time();
   return user_full_ptr.get();
@@ -13341,18 +13360,20 @@ std::pair<int32, vector<DialogParticipant>> ContactsManager::search_chat_partici
   }
 
   auto is_dialog_participant_suitable = [this](const DialogParticipant &participant, DialogParticipantsFilter filter) {
-    switch (filter) {
-      case DialogParticipantsFilter::Contacts:
+    switch (filter.type) {
+      case DialogParticipantsFilter::Type::Contacts:
         return is_user_contact(participant.user_id);
-      case DialogParticipantsFilter::Administrators:
+      case DialogParticipantsFilter::Type::Administrators:
         return participant.status.is_administrator();
-      case DialogParticipantsFilter::Members:
+      case DialogParticipantsFilter::Type::Members:
         return participant.status.is_member();  // should be always true
-      case DialogParticipantsFilter::Restricted:
+      case DialogParticipantsFilter::Type::Restricted:
         return participant.status.is_restricted();  // should be always false
-      case DialogParticipantsFilter::Banned:
+      case DialogParticipantsFilter::Type::Banned:
         return participant.status.is_banned();  // should be always false
-      case DialogParticipantsFilter::Bots:
+      case DialogParticipantsFilter::Type::Mention:
+        return true;
+      case DialogParticipantsFilter::Type::Bots:
         return is_user_bot(participant.user_id);
       default:
         UNREACHABLE();
@@ -14196,9 +14217,10 @@ tl_object_ptr<td_api::userFullInfo> ContactsManager::get_user_full_info_object(U
   CHECK(user_full != nullptr);
   bool is_bot = is_user_bot(user_id);
   return make_tl_object<td_api::userFullInfo>(
-      get_chat_photo_object(td_->file_manager_.get(), user_full->photo), user_full->can_be_called,
-      user_full->supports_video_calls, user_full->has_private_calls, user_full->need_phone_number_privacy_exception,
-      is_bot ? string() : user_full->about, is_bot ? user_full->about : string(), user_full->common_chat_count,
+      get_chat_photo_object(td_->file_manager_.get(), user_full->photo), user_full->is_blocked,
+      user_full->can_be_called, user_full->supports_video_calls, user_full->has_private_calls,
+      user_full->need_phone_number_privacy_exception, is_bot ? string() : user_full->about,
+      is_bot ? user_full->about : string(), user_full->common_chat_count,
       is_bot ? get_bot_info_object(user_id) : nullptr);
 }
 

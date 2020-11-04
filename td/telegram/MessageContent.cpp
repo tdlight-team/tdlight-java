@@ -33,6 +33,7 @@
 #include "td/telegram/MessageEntity.h"
 #include "td/telegram/MessageEntity.hpp"
 #include "td/telegram/MessageId.h"
+#include "td/telegram/MessagesManager.h"
 #include "td/telegram/MessageSearchFilter.h"
 #include "td/telegram/misc.h"
 #include "td/telegram/net/DcId.h"
@@ -565,10 +566,26 @@ class MessageExpiredVideo : public MessageContent {
 class MessageLiveLocation : public MessageContent {
  public:
   Location location;
-  int32 period;
+  int32 period = 0;
+  int32 heading = 0;
+  int32 proximity_alert_radius = 0;
 
   MessageLiveLocation() = default;
-  MessageLiveLocation(Location &&location, int32 period) : location(std::move(location)), period(period) {
+  MessageLiveLocation(Location &&location, int32 period, int32 heading, int32 proximity_alert_radius)
+      : location(std::move(location))
+      , period(period)
+      , heading(heading)
+      , proximity_alert_radius(proximity_alert_radius) {
+    if (period < 0) {
+      period = 0;
+    }
+    if (heading < 0 || heading > 360) {
+      LOG(ERROR) << "Receive wrong heading " << heading;
+      heading = 0;
+    }
+    if (proximity_alert_radius < 0) {
+      proximity_alert_radius = 0;
+    }
   }
 
   MessageContentType get_type() const override {
@@ -671,6 +688,22 @@ class MessageDice : public MessageContent {
   }
 };
 
+class MessageProximityAlertTriggered : public MessageContent {
+ public:
+  DialogId approacher_dialog_id;
+  DialogId observer_dialog_id;
+  int32 distance = 0;
+
+  MessageProximityAlertTriggered() = default;
+  MessageProximityAlertTriggered(DialogId approacher_dialog_id, DialogId observer_dialog_id, int32 distance)
+      : approacher_dialog_id(approacher_dialog_id), observer_dialog_id(observer_dialog_id), distance(distance) {
+  }
+
+  MessageContentType get_type() const override {
+    return MessageContentType::ProximityAlertTriggered;
+  }
+};
+
 constexpr const char *MessageDice::DEFAULT_EMOJI;
 
 template <class StorerT>
@@ -731,6 +764,8 @@ static void store(const MessageContent *content, StorerT &storer) {
       auto m = static_cast<const MessageLiveLocation *>(content);
       store(m->location, storer);
       store(m->period, storer);
+      store(m->heading, storer);
+      store(m->proximity_alert_radius, storer);
       break;
     }
     case MessageContentType::Location: {
@@ -936,6 +971,13 @@ static void store(const MessageContent *content, StorerT &storer) {
       store(m->dice_value, storer);
       break;
     }
+    case MessageContentType::ProximityAlertTriggered: {
+      auto m = static_cast<const MessageProximityAlertTriggered *>(content);
+      store(m->approacher_dialog_id, storer);
+      store(m->observer_dialog_id, storer);
+      store(m->distance, storer);
+      break;
+    }
     default:
       UNREACHABLE();
   }
@@ -1025,6 +1067,16 @@ static void parse(unique_ptr<MessageContent> &content, ParserT &parser) {
       auto m = make_unique<MessageLiveLocation>();
       parse(m->location, parser);
       parse(m->period, parser);
+      if (parser.version() >= static_cast<int32>(Version::AddLiveLocationHeading)) {
+        parse(m->heading, parser);
+      } else {
+        m->heading = 0;
+      }
+      if (parser.version() >= static_cast<int32>(Version::AddLiveLocationProximityAlertDistance)) {
+        parse(m->proximity_alert_radius, parser);
+      } else {
+        m->proximity_alert_radius = 0;
+      }
       content = std::move(m);
       break;
     }
@@ -1292,6 +1344,14 @@ static void parse(unique_ptr<MessageContent> &content, ParserT &parser) {
       content = std::move(m);
       break;
     }
+    case MessageContentType::ProximityAlertTriggered: {
+      auto m = make_unique<MessageProximityAlertTriggered>();
+      parse(m->approacher_dialog_id, parser);
+      parse(m->observer_dialog_id, parser);
+      parse(m->distance, parser);
+      content = std::move(m);
+      break;
+    }
     default:
       LOG(FATAL) << "Have unknown message content type " << static_cast<int32>(content_type);
   }
@@ -1352,9 +1412,18 @@ InlineMessageContent create_inline_message_content(Td *td, FileId file_id,
     }
     case telegram_api::botInlineMessageMediaGeo::ID: {
       auto inline_message_geo = move_tl_object_as<telegram_api::botInlineMessageMediaGeo>(inline_message);
-      if (inline_message_geo->period_ > 0) {
-        result.message_content =
-            make_unique<MessageLiveLocation>(Location(inline_message_geo->geo_), inline_message_geo->period_);
+      if ((inline_message_geo->flags_ & telegram_api::botInlineMessageMediaGeo::PERIOD_MASK) != 0 &&
+          inline_message_geo->period_ > 0) {
+        auto heading = (inline_message_geo->flags_ & telegram_api::botInlineMessageMediaGeo::HEADING_MASK) != 0
+                           ? inline_message_geo->heading_
+                           : 0;
+        auto approacing_notification_radius =
+            (inline_message_geo->flags_ & telegram_api::botInlineMessageMediaGeo::PROXIMITY_NOTIFICATION_RADIUS_MASK) !=
+                    0
+                ? inline_message_geo->proximity_notification_radius_
+                : 0;
+        result.message_content = make_unique<MessageLiveLocation>(
+            Location(inline_message_geo->geo_), inline_message_geo->period_, heading, approacing_notification_radius);
       } else {
         result.message_content = make_unique<MessageLocation>(Location(inline_message_geo->geo_));
       }
@@ -1614,10 +1683,11 @@ static Result<InputMessageContent> create_input_message_content(
     }
     case td_api::inputMessageLocation::ID: {
       TRY_RESULT(location, process_input_message_location(std::move(input_message_content)));
-      if (location.second == 0) {
-        content = make_unique<MessageLocation>(std::move(location.first));
+      if (location.live_period == 0) {
+        content = make_unique<MessageLocation>(std::move(location.location));
       } else {
-        content = make_unique<MessageLiveLocation>(std::move(location.first), location.second);
+        content = make_unique<MessageLiveLocation>(std::move(location.location), location.live_period, location.heading,
+                                                   location.proximity_alert_radius);
       }
       break;
     }
@@ -1976,6 +2046,7 @@ bool can_have_input_media(const Td *td, const MessageContent *content) {
     case MessageContentType::WebsiteConnected:
     case MessageContentType::PassportDataSent:
     case MessageContentType::PassportDataReceived:
+    case MessageContentType::ProximityAlertTriggered:
       return false;
     case MessageContentType::Animation:
     case MessageContentType::Audio:
@@ -2088,6 +2159,7 @@ SecretInputMedia get_secret_input_media(const MessageContent *content, Td *td,
     case MessageContentType::WebsiteConnected:
     case MessageContentType::PassportDataSent:
     case MessageContentType::PassportDataReceived:
+    case MessageContentType::ProximityAlertTriggered:
       break;
     default:
       UNREACHABLE();
@@ -2211,8 +2283,13 @@ static tl_object_ptr<telegram_api::InputMedia> get_input_media_impl(
     case MessageContentType::LiveLocation: {
       auto m = static_cast<const MessageLiveLocation *>(content);
       int32 flags = telegram_api::inputMediaGeoLive::PERIOD_MASK;
+      if (m->heading != 0) {
+        flags |= telegram_api::inputMediaGeoLive::HEADING_MASK;
+      }
+      flags |= telegram_api::inputMediaGeoLive::PROXIMITY_NOTIFICATION_RADIUS_MASK;
       return make_tl_object<telegram_api::inputMediaGeoLive>(flags, false /*ignored*/,
-                                                             m->location.get_input_geo_point(), m->period);
+                                                             m->location.get_input_geo_point(), m->heading, m->period,
+                                                             m->proximity_alert_radius);
     }
     case MessageContentType::Location: {
       auto m = static_cast<const MessageLocation *>(content);
@@ -2272,6 +2349,7 @@ static tl_object_ptr<telegram_api::InputMedia> get_input_media_impl(
     case MessageContentType::WebsiteConnected:
     case MessageContentType::PassportDataSent:
     case MessageContentType::PassportDataReceived:
+    case MessageContentType::ProximityAlertTriggered:
       break;
     default:
       UNREACHABLE();
@@ -2394,6 +2472,7 @@ void delete_message_content_thumbnail(MessageContent *content, Td *td) {
     case MessageContentType::PassportDataSent:
     case MessageContentType::PassportDataReceived:
     case MessageContentType::Poll:
+    case MessageContentType::ProximityAlertTriggered:
       break;
     default:
       UNREACHABLE();
@@ -2453,36 +2532,23 @@ static int32 get_message_content_text_index_mask(const MessageContent *content) 
   return 0;
 }
 
-static int32 get_message_content_media_index_mask(const MessageContent *content, const Td *td, bool is_secret,
-                                                  bool is_outgoing) {
+static int32 get_message_content_media_index_mask(const MessageContent *content, const Td *td, bool is_outgoing) {
   switch (content->get_type()) {
     case MessageContentType::Animation:
       return message_search_filter_index_mask(MessageSearchFilter::Animation);
-    case MessageContentType::Audio: {
-      auto message_audio = static_cast<const MessageAudio *>(content);
-      auto duration = td->audios_manager_->get_audio_duration(message_audio->file_id);
-      return is_secret || duration > 0 ? message_search_filter_index_mask(MessageSearchFilter::Audio)
-                                       : message_search_filter_index_mask(MessageSearchFilter::Document);
-    }
+    case MessageContentType::Audio:
+      return message_search_filter_index_mask(MessageSearchFilter::Audio);
     case MessageContentType::Document:
       return message_search_filter_index_mask(MessageSearchFilter::Document);
     case MessageContentType::Photo:
       return message_search_filter_index_mask(MessageSearchFilter::Photo) |
              message_search_filter_index_mask(MessageSearchFilter::PhotoAndVideo);
-    case MessageContentType::Video: {
-      auto message_video = static_cast<const MessageVideo *>(content);
-      auto duration = td->videos_manager_->get_video_duration(message_video->file_id);
-      return is_secret || duration > 0 ? message_search_filter_index_mask(MessageSearchFilter::Video) |
-                                             message_search_filter_index_mask(MessageSearchFilter::PhotoAndVideo)
-                                       : message_search_filter_index_mask(MessageSearchFilter::Document);
-    }
-    case MessageContentType::VideoNote: {
-      auto message_video_note = static_cast<const MessageVideoNote *>(content);
-      auto duration = td->video_notes_manager_->get_video_note_duration(message_video_note->file_id);
-      return is_secret || duration > 0 ? message_search_filter_index_mask(MessageSearchFilter::VideoNote) |
-                                             message_search_filter_index_mask(MessageSearchFilter::VoiceAndVideoNote)
-                                       : message_search_filter_index_mask(MessageSearchFilter::Document);
-    }
+    case MessageContentType::Video:
+      return message_search_filter_index_mask(MessageSearchFilter::Video) |
+             message_search_filter_index_mask(MessageSearchFilter::PhotoAndVideo);
+    case MessageContentType::VideoNote:
+      return message_search_filter_index_mask(MessageSearchFilter::VideoNote) |
+             message_search_filter_index_mask(MessageSearchFilter::VoiceAndVideoNote);
     case MessageContentType::VoiceNote:
       return message_search_filter_index_mask(MessageSearchFilter::VoiceNote) |
              message_search_filter_index_mask(MessageSearchFilter::VoiceAndVideoNote);
@@ -2530,6 +2596,7 @@ static int32 get_message_content_media_index_mask(const MessageContent *content,
     case MessageContentType::PassportDataReceived:
     case MessageContentType::Poll:
     case MessageContentType::Dice:
+    case MessageContentType::ProximityAlertTriggered:
       return 0;
     default:
       UNREACHABLE();
@@ -2538,9 +2605,8 @@ static int32 get_message_content_media_index_mask(const MessageContent *content,
   return 0;
 }
 
-int32 get_message_content_index_mask(const MessageContent *content, const Td *td, bool is_secret, bool is_outgoing) {
-  return get_message_content_text_index_mask(content) |
-         get_message_content_media_index_mask(content, td, is_secret, is_outgoing);
+int32 get_message_content_index_mask(const MessageContent *content, const Td *td, bool is_outgoing) {
+  return get_message_content_text_index_mask(content) | get_message_content_media_index_mask(content, td, is_outgoing);
 }
 
 MessageId get_message_content_pinned_message_id(const MessageContent *content) {
@@ -2805,7 +2871,8 @@ void merge_message_contents(Td *td, const MessageContent *old_content, MessageCo
       if (old_->location != new_->location) {
         need_update = true;
       }
-      if (old_->period != new_->period) {
+      if (old_->period != new_->period || old_->heading != new_->heading ||
+          old_->proximity_alert_radius != new_->proximity_alert_radius) {
         need_update = true;
       }
       if (old_->location.get_access_hash() != new_->location.get_access_hash()) {
@@ -2893,8 +2960,8 @@ void merge_message_contents(Td *td, const MessageContent *old_content, MessageCo
             auto volume_id = -new_file_view.remote_location().get_id();
             FileId file_id = td->file_manager_->register_remote(
                 FullRemoteFileLocation({FileType::Photo, 'i'}, new_file_view.remote_location().get_id(),
-                                       new_file_view.remote_location().get_access_hash(), 0, volume_id,
-                                       DcId::invalid(), new_file_view.remote_location().get_file_reference().str()),
+                                       new_file_view.remote_location().get_access_hash(), 0, volume_id, DcId::invalid(),
+                                       new_file_view.remote_location().get_file_reference().str()),
                 FileLocationSource::FromServer, dialog_id, old_photo->photos.back().size, 0, "");
             LOG_STATUS(td->file_manager_->merge(file_id, old_file_id));
           }
@@ -3142,6 +3209,15 @@ void merge_message_contents(Td *td, const MessageContent *old_content, MessageCo
       }
       break;
     }
+    case MessageContentType::ProximityAlertTriggered: {
+      auto old_ = static_cast<const MessageProximityAlertTriggered *>(old_content);
+      auto new_ = static_cast<const MessageProximityAlertTriggered *>(new_content);
+      if (old_->approacher_dialog_id != new_->approacher_dialog_id ||
+          old_->observer_dialog_id != new_->observer_dialog_id || old_->distance != new_->distance) {
+        need_update = true;
+      }
+      break;
+    }
     case MessageContentType::Unsupported: {
       auto old_ = static_cast<const MessageUnsupported *>(old_content);
       auto new_ = static_cast<const MessageUnsupported *>(new_content);
@@ -3274,6 +3350,7 @@ bool merge_message_content_file_id(Td *td, MessageContent *message_content, File
     case MessageContentType::PassportDataReceived:
     case MessageContentType::Poll:
     case MessageContentType::Dice:
+    case MessageContentType::ProximityAlertTriggered:
       LOG(ERROR) << "Receive new file " << new_file_id << " in a sent message of the type " << content_type;
       break;
     default:
@@ -3661,7 +3738,7 @@ unique_ptr<MessageContent> get_secret_message_content(
         message_venue->venue_id_.clear();
       }
 
-      auto m = make_unique<MessageVenue>(Venue(Location(message_venue->lat_, message_venue->long_, 0),
+      auto m = make_unique<MessageVenue>(Venue(Location(message_venue->lat_, message_venue->long_, 0.0, 0),
                                                std::move(message_venue->title_), std::move(message_venue->address_),
                                                std::move(message_venue->provider_), std::move(message_venue->venue_id_),
                                                string()));
@@ -3820,17 +3897,18 @@ unique_ptr<MessageContent> get_message_content(Td *td, FormattedText message,
     }
     case telegram_api::messageMediaGeoLive::ID: {
       auto message_geo_point_live = move_tl_object_as<telegram_api::messageMediaGeoLive>(media);
-      int32 period = message_geo_point_live->period_;
       auto location = Location(std::move(message_geo_point_live->geo_));
       if (location.empty()) {
         break;
       }
 
+      int32 period = message_geo_point_live->period_;
       if (period <= 0) {
         LOG(ERROR) << "Receive wrong live location period = " << period;
         return make_unique<MessageLocation>(std::move(location));
       }
-      return make_unique<MessageLiveLocation>(std::move(location), period);
+      return make_unique<MessageLiveLocation>(std::move(location), period, message_geo_point_live->heading_,
+                                              message_geo_point_live->proximity_notification_radius_);
     }
     case telegram_api::messageMediaVenue::ID: {
       auto message_venue = move_tl_object_as<telegram_api::messageMediaVenue>(media);
@@ -4165,6 +4243,7 @@ unique_ptr<MessageContent> dup_message_content(Td *td, DialogId dialog_id, const
     case MessageContentType::WebsiteConnected:
     case MessageContentType::PassportDataSent:
     case MessageContentType::PassportDataReceived:
+    case MessageContentType::ProximityAlertTriggered:
       return nullptr;
     default:
       UNREACHABLE();
@@ -4347,6 +4426,18 @@ unique_ptr<MessageContent> get_action_message_content(Td *td, tl_object_ptr<tele
       LOG_IF(ERROR, td->auth_manager_->is_bot()) << "Receive ContactRegistered in " << owner_dialog_id;
       return td::make_unique<MessageContactRegistered>();
     }
+    case telegram_api::messageActionGeoProximityReached::ID: {
+      auto geo_proximity_reached = move_tl_object_as<telegram_api::messageActionGeoProximityReached>(action);
+      DialogId approacher_id(geo_proximity_reached->from_id_);
+      DialogId observer_id(geo_proximity_reached->to_id_);
+      int32 distance = geo_proximity_reached->distance_;
+      if (!approacher_id.is_valid() || !observer_id.is_valid() || distance < 0) {
+        LOG(ERROR) << "Receive invalid " << oneline(to_string(geo_proximity_reached));
+        break;
+      }
+
+      return make_unique<MessageProximityAlertTriggered>(approacher_id, observer_id, distance);
+    }
     default:
       UNREACHABLE();
   }
@@ -4393,12 +4484,15 @@ tl_object_ptr<td_api::MessageContent> get_message_content_object(const MessageCo
     case MessageContentType::LiveLocation: {
       const MessageLiveLocation *m = static_cast<const MessageLiveLocation *>(content);
       auto passed = max(G()->unix_time_cached() - message_date, 0);
-      return make_tl_object<td_api::messageLocation>(m->location.get_location_object(), m->period,
-                                                     max(0, m->period - passed));
+      auto expires_in = max(0, m->period - passed);
+      auto heading = expires_in == 0 ? 0 : m->heading;
+      auto proximity_alert_radius = expires_in == 0 ? 0 : m->proximity_alert_radius;
+      return make_tl_object<td_api::messageLocation>(m->location.get_location_object(), m->period, expires_in, heading,
+                                                     proximity_alert_radius);
     }
     case MessageContentType::Location: {
       const MessageLocation *m = static_cast<const MessageLocation *>(content);
-      return make_tl_object<td_api::messageLocation>(m->location.get_location_object(), 0, 0);
+      return make_tl_object<td_api::messageLocation>(m->location.get_location_object(), 0, 0, 0, 0);
     }
     case MessageContentType::Photo: {
       const MessagePhoto *m = static_cast<const MessagePhoto *>(content);
@@ -4539,13 +4633,19 @@ tl_object_ptr<td_api::MessageContent> get_message_content_object(const MessageCo
     }
     case MessageContentType::Dice: {
       const MessageDice *m = static_cast<const MessageDice *>(content);
-      auto initial_state = td->stickers_manager_->get_dice_sticker_object(m->emoji, 0);
+      auto initial_state = td->stickers_manager_->get_dice_stickers_object(m->emoji, 0);
       auto final_state =
-          m->dice_value == 0 ? nullptr : td->stickers_manager_->get_dice_sticker_object(m->emoji, m->dice_value);
+          m->dice_value == 0 ? nullptr : td->stickers_manager_->get_dice_stickers_object(m->emoji, m->dice_value);
       auto success_animation_frame_number =
           td->stickers_manager_->get_dice_success_animation_frame_number(m->emoji, m->dice_value);
       return make_tl_object<td_api::messageDice>(std::move(initial_state), std::move(final_state), m->emoji,
                                                  m->dice_value, success_animation_frame_number);
+    }
+    case MessageContentType::ProximityAlertTriggered: {
+      const MessageProximityAlertTriggered *m = static_cast<const MessageProximityAlertTriggered *>(content);
+      return make_tl_object<td_api::messageProximityAlertTriggered>(
+          td->messages_manager_->get_message_sender_object(m->approacher_dialog_id),
+          td->messages_manager_->get_message_sender_object(m->observer_dialog_id), m->distance);
     }
     default:
       UNREACHABLE();
@@ -4858,6 +4958,7 @@ string get_message_content_search_text(const Td *td, const MessageContent *conte
     case MessageContentType::PassportDataSent:
     case MessageContentType::PassportDataReceived:
     case MessageContentType::Dice:
+    case MessageContentType::ProximityAlertTriggered:
       return string();
     default:
       UNREACHABLE();
@@ -5051,6 +5152,12 @@ void add_message_content_dependencies(Dependencies &dependencies, const MessageC
       break;
     case MessageContentType::Dice:
       break;
+    case MessageContentType::ProximityAlertTriggered: {
+      auto content = static_cast<const MessageProximityAlertTriggered *>(message_content);
+      add_message_sender_dependencies(dependencies, content->approacher_dialog_id);
+      add_message_sender_dependencies(dependencies, content->observer_dialog_id);
+      break;
+    }
     default:
       UNREACHABLE();
       break;

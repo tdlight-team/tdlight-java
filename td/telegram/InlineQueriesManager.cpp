@@ -257,8 +257,16 @@ Result<tl_object_ptr<telegram_api::InputBotInlineMessage>> InlineQueriesManager:
   }
   if (constructor_id == td_api::inputMessageLocation::ID) {
     TRY_RESULT(location, process_input_message_location(std::move(input_message_content)));
-    return make_tl_object<telegram_api::inputBotInlineMessageMediaGeo>(flags, location.first.get_input_geo_point(),
-                                                                       location.second, std::move(input_reply_markup));
+    if (location.heading != 0) {
+      flags |= telegram_api::inputBotInlineMessageMediaGeo::HEADING_MASK;
+    }
+    if (location.live_period != 0) {
+      flags |= telegram_api::inputBotInlineMessageMediaGeo::PERIOD_MASK;
+      flags |= telegram_api::inputBotInlineMessageMediaGeo::PROXIMITY_NOTIFICATION_RADIUS_MASK;
+    }
+    return make_tl_object<telegram_api::inputBotInlineMessageMediaGeo>(
+        flags, location.location.get_input_geo_point(), location.heading, location.live_period,
+        location.proximity_alert_radius, std::move(input_reply_markup));
   }
   if (constructor_id == td_api::inputMessageVenue::ID) {
     TRY_RESULT(venue, process_input_message_venue(std::move(input_message_content)));
@@ -971,7 +979,7 @@ tl_object_ptr<td_api::contact> copy(const td_api::contact &obj) {
 
 template <>
 tl_object_ptr<td_api::location> copy(const td_api::location &obj) {
-  return make_tl_object<td_api::location>(obj.latitude_, obj.longitude_);
+  return make_tl_object<td_api::location>(obj.latitude_, obj.longitude_, obj.horizontal_accuracy_);
 }
 
 template <>
@@ -1380,8 +1388,11 @@ void InlineQueriesManager::on_get_inline_query_results(UserId bot_user_id, uint6
             Location l(inline_message_geo->geo_);
             location->location_ = l.get_location_object();
           } else {
-            auto coordinates = split(Slice(result->description_));
-            Location l(to_double(coordinates.first), to_double(coordinates.second), 0);
+            Slice latitude;
+            Slice longitude;
+            Slice horizontal_accuracy;
+            std::tie(latitude, longitude) = split(Slice(result->description_));
+            Location l(to_double(latitude), to_double(longitude), 0.0, 0);
             location->location_ = l.get_location_object();
           }
           location->thumbnail_ = register_thumbnail(std::move(result->thumb_));

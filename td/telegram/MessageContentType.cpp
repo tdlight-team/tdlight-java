@@ -96,6 +96,8 @@ StringBuilder &operator<<(StringBuilder &string_builder, MessageContentType cont
       return string_builder << "Poll";
     case MessageContentType::Dice:
       return string_builder << "Dice";
+    case MessageContentType::ProximityAlertTriggered:
+      return string_builder << "ProximityAlertTriggered";
     default:
       UNREACHABLE();
       return string_builder;
@@ -104,15 +106,15 @@ StringBuilder &operator<<(StringBuilder &string_builder, MessageContentType cont
 
 bool is_allowed_media_group_content(MessageContentType content_type) {
   switch (content_type) {
+    case MessageContentType::Audio:
+    case MessageContentType::Document:
     case MessageContentType::Photo:
     case MessageContentType::Video:
     case MessageContentType::ExpiredPhoto:
     case MessageContentType::ExpiredVideo:
       return true;
     case MessageContentType::Animation:
-    case MessageContentType::Audio:
     case MessageContentType::Contact:
-    case MessageContentType::Document:
     case MessageContentType::Game:
     case MessageContentType::Invoice:
     case MessageContentType::LiveLocation:
@@ -147,11 +149,16 @@ bool is_allowed_media_group_content(MessageContentType content_type) {
     case MessageContentType::PassportDataReceived:
     case MessageContentType::Poll:
     case MessageContentType::Dice:
+    case MessageContentType::ProximityAlertTriggered:
       return false;
     default:
       UNREACHABLE();
       return false;
   }
+}
+
+bool is_homogenous_media_group_content(MessageContentType content_type) {
+  return content_type == MessageContentType::Audio || content_type == MessageContentType::Document;
 }
 
 bool is_secret_message_content(int32 ttl, MessageContentType content_type) {
@@ -202,6 +209,7 @@ bool is_secret_message_content(int32 ttl, MessageContentType content_type) {
     case MessageContentType::PassportDataReceived:
     case MessageContentType::Poll:
     case MessageContentType::Dice:
+    case MessageContentType::ProximityAlertTriggered:
       return false;
     default:
       UNREACHABLE();
@@ -254,6 +262,7 @@ bool is_service_message_content(MessageContentType content_type) {
     case MessageContentType::WebsiteConnected:
     case MessageContentType::PassportDataSent:
     case MessageContentType::PassportDataReceived:
+    case MessageContentType::ProximityAlertTriggered:
       return true;
     default:
       UNREACHABLE();
@@ -306,6 +315,7 @@ bool can_have_message_content_caption(MessageContentType content_type) {
     case MessageContentType::PassportDataReceived:
     case MessageContentType::Poll:
     case MessageContentType::Dice:
+    case MessageContentType::ProximityAlertTriggered:
       return false;
     default:
       UNREACHABLE();

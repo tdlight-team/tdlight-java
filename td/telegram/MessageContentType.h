@@ -54,12 +54,15 @@ enum class MessageContentType : int32 {
   PassportDataSent,
   PassportDataReceived,
   Poll,
-  Dice
+  Dice,
+  ProximityAlertTriggered
 };
 
 StringBuilder &operator<<(StringBuilder &string_builder, MessageContentType content_type);
 
 bool is_allowed_media_group_content(MessageContentType content_type);
+
+bool is_homogenous_media_group_content(MessageContentType content_type);
 
 bool is_secret_message_content(int32 ttl, MessageContentType content_type);
 

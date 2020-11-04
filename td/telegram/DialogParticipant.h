@@ -6,9 +6,9 @@
 //
 #pragma once
 
+#include "td/telegram/MessageId.h"
 #include "td/telegram/td_api.h"
 #include "td/telegram/telegram_api.h"
-
 #include "td/telegram/UserId.h"
 
 #include "td/utils/common.h"
@@ -401,8 +401,9 @@ struct DialogParticipant {
 StringBuilder &operator<<(StringBuilder &string_builder, const DialogParticipant &dialog_participant);
 
 class ChannelParticipantsFilter {
-  enum class Type : int32 { Recent, Contacts, Administrators, Search, Restricted, Banned, Bots } type;
+  enum class Type : int32 { Recent, Contacts, Administrators, Search, Mention, Restricted, Banned, Bots } type;
   string query;
+  MessageId top_thread_message_id;
 
   friend StringBuilder &operator<<(StringBuilder &string_builder, const ChannelParticipantsFilter &filter);
 
@@ -442,7 +443,16 @@ class ChannelParticipantsFilter {
 
 StringBuilder &operator<<(StringBuilder &string_builder, const ChannelParticipantsFilter &filter);
 
-enum class DialogParticipantsFilter : int32 { Contacts, Administrators, Members, Restricted, Banned, Bots };
+class DialogParticipantsFilter {
+ public:
+  enum class Type : int32 { Contacts, Administrators, Members, Restricted, Banned, Mention, Bots };
+  Type type;
+  MessageId top_thread_message_id;
+
+  explicit DialogParticipantsFilter(Type type, MessageId top_thread_message_id = MessageId())
+      : type(type), top_thread_message_id(top_thread_message_id) {
+  }
+};
 
 DialogParticipantsFilter get_dialog_participants_filter(const tl_object_ptr<td_api::ChatMembersFilter> &filter);
 

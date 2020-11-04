@@ -1103,6 +1103,29 @@ class GetChatPinnedMessageRequest : public RequestOnceActor {
   }
 };
 
+class GetCallbackQueryMessageRequest : public RequestOnceActor {
+  DialogId dialog_id_;
+  MessageId message_id_;
+  int64 callback_query_id_;
+
+  void do_run(Promise<Unit> &&promise) override {
+    td->messages_manager_->get_callback_query_message(dialog_id_, message_id_, callback_query_id_, std::move(promise));
+  }
+
+  void do_send_result() override {
+    send_result(td->messages_manager_->get_message_object({dialog_id_, message_id_}));
+  }
+
+ public:
+  GetCallbackQueryMessageRequest(ActorShared<Td> td, uint64 request_id, int64 dialog_id, int64 message_id,
+                                 int64 callback_query_id)
+      : RequestOnceActor(std::move(td), request_id)
+      , dialog_id_(dialog_id)
+      , message_id_(message_id)
+      , callback_query_id_(callback_query_id) {
+  }
+};
+
 class GetMessagesRequest : public RequestOnceActor {
   DialogId dialog_id_;
   vector<MessageId> message_ids_;
@@ -1202,10 +1225,12 @@ class EditMessageLiveLocationRequest : public RequestOnceActor {
   FullMessageId full_message_id_;
   tl_object_ptr<td_api::ReplyMarkup> reply_markup_;
   tl_object_ptr<td_api::location> location_;
+  int32 heading_;
+  int32 proximity_alert_radius_;
 
   void do_run(Promise<Unit> &&promise) override {
     td->messages_manager_->edit_message_live_location(full_message_id_, std::move(reply_markup_), std::move(location_),
-                                                      std::move(promise));
+                                                      heading_, proximity_alert_radius_, std::move(promise));
   }
 
   void do_send_result() override {
@@ -1215,11 +1240,13 @@ class EditMessageLiveLocationRequest : public RequestOnceActor {
  public:
   EditMessageLiveLocationRequest(ActorShared<Td> td, uint64 request_id, int64 dialog_id, int64 message_id,
                                  tl_object_ptr<td_api::ReplyMarkup> reply_markup,
-                                 tl_object_ptr<td_api::location> location)
+                                 tl_object_ptr<td_api::location> location, int32 heading, int32 proximity_alert_radius)
       : RequestOnceActor(std::move(td), request_id)
       , full_message_id_(DialogId(dialog_id), MessageId(message_id))
       , reply_markup_(std::move(reply_markup))
-      , location_(std::move(location)) {
+      , location_(std::move(location))
+      , heading_(heading)
+      , proximity_alert_radius_(proximity_alert_radius) {
   }
 };
 
@@ -1439,7 +1466,7 @@ class GetMessageThreadHistoryRequest : public RequestActor<> {
 class SearchChatMessagesRequest : public RequestActor<> {
   DialogId dialog_id_;
   string query_;
-  UserId sender_user_id_;
+  td_api::object_ptr<td_api::MessageSender> sender_;
   MessageId from_message_id_;
   int32 offset_;
   int32 limit_;
@@ -1450,9 +1477,9 @@ class SearchChatMessagesRequest : public RequestActor<> {
   std::pair<int32, vector<MessageId>> messages_;
 
   void do_run(Promise<Unit> &&promise) override {
-    messages_ = td->messages_manager_->search_dialog_messages(dialog_id_, query_, sender_user_id_, from_message_id_,
-                                                              offset_, limit_, filter_, top_thread_message_id_,
-                                                              random_id_, get_tries() == 3, std::move(promise));
+    messages_ = td->messages_manager_->search_dialog_messages(dialog_id_, query_, sender_, from_message_id_, offset_,
+                                                              limit_, filter_, top_thread_message_id_, random_id_,
+                                                              get_tries() == 3, std::move(promise));
   }
 
   void do_send_result() override {
@@ -1469,13 +1496,13 @@ class SearchChatMessagesRequest : public RequestActor<> {
   }
 
  public:
-  SearchChatMessagesRequest(ActorShared<Td> td, uint64 request_id, int64 dialog_id, string query, int32 user_id,
-                            int64 from_message_id, int32 offset, int32 limit,
-                            tl_object_ptr<td_api::SearchMessagesFilter> filter, int64 message_thread_id)
+  SearchChatMessagesRequest(ActorShared<Td> td, uint64 request_id, int64 dialog_id, string query,
+                            td_api::object_ptr<td_api::MessageSender> sender, int64 from_message_id, int32 offset,
+                            int32 limit, tl_object_ptr<td_api::SearchMessagesFilter> filter, int64 message_thread_id)
       : RequestActor(std::move(td), request_id)
       , dialog_id_(dialog_id)
       , query_(std::move(query))
-      , sender_user_id_(user_id)
+      , sender_(std::move(sender))
       , from_message_id_(from_message_id)
       , offset_(offset)
       , limit_(limit)
@@ -2093,23 +2120,27 @@ class GetChatEventLogRequest : public RequestOnceActor {
   }
 };
 
-class GetBlockedChatsRequest : public RequestActor<> {
+class GetBlockedMessageSendersRequest : public RequestActor<> {
   int32 offset_;
   int32 limit_;
   int64 random_id_;
 
-  std::pair<int32, vector<DialogId>> dialog_ids_;
+  std::pair<int32, vector<DialogId>> message_senders_;
 
   void do_run(Promise<Unit> &&promise) override {
-    dialog_ids_ = td->messages_manager_->get_blocked_dialogs(offset_, limit_, random_id_, std::move(promise));
+    message_senders_ = td->messages_manager_->get_blocked_dialogs(offset_, limit_, random_id_, std::move(promise));
   }
 
   void do_send_result() override {
-    send_result(MessagesManager::get_chats_object(dialog_ids_));
+    auto senders =
+        transform(message_senders_.second, [messages_manager = td->messages_manager_.get()](DialogId dialog_id) {
+          return messages_manager->get_message_sender_object(dialog_id);
+        });
+    send_result(td_api::make_object<td_api::messageSenders>(message_senders_.first, std::move(senders)));
   }
 
  public:
-  GetBlockedChatsRequest(ActorShared<Td> td, uint64 request_id, int32 offset, int32 limit)
+  GetBlockedMessageSendersRequest(ActorShared<Td> td, uint64 request_id, int32 offset, int32 limit)
       : RequestActor(std::move(td), request_id), offset_(offset), limit_(limit), random_id_(0) {
   }
 };
@@ -5164,13 +5195,18 @@ void Td::on_request(uint64 id, const td_api::getChatPinnedMessage &request) {
   CREATE_REQUEST(GetChatPinnedMessageRequest, request.chat_id_);
 }
 
-void Td::on_request(uint64 id, const td_api::getMessageThread &request) {
-  CHECK_IS_USER();
-  CREATE_REQUEST(GetMessageThreadRequest, request.chat_id_, request.message_id_);
+void Td::on_request(uint64 id, const td_api::getCallbackQueryMessage &request) {
+  CHECK_IS_BOT();
+  CREATE_REQUEST(GetCallbackQueryMessageRequest, request.chat_id_, request.message_id_, request.callback_query_id_);
 }
 
 void Td::on_request(uint64 id, const td_api::getMessages &request) {
   CREATE_REQUEST(GetMessagesRequest, request.chat_id_, request.message_ids_);
+}
+
+void Td::on_request(uint64 id, const td_api::getMessageThread &request) {
+  CHECK_IS_USER();
+  CREATE_REQUEST(GetMessageThreadRequest, request.chat_id_, request.message_id_);
 }
 
 void Td::on_request(uint64 id, const td_api::getMessageLink &request) {
@@ -5577,7 +5613,7 @@ void Td::on_request(uint64 id, const td_api::getMessageThreadHistory &request) {
 void Td::on_request(uint64 id, td_api::searchChatMessages &request) {
   CHECK_IS_USER();
   CLEAN_INPUT_STRING(request.query_);
-  CREATE_REQUEST(SearchChatMessagesRequest, request.chat_id_, std::move(request.query_), request.sender_user_id_,
+  CREATE_REQUEST(SearchChatMessagesRequest, request.chat_id_, std::move(request.query_), std::move(request.sender_),
                  request.from_message_id_, request.offset_, request.limit_, std::move(request.filter_),
                  request.message_thread_id_);
 }
@@ -5750,8 +5786,8 @@ void Td::on_request(uint64 id, td_api::addLocalMessage &request) {
 
   DialogId dialog_id(request.chat_id_);
   auto r_new_message_id = messages_manager_->add_local_message(
-      dialog_id, UserId(request.sender_user_id_), MessageId(request.reply_to_message_id_),
-      request.disable_notification_, std::move(request.input_message_content_));
+      dialog_id, std::move(request.sender_), MessageId(request.reply_to_message_id_), request.disable_notification_,
+      std::move(request.input_message_content_));
   if (r_new_message_id.is_error()) {
     return send_closure(actor_id(this), &Td::send_error, id, r_new_message_id.move_as_error());
   }
@@ -5768,7 +5804,8 @@ void Td::on_request(uint64 id, td_api::editMessageText &request) {
 
 void Td::on_request(uint64 id, td_api::editMessageLiveLocation &request) {
   CREATE_REQUEST(EditMessageLiveLocationRequest, request.chat_id_, request.message_id_,
-                 std::move(request.reply_markup_), std::move(request.location_));
+                 std::move(request.reply_markup_), std::move(request.location_), request.heading_,
+                 request.proximity_alert_radius_);
 }
 
 void Td::on_request(uint64 id, td_api::editMessageMedia &request) {
@@ -5799,9 +5836,9 @@ void Td::on_request(uint64 id, td_api::editInlineMessageLiveLocation &request) {
   CHECK_IS_BOT();
   CLEAN_INPUT_STRING(request.inline_message_id_);
   CREATE_OK_REQUEST_PROMISE();
-  messages_manager_->edit_inline_message_live_location(std::move(request.inline_message_id_),
-                                                       std::move(request.reply_markup_), std::move(request.location_),
-                                                       std::move(promise));
+  messages_manager_->edit_inline_message_live_location(
+      std::move(request.inline_message_id_), std::move(request.reply_markup_), std::move(request.location_),
+      request.heading_, request.proximity_alert_radius_, std::move(promise));
 }
 
 void Td::on_request(uint64 id, td_api::editInlineMessageMedia &request) {
@@ -6123,9 +6160,9 @@ void Td::on_request(uint64 id, const td_api::toggleChatIsMarkedAsUnread &request
                                                                            request.is_marked_as_unread_));
 }
 
-void Td::on_request(uint64 id, const td_api::toggleChatIsBlocked &request) {
+void Td::on_request(uint64 id, const td_api::toggleMessageSenderIsBlocked &request) {
   CHECK_IS_USER();
-  answer_ok_query(id, messages_manager_->toggle_dialog_is_blocked(DialogId(request.chat_id_), request.is_blocked_));
+  answer_ok_query(id, messages_manager_->toggle_message_sender_is_blocked(request.sender_, request.is_blocked_));
 }
 
 void Td::on_request(uint64 id, const td_api::toggleChatDefaultDisableNotification &request) {
@@ -6176,12 +6213,19 @@ void Td::on_request(uint64 id, const td_api::setChatSlowModeDelay &request) {
 void Td::on_request(uint64 id, const td_api::pinChatMessage &request) {
   CREATE_OK_REQUEST_PROMISE();
   messages_manager_->pin_dialog_message(DialogId(request.chat_id_), MessageId(request.message_id_),
-                                        request.disable_notification_, false, std::move(promise));
+                                        request.disable_notification_, request.only_for_self_, false,
+                                        std::move(promise));
 }
 
 void Td::on_request(uint64 id, const td_api::unpinChatMessage &request) {
   CREATE_OK_REQUEST_PROMISE();
-  messages_manager_->pin_dialog_message(DialogId(request.chat_id_), MessageId(), false, true, std::move(promise));
+  messages_manager_->pin_dialog_message(DialogId(request.chat_id_), MessageId(request.message_id_), false, false, true,
+                                        std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::unpinAllChatMessages &request) {
+  CREATE_OK_REQUEST_PROMISE();
+  messages_manager_->unpin_all_dialog_messages(DialogId(request.chat_id_), std::move(promise));
 }
 
 void Td::on_request(uint64 id, const td_api::joinChat &request) {
@@ -6451,16 +6495,17 @@ void Td::on_request(uint64 id, const td_api::deleteFile &request) {
                "td_api::deleteFile");
 }
 
-void Td::on_request(uint64 id, const td_api::blockChatFromReplies &request) {
+void Td::on_request(uint64 id, const td_api::blockMessageSenderFromReplies &request) {
   CHECK_IS_USER();
   CREATE_OK_REQUEST_PROMISE();
-  messages_manager_->block_dialog_from_replies(MessageId(request.message_id_), request.delete_message_,
-                                               request.delete_all_messages_, request.report_spam_, std::move(promise));
+  messages_manager_->block_message_sender_from_replies(MessageId(request.message_id_), request.delete_message_,
+                                                       request.delete_all_messages_, request.report_spam_,
+                                                       std::move(promise));
 }
 
-void Td::on_request(uint64 id, const td_api::getBlockedChats &request) {
+void Td::on_request(uint64 id, const td_api::getBlockedMessageSenders &request) {
   CHECK_IS_USER();
-  CREATE_REQUEST(GetBlockedChatsRequest, request.offset_, request.limit_);
+  CREATE_REQUEST(GetBlockedMessageSendersRequest, request.offset_, request.limit_);
 }
 
 void Td::on_request(uint64 id, td_api::addContact &request) {
@@ -7318,6 +7363,12 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
     case 'p':
       if (set_boolean_option("prefer_ipv6")) {
         send_closure(state_manager_, &StateManager::on_network_updated);
+        return;
+      }
+      break;
+    case 'r':
+      // temporary option
+      if (set_boolean_option("reuse_uploaded_photos_by_hash")) {
         return;
       }
       break;

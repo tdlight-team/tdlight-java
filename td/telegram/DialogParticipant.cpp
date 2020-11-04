@@ -661,6 +661,11 @@ DialogParticipant::DialogParticipant(tl_object_ptr<telegram_api::ChannelParticip
                                              std::move(participant->rank_))};
       break;
     }
+    case telegram_api::channelParticipantLeft::ID: {
+      auto participant = move_tl_object_as<telegram_api::channelParticipantLeft>(participant_ptr);
+      *this = {UserId(participant->user_id_), UserId(), 0, DialogParticipantStatus::Left()};
+      break;
+    }
     case telegram_api::channelParticipantBanned::ID: {
       auto participant = move_tl_object_as<telegram_api::channelParticipantBanned>(participant_ptr);
       auto is_member = (participant->flags_ & telegram_api::channelParticipantBanned::LEFT_MASK) == 0;
@@ -701,6 +706,17 @@ ChannelParticipantsFilter::get_input_channel_participants_filter() const {
       return make_tl_object<telegram_api::channelParticipantsAdmins>();
     case Type::Search:
       return make_tl_object<telegram_api::channelParticipantsSearch>(query);
+    case Type::Mention: {
+      int32 flags = 0;
+      if (!query.empty()) {
+        flags |= telegram_api::channelParticipantsMentions::Q_MASK;
+      }
+      if (!top_thread_message_id.is_valid()) {
+        flags |= telegram_api::channelParticipantsMentions::TOP_MSG_ID_MASK;
+      }
+      return make_tl_object<telegram_api::channelParticipantsMentions>(
+          flags, query, top_thread_message_id.get_server_message_id().get());
+    }
     case Type::Restricted:
       return make_tl_object<telegram_api::channelParticipantsBanned>(query);
     case Type::Banned:
@@ -733,6 +749,16 @@ ChannelParticipantsFilter::ChannelParticipantsFilter(const tl_object_ptr<td_api:
       type = Type::Search;
       query = static_cast<const td_api::supergroupMembersFilterSearch *>(filter.get())->query_;
       return;
+    case td_api::supergroupMembersFilterMention::ID: {
+      auto mention_filter = static_cast<const td_api::supergroupMembersFilterMention *>(filter.get());
+      type = Type::Mention;
+      query = mention_filter->query_;
+      top_thread_message_id = MessageId(mention_filter->message_thread_id_);
+      if (!top_thread_message_id.is_valid() || !top_thread_message_id.is_server()) {
+        top_thread_message_id = MessageId();
+      }
+      return;
+    }
     case td_api::supergroupMembersFilterRestricted::ID:
       type = Type::Restricted;
       query = static_cast<const td_api::supergroupMembersFilterRestricted *>(filter.get())->query_;
@@ -760,6 +786,8 @@ StringBuilder &operator<<(StringBuilder &string_builder, const ChannelParticipan
       return string_builder << "Administrators";
     case ChannelParticipantsFilter::Type::Search:
       return string_builder << "Search \"" << filter.query << '"';
+    case ChannelParticipantsFilter::Type::Mention:
+      return string_builder << "Mention \"" << filter.query << "\" in thread of " << filter.top_thread_message_id;
     case ChannelParticipantsFilter::Type::Restricted:
       return string_builder << "Restricted \"" << filter.query << '"';
     case ChannelParticipantsFilter::Type::Banned:
@@ -774,24 +802,32 @@ StringBuilder &operator<<(StringBuilder &string_builder, const ChannelParticipan
 
 DialogParticipantsFilter get_dialog_participants_filter(const tl_object_ptr<td_api::ChatMembersFilter> &filter) {
   if (filter == nullptr) {
-    return DialogParticipantsFilter::Members;
+    return DialogParticipantsFilter{DialogParticipantsFilter::Type::Members};
   }
   switch (filter->get_id()) {
     case td_api::chatMembersFilterContacts::ID:
-      return DialogParticipantsFilter::Contacts;
+      return DialogParticipantsFilter{DialogParticipantsFilter::Type::Contacts};
     case td_api::chatMembersFilterAdministrators::ID:
-      return DialogParticipantsFilter::Administrators;
+      return DialogParticipantsFilter{DialogParticipantsFilter::Type::Administrators};
     case td_api::chatMembersFilterMembers::ID:
-      return DialogParticipantsFilter::Members;
+      return DialogParticipantsFilter{DialogParticipantsFilter::Type::Members};
     case td_api::chatMembersFilterRestricted::ID:
-      return DialogParticipantsFilter::Restricted;
+      return DialogParticipantsFilter{DialogParticipantsFilter::Type::Restricted};
     case td_api::chatMembersFilterBanned::ID:
-      return DialogParticipantsFilter::Banned;
+      return DialogParticipantsFilter{DialogParticipantsFilter::Type::Banned};
+    case td_api::chatMembersFilterMention::ID: {
+      auto mention_filter = static_cast<const td_api::chatMembersFilterMention *>(filter.get());
+      auto top_thread_message_id = MessageId(mention_filter->message_thread_id_);
+      if (!top_thread_message_id.is_valid() || !top_thread_message_id.is_server()) {
+        top_thread_message_id = MessageId();
+      }
+      return DialogParticipantsFilter{DialogParticipantsFilter::Type::Mention, top_thread_message_id};
+    }
     case td_api::chatMembersFilterBots::ID:
-      return DialogParticipantsFilter::Bots;
+      return DialogParticipantsFilter{DialogParticipantsFilter::Type::Bots};
     default:
       UNREACHABLE();
-      return DialogParticipantsFilter::Members;
+      return DialogParticipantsFilter{DialogParticipantsFilter::Type::Members};
   }
 }
 

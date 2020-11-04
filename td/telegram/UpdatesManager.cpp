@@ -604,6 +604,16 @@ bool UpdatesManager::is_acceptable_message(const telegram_api::Message *message_
           }
           break;
         }
+        case telegram_api::messageActionGeoProximityReached::ID: {
+          auto geo_proximity_reached = static_cast<const telegram_api::messageActionGeoProximityReached *>(action);
+          if (!is_acceptable_peer(geo_proximity_reached->from_id_)) {
+            return false;
+          }
+          if (!is_acceptable_peer(geo_proximity_reached->to_id_)) {
+            return false;
+          }
+          break;
+        }
         default:
           UNREACHABLE();
           return false;
@@ -704,16 +714,17 @@ void UpdatesManager::on_get_updates(tl_object_ptr<telegram_api::Updates> &&updat
       auto from_id = update->flags_ & MessagesManager::MESSAGE_FLAG_IS_OUT ? td_->contacts_manager_->get_my_id().get()
                                                                            : update->user_id_;
       update->flags_ |= MessagesManager::MESSAGE_FLAG_HAS_FROM_ID;
-      on_pending_update(make_tl_object<telegram_api::updateNewMessage>(
-                            make_tl_object<telegram_api::message>(
-                                update->flags_, false /*ignored*/, false /*ignored*/, false /*ignored*/,
-                                false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/,
-                                false /*ignored*/, update->id_, make_tl_object<telegram_api::peerUser>(from_id),
-                                make_tl_object<telegram_api::peerUser>(update->user_id_), std::move(update->fwd_from_),
-                                update->via_bot_id_, std::move(update->reply_to_), update->date_, update->message_,
-                                nullptr, nullptr, std::move(update->entities_), 0, 0, nullptr, 0, string(), 0, Auto()),
-                            update->pts_, update->pts_count_),
-                        0, "telegram_api::updatesShortMessage");
+      on_pending_update(
+          make_tl_object<telegram_api::updateNewMessage>(
+              make_tl_object<telegram_api::message>(
+                  update->flags_, false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/,
+                  false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/,
+                  update->id_, make_tl_object<telegram_api::peerUser>(from_id),
+                  make_tl_object<telegram_api::peerUser>(update->user_id_), std::move(update->fwd_from_),
+                  update->via_bot_id_, std::move(update->reply_to_), update->date_, update->message_, nullptr, nullptr,
+                  std::move(update->entities_), 0, 0, nullptr, 0, string(), 0, Auto()),
+              update->pts_, update->pts_count_),
+          0, "telegram_api::updatesShortMessage");
       break;
     }
     case telegram_api::updateShortChatMessage::ID: {
@@ -732,8 +743,8 @@ void UpdatesManager::on_get_updates(tl_object_ptr<telegram_api::Updates> &&updat
           make_tl_object<telegram_api::updateNewMessage>(
               make_tl_object<telegram_api::message>(
                   update->flags_, false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/,
-                  false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/, update->id_,
-                  make_tl_object<telegram_api::peerUser>(update->from_id_),
+                  false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/,
+                  update->id_, make_tl_object<telegram_api::peerUser>(update->from_id_),
                   make_tl_object<telegram_api::peerChat>(update->chat_id_), std::move(update->fwd_from_),
                   update->via_bot_id_, std::move(update->reply_to_), update->date_, update->message_, nullptr, nullptr,
                   std::move(update->entities_), 0, 0, nullptr, 0, string(), 0, Auto()),
@@ -1325,8 +1336,8 @@ void UpdatesManager::on_pending_updates(vector<tl_object_ptr<telegram_api::Updat
       if (id == telegram_api::updateNewMessage::ID || id == telegram_api::updateReadMessagesContents::ID ||
           id == telegram_api::updateEditMessage::ID || id == telegram_api::updateDeleteMessages::ID ||
           id == telegram_api::updateReadHistoryInbox::ID || id == telegram_api::updateReadHistoryOutbox::ID ||
-          id == telegram_api::updateWebPage::ID || id == telegram_api::updateNewEncryptedMessage::ID ||
-          id == telegram_api::updateChannelParticipant::ID) {
+          id == telegram_api::updateWebPage::ID || id == telegram_api::updatePinnedMessages::ID ||
+          id == telegram_api::updateNewEncryptedMessage::ID || id == telegram_api::updateChannelParticipant::ID) {
         if (!downcast_call(*update, OnUpdate(this, update, false))) {
           LOG(ERROR) << "Can't call on some update received from " << source;
         }
@@ -1744,19 +1755,25 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateReadChannelDisc
       MessageId(), MessageId(ServerMessageId(update->read_max_id_)));
 }
 
-void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateUserPinnedMessage> update, bool /*force_apply*/) {
-  td_->messages_manager_->on_update_dialog_pinned_message_id(DialogId(UserId(update->user_id_)),
-                                                             MessageId(ServerMessageId(update->id_)));
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updatePinnedMessages> update, bool force_apply) {
+  CHECK(update != nullptr);
+  int new_pts = update->pts_;
+  int pts_count = update->pts_count_;
+  td_->messages_manager_->add_pending_update(std::move(update), new_pts, pts_count, force_apply,
+                                             "on_updatePinnedMessages");
 }
 
-void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChatPinnedMessage> update, bool /*force_apply*/) {
-  td_->contacts_manager_->on_update_chat_pinned_message(ChatId(update->chat_id_),
-                                                        MessageId(ServerMessageId(update->id_)), update->version_);
-}
-
-void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChannelPinnedMessage> update, bool /*force_apply*/) {
-  td_->messages_manager_->on_update_dialog_pinned_message_id(DialogId(ChannelId(update->channel_id_)),
-                                                             MessageId(ServerMessageId(update->id_)));
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updatePinnedChannelMessages> update, bool /*force_apply*/) {
+  ChannelId channel_id(update->channel_id_);
+  if (!channel_id.is_valid()) {
+    LOG(ERROR) << "Receive invalid " << channel_id;
+    return;
+  }
+  DialogId dialog_id(channel_id);
+  int new_pts = update->pts_;
+  int pts_count = update->pts_count_;
+  td_->messages_manager_->add_pending_channel_update(dialog_id, std::move(update), new_pts, pts_count,
+                                                     "on_updatePinnedChannelMessages");
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateNotifySettings> update, bool /*force_apply*/) {
@@ -1836,74 +1853,31 @@ int32 UpdatesManager::get_short_update_date() const {
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateUserTyping> update, bool /*force_apply*/) {
   UserId user_id(update->user_id_);
-  if (!td_->contacts_manager_->have_min_user(user_id)) {
-    LOG(DEBUG) << "Ignore user typing of unknown " << user_id;
-    return;
-  }
-  DialogId dialog_id(user_id);
-  if (!td_->messages_manager_->have_dialog(dialog_id)) {
-    LOG(DEBUG) << "Ignore user typing in unknown " << dialog_id;
-    return;
-  }
-  td_->messages_manager_->on_user_dialog_action(dialog_id, MessageId(), user_id,
+  td_->messages_manager_->on_user_dialog_action(DialogId(user_id), MessageId(), user_id,
                                                 DialogAction(std::move(update->action_)), get_short_update_date());
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChatUserTyping> update, bool /*force_apply*/) {
-  UserId user_id(update->user_id_);
-  if (!td_->contacts_manager_->have_min_user(user_id)) {
-    LOG(DEBUG) << "Ignore user chat typing of unknown " << user_id;
-    return;
-  }
-  DialogId dialog_id(ChatId(update->chat_id_));
-  if (!td_->messages_manager_->have_dialog(dialog_id)) {
-    LOG(DEBUG) << "Ignore user chat typing in unknown " << dialog_id;
-    return;
-  }
-  td_->messages_manager_->on_user_dialog_action(dialog_id, MessageId(), user_id,
-                                                DialogAction(std::move(update->action_)), get_short_update_date());
+  td_->messages_manager_->on_user_dialog_action(DialogId(ChatId(update->chat_id_)), MessageId(),
+                                                UserId(update->user_id_), DialogAction(std::move(update->action_)),
+                                                get_short_update_date());
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChannelUserTyping> update, bool /*force_apply*/) {
-  UserId user_id(update->user_id_);
-  if (!td_->contacts_manager_->have_min_user(user_id)) {
-    LOG(DEBUG) << "Ignore user channel typing of unknown " << user_id;
-    return;
-  }
-  DialogId dialog_id(ChannelId(update->channel_id_));
-  if (!td_->messages_manager_->have_dialog(dialog_id)) {
-    LOG(DEBUG) << "Ignore user channel typing in unknown " << dialog_id;
-    return;
-  }
   MessageId top_thread_message_id;
   if ((update->flags_ & telegram_api::updateChannelUserTyping::TOP_MSG_ID_MASK) != 0) {
     top_thread_message_id = MessageId(ServerMessageId(update->top_msg_id_));
-    if (!top_thread_message_id.is_valid() && top_thread_message_id != MessageId()) {
-      LOG(ERROR) << "Ignore user channel typing in the message thread of " << top_thread_message_id;
-      return;
-    }
   }
-  td_->messages_manager_->on_user_dialog_action(dialog_id, top_thread_message_id, user_id,
-                                                DialogAction(std::move(update->action_)), get_short_update_date());
+  td_->messages_manager_->on_user_dialog_action(DialogId(ChannelId(update->channel_id_)), top_thread_message_id,
+                                                UserId(update->user_id_), DialogAction(std::move(update->action_)),
+                                                get_short_update_date());
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateEncryptedChatTyping> update, bool /*force_apply*/) {
   SecretChatId secret_chat_id(update->chat_id_);
-  DialogId dialog_id(secret_chat_id);
-
-  if (!td_->messages_manager_->have_dialog(dialog_id)) {
-    LOG(DEBUG) << "Ignore secret chat typing in unknown " << dialog_id;
-    return;
-  }
-
   UserId user_id = td_->contacts_manager_->get_secret_chat_user_id(secret_chat_id);
-  if (!td_->contacts_manager_->have_user_force(user_id)) {
-    LOG(DEBUG) << "Ignore secret chat typing of unknown " << user_id;
-    return;
-  }
-
-  td_->messages_manager_->on_user_dialog_action(dialog_id, MessageId(), user_id, DialogAction::get_typing_action(),
-                                                get_short_update_date());
+  td_->messages_manager_->on_user_dialog_action(DialogId(secret_chat_id), MessageId(), user_id,
+                                                DialogAction::get_typing_action(), get_short_update_date());
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateUserStatus> update, bool /*force_apply*/) {

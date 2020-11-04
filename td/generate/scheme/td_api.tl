@@ -293,7 +293,8 @@ voiceNote duration:int32 waveform:bytes mime_type:string voice:file = VoiceNote;
 contact phone_number:string first_name:string last_name:string vcard:string user_id:int32 = Contact;
 
 //@description Describes a location on planet Earth @latitude Latitude of the location in degrees; as defined by the sender @longitude Longitude of the location, in degrees; as defined by the sender
-location latitude:double longitude:double = Location;
+//@horizontal_accuracy The estimated horizontal accuracy of the location, in meters; as defined by the sender. 0 if unknown
+location latitude:double longitude:double horizontal_accuracy:double = Location;
 
 //@description Describes a venue @location Venue location; as defined by the sender @title Venue name; as defined by the sender @address Venue address; as defined by the sender @provider Provider of the venue database; as defined by the sender. Currently only "foursquare" and "gplaces" (Google Places) need to be supported
 //@id Identifier of the venue in the provider database; as defined by the sender @type Type of the venue in the provider database; as defined by the sender
@@ -405,6 +406,7 @@ user id:int32 first_name:string last_name:string username:string phone_number:st
 
 //@description Contains full information about a user
 //@photo User profile photo; may be null
+//@is_blocked True, if the user is blocked by the current user
 //@can_be_called True, if the user can be called
 //@supports_video_calls True, if a video call can be created with the user
 //@has_private_calls True, if the user can't be called due to their privacy settings
@@ -412,7 +414,7 @@ user id:int32 first_name:string last_name:string username:string phone_number:st
 //@bio A short user bio @share_text For bots, the text that is included with the link when users share the bot
 //@group_in_common_count Number of group chats where both the other user and the current user are a member; 0 for the current user
 //@bot_info If the user is a bot, information about the bot; may be null
-userFullInfo photo:chatPhoto can_be_called:Bool supports_video_calls:Bool has_private_calls:Bool need_phone_number_privacy_exception:Bool bio:string share_text:string group_in_common_count:int32 bot_info:botInfo = UserFullInfo;
+userFullInfo photo:chatPhoto is_blocked:Bool can_be_called:Bool supports_video_calls:Bool has_private_calls:Bool need_phone_number_privacy_exception:Bool bio:string share_text:string group_in_common_count:int32 bot_info:botInfo = UserFullInfo;
 
 //@description Represents a list of users @total_count Approximate total count of users found @user_ids A list of user identifiers
 users total_count:int32 user_ids:vector<int32> = Users;
@@ -498,6 +500,9 @@ chatMembersFilterAdministrators = ChatMembersFilter;
 //@description Returns all chat members, including restricted chat members
 chatMembersFilterMembers = ChatMembersFilter;
 
+//@description Returns users which can be mentioned in the chat @message_thread_id If non-zero, the identifier of the current message thread
+chatMembersFilterMention message_thread_id:int53 = ChatMembersFilter;
+
 //@description Returns users under certain restrictions in the chat; can be used only by administrators in a supergroup
 chatMembersFilterRestricted = ChatMembersFilter;
 
@@ -527,6 +532,9 @@ supergroupMembersFilterRestricted query:string = SupergroupMembersFilter;
 
 //@description Returns users banned from the supergroup or channel; can be used only by administrators @query Query to search for
 supergroupMembersFilterBanned query:string = SupergroupMembersFilter;
+
+//@description Returns users which can be mentioned in the supergroup @query Query to search for @message_thread_id If non-zero, the identifier of the current message thread
+supergroupMembersFilterMention query:string message_thread_id:int53 = SupergroupMembersFilter;
 
 //@description Returns bot members of the supergroup or channel
 supergroupMembersFilterBots = SupergroupMembersFilter;
@@ -613,15 +621,30 @@ secretChatStateClosed = SecretChatState;
 secretChat id:int32 user_id:int32 state:SecretChatState is_outbound:Bool ttl:int32 key_hash:bytes layer:int32 = SecretChat;
 
 
+//@class MessageSender @description Contains information about the sender of a message
+
+//@description The message was sent by a known user @user_id Identifier of the user that sent the message
+messageSenderUser user_id:int32 = MessageSender;
+
+//@description The message was sent on behalf of a chat @chat_id Identifier of the chat that sent the message
+messageSenderChat chat_id:int53 = MessageSender;
+
+
+//@description Represents a list of message senders @total_count Approximate total count of messages senders found @senders List of message senders
+messageSenders total_count:int32 senders:vector<MessageSender> = MessageSenders;
+
+
 //@class MessageForwardOrigin @description Contains information about the origin of a forwarded message
 
-//@description The message was originally written by a known user @sender_user_id Identifier of the user that originally sent the message
+//@description The message was originally sent by a known user @sender_user_id Identifier of the user that originally sent the message
 messageForwardOriginUser sender_user_id:int32 = MessageForwardOrigin;
 
-//@description The message was originally written by an anonymous chat administrator on behalf of the chat @sender_chat_id Identifier of the chat that originally sent the message
-messageForwardOriginChat sender_chat_id:int53 = MessageForwardOrigin;
+//@description The message was originally sent by an anonymous chat administrator on behalf of the chat
+//@sender_chat_id Identifier of the chat that originally sent the message
+//@author_signature Original message author signature
+messageForwardOriginChat sender_chat_id:int53 author_signature:string = MessageForwardOrigin;
 
-//@description The message was originally written by a user, which is hidden by their privacy settings @sender_name Name of the sender
+//@description The message was originally sent by a user, which is hidden by their privacy settings @sender_name Name of the sender
 messageForwardOriginHiddenUser sender_name:string = MessageForwardOrigin;
 
 //@description The message was originally a post in a channel
@@ -641,11 +664,11 @@ messageForwardInfo origin:MessageForwardOrigin date:int32 public_service_announc
 
 //@description Contains information about message replies
 //@reply_count Number of times the message was directly or indirectly replied
-//@recent_replier_user_ids User identifiers of the recent repliers to the message; available in channels with a discussion supergroup
+//@recent_repliers Recent repliers to the message; available in channels with a discussion supergroup
 //@last_read_inbox_message_id Identifier of the last read incoming reply to the message
 //@last_read_outbox_message_id Identifier of the last read outgoing reply to the message
 //@last_message_id Identifier of the last reply to the message
-messageReplyInfo reply_count:int32 recent_replier_user_ids:vector<int32> last_read_inbox_message_id:int53 last_read_outbox_message_id:int53 last_message_id:int53 = MessageReplyInfo;
+messageReplyInfo reply_count:int32 recent_repliers:vector<MessageSender> last_read_inbox_message_id:int53 last_read_outbox_message_id:int53 last_message_id:int53 = MessageReplyInfo;
 
 //@description Contains information about interactions with a message
 //@view_count Number of times the message was viewed
@@ -666,12 +689,12 @@ messageSendingStateFailed error_code:int32 error_message:string can_retry:Bool r
 
 //@description Describes a message
 //@id Message identifier; unique for the chat to which the message belongs
-//@sender_user_id Identifier of the user who sent the message; 0 if unknown. Currently, it is unknown for channel posts, for channel posts automatically forwarded to discussion group and for anonymously sent supergroup messages
-//@sender_chat_id Identifier of the chat on behalf of which the message was sent; 0 if none
+//@sender The sender of the message
 //@chat_id Chat identifier
 //@sending_state Information about the sending state of the message; may be null
 //@scheduling_state Information about the scheduling state of the message; may be null
 //@is_outgoing True, if the message is outgoing
+//@is_pinned True, if the message is pinned
 //@can_be_edited True, if the message can be edited. For live location and poll messages this fields shows whether editMessageLiveLocation or stopPoll can be used with this message by the application
 //@can_be_forwarded True, if the message can be forwarded
 //@can_be_deleted_only_for_self True, if the message can be deleted only for the current user while other users will continue to see it
@@ -690,12 +713,12 @@ messageSendingStateFailed error_code:int32 error_message:string can_retry:Bool r
 //@ttl For self-destructing messages, the message's TTL (Time To Live), in seconds; 0 if none. TDLib will send updateDeleteMessages or updateMessageContent once the TTL expires
 //@ttl_expires_in Time left before the message expires, in seconds
 //@via_bot_user_id If non-zero, the user identifier of the bot through which this message was sent
-//@author_signature For channel posts, optional author signature
+//@author_signature For channel posts and anonymous administrator messages, optional author signature
 //@media_album_id Unique identifier of an album this message belongs to. Only photos and videos can be grouped together in albums
 //@restriction_reason If non-empty, contains a human-readable description of the reason why access to this message must be restricted
 //@content Content of the message
 //@reply_markup Reply markup for the message; may be null
-message id:int53 sender_user_id:int32 sender_chat_id:int53 chat_id:int53 sending_state:MessageSendingState scheduling_state:MessageSchedulingState is_outgoing:Bool can_be_edited:Bool can_be_forwarded:Bool can_be_deleted_only_for_self:Bool can_be_deleted_for_all_users:Bool can_get_statistics:Bool can_get_message_thread:Bool is_channel_post:Bool contains_unread_mention:Bool date:int32 edit_date:int32 forward_info:messageForwardInfo interaction_info:messageInteractionInfo reply_in_chat_id:int53 reply_to_message_id:int53 message_thread_id:int53 ttl:int32 ttl_expires_in:double via_bot_user_id:int32 author_signature:string media_album_id:int64 restriction_reason:string content:MessageContent reply_markup:ReplyMarkup = Message;
+message id:int53 sender:MessageSender chat_id:int53 sending_state:MessageSendingState scheduling_state:MessageSchedulingState is_outgoing:Bool is_pinned:Bool can_be_edited:Bool can_be_forwarded:Bool can_be_deleted_only_for_self:Bool can_be_deleted_for_all_users:Bool can_get_statistics:Bool can_get_message_thread:Bool is_channel_post:Bool contains_unread_mention:Bool date:int32 edit_date:int32 forward_info:messageForwardInfo interaction_info:messageInteractionInfo reply_in_chat_id:int53 reply_to_message_id:int53 message_thread_id:int53 ttl:int32 ttl_expires_in:double via_bot_user_id:int32 author_signature:string media_album_id:int64 restriction_reason:string content:MessageContent reply_markup:ReplyMarkup = Message;
 
 //@description Contains a list of messages @total_count Approximate total count of messages found @messages List of messages; messages may be null
 messages total_count:int32 messages:vector<message> = Messages;
@@ -838,17 +861,16 @@ chatPosition list:ChatList order:int64 is_pinned:Bool source:ChatSource = ChatPo
 //@unread_mention_count Number of unread messages with a mention/reply in the chat
 //@notification_settings Notification settings for this chat
 //@action_bar Describes actions which should be possible to do through a chat action bar; may be null
-//@pinned_message_id Identifier of the pinned message in the chat; 0 if none
 //@reply_markup_message_id Identifier of the message from which reply markup needs to be used; 0 if there is no default custom reply markup in the chat
 //@draft_message A draft of a message in the chat; may be null
 //@client_data Contains application-specific data associated with the chat. (For example, the chat scroll position or local chat notification settings can be stored here.) Persistent if the message database is used
-chat id:int53 type:ChatType title:string photo:chatPhotoInfo permissions:chatPermissions last_message:message positions:vector<chatPosition> is_marked_as_unread:Bool is_blocked:Bool has_scheduled_messages:Bool can_be_deleted_only_for_self:Bool can_be_deleted_for_all_users:Bool can_be_reported:Bool default_disable_notification:Bool unread_count:int32 last_read_inbox_message_id:int53 last_read_outbox_message_id:int53 unread_mention_count:int32 notification_settings:chatNotificationSettings action_bar:ChatActionBar pinned_message_id:int53 reply_markup_message_id:int53 draft_message:draftMessage client_data:string = Chat;
+chat id:int53 type:ChatType title:string photo:chatPhotoInfo permissions:chatPermissions last_message:message positions:vector<chatPosition> is_marked_as_unread:Bool is_blocked:Bool has_scheduled_messages:Bool can_be_deleted_only_for_self:Bool can_be_deleted_for_all_users:Bool can_be_reported:Bool default_disable_notification:Bool unread_count:int32 last_read_inbox_message_id:int53 last_read_outbox_message_id:int53 unread_mention_count:int32 notification_settings:chatNotificationSettings action_bar:ChatActionBar reply_markup_message_id:int53 draft_message:draftMessage client_data:string = Chat;
 
 //@description Represents a list of chats @total_count Approximate total count of chats found @chat_ids List of chat identifiers
 chats total_count:int32 chat_ids:vector<int53> = Chats;
 
 
-//@description Describes a chat located nearby @chat_id Chat identifier @distance Distance to the chat location in meters
+//@description Describes a chat located nearby @chat_id Chat identifier @distance Distance to the chat location, in meters
 chatNearby chat_id:int53 distance:int32 = ChatNearby;
 
 //@description Represents a list of chats located nearby @users_nearby List of users nearby @supergroups_nearby List of location-based supergroups nearby
@@ -1570,9 +1592,11 @@ messageVideoNote video_note:videoNote is_viewed:Bool is_secret:Bool = MessageCon
 //@description A voice note message @voice_note The voice note description @caption Voice note caption @is_listened True, if at least one of the recipients has listened to the voice note
 messageVoiceNote voice_note:voiceNote caption:formattedText is_listened:Bool = MessageContent;
 
-//@description A message with a location @location The location description @live_period Time relative to the message sent date until which the location can be updated, in seconds
+//@description A message with a location @location The location description @live_period Time relative to the message send date, for which the location can be updated, in seconds
 //@expires_in Left time for which the location can be updated, in seconds. updateMessageContent is not sent when this field changes
-messageLocation location:location live_period:int32 expires_in:int32 = MessageContent;
+//@heading For live locations, a direction in which the location moves, in degrees; 1-360. If 0 the direction is unknown
+//@proximity_alert_radius For live locations, a maximum distance to another chat member for proximity alerts, in meters (0-100000). 0 if the notification is disabled. Available only for the message sender
+messageLocation location:location live_period:int32 expires_in:int32 heading:int32 proximity_alert_radius:int32 = MessageContent;
 
 //@description A message with information about a venue @venue The venue description
 messageVenue venue:venue = MessageContent;
@@ -1581,12 +1605,12 @@ messageVenue venue:venue = MessageContent;
 messageContact contact:contact = MessageContent;
 
 //@description A dice message. The dice value is randomly generated by the server
-//@initial_state_sticker The animated sticker with the initial dice animation; may be null if unknown. updateMessageContent will be sent when the sticker became known
-//@final_state_sticker The animated sticker with the final dice animation; may be null if unknown. updateMessageContent will be sent when the sticker became known
+//@initial_state The animated stickers with the initial dice animation; may be null if unknown. updateMessageContent will be sent when the sticker became known
+//@final_state The animated stickers with the final dice animation; may be null if unknown. updateMessageContent will be sent when the sticker became known
 //@emoji Emoji on which the dice throw animation is based
 //@value The dice value. If the value is 0, the dice don't have final state yet
 //@success_animation_frame_number Number of frame after which a success animation like a shower of confetti needs to be shown on updateMessageSendSucceeded
-messageDice initial_state_sticker:sticker final_state_sticker:sticker emoji:string value:int32 success_animation_frame_number:int32 = MessageContent;
+messageDice initial_state:DiceStickers final_state:DiceStickers emoji:string value:int32 success_animation_frame_number:int32 = MessageContent;
 
 //@description A message with a game @game The game description
 messageGame game:game = MessageContent;
@@ -1666,6 +1690,9 @@ messagePassportDataSent types:vector<PassportElementType> = MessageContent;
 
 //@description Telegram Passport data has been received; for bots only @elements List of received Telegram Passport elements @credentials Encrypted data credentials
 messagePassportDataReceived elements:vector<encryptedPassportElement> credentials:encryptedCredentials = MessageContent;
+
+//@description A user in the chat came within proximity alert range @approacher The user or chat, which approached another user @observer The user or chat, which subscribed for the proximity alert @distance The distance between the users
+messageProximityAlertTriggered approacher:MessageSender observer:MessageSender distance:int32 = MessageContent;
 
 //@description Message content that is not supported in the current TDLib version
 messageUnsupported = MessageContent;
@@ -1788,7 +1815,9 @@ inputMessageVideoNote video_note:InputFile thumbnail:inputThumbnail duration:int
 inputMessageVoiceNote voice_note:InputFile duration:int32 waveform:bytes caption:formattedText = InputMessageContent;
 
 //@description A message with a location @location Location to be sent @live_period Period for which the location can be updated, in seconds; should be between 60 and 86400 for a live location and 0 otherwise
-inputMessageLocation location:location live_period:int32 = InputMessageContent;
+//@heading For live locations, a direction in which the location moves, in degrees; 1-360. Pass 0 if unknown
+//@proximity_alert_radius For live locations, a maximum distance to another chat member for proximity alerts, in meters (0-100000). Pass 0 if the notification is disabled. Can't be enabled in channels and Saved Messages
+inputMessageLocation location:location live_period:int32 heading:int32 proximity_alert_radius:int32 = InputMessageContent;
 
 //@description A message with information about a venue @venue Venue to send
 inputMessageVenue venue:venue = InputMessageContent;
@@ -1871,6 +1900,9 @@ searchMessagesFilterUnreadMention = SearchMessagesFilter;
 
 //@description Returns only failed to send messages. This filter can be used only if the message database is used
 searchMessagesFilterFailedToSend = SearchMessagesFilter;
+
+//@description Returns only pinned messages
+searchMessagesFilterPinned = SearchMessagesFilter;
 
 
 //@class ChatAction @description Describes the different types of activity in a chat
@@ -2058,6 +2090,20 @@ phoneNumberAuthenticationSettings allow_flash_call:Bool is_current_phone_number:
 animations animations:vector<animation> = Animations;
 
 
+//@class DiceStickers @description Contains animated stickers which should be used for dice animation rendering
+
+//@description A regular animated sticker @sticker The animated sticker with the dice animation
+diceStickersRegular sticker:sticker = DiceStickers;
+
+//@description Animated stickers to be combined into a slot machine
+//@background The animated sticker with the slot machine background. The background animation must start playing after all reel animations finish
+//@lever The animated sticker with the lever animation. The lever animation must play once in the initial dice state
+//@left_reel The animated sticker with the left reel
+//@center_reel The animated sticker with the center reel
+//@right_reel The animated sticker with the right reel
+diceStickersSlotMachine background:sticker lever:sticker left_reel:sticker center_reel:sticker right_reel:sticker = DiceStickers;
+
+
 //@description Represents the result of an ImportContacts request @user_ids User identifiers of the imported contacts in the same order as they were specified in the request; 0 if the contact is not yet a registered user
 //@importer_count The number of users that imported the corresponding contact; 0 for already registered users or if unavailable
 importedContacts user_ids:vector<int32> importer_count:vector<int32> = ImportedContacts;
@@ -2104,7 +2150,9 @@ inputInlineQueryResultDocument id:string title:string description:string documen
 //@description Represents a game @id Unique identifier of the query result @game_short_name Short name of the game @reply_markup Message reply markup. Must be of type replyMarkupInlineKeyboard or null
 inputInlineQueryResultGame id:string game_short_name:string reply_markup:ReplyMarkup = InputInlineQueryResult;
 
-//@description Represents a point on the map @id Unique identifier of the query result @location Location result @live_period Amount of time relative to the message sent time until the location can be updated, in seconds @title Title of the result @thumbnail_url URL of the result thumbnail, if it exists @thumbnail_width Thumbnail width, if known @thumbnail_height Thumbnail height, if known
+//@description Represents a point on the map @id Unique identifier of the query result @location Location result
+//@live_period Amount of time relative to the message sent time until the location can be updated, in seconds
+//@title Title of the result @thumbnail_url URL of the result thumbnail, if it exists @thumbnail_width Thumbnail width, if known @thumbnail_height Thumbnail height, if known
 //@reply_markup The message reply markup. Must be of type replyMarkupInlineKeyboard or null
 //@input_message_content The content of the message to be sent. Must be one of the following types: InputMessageText, InputMessageLocation, InputMessageVenue or InputMessageContact
 inputInlineQueryResultLocation id:string location:location live_period:int32 title:string thumbnail_url:string thumbnail_width:int32 thumbnail_height:int32 reply_markup:ReplyMarkup input_message_content:InputMessageContent = InputInlineQueryResult;
@@ -2226,8 +2274,8 @@ chatEventPollStopped message:message = ChatEventAction;
 //@description A message was pinned @message Pinned message
 chatEventMessagePinned message:message = ChatEventAction;
 
-//@description A message was unpinned
-chatEventMessageUnpinned = ChatEventAction;
+//@description A message was unpinned @message Unpinned message
+chatEventMessageUnpinned message:message = ChatEventAction;
 
 //@description A new member joined the chat
 chatEventMemberJoined = ChatEventAction;
@@ -2542,7 +2590,8 @@ pushMessageContentChatJoinByLink = PushMessageContent;
 pushMessageContentMessageForwards total_count:int32 = PushMessageContent;
 
 //@description A media album @total_count Number of messages in the album @has_photos True, if the album has at least one photo @has_videos True, if the album has at least one video
-pushMessageContentMediaAlbum total_count:int32 has_photos:Bool has_videos:Bool = PushMessageContent;
+//@has_audios True, if the album has at least one audio file @has_documents True, if the album has at least one document
+pushMessageContentMediaAlbum total_count:int32 has_photos:Bool has_videos:Bool has_audios:Bool has_documents:Bool = PushMessageContent;
 
 
 //@class NotificationType @description Contains detailed information about a notification
@@ -2558,12 +2607,11 @@ notificationTypeNewCall call_id:int32 = NotificationType;
 
 //@description New message was received through a push notification
 //@message_id The message identifier. The message will not be available in the chat history, but the ID can be used in viewMessages, or as reply_to_message_id
-//@sender_user_id Sender of the message; 0 if unknown. Corresponding user may be inaccessible
-//@sender_chat_id Sender chat of the message; 0 if none
+//@sender The sender of the message. Corresponding user or chat may be inaccessible
 //@sender_name Name of the sender; can be different from the name of the sender user
 //@is_outgoing True, if the message is outgoing
 //@content Push message content
-notificationTypeNewPushMessage message_id:int53 sender_user_id:int32 sender_chat_id:int53 sender_name:string is_outgoing:Bool content:PushMessageContent = NotificationType;
+notificationTypeNewPushMessage message_id:int53 sender:MessageSender sender_name:string is_outgoing:Bool content:PushMessageContent = NotificationType;
 
 
 //@class NotificationGroupType @description Describes the type of notifications in a notification group
@@ -3127,6 +3175,9 @@ updateMessageContent chat_id:int53 message_id:int53 new_content:MessageContent =
 //@description A message was edited. Changes in the message content will come in a separate updateMessageContent @chat_id Chat identifier @message_id Message identifier @edit_date Point in time (Unix timestamp) when the message was edited @reply_markup New message reply markup; may be null
 updateMessageEdited chat_id:int53 message_id:int53 edit_date:int32 reply_markup:ReplyMarkup = Update;
 
+//@description The message pinned state was changed @chat_id Chat identifier @message_id The message identifier @is_pinned True, if the message is pinned
+updateMessageIsPinned chat_id:int53 message_id:int53 is_pinned:Bool = Update;
+
 //@description The information about interactions with a message has changed @chat_id Chat identifier @message_id Message identifier @interaction_info New information about interactions with the message; may be null
 updateMessageInteractionInfo chat_id:int53 message_id:int53 interaction_info:messageInteractionInfo = Update;
 
@@ -3187,9 +3238,6 @@ updateScopeNotificationSettings scope:NotificationSettingsScope notification_set
 
 //@description The chat action bar was changed @chat_id Chat identifier @action_bar The new value of the action bar; may be null
 updateChatActionBar chat_id:int53 action_bar:ChatActionBar = Update;
-
-//@description The chat pinned message was changed @chat_id Chat identifier @pinned_message_id The new identifier of the pinned message; 0 if there is no pinned message in the chat
-updateChatPinnedMessage chat_id:int53 pinned_message_id:int53 = Update;
 
 //@description The default chat reply markup was changed. Can occur because new messages with reply markup were received or because an old reply markup was hidden by the user
 //@chat_id Chat identifier @reply_markup_message_id Identifier of the message from which reply markup needs to be used; 0 if there is no default custom reply markup in the chat
@@ -3554,8 +3602,11 @@ getMessageLocally chat_id:int53 message_id:int53 = Message;
 //@chat_id Identifier of the chat the message belongs to @message_id Identifier of the message reply to which to get
 getRepliedMessage chat_id:int53 message_id:int53 = Message;
 
-//@description Returns information about a pinned chat message @chat_id Identifier of the chat the message belongs to
+//@description Returns information about a newest pinned chat message @chat_id Identifier of the chat the message belongs to
 getChatPinnedMessage chat_id:int53 = Message;
+
+//@description Returns information about a message with the callback button that originated a callback query; for bots only @chat_id Identifier of the chat the message belongs to @message_id Message identifier @callback_query_id Identifier of the callback query
+getCallbackQueryMessage chat_id:int53 message_id:int53 callback_query_id:int64 = Message;
 
 //@description Returns information about messages. If a message is not found, returns null on the corresponding position of the result @chat_id Identifier of the chat the messages belong to @message_ids Identifiers of the messages to get
 getMessages chat_id:int53 message_ids:vector<int53> = Messages;
@@ -3654,13 +3705,13 @@ deleteChatHistory chat_id:int53 remove_from_chat_list:Bool revoke:Bool = Ok;
 //-(searchSecretMessages should be used instead), or without an enabled message database. For optimal performance the number of returned messages is chosen by the library
 //@chat_id Identifier of the chat in which to search messages
 //@query Query to search for
-//@sender_user_id If not 0, only messages sent by the specified user will be returned. Not supported in secret chats
+//@sender If not null, only messages sent by the specified sender will be returned. Not supported in secret chats
 //@from_message_id Identifier of the message starting from which history must be fetched; use 0 to get results from the last message
 //@offset Specify 0 to get results from exactly the from_message_id or a negative offset to get the specified message and some newer messages
 //@limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than -offset. Fewer messages may be returned than specified by the limit, even if the end of the message history has not been reached
 //@filter Filter for message content in the search results
 //@message_thread_id If not 0, only messages in the specified thread will be returned; supergroups only
-searchChatMessages chat_id:int53 query:string sender_user_id:int32 from_message_id:int53 offset:int32 limit:int32 filter:SearchMessagesFilter message_thread_id:int53 = Messages;
+searchChatMessages chat_id:int53 query:string sender:MessageSender from_message_id:int53 offset:int32 limit:int32 filter:SearchMessagesFilter message_thread_id:int53 = Messages;
 
 //@description Searches for messages in all chats except secret chats. Returns the results in reverse chronological order (i.e., in order of decreasing (date, chat_id, message_id)).
 //-For optimal performance the number of returned messages is chosen by the library
@@ -3670,7 +3721,7 @@ searchChatMessages chat_id:int53 query:string sender_user_id:int32 from_message_
 //@offset_chat_id The chat identifier of the last found message, or 0 for the first request
 //@offset_message_id The message identifier of the last found message, or 0 for the first request
 //@limit The maximum number of messages to be returned; up to 100. Fewer messages may be returned than specified by the limit, even if the end of the message history has not been reached
-//@filter Filter for message content in the search results; searchMessagesFilterCall, searchMessagesFilterMissedCall, searchMessagesFilterMention, searchMessagesFilterUnreadMention and searchMessagesFilterFailedToSend are unsupported in this function
+//@filter Filter for message content in the search results; searchMessagesFilterCall, searchMessagesFilterMissedCall, searchMessagesFilterMention, searchMessagesFilterUnreadMention, searchMessagesFilterFailedToSend and searchMessagesFilterPinned are unsupported in this function
 //@min_date If not 0, the minimum date of the messages to return
 //@max_date If not 0, the maximum date of the messages to return
 searchMessages chat_list:ChatList query:string offset_date:int32 offset_chat_id:int53 offset_message_id:int53 limit:int32 filter:SearchMessagesFilter min_date:int32 max_date:int32 = Messages;
@@ -3782,9 +3833,13 @@ sendChatSetTtlMessage chat_id:int53 ttl:int32 = Message;
 //@description Sends a notification about a screenshot taken in a chat. Supported only in private and secret chats @chat_id Chat identifier
 sendChatScreenshotTakenNotification chat_id:int53 = Ok;
 
-//@description Adds a local message to a chat. The message is persistent across application restarts only if the message database is used. Returns the added message @chat_id Target chat @sender_user_id Identifier of the user who will be shown as the sender of the message; may be 0 for channel posts
-//@reply_to_message_id Identifier of the message to reply to or 0 @disable_notification Pass true to disable notification for the message @input_message_content The content of the message to be added
-addLocalMessage chat_id:int53 sender_user_id:int32 reply_to_message_id:int53 disable_notification:Bool input_message_content:InputMessageContent = Message;
+//@description Adds a local message to a chat. The message is persistent across application restarts only if the message database is used. Returns the added message
+//@chat_id Target chat
+//@sender The sender sender of the message
+//@reply_to_message_id Identifier of the message to reply to or 0
+//@disable_notification Pass true to disable notification for the message
+//@input_message_content The content of the message to be added
+addLocalMessage chat_id:int53 sender:MessageSender reply_to_message_id:int53 disable_notification:Bool input_message_content:InputMessageContent = Message;
 
 //@description Deletes messages @chat_id Chat identifier @message_ids Identifiers of the messages to be deleted @revoke Pass true to try to delete messages for all chat members. Always true for supergroups, channels and secret chats
 deleteMessages chat_id:int53 message_ids:vector<int53> revoke:Bool = Ok;
@@ -3799,7 +3854,9 @@ editMessageText chat_id:int53 message_id:int53 reply_markup:ReplyMarkup input_me
 
 //@description Edits the message content of a live location. Messages can be edited for a limited period of time specified in the live location. Returns the edited message after the edit is completed on the server side
 //@chat_id The chat the message belongs to @message_id Identifier of the message @reply_markup The new message reply markup; for bots only @location New location content of the message; may be null. Pass null to stop sharing the live location
-editMessageLiveLocation chat_id:int53 message_id:int53 reply_markup:ReplyMarkup location:location = Message;
+//@heading The new direction in which the location moves, in degrees; 1-360. Pass 0 if unknown
+//@proximity_alert_radius The new maximum distance for proximity alerts, in meters (0-100000). Pass 0 if the notification is disabled
+editMessageLiveLocation chat_id:int53 message_id:int53 reply_markup:ReplyMarkup location:location heading:int32 proximity_alert_radius:int32 = Message;
 
 //@description Edits the content of a message with an animation, an audio, a document, a photo or a video. The media in the message can't be replaced if the message was set to self-destruct. Media can't be replaced by self-destructing media. Media in an album can be edited only to contain a photo or a video. Returns the edited message after the edit is completed on the server side
 //@chat_id The chat the message belongs to @message_id Identifier of the message @reply_markup The new message reply markup; for bots only @input_message_content New content of the message. Must be one of the following types: InputMessageAnimation, InputMessageAudio, InputMessageDocument, InputMessagePhoto or InputMessageVideo
@@ -3816,8 +3873,11 @@ editMessageReplyMarkup chat_id:int53 message_id:int53 reply_markup:ReplyMarkup =
 //@description Edits the text of an inline text or game message sent via a bot; for bots only @inline_message_id Inline message identifier @reply_markup The new message reply markup @input_message_content New text content of the message. Should be of type InputMessageText
 editInlineMessageText inline_message_id:string reply_markup:ReplyMarkup input_message_content:InputMessageContent = Ok;
 
-//@description Edits the content of a live location in an inline message sent via a bot; for bots only @inline_message_id Inline message identifier @reply_markup The new message reply markup @location New location content of the message; may be null. Pass null to stop sharing the live location
-editInlineMessageLiveLocation inline_message_id:string reply_markup:ReplyMarkup location:location = Ok;
+//@description Edits the content of a live location in an inline message sent via a bot; for bots only @inline_message_id Inline message identifier @reply_markup The new message reply markup
+//@location New location content of the message; may be null. Pass null to stop sharing the live location
+//@heading The new direction in which the location moves, in degrees; 1-360. Pass 0 if unknown
+//@proximity_alert_radius The new maximum distance for proximity alerts, in meters (0-100000). Pass 0 if the notification is disabled
+editInlineMessageLiveLocation inline_message_id:string reply_markup:ReplyMarkup location:location heading:int32 proximity_alert_radius:int32 = Ok;
 
 //@description Edits the content of a message with an animation, an audio, a document, a photo or a video in an inline message sent via a bot; for bots only @inline_message_id Inline message identifier
 //@reply_markup The new message reply markup; for bots only @input_message_content New content of the message. Must be one of the following types: InputMessageAnimation, InputMessageAudio, InputMessageDocument, InputMessagePhoto or InputMessageVideo
@@ -4043,9 +4103,6 @@ setChatNotificationSettings chat_id:int53 notification_settings:chatNotification
 //@description Changes the marked as unread state of a chat @chat_id Chat identifier @is_marked_as_unread New value of is_marked_as_unread
 toggleChatIsMarkedAsUnread chat_id:int53 is_marked_as_unread:Bool = Ok;
 
-//@description Changes the block state of a chat. Currently, only private chats and supergroups can be blocked @chat_id Chat identifier @is_blocked New value of is_blocked
-toggleChatIsBlocked chat_id:int53 is_blocked:Bool = Ok;
-
 //@description Changes the value of the default disable_notification parameter, used when a message is sent to a chat @chat_id Chat identifier @default_disable_notification New value of default_disable_notification
 toggleChatDefaultDisableNotification chat_id:int53 default_disable_notification:Bool = Ok;
 
@@ -4065,11 +4122,18 @@ setChatLocation chat_id:int53 location:chatLocation = Ok;
 //@description Changes the slow mode delay of a chat. Available only for supergroups; requires can_restrict_members rights @chat_id Chat identifier @slow_mode_delay New slow mode delay for the chat; must be one of 0, 10, 30, 60, 300, 900, 3600
 setChatSlowModeDelay chat_id:int53 slow_mode_delay:int32 = Ok;
 
-//@description Pins a message in a chat; requires can_pin_messages rights @chat_id Identifier of the chat @message_id Identifier of the new pinned message @disable_notification True, if there should be no notification about the pinned message
-pinChatMessage chat_id:int53 message_id:int53 disable_notification:Bool = Ok;
+//@description Pins a message in a chat; requires can_pin_messages rights or can_edit_messages rights in the channel
+//@chat_id Identifier of the chat
+//@message_id Identifier of the new pinned message
+//@disable_notification True, if there should be no notification about the pinned message. Notifications are always disabled in channels and private chats
+//@only_for_self True, if the message needs to be pinned only for self; private chats only
+pinChatMessage chat_id:int53 message_id:int53 disable_notification:Bool only_for_self:Bool = Ok;
 
-//@description Removes the pinned message from a chat; requires can_pin_messages rights in the group or channel @chat_id Identifier of the chat
-unpinChatMessage chat_id:int53 = Ok;
+//@description Removes a pinned message from a chat; requires can_pin_messages rights in the group or can_edit_messages rights in the channel @chat_id Identifier of the chat @message_id Identifier of the removed pinned message
+unpinChatMessage chat_id:int53 message_id:int53 = Ok;
+
+//@description Removes all pinned messages from a chat; requires can_pin_messages rights in the group or can_edit_messages rights in the channel @chat_id Identifier of the chat
+unpinAllChatMessages chat_id:int53 = Ok;
 
 
 //@description Adds current user as a new member to a chat. Private and secret chats can't be joined using this method @chat_id Chat identifier
@@ -4209,15 +4273,18 @@ sendCallRating call_id:int32 rating:int32 comment:string problems:vector<CallPro
 sendCallDebugInformation call_id:int32 debug_information:string = Ok;
 
 
+//@description Changes the block state of a message sender. Currently, only users and supergroup chats can be blocked @sender Message Sender @is_blocked New value of is_blocked
+toggleMessageSenderIsBlocked sender:MessageSender is_blocked:Bool = Ok;
+
 //@description Blocks an original sender of a message in the Replies chat
 //@message_id The identifier of an incoming message in the Replies chat
 //@delete_message Pass true if the message must be deleted
 //@delete_all_messages Pass true if all messages from the same sender must be deleted
 //@report_spam Pass true if the sender must be reported to the Telegram moderators
-blockChatFromReplies message_id:int53 delete_message:Bool delete_all_messages:Bool report_spam:Bool = Ok;
+blockMessageSenderFromReplies message_id:int53 delete_message:Bool delete_all_messages:Bool report_spam:Bool = Ok;
 
-//@description Returns chats that were blocked by the current user @offset Number of chats to skip in the result; must be non-negative @limit The maximum number of chats to return; up to 100
-getBlockedChats offset:int32 limit:int32 = Chats;
+//@description Returns users and chats that were blocked by the current user @offset Number of users and chats to skip in the result; must be non-negative @limit The maximum number of users and chats to return; up to 100
+getBlockedMessageSenders offset:int32 limit:int32 = MessageSenders;
 
 
 //@description Adds a user to the contact list or edits an existing contact by their user identifier @contact The contact to add or edit; phone number can be empty and needs to be specified only if known, vCard is ignored
