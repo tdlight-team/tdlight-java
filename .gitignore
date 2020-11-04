@@ -7,3 +7,4 @@ db_backup
 *.pyc
 docs/
 .idea/
+vcpkg/

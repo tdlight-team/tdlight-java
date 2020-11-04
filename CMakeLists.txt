@@ -21,6 +21,10 @@ if (POLICY CMP0054)
   # do not expand quoted arguments
   cmake_policy(SET CMP0054 NEW)
 endif()
+if (POLICY CMP0060)
+  # link libraries by full path
+  cmake_policy(SET CMP0060 NEW)
+endif()
 
 include(PreventInSourceBuild)
 prevent_in_source_build()
@@ -82,9 +86,9 @@ if (EMSCRIPTEN)
   set(ZLIB_INCLUDE_DIR)
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s ALLOW_MEMORY_GROWTH=1 -s MEMFS_APPEND_TO_TYPED_ARRAYS=1 -s USE_ZLIB=1 -s MODULARIZE=1 \
-  -s EXPORT_NAME=\"'createTdwebModule'\" -s WEBSOCKET_URL=\"'wss:#'\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['FS','cwrap']\" -lidbfs.js -lworkerfs.js")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s ALLOW_MEMORY_GROWTH=1 -s MEMFS_APPEND_TO_TYPED_ARRAYS=1 -s USE_ZLIB=1 -s  \
-  MODULARIZE=1 -s EXPORT_NAME=\"'createTdwebModule'\" -s WEBSOCKET_URL=\"'wss:#'\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['FS','cwrap']\" -lidbfs.js -lworkerfs.js")
+    -s EXPORT_NAME=\"'createTdwebModule'\" -s WEBSOCKET_URL=\"'wss:#'\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['FS','cwrap']\" -lidbfs.js -lworkerfs.js")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s ALLOW_MEMORY_GROWTH=1 -s MEMFS_APPEND_TO_TYPED_ARRAYS=1 -s USE_ZLIB=1 -s MODULARIZE=1 \
+    -s EXPORT_NAME=\"'createTdwebModule'\" -s WEBSOCKET_URL=\"'wss:#'\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['FS','cwrap']\" -lidbfs.js -lworkerfs.js")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -s DEMANGLE_SUPPORT=1 -s ASSERTIONS=1")
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -s DEMANGLE_SUPPORT=1 -s ASSERTIONS=1")
 
@@ -117,6 +121,14 @@ endif()
 
 include(TdSetUpCompiler)
 td_set_up_compiler()
+
+if (MSVC)
+  option(TD_ENABLE_MULTI_PROCESSOR_COMPILATION "Use \"ON\" to enable multi-processor compilation.")
+
+  if (TD_ENABLE_MULTI_PROCESSOR_COMPILATION)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  endif()
+endif()
 
 if (CLANG OR GCC)
   if (MEMPROF)

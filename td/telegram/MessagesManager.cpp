@@ -5815,6 +5815,40 @@ int32 MessagesManager::get_message_index_mask(DialogId dialog_id, const Message 
   return index_mask;
 }
 
+void MessagesManager::update_reply_count_by_message(Dialog *d, int diff, const Message *m) {
+  if (td_->auth_manager_->is_bot() || !m->top_thread_message_id.is_valid() ||
+      m->top_thread_message_id == m->message_id || !m->message_id.is_server()) {
+    return;
+  }
+
+  auto replier_dialog_id =
+      has_message_sender_user_id(d->dialog_id, m) ? DialogId(m->sender_user_id) : m->sender_dialog_id;
+  update_message_reply_count(d, m->top_thread_message_id, replier_dialog_id, m->message_id, diff);
+}
+
+void MessagesManager::update_message_reply_count(Dialog *d, MessageId message_id, DialogId replier_dialog_id,
+                                                 MessageId reply_message_id, int diff, bool is_recursive) {
+  if (d == nullptr) {
+    return;
+  }
+
+  Message *m = get_message(d, message_id);
+  if (m == nullptr || !is_active_message_reply_info(d->dialog_id, m->reply_info)) {
+    return;
+  }
+  LOG(INFO) << "Update reply count to " << message_id << " in " << d->dialog_id << " by " << diff << " from "
+            << reply_message_id << " sent by " << replier_dialog_id;
+  if (m->reply_info.add_reply(replier_dialog_id, reply_message_id, diff)) {
+    on_message_reply_info_changed(d->dialog_id, m);
+    on_message_changed(d, m, true, "update_message_reply_count_by_message");
+  }
+
+  if (!is_recursive && is_discussion_message(d->dialog_id, m)) {
+    update_message_reply_count(get_dialog(m->forward_info->from_dialog_id), m->forward_info->from_message_id,
+                               replier_dialog_id, reply_message_id, diff, true);
+  }
+}
+
 vector<MessageId> MessagesManager::get_message_ids(const vector<int64> &input_message_ids) {
   vector<MessageId> message_ids;
   message_ids.reserve(input_message_ids.size());
@@ -7067,7 +7101,7 @@ void MessagesManager::on_user_dialog_action(DialogId dialog_id, MessageId top_th
   if (td_->auth_manager_->is_bot() || !user_id.is_valid() || is_broadcast_channel(dialog_id)) {
     return;
   }
-  if (!td_->messages_manager_->have_dialog(dialog_id)) {
+  if (!have_dialog(dialog_id)) {
     LOG(DEBUG) << "Ignore typing in unknown " << dialog_id;
     return;
   }
@@ -13147,7 +13181,7 @@ FullMessageId MessagesManager::on_get_message(MessageInfo &&message_info, bool f
   bool need_update_dialog_pos = false;
 
   MessageId old_message_id = find_old_message_id(dialog_id, message_id);
-  bool need_add_active_live_location = false;
+  bool is_sent_message = false;
   LOG(INFO) << "Found temporarily " << old_message_id << " for " << FullMessageId{dialog_id, message_id};
   if (old_message_id.is_valid() || old_message_id.is_valid_scheduled()) {
     Dialog *d = get_dialog(dialog_id);
@@ -13225,10 +13259,7 @@ FullMessageId MessagesManager::on_get_message(MessageInfo &&message_info, bool f
     send_update_message_send_succeeded(d, old_message_id, new_message.get());
 
     if (!message_id.is_scheduled()) {
-      need_add_active_live_location = true;
-
-      // add_message_to_dialog will not update counts, because need_update == false
-      update_message_count_by_index(d, +1, new_message.get());
+      is_sent_message = true;
     }
 
     if (!from_update) {
@@ -13257,8 +13288,12 @@ FullMessageId MessagesManager::on_get_message(MessageInfo &&message_info, bool f
     return FullMessageId();
   }
 
-  if (need_add_active_live_location) {
+  if (is_sent_message) {
     try_add_active_live_location(dialog_id, m);
+
+    // add_message_to_dialog will not update counts, because need_update == false
+    update_message_count_by_index(d, +1, m);
+    update_reply_count_by_message(d, +1, m);
   }
 
   auto pcc_it = pending_created_dialogs_.find(dialog_id);
@@ -14730,6 +14765,7 @@ unique_ptr<MessagesManager::Message> MessagesManager::do_delete_message(Dialog *
     }
 
     update_message_count_by_index(d, -1, result.get());
+    update_reply_count_by_message(d, -1, result.get());
   }
 
   on_message_deleted(d, result.get(), is_permanently_deleted, source);
@@ -14979,13 +15015,9 @@ void MessagesManager::load_dialog_filter(const DialogFilter *filter, bool force,
 
   if (!input_dialog_ids.empty() && !force) {
     const size_t MAX_SLICE_SIZE = 100;
-    if (input_dialog_ids.size() <= MAX_SLICE_SIZE) {
-      td_->create_handler<GetDialogsQuery>(std::move(promise))->send(std::move(input_dialog_ids));
-      return;
-    }
-
     MultiPromiseActorSafe mpas{"GetFilterDialogsFromServerMultiPromiseActor"};
     mpas.add_promise(std::move(promise));
+    mpas.set_ignore_errors(true);
     auto lock = mpas.get_promise();
 
     for (size_t i = 0; i < input_dialog_ids.size(); i += MAX_SLICE_SIZE) {
@@ -16338,6 +16370,7 @@ FullMessageId MessagesManager::get_replied_message(DialogId dialog_id, MessageId
     return FullMessageId();
   }
 
+  message_id = get_persistent_message_id(d, message_id);
   auto m = get_message_force(d, message_id, "get_replied_message");
   if (m == nullptr) {
     if (force) {
@@ -16822,8 +16855,8 @@ Result<std::pair<string, bool>> MessagesManager::get_message_link(FullMessageId 
   if (for_comment) {
     auto *top_m = get_message_force(d, m->top_thread_message_id, "get_public_message_link");
     if (is_discussion_message(dialog_id, top_m) && is_active_message_reply_info(dialog_id, top_m->reply_info)) {
-      auto linked_dialog_id = top_m->forward_info->sender_dialog_id;
-      auto linked_message_id = top_m->forward_info->message_id;
+      auto linked_dialog_id = top_m->forward_info->from_dialog_id;
+      auto linked_message_id = top_m->forward_info->from_message_id;
       auto linked_d = get_dialog(linked_dialog_id);
       CHECK(linked_d != nullptr);
       CHECK(linked_dialog_id.get_type() == DialogType::Channel);
@@ -18975,11 +19008,11 @@ Status MessagesManager::view_messages(DialogId dialog_id, MessageId top_thread_m
       max_thread_message_id = top_m->reply_info.max_message_id;
 
       if (is_discussion_message(dialog_id, top_m)) {
-        auto linked_dialog_id = top_m->forward_info->sender_dialog_id;
+        auto linked_dialog_id = top_m->forward_info->from_dialog_id;
         auto linked_d = get_dialog(linked_dialog_id);
         CHECK(linked_d != nullptr);
         CHECK(linked_dialog_id.get_type() == DialogType::Channel);
-        auto *linked_m = get_message_force(linked_d, top_m->forward_info->message_id, "view_messages 4");
+        auto *linked_m = get_message_force(linked_d, top_m->forward_info->from_message_id, "view_messages 4");
         if (linked_m != nullptr && is_active_message_reply_info(linked_dialog_id, linked_m->reply_info)) {
           if (linked_m->reply_info.last_read_inbox_message_id < prev_last_read_inbox_message_id) {
             prev_last_read_inbox_message_id = linked_m->reply_info.last_read_inbox_message_id;
@@ -22770,7 +22803,7 @@ void MessagesManager::fix_server_reply_to_message_id(DialogId dialog_id, Message
   }
 
   if (!message_id.is_scheduled() && !reply_in_dialog_id.is_valid() && reply_to_message_id >= message_id) {
-    if (reply_to_message_id.get() - message_id.get() <= MessageId(ServerMessageId(2000000000)).get() ||
+    if (reply_to_message_id.get() - message_id.get() <= MessageId(ServerMessageId(1000000)).get() ||
         dialog_id.get_type() == DialogType::Channel) {
       LOG(ERROR) << "Receive reply to wrong " << reply_to_message_id << " in " << message_id << " in " << dialog_id;
     }
@@ -24984,16 +25017,16 @@ bool MessagesManager::is_discussion_message(DialogId dialog_id, const Message *m
       return false;
     }
   }
-  if (!m->forward_info->sender_dialog_id.is_valid() || !m->forward_info->message_id.is_valid()) {
+  if (!m->forward_info->from_dialog_id.is_valid() || !m->forward_info->from_message_id.is_valid()) {
     return false;
   }
   if (dialog_id.get_type() != DialogType::Channel || is_broadcast_channel(dialog_id)) {
     return false;
   }
-  if (m->forward_info->sender_dialog_id == dialog_id) {
+  if (m->forward_info->from_dialog_id == dialog_id) {
     return false;
   }
-  if (m->forward_info->sender_dialog_id.get_type() != DialogType::Channel) {
+  if (m->forward_info->from_dialog_id.get_type() != DialogType::Channel) {
     return false;
   }
   return true;
@@ -28520,6 +28553,7 @@ void MessagesManager::fail_send_message(FullMessageId full_message_id, int error
   if (!m->message_id.is_scheduled()) {
     // add_message_to_dialog will not update counts, because need_update == false
     update_message_count_by_index(d, +1, m);
+    update_reply_count_by_message(d, +1, m);  // no-op because the message isn't server
   }
   register_new_local_message_id(d, m);
 
@@ -28833,7 +28867,9 @@ void MessagesManager::on_update_dialog_last_pinned_message_id(DialogId dialog_id
 
 void MessagesManager::set_dialog_last_pinned_message_id(Dialog *d, MessageId pinned_message_id) {
   CHECK(d != nullptr);
-  CHECK(d->last_pinned_message_id != pinned_message_id);
+  if (d->last_pinned_message_id == pinned_message_id) {
+    return;
+  }
   d->last_pinned_message_id = pinned_message_id;
   d->is_last_pinned_message_id_inited = true;
   on_dialog_updated(d->dialog_id, "set_dialog_last_pinned_message_id");
@@ -30231,9 +30267,7 @@ void MessagesManager::unpin_all_dialog_messages(DialogId dialog_id, Promise<Unit
     on_message_changed(d, m, true, "unpin_all_dialog_messages");
   }
 
-  if (d->last_pinned_message_id != MessageId()) {
-    set_dialog_last_pinned_message_id(d, MessageId());
-  }
+  set_dialog_last_pinned_message_id(d, MessageId());
   if (d->message_count_by_index[message_search_filter_index(MessageSearchFilter::Pinned)] != 0) {
     d->message_count_by_index[message_search_filter_index(MessageSearchFilter::Pinned)] = 0;
     on_dialog_updated(dialog_id, "unpin_all_dialog_messages");
@@ -31201,7 +31235,7 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
       message->sender_dialog_id = dialog_id;
     } else {
       if (is_discussion_message(dialog_id, message.get())) {
-        message->sender_dialog_id = message->forward_info->sender_dialog_id;
+        message->sender_dialog_id = message->forward_info->from_dialog_id;
       } else {
         LOG(ERROR) << "Failed to repair sender chat in " << message_id << " in " << dialog_id;
       }
@@ -31483,10 +31517,10 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
     Message *top_m = get_message(d, message->top_thread_message_id);
     CHECK(top_m != nullptr);
     if (is_active_message_reply_info(dialog_id, top_m->reply_info) && is_discussion_message(dialog_id, top_m) &&
-        have_message_force({top_m->forward_info->sender_dialog_id, top_m->forward_info->message_id},
+        have_message_force({top_m->forward_info->from_dialog_id, top_m->forward_info->from_message_id},
                            "preload discussed message")) {
       LOG(INFO) << "Preloaded discussed "
-                << FullMessageId{top_m->forward_info->sender_dialog_id, top_m->forward_info->message_id}
+                << FullMessageId{top_m->forward_info->from_dialog_id, top_m->forward_info->from_message_id}
                 << " from database";
     }
   }
@@ -31715,6 +31749,7 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
   }
   if (*need_update) {
     update_message_count_by_index(d, +1, message.get());
+    update_reply_count_by_message(d, +1, message.get());
   }
   if (auto_attach && message_id > d->last_message_id && message_id >= d->last_new_message_id) {
     set_dialog_last_message_id(d, message_id, "add_message_to_dialog");
@@ -31837,28 +31872,6 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
           UNREACHABLE();
       }
     }
-
-    if (!td_->auth_manager_->is_bot() && m->top_thread_message_id.is_valid() &&
-        m->top_thread_message_id != message_id && message_id.is_server()) {
-      Message *top_m = get_message(d, m->top_thread_message_id);
-      if (top_m != nullptr && is_active_message_reply_info(dialog_id, top_m->reply_info)) {
-        auto replier_dialog_id =
-            has_message_sender_user_id(dialog_id, m) ? DialogId(m->sender_user_id) : m->sender_dialog_id;
-        top_m->reply_info.add_reply(replier_dialog_id, message_id);
-        on_message_reply_info_changed(dialog_id, top_m);
-        on_message_changed(d, top_m, true, "update_message_reply_count 1");
-
-        if (is_discussion_message(dialog_id, top_m)) {
-          auto channel_dialog_id = top_m->forward_info->sender_dialog_id;
-          Message *channel_m = get_message({channel_dialog_id, top_m->forward_info->message_id});
-          if (channel_m != nullptr && is_active_message_reply_info(channel_dialog_id, channel_m->reply_info)) {
-            channel_m->reply_info.add_reply(replier_dialog_id, message_id);
-            on_message_reply_info_changed(channel_dialog_id, channel_m);
-            on_message_changed(get_dialog(channel_dialog_id), channel_m, true, "update_message_reply_count 2");
-          }
-        }
-      }
-    }
   }
 
   Message *result_message = treap_insert_message(&d->messages, std::move(message));
@@ -31923,7 +31936,8 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
   }
   if (!td_->auth_manager_->is_bot() && from_update && m->forward_info != nullptr &&
       m->forward_info->sender_dialog_id.is_valid() && m->forward_info->message_id.is_valid() &&
-      !is_discussion_message(dialog_id, m)) {
+      (!is_discussion_message(dialog_id, m) || m->forward_info->sender_dialog_id != m->forward_info->from_dialog_id ||
+       m->forward_info->message_id != m->forward_info->from_message_id)) {
     update_forward_count(m->forward_info->sender_dialog_id, m->forward_info->message_id);
   }
 
@@ -32487,9 +32501,9 @@ bool MessagesManager::update_message(Dialog *d, Message *old_message, unique_ptr
     if (new_message->forward_info != nullptr) {
       if (!replace_legacy) {
         LOG(ERROR) << message_id << " in " << dialog_id << " has received forward info " << *new_message->forward_info
-                   << ", really forwarded from " << old_message->real_forward_from_dialog_id
-                   << ", message content type is " << old_message->content->get_type() << '/'
-                   << new_message->content->get_type();
+                   << ", really forwarded from " << old_message->real_forward_from_message_id << " in "
+                   << old_message->real_forward_from_dialog_id << ", message content type is "
+                   << old_message->content->get_type() << '/' << new_message->content->get_type();
       }
       old_message->forward_info = std::move(new_message->forward_info);
       need_send_update = true;
@@ -32505,8 +32519,9 @@ bool MessagesManager::update_message(Dialog *d, Message *old_message, unique_ptr
         if (!is_forward_info_sender_hidden(new_message->forward_info.get()) && !replace_legacy) {
           LOG(ERROR) << message_id << " in " << dialog_id << " has changed forward info from "
                      << *old_message->forward_info << " to " << *new_message->forward_info << ", really forwarded from "
-                     << old_message->real_forward_from_dialog_id << ", message content type is "
-                     << old_message->content->get_type() << '/' << new_message->content->get_type();
+                     << old_message->real_forward_from_message_id << " in " << old_message->real_forward_from_dialog_id
+                     << ", message content type is " << old_message->content->get_type() << '/'
+                     << new_message->content->get_type();
         }
         old_message->forward_info = std::move(new_message->forward_info);
         need_send_update = true;
@@ -32514,9 +32529,9 @@ bool MessagesManager::update_message(Dialog *d, Message *old_message, unique_ptr
     } else if (is_new_available) {
       LOG(ERROR) << message_id << " in " << dialog_id << " sent by " << old_message->sender_user_id << "/"
                  << old_message->sender_dialog_id << " has lost forward info " << *old_message->forward_info
-                 << ", really forwarded from " << old_message->real_forward_from_dialog_id
-                 << ", message content type is " << old_message->content->get_type() << '/'
-                 << new_message->content->get_type();
+                 << ", really forwarded from " << old_message->real_forward_from_message_id << " in "
+                 << old_message->real_forward_from_dialog_id << ", message content type is "
+                 << old_message->content->get_type() << '/' << new_message->content->get_type();
       old_message->forward_info = nullptr;
       need_send_update = true;
     }
@@ -35047,9 +35062,9 @@ void MessagesManager::after_get_channel_difference(DialogId dialog_id, bool succ
             LOG(INFO) << "Can't apply postponed channel updates";
           } else {
             // otherwise we protecting from getChannelDifference repeating calls by dropping pending updates
-            LOG(ERROR) << "Failed to apply postponed updates of type " << update_id << " in " << dialog_id
-                       << " with pts " << d->pts << ", update pts is " << update_pts << ", update pts count is "
-                       << update_pts_count;
+            LOG(WARNING) << "Failed to apply postponed updates of type " << update_id << " in " << dialog_id
+                         << " with pts " << d->pts << ", update pts is " << update_pts << ", update pts count is "
+                         << update_pts_count;
             d->postponed_channel_updates.clear();
           }
           break;

@@ -1691,8 +1691,8 @@ messagePassportDataSent types:vector<PassportElementType> = MessageContent;
 //@description Telegram Passport data has been received; for bots only @elements List of received Telegram Passport elements @credentials Encrypted data credentials
 messagePassportDataReceived elements:vector<encryptedPassportElement> credentials:encryptedCredentials = MessageContent;
 
-//@description A user in the chat came within proximity alert range @approacher The user or chat, which approached another user @observer The user or chat, which subscribed for the proximity alert @distance The distance between the users
-messageProximityAlertTriggered approacher:MessageSender observer:MessageSender distance:int32 = MessageContent;
+//@description A user in the chat came within proximity alert range @traveler The user or chat, which triggered the proximity alert @watcher The user or chat, which subscribed for the proximity alert @distance The distance between the users
+messageProximityAlertTriggered traveler:MessageSender watcher:MessageSender distance:int32 = MessageContent;
 
 //@description Message content that is not supported in the current TDLib version
 messageUnsupported = MessageContent;
@@ -3668,7 +3668,7 @@ getCreatedPublicChats type:PublicChatType = Chats;
 //@description Checks whether the maximum number of owned public chats has been reached. Returns corresponding error if the limit was reached @type Type of the public chats, for which to check the limit
 checkCreatedPublicChatsLimit type:PublicChatType = Ok;
 
-//@description Returns a list of basic group and supergroup chats, which can be used as a discussion group for a channel. Basic group chats need to be first upgraded to supergroups before they can be set as a discussion group
+//@description Returns a list of basic group and supergroup chats, which can be used as a discussion group for a channel. Returned basic group chats must be first upgraded to supergroups before they can be set as a discussion group. To set a returned supergroup as a discussion group, access to its old messages must be enabled using toggleSupergroupIsAllHistoryAvailable first
 getSuitableDiscussionChats = Chats;
 
 //@description Returns a list of recently inactive supergroups and channels. Can be used when user reaches limit on the number of joined supergroups and channels and receives CHANNELS_TOO_MUCH error
@@ -3754,7 +3754,7 @@ getChatMessageCount chat_id:int53 filter:SearchMessagesFilter return_local:Bool 
 //@description Returns all scheduled messages in a chat. The messages are returned in a reverse chronological order (i.e., in order of decreasing message_id) @chat_id Chat identifier
 getChatScheduledMessages chat_id:int53 = Messages;
 
-//@description Returns forwarded copies of a channel message to another public channels. For optimal performance the number of returned messages is chosen by the library. The method is under development and may or may not work
+//@description Returns forwarded copies of a channel message to different public channels. For optimal performance the number of returned messages is chosen by the library
 //@chat_id Chat identifier of the message
 //@message_id Message identifier
 //@offset Offset of the first entry to return as received from the previous request; use empty string to get first chunk of results
@@ -4113,7 +4113,7 @@ setChatClientData chat_id:int53 client_data:string = Ok;
 setChatDescription chat_id:int53 description:string = Ok;
 
 //@description Changes the discussion group of a channel chat; requires can_change_info rights in the channel if it is specified @chat_id Identifier of the channel chat. Pass 0 to remove a link from the supergroup passed in the second argument to a linked channel chat (requires can_pin_messages rights in the supergroup) @discussion_chat_id Identifier of a new channel's discussion group. Use 0 to remove the discussion group.
-//-Use the method getSuitableDiscussionChats to find all suitable groups. Basic group chats need to be first upgraded to supergroup chats. If new chat members don't have access to old messages in the supergroup, then toggleSupergroupIsAllHistoryAvailable needs to be used first to change that
+//-Use the method getSuitableDiscussionChats to find all suitable groups. Basic group chats need to be first upgraded to supergroup chats. If new chat members don't have access to old messages in the supergroup, then toggleSupergroupIsAllHistoryAvailable must be used first to change that
 setChatDiscussionGroup chat_id:int53 discussion_chat_id:int53 = Ok;
 
 //@description Changes the location of a chat. Available only for some location-based supergroups, use supergroupFullInfo.can_set_location to check whether the method is allowed to use @chat_id Chat identifier @location New location for the chat; must be valid and not null
@@ -4641,7 +4641,7 @@ getChatStatisticsUrl chat_id:int53 parameters:string is_dark:Bool = HttpUrl;
 //@description Returns detailed statistics about a chat. Currently this method can be used only for supergroups and channels. Can be used only if SupergroupFullInfo.can_get_statistics == true @chat_id Chat identifier @is_dark Pass true if a dark theme is used by the application
 getChatStatistics chat_id:int53 is_dark:Bool = ChatStatistics;
 
-//@description Returns detailed statistics about a message. Can be used only if Message.can_get_statistics == true. The method is under development and may or may not work @chat_id Chat identifier @message_id Message identifier @is_dark Pass true if a dark theme is used by the application
+//@description Returns detailed statistics about a message. Can be used only if Message.can_get_statistics == true @chat_id Chat identifier @message_id Message identifier @is_dark Pass true if a dark theme is used by the application
 getMessageStatistics chat_id:int53 message_id:int53 is_dark:Bool = MessageStatistics;
 
 //@description Loads asynchronous or zoomed in chat or message statistics graph @chat_id Chat identifier @token The token for graph loading @x X-value for zoomed in graph or 0 otherwise

@@ -4074,10 +4074,13 @@ bool ContactsManager::have_input_peer_channel(const Channel *c, ChannelId channe
     if (is_public) {
       return true;
     }
-    if (!from_linked) {
+    if (!from_linked && c->has_linked_channel) {
       auto linked_channel_id = get_linked_channel_id(channel_id);
-      if (linked_channel_id.is_valid() &&
-          have_input_peer_channel(get_channel(linked_channel_id), linked_channel_id, access_rights, true)) {
+      if (linked_channel_id.is_valid() && have_channel(linked_channel_id)) {
+        if (have_input_peer_channel(get_channel(linked_channel_id), linked_channel_id, access_rights, true)) {
+          return true;
+        }
+      } else {
         return true;
       }
     }
@@ -4085,11 +4088,13 @@ bool ContactsManager::have_input_peer_channel(const Channel *c, ChannelId channe
       return true;
     }
   } else {
-    if (!from_linked && c->is_megagroup && !td_->auth_manager_->is_bot()) {
+    if (!from_linked && c->is_megagroup && !td_->auth_manager_->is_bot() && c->has_linked_channel) {
       auto linked_channel_id = get_linked_channel_id(channel_id);
-      if (linked_channel_id.is_valid()) {
+      if (linked_channel_id.is_valid() && (is_public || have_channel(linked_channel_id))) {
         return is_public ||
                have_input_peer_channel(get_channel(linked_channel_id), linked_channel_id, AccessRights::Read, true);
+      } else {
+        return true;
       }
     }
   }
@@ -5974,7 +5979,7 @@ void ContactsManager::send_get_channel_stats_query(DcId dc_id, ChannelId channel
   }
 }
 
-bool ContactsManager::can_get_channel_message_statistics(DialogId dialog_id) {
+bool ContactsManager::can_get_channel_message_statistics(DialogId dialog_id) const {
   if (dialog_id.get_type() != DialogType::Channel) {
     return false;
   }
@@ -5985,11 +5990,16 @@ bool ContactsManager::can_get_channel_message_statistics(DialogId dialog_id) {
     return false;
   }
 
-  auto channel_full = get_channel_full_force(channel_id, "can_get_channel_message_statistics");
-  if (channel_full == nullptr) {
-    return c->status.is_administrator();
+  if (td_->auth_manager_->is_bot()) {
+    return false;
   }
-  return channel_full->stats_dc_id.is_exact();
+
+  auto channel_full = get_channel_full(channel_id);
+  if (channel_full != nullptr) {
+    return channel_full->stats_dc_id.is_exact();
+  }
+
+  return c->status.is_administrator();
 }
 
 void ContactsManager::get_channel_message_statistics(FullMessageId full_message_id, bool is_dark,
@@ -13002,17 +13012,23 @@ bool ContactsManager::get_channel_has_linked_channel(const Channel *c) {
 }
 
 ChannelId ContactsManager::get_channel_linked_channel_id(ChannelId channel_id) {
-  auto channel_full = get_channel_full_force(channel_id, "get_channel_linked_channel_id");
+  auto channel_full = get_channel_full_const(channel_id);
   if (channel_full == nullptr) {
-    return ChannelId();
+    channel_full = get_channel_full_force(channel_id, "get_channel_linked_channel_id");
+    if (channel_full == nullptr) {
+      return ChannelId();
+    }
   }
   return channel_full->linked_channel_id;
 }
 
 int32 ContactsManager::get_channel_slow_mode_delay(ChannelId channel_id) {
-  auto channel_full = get_channel_full_force(channel_id, "get_channel_slow_mode_delay");
+  auto channel_full = get_channel_full_const(channel_id);
   if (channel_full == nullptr) {
-    return 0;
+    channel_full = get_channel_full_force(channel_id, "get_channel_slow_mode_delay");
+    if (channel_full == nullptr) {
+      return 0;
+    }
   }
   return channel_full->slow_mode_delay;
 }
@@ -13096,13 +13112,17 @@ void ContactsManager::reload_channel(ChannelId channel_id, Promise<Unit> &&promi
   td_->create_handler<GetChannelsQuery>(std::move(promise))->send(std::move(input_channel));
 }
 
-const ContactsManager::ChannelFull *ContactsManager::get_channel_full(ChannelId channel_id) const {
+const ContactsManager::ChannelFull *ContactsManager::get_channel_full_const(ChannelId channel_id) const {
   auto p = channels_full_.find(channel_id);
   if (p == channels_full_.end()) {
     return nullptr;
   } else {
     return p->second.get();
   }
+}
+
+const ContactsManager::ChannelFull *ContactsManager::get_channel_full(ChannelId channel_id) const {
+  return get_channel_full_const(channel_id);
 }
 
 ContactsManager::ChannelFull *ContactsManager::get_channel_full(ChannelId channel_id, const char *source) {

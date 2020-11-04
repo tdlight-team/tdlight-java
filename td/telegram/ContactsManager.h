@@ -376,7 +376,7 @@ class ContactsManager : public Actor {
   void get_channel_statistics(DialogId dialog_id, bool is_dark,
                               Promise<td_api::object_ptr<td_api::ChatStatistics>> &&promise);
 
-  bool can_get_channel_message_statistics(DialogId dialog_id);
+  bool can_get_channel_message_statistics(DialogId dialog_id) const;
 
   void get_channel_message_statistics(FullMessageId full_message_id, bool is_dark,
                                       Promise<td_api::object_ptr<td_api::messageStatistics>> &&promise);
@@ -1125,6 +1125,7 @@ class ContactsManager : public Actor {
 
   const ChannelFull *get_channel_full(ChannelId channel_id) const;
   const ChannelFull *get_channel_full_internal(ChannelId channel_id) const;
+  const ChannelFull *get_channel_full_const(ChannelId channel_id) const;
   ChannelFull *get_channel_full(ChannelId channel_id, const char *source);
   ChannelFull *get_channel_full_internal(ChannelId channel_id, const char *source);
   ChannelFull *get_channel_full_force(ChannelId channel_id, const char *source);

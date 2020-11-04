@@ -1072,10 +1072,12 @@ void UpdatesManager::on_get_difference(tl_object_ptr<telegram_api::updates_Diffe
       set_date(difference->date_, false, "on_get_difference_empty");
       seq_ = difference->seq_;
       if (!pending_seq_updates_.empty()) {
-        LOG(ERROR) << "Drop " << pending_seq_updates_.size() << " pending seq updates after receive empty difference";
+        LOG(WARNING) << "Drop " << pending_seq_updates_.size() << " pending seq updates after receive empty difference";
+        pending_seq_updates_.clear();
       }
       if (!pending_qts_updates_.empty()) {
-        LOG(ERROR) << "Drop " << pending_qts_updates_.size() << " pending qts updates after receive empty difference";
+        LOG(WARNING) << "Drop " << pending_qts_updates_.size() << " pending qts updates after receive empty difference";
+        pending_qts_updates_.clear();
       }
       break;
     }
@@ -1518,6 +1520,9 @@ void UpdatesManager::process_qts_update(tl_object_ptr<telegram_api::Update> &&up
 }
 
 void UpdatesManager::process_pending_seq_updates() {
+  if (!pending_seq_updates_.empty()) {
+    LOG(DEBUG) << "Trying to process " << pending_seq_updates_.size() << " pending seq updates";
+  }
   while (!pending_seq_updates_.empty() && !running_get_difference_) {
     auto update_it = pending_seq_updates_.begin();
     auto seq_begin = update_it->second.seq_begin;
