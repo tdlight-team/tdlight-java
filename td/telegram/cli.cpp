@@ -4522,7 +4522,9 @@ static void on_fatal_error(const char *error) {
 
 void main(int argc, char **argv) {
 #ifndef _WIN32
+#if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
   Debug::DeathHandler dh;
+#endif
 #endif
 
   ExitGuard exit_guard;
