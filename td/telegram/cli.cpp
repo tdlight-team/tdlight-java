@@ -41,7 +41,9 @@
 #include "td/utils/Time.h"
 
 #ifndef _WIN32
+#if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
 #include "td/utils/death_handler.h"
+#endif
 #endif
 
 #ifndef USE_READLINE

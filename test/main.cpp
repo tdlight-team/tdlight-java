@@ -13,7 +13,9 @@
 #include "td/telegram/Log.h"
 
 #ifndef _WIN32
+#if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
 #include "td/utils/death_handler.h"
+#endif
 #endif
 
 #if TD_EMSCRIPTEN
@@ -22,8 +24,10 @@
 
 int main(int argc, char **argv) {
   #ifndef _WIN32
+  #if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
     td::Log::set_disable_death_handler(true);
     Debug::DeathHandler dh;
+  #endif
   #endif
   td::init_openssl_threads();
 

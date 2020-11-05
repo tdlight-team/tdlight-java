@@ -14,7 +14,9 @@
 #include "td/utils/Time.h"
 
 #ifndef _WIN32
+#if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
 #include "td/utils/death_handler.h"
+#endif
 #endif
 
 #include <atomic>
@@ -293,7 +295,7 @@ void process_fatal_error(CSlice message) {
   if (callback) {
     callback(message);
   }
-#ifndef _WIN32
+#ifndef _WIN32 && defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
   #if TD_THREAD_UNSUPPORTED || TD_EVENTFD_UNSUPPORTED
     std::abort();
   #else

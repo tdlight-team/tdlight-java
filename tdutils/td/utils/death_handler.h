@@ -52,6 +52,7 @@
  */
 
 #ifndef _WIN32
+#if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
 
 #ifndef DEATH_HANDLER_H_
 #define DEATH_HANDLER_H_
@@ -261,4 +262,5 @@ class DeathHandler {
 }  // namespace Debug
 #endif  // DEATH_HANDLER_H_
 
+#endif
 #endif

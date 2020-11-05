@@ -35,6 +35,7 @@
  */
 
 #ifndef _WIN32
+#if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
 
 #include "death_handler.h"
 #include <assert.h>
@@ -734,4 +735,5 @@ void DeathHandler::HandleSignal(int sig, void * /* info */, void *secret) {
 
 }  // namespace Debug
 
+#endif
 #endif
