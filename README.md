@@ -8,6 +8,9 @@ TDLight is 100% compatible with tdlib, if you don't use the sqlite database.
 TDLight can clean itself and release some ram to the OS if you want. Look at **TdApi.OptimizeMemory** in "Modified features" paragraph to see how.
 ### Constant memory usage
 TDLight if used with care doesn't grow in memory usage with time. Look at **TdApi.OptimizeMemory** in "Modified features" paragraph to see how
+
+![memory usage](info/memory-usage.jpg)
+
 ### Custom options
 We added some options:
 * **disable_minithumbnails** (true/false) This setting removes minithumbnails everywhere. It reduces memory usage because tdlib keeps them in RAM.

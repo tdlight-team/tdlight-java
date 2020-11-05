@@ -178,7 +178,9 @@ void MemoryManager::clean_memory(bool full, Promise<Unit> promise) const {
   td_->file_manager_->memory_cleanup();
 
   #ifdef __linux__
-    malloc_trim(0);
+    #if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
+      malloc_trim(0);
+    #endif
   #endif
 
   promise.set_value(Unit());
