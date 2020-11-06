@@ -295,7 +295,7 @@ void process_fatal_error(CSlice message) {
   if (callback) {
     callback(message);
   }
-#ifndef _WIN32 && defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
+#if !defined(_WIN32) && defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
   #if TD_THREAD_UNSUPPORTED || TD_EVENTFD_UNSUPPORTED
     std::abort();
   #else
