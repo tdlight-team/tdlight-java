@@ -618,11 +618,6 @@ Client::Client(Client &&other) = default;
 Client &Client::operator=(Client &&other) = default;
 
 ClientManager::ClientManager() : impl_(std::make_unique<Impl>()) {
-  #ifndef _WIN32
-  #if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
-    td::Log::set_disable_death_handler(true);
-  #endif
-  #endif
 }
 
 ClientManager::ClientId ClientManager::create_client() {

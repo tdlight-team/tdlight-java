@@ -13,12 +13,6 @@
 #include "td/utils/Slice.h"
 #include "td/utils/Time.h"
 
-#ifndef _WIN32
-#if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
-#include "td/utils/death_handler.h"
-#endif
-#endif
-
 #include <atomic>
 #include <cstdlib>
 #include <limits>
@@ -295,21 +289,7 @@ void process_fatal_error(CSlice message) {
   if (callback) {
     callback(message);
   }
-#if !defined(_WIN32) && defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
-  #if TD_THREAD_UNSUPPORTED || TD_EVENTFD_UNSUPPORTED
-    std::abort();
-  #else
-    struct sigaction sa{};
-
-    if (use_death_handler) {
-      Debug::DeathHandler::HandleSignal(SIGABRT, &sa, nullptr);
-    } else {
-      std::abort();
-    }
-  #endif
-#else
   std::abort();
-#endif
 }
 
 namespace {

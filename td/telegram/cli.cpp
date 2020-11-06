@@ -40,12 +40,6 @@
 #include "td/utils/StringBuilder.h"
 #include "td/utils/Time.h"
 
-#ifndef _WIN32
-#if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
-#include "td/utils/death_handler.h"
-#endif
-#endif
-
 #ifndef USE_READLINE
 #include "td/utils/find_boundary.h"
 #endif
@@ -4521,12 +4515,6 @@ static void on_fatal_error(const char *error) {
 }
 
 void main(int argc, char **argv) {
-#ifndef _WIN32
-#if defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__MUSL__)
-  Debug::DeathHandler dh;
-#endif
-#endif
-
   ExitGuard exit_guard;
   ignore_signal(SignalType::HangUp).ensure();
   ignore_signal(SignalType::Pipe).ensure();
