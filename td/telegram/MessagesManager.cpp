@@ -1922,7 +1922,7 @@ class SearchMessagesQuery : public Td::ResultHandler {
       send_query(G()->net_query_creator().create(
           telegram_api::messages_getUnreadMentions(std::move(input_peer), from_message_id.get_server_message_id().get(),
                                                    offset, limit, std::numeric_limits<int32>::max(), 0)));
-    } else if (top_thread_message_id.is_valid() && !sender_dialog_id.is_valid() &&
+    } else if (top_thread_message_id.is_valid() && query.empty() && !sender_dialog_id.is_valid() &&
                filter == MessageSearchFilter::Empty) {
       handle_errors_ = dialog_id.get_type() != DialogType::Channel ||
                        td->contacts_manager_->get_channel_type(dialog_id.get_channel_id()) != ChannelType::Broadcast;
@@ -23227,7 +23227,7 @@ Result<vector<MessageId>> MessagesManager::send_message_group(
   TRY_RESULT(message_send_options, process_message_send_options(dialog_id, std::move(options)));
 
   vector<std::pair<unique_ptr<MessageContent>, int32>> message_contents;
-  std::unordered_set<MessageContentType> message_content_types;
+  std::unordered_set<MessageContentType, MessageContentTypeHash> message_content_types;
   for (auto &input_message_content : input_message_contents) {
     TRY_RESULT(message_content, process_input_message_content(dialog_id, std::move(input_message_content)));
     TRY_STATUS(can_use_message_send_options(message_send_options, message_content));
