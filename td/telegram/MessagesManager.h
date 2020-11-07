@@ -238,6 +238,9 @@ class MessagesManager : public Actor {
   };
   MessagesInfo on_get_messages(tl_object_ptr<telegram_api::messages_Messages> &&messages_ptr, const char *source);
 
+  void get_channel_difference_if_needed(DialogId dialog_id, MessagesInfo &&messages_info,
+                                        Promise<MessagesInfo> &&promise);
+
   void on_get_messages(vector<tl_object_ptr<telegram_api::Message>> &&messages, bool is_channel_message,
                        bool is_scheduled, const char *source);
 
@@ -612,8 +615,9 @@ class MessagesManager : public Actor {
 
   td_api::object_ptr<td_api::messageThreadInfo> get_message_thread_info_object(const MessageThreadInfo &info);
 
-  void on_get_discussion_message(DialogId dialog_id, MessageId message_id, vector<FullMessageId> full_message_ids,
-                                 Promise<MessageThreadInfo> &&promise);
+  void process_discussion_message(telegram_api::object_ptr<telegram_api::messages_discussionMessage> &&result,
+                                  DialogId dialog_id, MessageId message_id, DialogId expected_dialog_id,
+                                  MessageId expected_message_id, Promise<vector<FullMessageId>> promise);
 
   bool is_message_edited_recently(FullMessageId full_message_id, int32 seconds);
 
@@ -809,7 +813,7 @@ class MessagesManager : public Actor {
   void on_resolved_username(const string &username, DialogId dialog_id);
   void drop_username(const string &username);
 
-  tl_object_ptr<telegram_api::InputNotifyPeer> get_input_notify_peer(DialogId dialogId) const;
+  tl_object_ptr<telegram_api::InputNotifyPeer> get_input_notify_peer(DialogId dialog_id) const;
 
   void on_update_dialog_notify_settings(DialogId dialog_id,
                                         tl_object_ptr<telegram_api::peerNotifySettings> &&peer_notify_settings,
@@ -2073,7 +2077,7 @@ class MessagesManager : public Actor {
 
   void load_folder_dialog_list_from_database(FolderId folder_id, int32 limit, Promise<Unit> &&promise);
 
-  void preload_folder_dialog_list(FolderId folderId);
+  void preload_folder_dialog_list(FolderId folder_id);
 
   static void invalidate_message_indexes(Dialog *d);
 
@@ -2645,6 +2649,13 @@ class MessagesManager : public Actor {
   void on_get_message_link_discussion_message(MessageLinkInfo &&info, DialogId comment_dialog_id,
                                               Promise<MessageLinkInfo> &&promise);
 
+  void process_discussion_message_impl(telegram_api::object_ptr<telegram_api::messages_discussionMessage> &&result,
+                                       DialogId dialog_id, MessageId message_id, DialogId expected_dialog_id,
+                                       MessageId expected_message_id, Promise<vector<FullMessageId>> promise);
+
+  void on_get_discussion_message(DialogId dialog_id, MessageId message_id, vector<FullMessageId> full_message_ids,
+                                 Promise<MessageThreadInfo> &&promise);
+
   static MessageId get_first_database_message_id_by_index(const Dialog *d, MessageSearchFilter filter);
 
   void on_search_dialog_messages_db_result(int64 random_id, DialogId dialog_id, MessageId from_message_id,
@@ -2772,6 +2783,11 @@ class MessagesManager : public Actor {
   int32 load_channel_pts(DialogId dialog_id) const;
 
   void set_channel_pts(Dialog *d, int32 new_pts, const char *source);
+
+  bool need_channel_difference_to_add_message(DialogId dialog_id,
+                                              const tl_object_ptr<telegram_api::Message> &message_ptr);
+
+  void run_after_channel_difference(DialogId dialog_id, Promise<Unit> &&promise);
 
   bool running_get_channel_difference(DialogId dialog_id) const;
 
@@ -2957,6 +2973,8 @@ class MessagesManager : public Actor {
 
   static int32 get_message_schedule_date(const Message *m);
 
+  static DialogId get_message_original_sender(const Message *m);
+
   int32 recently_found_dialogs_loaded_ = 0;  // 0 - not loaded, 1 - load request was sent, 2 - loaded
   MultiPromiseActor resolve_recently_found_dialogs_multipromise_{"ResolveRecentlyFoundDialogsMultiPromiseActor"};
 
@@ -3090,8 +3108,6 @@ class MessagesManager : public Actor {
     }
   };
 
-  std::unordered_map<DialogId, vector<PendingGetMessageRequest>, DialogIdHash> postponed_get_message_requests_;
-
   std::unordered_map<string, vector<Promise<Unit>>> search_public_dialogs_queries_;
   std::unordered_map<string, vector<DialogId>> found_public_dialogs_;     // TODO time bound cache
   std::unordered_map<string, vector<DialogId>> found_on_server_dialogs_;  // TODO time bound cache
@@ -3223,6 +3239,8 @@ class MessagesManager : public Actor {
 
   vector<PendingOnGetDialogs> pending_on_get_dialogs_;
   std::unordered_map<DialogId, PendingOnGetDialogs, DialogIdHash> pending_channel_on_get_dialogs_;
+
+  std::unordered_map<DialogId, vector<Promise<Unit>>, DialogIdHash> run_after_get_channel_difference_;
 
   ChangesProcessor<unique_ptr<PendingSecretMessage>> pending_secret_messages_;
 
