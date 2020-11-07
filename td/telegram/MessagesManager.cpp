@@ -31328,7 +31328,7 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
     if (max_message_id != MessageId() && message_id > max_message_id) {
       if (!message->from_database) {
         if (!message->is_pinned) {
-          LOG(ERROR) << "Ignore " << message_id << " in " << dialog_id << " received not through update from " << source
+          LOG(DEBUG) << "Ignore " << message_id << " in " << dialog_id << " received not through update from " << source
                      << ". Last is " << max_message_id << ", channel difference " << debug_channel_difference_dialog_
                      << " " << to_string(get_message_object(dialog_id, message.get()));
         }
