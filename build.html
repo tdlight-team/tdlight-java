@@ -54,6 +54,8 @@ select.large { font-size: large; }
     <select id="linuxSelect" onchange="onOsChanged()" class="large">
       <option>Choose a Linux distro:</option>
       <option>Alpine</option>
+      <option>CentOS 7</option>
+      <option>CentOS 8</option>
       <option>Debian 8</option>
       <option>Debian 9</option>
       <option>Debian 10</option>
@@ -84,7 +86,7 @@ select.large { font-size: large; }
     <div id="buildCompilerDiv" class="hide">
       <span>Choose which compiler you want to use to build TDLib:</span><br>
       <label><input type="radio" id="buildCompilerRadioGcc" name="buildCompilerRadio" onchange="onOptionsChanged()" checked/>g++</label>
-      <label><input type="radio" id="buildCompilerRadioClang" name="buildCompilerRadio" onchange="onOptionsChanged()"/>clang++ (recommended)</label>
+      <label><input type="radio" id="buildCompilerRadioClang" name="buildCompilerRadio" onchange="onOptionsChanged()"/>clang (recommended)</label>
       <p></p>
     </div>
 
@@ -377,7 +379,7 @@ function onOptionsChanged() {
   document.getElementById('buildCommandsDiv').style.display = 'block';
 
   var use_clang = os_freebsd || os_openbsd;
-  if (os_linux && linux_distro !== 'Alpine') {
+  if (os_linux && linux_distro !== 'Alpine' && !linux_distro.includes('CentOS')) {
     document.getElementById('buildCompilerDiv').style.display = 'block';
     use_clang = document.getElementById('buildCompilerRadioClang').checked;
   } else {
@@ -518,7 +520,7 @@ function onOptionsChanged() {
   }
   if (os_linux && linux_distro === 'Other') {
     var jdk = target === 'JNI' ? ', JDK ' : '';
-    var compiler = use_clang ? 'clang++ >= 3.4' : 'g++ >= 4.9.2';
+    var compiler = use_clang ? 'clang >= 3.4' : 'g++ >= 4.9.2';
     pre_text.push('Install Git, ' + compiler + ', make, CMake >= 3.0.2, OpenSSL-dev, zlib-dev, gperf, PHP' + jdk + ' using your package manager.');
   }
   if (os_linux && os.includes('Node.js')) {
@@ -588,7 +590,8 @@ function onOptionsChanged() {
 
   var commands = [];
 
-  var php = "php";
+  var php = 'php';
+  var cmake = 'cmake';
   if (os_mac) {
     commands.push('xcode-select --install');
     commands.push('/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"');
@@ -606,6 +609,24 @@ function onOptionsChanged() {
           packages += ' openjdk8';
         }
         commands.push(sudo + 'apk add --update ' + packages);
+        break;
+      case 'CentOS 7':
+      case 'CentOS 8':
+        commands.push(sudo + 'yum update -y');
+        var packages = 'gcc-c++ make git zlib-devel openssl-devel php';
+        if (linux_distro === 'CentOS 7') {
+          commands.push(sudo + 'yum install -y centos-release-scl-rh epel-release');
+          commands.push(sudo + 'yum install -y devtoolset-9-gcc devtoolset-9-gcc-c++');
+          cmake = 'cmake3';
+          packages += ' gperf';
+        } else {
+          commands.push(sudo + 'dnf --enablerepo=PowerTools install gperf');
+        }
+        packages += ' ' + cmake;
+        if (target === 'JNI') {
+          packages += ' java-11-openjdk-devel';
+        }
+        commands.push(sudo + 'yum install -y ' + packages);
         break;
       case 'Debian 8':
       case 'Debian 9':
@@ -744,34 +765,6 @@ function onOptionsChanged() {
     commands.push('mkdir build');
     commands.push('cd build');
 
-    if (!use_msvc) {
-      var c_flags = [];
-      var cxx_flags = [];
-
-      if (build_32bit) {
-        c_flags.push('-m32');
-        cxx_flags.push('-m32');
-      } else if (build_64bit) {
-        c_flags.push('-m64');
-        cxx_flags.push('-m64');
-      }
-
-      if (os_linux) {
-        if (use_clang) {
-          cxx_flags.push('-stdlib=libc++');
-        } else {
-          cxx_flags.push('');
-        }
-      }
-
-      if (c_flags.length) {
-        commands.push('export CFLAGS="' + c_flags.join(' ') + '"');
-      }
-      if (cxx_flags.length) {
-        commands.push('export CXXFLAGS="' + cxx_flags.join(' ') + '"');
-      }
-    }
-
     cmake_init_options = getBacicCmakeInitOptions();
     if (os_mac) {
       cmake_init_options.push('-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl/');
@@ -803,7 +796,7 @@ function onOptionsChanged() {
       if (os_linux) {
         if (use_clang) {
           var clang_version_suffix = getClangVersionSuffix();
-          prefix = 'CC=/usr/bin/clang' + clang_version_suffix + ' CXX=/usr/bin/clang++' + clang_version_suffix + ' ';
+          prefix = 'CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang' + clang_version_suffix + ' CXX=/usr/bin/clang++' + clang_version_suffix + ' ';
           if (use_lto) {
             options.push('-DCMAKE_AR=/usr/bin/llvm-ar' + clang_version_suffix);
             options.push('-DCMAKE_NM=/usr/bin/llvm-nm' + clang_version_suffix);
@@ -812,20 +805,22 @@ function onOptionsChanged() {
           }
         } else if (linux_distro === 'Ubuntu 14') {
           prefix = 'CC=/usr/bin/gcc-4.9 CXX=/usr/bin/g++-4.9 ';
+        } else if (linux_distro === 'CentOS 7') {
+          prefix = 'CC=/opt/rh/devtoolset-9/root/usr/bin/gcc CXX=/opt/rh/devtoolset-9/root/usr/bin/g++ ';
         }
       }
-      return prefix + 'cmake ' + options.join(' ') + ' ..';
+      return prefix + cmake + ' ' + options.join(' ') + ' ..';
     }
     commands.push(getCmakeInitCommand(cmake_init_options));
 
     if (low_memory) {
-      commands.push('cmake --build . --target prepare_cross_compiling');
+      commands.push(cmake + ' --build . --target prepare_cross_compiling');
       commands.push('cd ..');
       commands.push(php + ' SplitSource.php');
       commands.push('cd build');
     }
 
-    let build_command = 'cmake --build .';
+    let build_command = cmake + ' --build .';
     if (install_dir) {
       build_command += ' --target install';
     }
@@ -873,7 +868,7 @@ function onOptionsChanged() {
         commands.push(getCmakeInitCommand(cmake_init_options));
       }
 
-      build_command = 'cmake --build .';
+      build_command = cmake + ' --build .';
       if (jni_install_dir) {
         build_command += ' --target install';
       }
