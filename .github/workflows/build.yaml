@@ -17,7 +17,7 @@ jobs:
       - name: Install sudo package
         run: |
           (apt-get update || true) 2>/dev/null
-          (apt-get install -y sudo) 2>/dev/null
+          (apt-get install -y sudo || true) 2>/dev/null
           sudo apt update
       - uses: actions/checkout@v2
         with:
