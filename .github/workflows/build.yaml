@@ -9,11 +9,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-18.04
+    shell: bash
     strategy:
       matrix:
         arch: [linux/386, linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/ppc64le]
 
     steps:
+      - name: Install sudo package
+        run: apt-get update && apt-get install -y sudo
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
@@ -25,10 +28,8 @@ jobs:
           key: ${{ runner.os }}-ccache-all
           restore-keys: |
             ${{ runner.os }}-ccache-
-      - name: Update archives
-        run: apt-get update && apt-get install sudo
       - name: Install build tools
-        run: sudo apt-get install make git zlib1g-dev libssl-dev gperf php-cli cmake clang-6.0 libc++-dev libc++abi-dev ccache
+        run: sudo apt-get install -y make git zlib1g-dev libssl-dev gperf php-cli cmake clang-6.0 libc++-dev libc++abi-dev ccache
       - name: Build
         run: |
           mkdir build
@@ -39,3 +40,4 @@ jobs:
         with:
           name: tdlight
           path: tdlib/libtdjson.so
+
