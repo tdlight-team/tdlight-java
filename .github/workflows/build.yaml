@@ -14,8 +14,18 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
+      - name: Cache Primes
+        id: cache-primes
+        uses: actions/cache@v2
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-all
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+      - name: Update archives
+        run: sudo apt-get update
       - name: Install build tools
-        run: sudo apt-get install make git zlib1g-dev libssl-dev gperf php cmake clang-10 libc++-dev libc++abi-dev
+        run: sudo apt-get install make git zlib1g-dev libssl-dev gperf php cmake clang-10 libc++-dev libc++abi-dev ccache
       - name: Build
         run: |
           mkdir build
