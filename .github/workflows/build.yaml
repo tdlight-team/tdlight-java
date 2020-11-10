@@ -17,7 +17,7 @@ jobs:
       - name: Setup variables
         run: |
           ARCH=${{ matrix.arch }}
-          SAFE_ARCH=$(echo $ARCH | sed 's/\//\-/')
+          SAFE_ARCH=$(echo $ARCH | sed 's/\//\-/g')
           echo "SAFE_ARCH=$SAFE_ARCH" >> $GITHUB_ENV
       - name: Install sudo package
         run: |
