@@ -35,7 +35,7 @@ jobs:
           cd build
           CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-10 CXX=/usr/bin/clang++-10 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib ..
           cmake --build . --target install -- -j4
-  - uses: actions/upload-artifact@v2
-    with:
-      name: tdlight
-      path: tdlib/libtdjson.so
+      - uses: actions/upload-artifact@v2
+        with:
+          name: tdlight
+          path: tdlib/libtdjson.so
