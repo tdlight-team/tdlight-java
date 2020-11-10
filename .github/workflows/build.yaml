@@ -41,5 +41,5 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: tdlight
-          path: tdlib/libtdjson.so
+          path: tdlib/lib/libtdjson.so
 
