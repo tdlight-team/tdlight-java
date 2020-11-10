@@ -281,7 +281,7 @@ class GetWebAuthorizationsQuery : public Td::ResultHandler {
 
       results->websites_.push_back(make_tl_object<td_api::connectedWebsite>(
           authorization->hash_, authorization->domain_,
-          td->contacts_manager_->get_user_id_object_internal(bot_user_id, "GetWebAuthorizationsQuery"), authorization->browser_,
+          td->contacts_manager_->get_user_id_object(bot_user_id, "GetWebAuthorizationsQuery"), authorization->browser_,
           authorization->platform_, authorization->date_created_, authorization->date_active_, authorization->ip_,
           authorization->region_));
     }
@@ -2664,17 +2664,17 @@ tl_object_ptr<td_api::chatStatisticsSupergroup> ContactsManager::convert_megagro
 
   auto top_senders = transform(std::move(obj->top_posters_), [this](auto &&top_poster) {
     return td_api::make_object<td_api::chatStatisticsMessageSenderInfo>(
-        this->get_user_id_object_internal(UserId(top_poster->user_id_), "get_top_senders"), top_poster->messages_,
+        this->get_user_id_object(UserId(top_poster->user_id_), "get_top_senders"), top_poster->messages_,
         top_poster->avg_chars_);
   });
   auto top_administrators = transform(std::move(obj->top_admins_), [this](auto &&top_admin) {
     return td_api::make_object<td_api::chatStatisticsAdministratorActionsInfo>(
-        this->get_user_id_object_internal(UserId(top_admin->user_id_), "get_top_administrators"), top_admin->deleted_,
+        this->get_user_id_object(UserId(top_admin->user_id_), "get_top_administrators"), top_admin->deleted_,
         top_admin->kicked_, top_admin->banned_);
   });
   auto top_inviters = transform(std::move(obj->top_inviters_), [this](auto &&top_inviter) {
     return td_api::make_object<td_api::chatStatisticsInviterInfo>(
-        this->get_user_id_object_internal(UserId(top_inviter->user_id_), "get_top_inviters"), top_inviter->invitations_);
+        this->get_user_id_object(UserId(top_inviter->user_id_), "get_top_inviters"), top_inviter->invitations_);
   });
 
   return make_tl_object<td_api::chatStatisticsSupergroup>(
@@ -4879,7 +4879,7 @@ void ContactsManager::on_load_imported_contacts_finished() {
   LOG(INFO) << "Finished to load " << all_imported_contacts_.size() << " imported contacts";
 
   for (const auto &contact : all_imported_contacts_) {
-    get_user_id_object_internal(contact.get_user_id(), "on_load_imported_contacts_finished");  // to ensure updateUser
+    get_user_id_object(contact.get_user_id(), "on_load_imported_contacts_finished");  // to ensure updateUser
   }
 
   if (need_clear_imported_contacts_) {
@@ -6854,7 +6854,7 @@ void ContactsManager::on_imported_contacts(int64 random_id, vector<UserId> impor
     std::unordered_map<size_t, int32> unique_id_to_unimported_contact_invites;
     for (size_t i = 0; i < add_size; i++) {
       auto unique_id = imported_contacts_pos_[i];
-      get_user_id_object_internal(imported_contact_user_ids[i], "on_imported_contacts");  // to ensure updateUser
+      get_user_id_object(imported_contact_user_ids[i], "on_imported_contacts");  // to ensure updateUser
       all_imported_contacts_[unique_id].set_user_id(imported_contact_user_ids[i]);
       unique_id_to_unimported_contact_invites[unique_id] = unimported_contact_invites[i];
     }
@@ -8180,7 +8180,7 @@ void ContactsManager::on_binlog_secret_chat_event(BinlogEvent &&event) {
   log_event_parse(log_event, event.data_).ensure();
 
   auto secret_chat_id = log_event.secret_chat_id;
-  if (have_secret_chat_internal(secret_chat_id)) {
+  if (have_secret_chat(secret_chat_id)) {
     LOG(ERROR) << "Skip adding already added " << secret_chat_id;
     binlog_erase(G()->td_db()->get_binlog(), event.id_);
     return;
@@ -9044,7 +9044,7 @@ void ContactsManager::update_user_full(UserFull *user_full, UserId user_id, bool
       CHECK(u == nullptr || u->is_update_user_sent);
     }
     send_closure(G()->td(), &Td::send_update,
-                 make_tl_object<td_api::updateUserFullInfo>(get_user_id_object_internal(user_id, "updateUserFullInfo"),
+                 make_tl_object<td_api::updateUserFullInfo>(get_user_id_object(user_id, "updateUserFullInfo"),
                                                             get_user_full_info_object(user_id, user_full)));
     user_full->need_send_update = false;
   }
@@ -9084,7 +9084,7 @@ void ContactsManager::update_chat_full(ChatFull *chat_full, ChatId chat_id, bool
     }
     send_closure(
         G()->td(), &Td::send_update,
-        make_tl_object<td_api::updateBasicGroupFullInfo>(get_basic_group_id_object_internal(chat_id, "update_chat_full"),
+        make_tl_object<td_api::updateBasicGroupFullInfo>(get_basic_group_id_object(chat_id, "update_chat_full"),
                                                          get_basic_group_full_info_object(chat_full)));
     chat_full->need_send_update = false;
   }
@@ -9135,7 +9135,7 @@ void ContactsManager::update_channel_full(ChannelFull *channel_full, ChannelId c
     }
     send_closure(
         G()->td(), &Td::send_update,
-        make_tl_object<td_api::updateSupergroupFullInfo>(get_supergroup_id_object_internal(channel_id, "update_channel_full"),
+        make_tl_object<td_api::updateSupergroupFullInfo>(get_supergroup_id_object(channel_id, "update_channel_full"),
                                                          get_supergroup_full_info_object(channel_full)));
     channel_full->need_send_update = false;
   }
@@ -10510,8 +10510,8 @@ tl_object_ptr<td_api::chatMember> ContactsManager::get_chat_member_object(
     const DialogParticipant &dialog_participant) const {
   UserId participant_user_id = dialog_participant.user_id;
   return td_api::make_object<td_api::chatMember>(
-      get_user_id_object_internal(participant_user_id, "chatMember.user_id"),
-      get_user_id_object_internal(dialog_participant.inviter_user_id, "chatMember.inviter_user_id"),
+      get_user_id_object(participant_user_id, "chatMember.user_id"),
+      get_user_id_object(dialog_participant.inviter_user_id, "chatMember.inviter_user_id"),
       dialog_participant.joined_date, dialog_participant.status.get_chat_member_status_object(),
       get_bot_info_object(participant_user_id));
 }
@@ -13209,11 +13209,6 @@ void ContactsManager::send_get_channel_full_query(ChannelFull *channel_full, Cha
 }
 
 bool ContactsManager::have_secret_chat(SecretChatId secret_chat_id) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return have_secret_chat_internal(secret_chat_id);
-}
-
-bool ContactsManager::have_secret_chat_internal(SecretChatId secret_chat_id) const {
   return secret_chats_.count(secret_chat_id) > 0;
 }
 
@@ -13244,12 +13239,11 @@ ContactsManager::SecretChat *ContactsManager::get_secret_chat(SecretChatId secre
 
 bool ContactsManager::get_secret_chat(SecretChatId secret_chat_id, bool force, Promise<Unit> &&promise) {
   if (!secret_chat_id.is_valid()) {
-    std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
     promise.set_error(Status::Error(6, "Invalid secret chat identifier"));
     return false;
   }
 
-  if (!have_secret_chat_internal(secret_chat_id)) {
+  if (!have_secret_chat(secret_chat_id)) {
     if (!force && G()->parameters().use_chat_info_db) {
       send_closure_later(actor_id(this), &ContactsManager::load_secret_chat_from_database, nullptr, secret_chat_id,
                          std::move(promise));
@@ -13267,7 +13261,6 @@ bool ContactsManager::get_secret_chat(SecretChatId secret_chat_id, bool force, P
 void ContactsManager::on_update_secret_chat(SecretChatId secret_chat_id, int64 access_hash, UserId user_id,
                                             SecretChatState state, bool is_outbound, int32 ttl, int32 date,
                                             string key_hash, int32 layer, FolderId initial_folder_id) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   LOG(INFO) << "Update " << secret_chat_id << " with " << user_id << " and access_hash " << access_hash;
   auto *secret_chat = add_secret_chat(secret_chat_id);
   if (access_hash != secret_chat->access_hash) {
@@ -13320,12 +13313,6 @@ void ContactsManager::on_update_secret_chat(SecretChatId secret_chat_id, int64 a
 
 std::pair<int32, vector<UserId>> ContactsManager::search_among_users(const vector<UserId> &user_ids,
                                                                      const string &query, int32 limit) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return search_among_users_internal(user_ids, query, limit);
-}
-
-std::pair<int32, vector<UserId>> ContactsManager::search_among_users_internal(const vector<UserId> &user_ids,
-                                                                     const string &query, int32 limit) {
   Hints hints;  // TODO cache Hints
 
   for (auto user_id : user_ids) {
@@ -13344,7 +13331,6 @@ std::pair<int32, vector<UserId>> ContactsManager::search_among_users_internal(co
 
 DialogParticipant ContactsManager::get_chat_participant(ChatId chat_id, UserId user_id, bool force,
                                                         Promise<Unit> &&promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   LOG(INFO) << "Trying to get " << user_id << " as member of " << chat_id;
   if (force) {
     promise.set_value(Unit());
@@ -13366,7 +13352,6 @@ std::pair<int32, vector<DialogParticipant>> ContactsManager::search_chat_partici
                                                                                       DialogParticipantsFilter filter,
                                                                                       bool force,
                                                                                       Promise<Unit> &&promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (limit < 0) {
     promise.set_error(Status::Error(3, "Parameter limit must be non-negative"));
     return {};
@@ -13414,13 +13399,12 @@ std::pair<int32, vector<DialogParticipant>> ContactsManager::search_chat_partici
   }
 
   int32 total_count;
-  std::tie(total_count, user_ids) = search_among_users_internal(user_ids, query, limit);
+  std::tie(total_count, user_ids) = search_among_users(user_ids, query, limit);
   return {total_count, transform(user_ids, [&](UserId user_id) { return *get_chat_participant(chat_full, user_id); })};
 }
 
 DialogParticipant ContactsManager::get_channel_participant(ChannelId channel_id, UserId user_id, int64 &random_id,
                                                            bool force, Promise<Unit> &&promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   LOG(INFO) << "Trying to get " << user_id << " as member of " << channel_id << " with random_id " << random_id;
   if (random_id != 0) {
     // request has already been sent before
@@ -13483,7 +13467,6 @@ DialogParticipant ContactsManager::get_channel_participant(ChannelId channel_id,
 std::pair<int32, vector<DialogParticipant>> ContactsManager::get_channel_participants(
     ChannelId channel_id, const tl_object_ptr<td_api::SupergroupMembersFilter> &filter, const string &additional_query,
     int32 offset, int32 limit, int32 additional_limit, int64 &random_id, bool force, Promise<Unit> &&promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (random_id != 0) {
     // request has already been sent before
     auto it = received_channel_participants_.find(random_id);
@@ -13497,7 +13480,7 @@ std::pair<int32, vector<DialogParticipant>> ContactsManager::get_channel_partici
     }
 
     auto user_ids = transform(result.second, [](const auto &participant) { return participant.user_id; });
-    std::pair<int32, vector<UserId>> result_user_ids = search_among_users_internal(user_ids, additional_query, additional_limit);
+    std::pair<int32, vector<UserId>> result_user_ids = search_among_users(user_ids, additional_query, additional_limit);
 
     result.first = result_user_ids.first;
     std::unordered_set<UserId, UserIdHash> result_user_ids_set(result_user_ids.second.begin(),
@@ -13563,7 +13546,6 @@ void ContactsManager::send_get_channel_participants_query(ChannelId channel_id, 
 
 vector<DialogAdministrator> ContactsManager::get_dialog_administrators(DialogId dialog_id, int left_tries,
                                                                        Promise<Unit> &&promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   auto it = dialog_administrators_.find(dialog_id);
   if (it != dialog_administrators_.end()) {
     promise.set_value(Unit());
@@ -14170,11 +14152,6 @@ td_api::object_ptr<td_api::updateUser> ContactsManager::get_update_unknown_user_
 }
 
 int32 ContactsManager::get_user_id_object(UserId user_id, const char *source) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return get_user_id_object_internal(user_id, source);
-}
-
-int32 ContactsManager::get_user_id_object_internal(UserId user_id, const char *source) const {
   if (user_id.is_valid() && get_user(user_id) == nullptr && unknown_users_.count(user_id) == 0) {
     LOG(ERROR) << "Have no info about " << user_id << " from " << source;
     unknown_users_.insert(user_id);
@@ -14184,7 +14161,6 @@ int32 ContactsManager::get_user_id_object_internal(UserId user_id, const char *s
 }
 
 tl_object_ptr<td_api::user> ContactsManager::get_user_object(UserId user_id) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   return get_user_object(user_id, get_user(user_id));
 }
 
@@ -14210,30 +14186,18 @@ tl_object_ptr<td_api::user> ContactsManager::get_user_object(UserId user_id, con
 }
 
 vector<int32> ContactsManager::get_user_ids_object(const vector<UserId> &user_ids, const char *source) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return get_user_ids_object_internal(user_ids, source);
-}
-
-vector<int32> ContactsManager::get_user_ids_object_internal(const vector<UserId> &user_ids, const char *source) const {
-  return transform(user_ids, [this, source](UserId user_id) { return get_user_id_object_internal(user_id, source); });
+  return transform(user_ids, [this, source](UserId user_id) { return get_user_id_object(user_id, source); });
 }
 
 tl_object_ptr<td_api::users> ContactsManager::get_users_object(int32 total_count,
                                                                const vector<UserId> &user_ids) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return get_users_object_internal(total_count, user_ids);
-}
-
-tl_object_ptr<td_api::users> ContactsManager::get_users_object_internal(int32 total_count,
-                                                               const vector<UserId> &user_ids) const {
   if (total_count == -1) {
     total_count = narrow_cast<int32>(user_ids.size());
   }
-  return td_api::make_object<td_api::users>(total_count, get_user_ids_object_internal(user_ids, "get_users_object"));
+  return td_api::make_object<td_api::users>(total_count, get_user_ids_object(user_ids, "get_users_object"));
 }
 
 tl_object_ptr<td_api::userFullInfo> ContactsManager::get_user_full_info_object(UserId user_id) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   return get_user_full_info_object(user_id, get_user_full(user_id));
 }
 
@@ -14255,11 +14219,6 @@ td_api::object_ptr<td_api::updateBasicGroup> ContactsManager::get_update_unknown
 }
 
 int32 ContactsManager::get_basic_group_id_object(ChatId chat_id, const char *source) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return get_basic_group_id_object_internal(chat_id, source);
-}
-
-int32 ContactsManager::get_basic_group_id_object_internal(ChatId chat_id, const char *source) const {
   if (chat_id.is_valid() && get_chat(chat_id) == nullptr && unknown_chats_.count(chat_id) == 0) {
     LOG(ERROR) << "Have no info about " << chat_id << " from " << source;
     unknown_chats_.insert(chat_id);
@@ -14269,7 +14228,6 @@ int32 ContactsManager::get_basic_group_id_object_internal(ChatId chat_id, const 
 }
 
 tl_object_ptr<td_api::basicGroup> ContactsManager::get_basic_group_object(ChatId chat_id) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   return get_basic_group_object(chat_id, get_chat(chat_id));
 }
 
@@ -14286,11 +14244,10 @@ tl_object_ptr<td_api::basicGroup> ContactsManager::get_basic_group_object(ChatId
 tl_object_ptr<td_api::basicGroup> ContactsManager::get_basic_group_object_const(ChatId chat_id, const Chat *c) const {
   return make_tl_object<td_api::basicGroup>(
       chat_id.get(), c->participant_count, get_chat_status(c).get_chat_member_status_object(), c->is_active,
-      get_supergroup_id_object_internal(c->migrated_to_channel_id, "get_basic_group_object"));
+      get_supergroup_id_object(c->migrated_to_channel_id, "get_basic_group_object"));
 }
 
 tl_object_ptr<td_api::basicGroupFullInfo> ContactsManager::get_basic_group_full_info_object(ChatId chat_id) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   return get_basic_group_full_info_object(get_chat_full(chat_id));
 }
 
@@ -14299,7 +14256,7 @@ tl_object_ptr<td_api::basicGroupFullInfo> ContactsManager::get_basic_group_full_
   CHECK(chat_full != nullptr);
   return make_tl_object<td_api::basicGroupFullInfo>(
       get_chat_photo_object(td_->file_manager_.get(), chat_full->photo), chat_full->description,
-      get_user_id_object_internal(chat_full->creator_user_id, "basicGroupFullInfo"),
+      get_user_id_object(chat_full->creator_user_id, "basicGroupFullInfo"),
       transform(chat_full->participants,
                 [this](const DialogParticipant &chat_participant) { return get_chat_member_object(chat_participant); }),
       chat_full->invite_link);
@@ -14313,11 +14270,6 @@ td_api::object_ptr<td_api::updateSupergroup> ContactsManager::get_update_unknown
 }
 
 int32 ContactsManager::get_supergroup_id_object(ChannelId channel_id, const char *source) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return get_supergroup_id_object_internal(channel_id, source);
-}
-
-int32 ContactsManager::get_supergroup_id_object_internal(ChannelId channel_id, const char *source) const {
   if (channel_id.is_valid() && get_channel(channel_id) == nullptr && unknown_channels_.count(channel_id) == 0) {
     LOG(ERROR) << "Have no info about " << channel_id << " received from " << source;
     unknown_channels_.insert(channel_id);
@@ -14327,7 +14279,6 @@ int32 ContactsManager::get_supergroup_id_object_internal(ChannelId channel_id, c
 }
 
 tl_object_ptr<td_api::supergroup> ContactsManager::get_supergroup_object(ChannelId channel_id) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   return get_supergroup_object(channel_id, get_channel(channel_id));
 }
 
@@ -14342,7 +14293,6 @@ tl_object_ptr<td_api::supergroup> ContactsManager::get_supergroup_object(Channel
 }
 
 tl_object_ptr<td_api::supergroupFullInfo> ContactsManager::get_supergroup_full_info_object(ChannelId channel_id) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   return get_supergroup_full_info_object(get_channel_full(channel_id));
 }
 
@@ -14363,7 +14313,7 @@ tl_object_ptr<td_api::supergroupFullInfo> ContactsManager::get_supergroup_full_i
       channel_full->can_set_sticker_set, channel_full->can_set_location, channel_full->can_view_statistics,
       channel_full->is_all_history_available, channel_full->sticker_set_id.get(),
       channel_full->location.get_chat_location_object(), channel_full->invite_link,
-      get_basic_group_id_object_internal(channel_full->migrated_from_chat_id, "get_supergroup_full_info_object"),
+      get_basic_group_id_object(channel_full->migrated_from_chat_id, "get_supergroup_full_info_object"),
       channel_full->migrated_from_max_message_id.get());
 }
 
@@ -14414,7 +14364,7 @@ tl_object_ptr<td_api::secretChat> ContactsManager::get_secret_chat_object(Secret
 tl_object_ptr<td_api::secretChat> ContactsManager::get_secret_chat_object_const(SecretChatId secret_chat_id,
                                                                                 const SecretChat *secret_chat) const {
   return td_api::make_object<td_api::secretChat>(
-      secret_chat_id.get(), get_user_id_object_internal(secret_chat->user_id, "secretChat"),
+      secret_chat_id.get(), get_user_id_object(secret_chat->user_id, "secretChat"),
       get_secret_chat_state_object(secret_chat->state), secret_chat->is_outbound, secret_chat->ttl,
       secret_chat->key_hash, secret_chat->layer);
 }
@@ -14433,7 +14383,6 @@ td_api::object_ptr<td_api::botInfo> ContactsManager::get_bot_info_object(UserId 
 
 tl_object_ptr<td_api::chatInviteLinkInfo> ContactsManager::get_chat_invite_link_info_object(
     const string &invite_link) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   auto it = invite_link_infos_.find(invite_link);
   if (it == invite_link_infos_.end()) {
     return nullptr;
@@ -14467,7 +14416,7 @@ tl_object_ptr<td_api::chatInviteLinkInfo> ContactsManager::get_chat_invite_link_
           LOG(ERROR) << "Have no information about " << chat_id;
         }
         chat_type = td_api::make_object<td_api::chatTypeBasicGroup>(
-            get_basic_group_id_object_internal(chat_id, "get_chat_invite_link_info_object"));
+            get_basic_group_id_object(chat_id, "get_chat_invite_link_info_object"));
         break;
       }
       case DialogType::Channel: {
@@ -14486,7 +14435,7 @@ tl_object_ptr<td_api::chatInviteLinkInfo> ContactsManager::get_chat_invite_link_
           LOG(ERROR) << "Have no information about " << channel_id;
         }
         chat_type = td_api::make_object<td_api::chatTypeSupergroup>(
-            get_supergroup_id_object_internal(channel_id, "get_chat_invite_link_info_object"), !is_megagroup);
+            get_supergroup_id_object(channel_id, "get_chat_invite_link_info_object"), !is_megagroup);
         break;
       }
       default:
@@ -14497,7 +14446,7 @@ tl_object_ptr<td_api::chatInviteLinkInfo> ContactsManager::get_chat_invite_link_
     invite_link_photo = as_fake_dialog_photo(invite_link_info->photo);
     photo = &invite_link_photo;
     participant_count = invite_link_info->participant_count;
-    member_user_ids = get_user_ids_object_internal(invite_link_info->participant_user_ids, "get_chat_invite_link_info_object");
+    member_user_ids = get_user_ids_object(invite_link_info->participant_user_ids, "get_chat_invite_link_info_object");
     is_public = invite_link_info->is_public;
 
     if (invite_link_info->is_chat) {
@@ -14524,7 +14473,6 @@ tl_object_ptr<td_api::chatInviteLinkInfo> ContactsManager::get_chat_invite_link_
 }
 
 UserId ContactsManager::get_support_user(Promise<Unit> &&promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (support_user_id_.is_valid()) {
     promise.set_value(Unit());
     return support_user_id_;
@@ -14535,7 +14483,6 @@ UserId ContactsManager::get_support_user(Promise<Unit> &&promise) {
 }
 
 void ContactsManager::after_get_difference() {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (td_->auth_manager_->is_bot()) {
     return;
   }
@@ -14543,7 +14490,6 @@ void ContactsManager::after_get_difference() {
 }
 
 void ContactsManager::get_current_state(vector<td_api::object_ptr<td_api::Update>> &updates) const {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   for (auto user_id : unknown_users_) {
     if (!have_min_user(user_id)) {
       updates.push_back(get_update_unknown_user_object(user_id));
@@ -14560,7 +14506,7 @@ void ContactsManager::get_current_state(vector<td_api::object_ptr<td_api::Update
     }
   }
   for (auto secret_chat_id : unknown_secret_chats_) {
-    if (!have_secret_chat_internal(secret_chat_id)) {
+    if (!have_secret_chat(secret_chat_id)) {
       updates.push_back(get_update_unknown_secret_chat_object(secret_chat_id));
     }
   }
@@ -14595,8 +14541,6 @@ void ContactsManager::get_current_state(vector<td_api::object_ptr<td_api::Update
 }
 
 void ContactsManager::memory_cleanup() {
-  std::lock_guard<std::shared_timed_mutex> writerLock(memory_cleanup_mutex);
-
   auto time = std::time(nullptr);
 
   auto user_ttl = !G()->shared_config().get_option_integer("delete_user_reference_after_seconds", 3600);

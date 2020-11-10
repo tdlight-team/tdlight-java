@@ -298,7 +298,7 @@ void FileNode::set_partial_remote_location(const PartialRemoteFileLocation &remo
   on_changed();
 }
 
-bool FileNode::delete_file_reference_internal(Slice file_reference) {
+bool FileNode::delete_file_reference(Slice file_reference) {
   if (!remote_.full) {
     VLOG(file_references) << "Can't delete file reference, because there is no remote location";
     return false;
@@ -1034,11 +1034,6 @@ FileManager::FileIdInfo *FileManager::get_file_id_info(FileId file_id) {
 }
 
 FileId FileManager::dup_file_id(FileId file_id) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return dup_file_id_internal(file_id);
-}
-
-FileId FileManager::dup_file_id_internal(FileId file_id) {
   int32 file_node_id;
   auto *file_node = get_file_node_raw(file_id, &file_node_id);
   if (!file_node) {
@@ -1079,7 +1074,7 @@ void FileManager::try_forget_file_id(FileId file_id) {
 }
 
 FileId FileManager::register_empty(FileType type) {
-  return register_local_internal(FullLocalFileLocation(type, "", 0), DialogId(), 0, false, true).ok();
+  return register_local(FullLocalFileLocation(type, "", 0), DialogId(), 0, false, true).ok();
 }
 
 void FileManager::on_file_unlink(const FullLocalFileLocation &location) {
@@ -1099,12 +1094,6 @@ void FileManager::on_file_unlink(const FullLocalFileLocation &location) {
 
 Result<FileId> FileManager::register_local(FullLocalFileLocation location, DialogId owner_dialog_id, int64 size,
                                            bool get_by_hash, bool force, bool skip_file_size_checks) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return register_local_internal(location, owner_dialog_id, size, get_by_hash, force, skip_file_size_checks);
-}
-
-Result<FileId> FileManager::register_local_internal(FullLocalFileLocation location, DialogId owner_dialog_id, int64 size,
-                                           bool get_by_hash, bool force, bool skip_file_size_checks) {
   // TODO: use get_by_hash
   FileData data;
   data.local_ = LocalFileLocation(std::move(location));
@@ -1115,12 +1104,6 @@ Result<FileId> FileManager::register_local_internal(FullLocalFileLocation locati
 }
 
 FileId FileManager::register_remote(const FullRemoteFileLocation &location, FileLocationSource file_location_source,
-                                     DialogId owner_dialog_id, int64 size, int64 expected_size, string remote_name) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return register_remote_internal(location, file_location_source, owner_dialog_id, size, expected_size, std::move(remote_name));
-}
-
-FileId FileManager::register_remote_internal(const FullRemoteFileLocation &location, FileLocationSource file_location_source,
                                     DialogId owner_dialog_id, int64 size, int64 expected_size, string remote_name) {
   FileData data;
   data.remote_ = RemoteFileLocation(location);
@@ -1141,7 +1124,7 @@ FileId FileManager::register_remote_internal(const FullRemoteFileLocation &locat
 
 FileId FileManager::register_url(string url, FileType file_type, FileLocationSource file_location_source,
                                  DialogId owner_dialog_id) {
-  auto file_id = register_generate_internal(file_type, file_location_source, url, "#url#", owner_dialog_id, 0).ok();
+  auto file_id = register_generate(file_type, file_location_source, url, "#url#", owner_dialog_id, 0).ok();
   auto file_node = get_file_node(file_id);
   CHECK(file_node);
   file_node->set_url(url);
@@ -1149,13 +1132,6 @@ FileId FileManager::register_url(string url, FileType file_type, FileLocationSou
 }
 
 Result<FileId> FileManager::register_generate(FileType file_type, FileLocationSource file_location_source,
-                                              string original_path, string conversion, DialogId owner_dialog_id,
-                                              int64 expected_size) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return register_generate_internal(file_type, file_location_source, std::move(original_path), std::move(conversion), owner_dialog_id, expected_size);
-}
-
-Result<FileId> FileManager::register_generate_internal(FileType file_type, FileLocationSource file_location_source,
                                               string original_path, string conversion, DialogId owner_dialog_id,
                                               int64 expected_size) {
   // add #mtime# into conversion
@@ -1273,7 +1249,7 @@ Result<FileId> FileManager::register_file(FileData &&data, FileLocationSource fi
   bool no_sync_merge = to_merge.size() == 1 && new_cnt == 0;
   for (auto id : to_merge) {
     // may invalidate node
-    merge_internal(file_id, id, no_sync_merge).ignore();
+    merge(file_id, id, no_sync_merge).ignore();
   }
 
   try_flush_node(get_file_node(file_id), "register_file");
@@ -1447,11 +1423,6 @@ void FileManager::do_cancel_generate(FileNodePtr node) {
 }
 
 Result<FileId> FileManager::merge(FileId x_file_id, FileId y_file_id, bool no_sync) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return merge_internal(x_file_id, y_file_id, no_sync);
-}
-
-Result<FileId> FileManager::merge_internal(FileId x_file_id, FileId y_file_id, bool no_sync) {
   LOG(DEBUG) << "Merge new file " << x_file_id << " and old file " << y_file_id;
 
   if (!x_file_id.is_valid()) {
@@ -1711,11 +1682,6 @@ Result<FileId> FileManager::merge_internal(FileId x_file_id, FileId y_file_id, b
 }
 
 void FileManager::add_file_source(FileId file_id, FileSourceId file_source_id) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return add_file_source_internal(file_id, file_source_id);
-}
-
-void FileManager::add_file_source_internal(FileId file_id, FileSourceId file_source_id) {
   auto node = get_file_node(file_id);
   if (!node) {
     return;
@@ -1743,7 +1709,6 @@ void FileManager::remove_file_source(FileId file_id, FileSourceId file_source_id
 
 void FileManager::change_files_source(FileSourceId file_source_id, const vector<FileId> &old_file_ids,
                                       const vector<FileId> &new_file_ids) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (old_file_ids == new_file_ids) {
     return;
   }
@@ -1760,7 +1725,7 @@ void FileManager::change_files_source(FileSourceId file_source_id, const vector<
     }
   }
   for (auto file_id : new_main_file_ids) {
-    add_file_source_internal(file_id, file_source_id);
+    add_file_source(file_id, file_source_id);
   }
 }
 
@@ -1973,7 +1938,7 @@ void FileManager::load_from_pmc(FileNodePtr node, bool new_remote, bool new_loca
     TRY_RESULT(file_data, file_db_->get_file_data_sync(location));
     TRY_RESULT(new_file_id,
                register_file(std::move(file_data), FileLocationSource::FromDatabase, "load_from_pmc", false));
-    TRY_RESULT(main_file_id, merge_internal(file_id, new_file_id));
+    TRY_RESULT(main_file_id, merge(file_id, new_file_id));
     file_id = main_file_id;
     return Status::OK();
   };
@@ -2006,7 +1971,6 @@ bool FileManager::set_encryption_key(FileId file_id, FileEncryptionKey key) {
 }
 
 bool FileManager::set_content(FileId file_id, BufferSlice bytes) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (G()->shared_config().get_option_boolean("ignore_inline_thumbnails")) {
     return false;
   }
@@ -2041,7 +2005,6 @@ bool FileManager::set_content(FileId file_id, BufferSlice bytes) {
 }
 
 void FileManager::get_content(FileId file_id, Promise<BufferSlice> promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   auto node = get_sync_file_node(file_id);
   if (!node) {
     return promise.set_error(Status::Error("Unknown file_id"));
@@ -2059,7 +2022,6 @@ void FileManager::get_content(FileId file_id, Promise<BufferSlice> promise) {
 
 void FileManager::read_file_part(FileId file_id, int32 offset, int32 count, int left_tries,
                                  Promise<td_api::object_ptr<td_api::filePart>> promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (G()->close_flag()) {
     return promise.set_error(Status::Error(500, "Request aborted"));
   }
@@ -2138,7 +2100,6 @@ void FileManager::read_file_part(FileId file_id, int32 offset, int32 count, int 
 }
 
 void FileManager::delete_file(FileId file_id, Promise<Unit> promise, const char *source) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   LOG(INFO) << "Trying to delete file " << file_id << " from " << source;
   auto node = get_sync_file_node(file_id);
   if (!node) {
@@ -2175,7 +2136,6 @@ void FileManager::delete_file(FileId file_id, Promise<Unit> promise, const char 
 
 void FileManager::download(FileId file_id, std::shared_ptr<DownloadCallback> callback, int32 new_priority, int64 offset,
                            int64 limit) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   LOG(INFO) << "Download file " << file_id << " with priority " << new_priority;
   auto node = get_sync_file_node(file_id);
   if (!node) {
@@ -2588,7 +2548,6 @@ void FileManager::resume_upload(FileId file_id, std::vector<int> bad_parts, std:
 }
 
 bool FileManager::delete_partial_remote_location(FileId file_id) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   auto node = get_sync_file_node(file_id);
   if (!node) {
     LOG(INFO) << "Wrong file identifier " << file_id;
@@ -2623,11 +2582,6 @@ bool FileManager::delete_partial_remote_location(FileId file_id) {
 }
 
 void FileManager::delete_file_reference(FileId file_id, string file_reference) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-  return delete_file_reference_internal(file_id, file_reference);
-}
-
-void FileManager::delete_file_reference_internal(FileId file_id, string file_reference) {
   VLOG(file_references) << "Delete file reference of file " << file_id << " "
                         << tag("reference_base64", base64_encode(file_reference));
   auto node = get_sync_file_node(file_id);
@@ -2635,7 +2589,7 @@ void FileManager::delete_file_reference_internal(FileId file_id, string file_ref
     LOG(ERROR) << "Wrong file identifier " << file_id;
     return;
   }
-  node->delete_file_reference_internal(file_reference);
+  node->delete_file_reference(file_reference);
   auto remote = get_remote(file_id.get_remote());
   if (remote != nullptr) {
     VLOG(file_references) << "Do delete file reference of remote file " << file_id;
@@ -2650,20 +2604,17 @@ void FileManager::delete_file_reference_internal(FileId file_id, string file_ref
 }
 
 void FileManager::external_file_generate_write_part(int64 id, int32 offset, string data, Promise<> promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   send_closure(file_generate_manager_, &FileGenerateManager::external_file_generate_write_part, id, offset,
                std::move(data), std::move(promise));
 }
 
 void FileManager::external_file_generate_progress(int64 id, int32 expected_size, int32 local_prefix_size,
                                                   Promise<> promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   send_closure(file_generate_manager_, &FileGenerateManager::external_file_generate_progress, id, expected_size,
                local_prefix_size, std::move(promise));
 }
 
 void FileManager::external_file_generate_finish(int64 id, Status status, Promise<> promise) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   send_closure(file_generate_manager_, &FileGenerateManager::external_file_generate_finish, id, std::move(status),
                std::move(promise));
 }
@@ -2865,12 +2816,10 @@ void FileManager::run_upload(FileNodePtr node, std::vector<int> bad_parts) {
 
 void FileManager::upload(FileId file_id, std::shared_ptr<UploadCallback> callback, int32 new_priority,
                          uint64 upload_order) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   return resume_upload(file_id, std::vector<int>(), std::move(callback), new_priority, upload_order);
 }
 
 void FileManager::cancel_upload(FileId file_id) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   return resume_upload(file_id, std::vector<int>(), nullptr, 0, 0);
 }
 
@@ -2995,7 +2944,6 @@ FileView FileManager::get_sync_file_view(FileId file_id) {
 }
 
 td_api::object_ptr<td_api::file> FileManager::get_file_object(FileId file_id, bool with_main_file_id) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   auto file_view = get_sync_file_view(file_id);
 
   if (file_view.empty()) {
@@ -3039,7 +2987,6 @@ td_api::object_ptr<td_api::file> FileManager::get_file_object(FileId file_id, bo
 
 vector<int32> FileManager::get_file_ids_object(const vector<FileId> &file_ids, bool with_main_file_id) {
   return transform(file_ids, [this, with_main_file_id](FileId file_id) {
-    std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
     auto file_view = get_sync_file_view(file_id);
     auto result_file_id = file_id;
     auto *file_info = get_file_id_info(result_file_id);
@@ -3081,7 +3028,7 @@ Result<FileId> FileManager::check_input_file_id(FileType type, Result<FileId> re
   if (!file_view.has_remote_location()) {
     // TODO why not return file_id here? We will dup it anyway
     // But it will not be duped if has_input_media(), so for now we can't return main_file_id
-    return dup_file_id_internal(file_id);
+    return dup_file_id(file_id);
   }
 
   int32 remote_id = file_id.get_remote();
@@ -3098,7 +3045,6 @@ Result<FileId> FileManager::check_input_file_id(FileType type, Result<FileId> re
 
 Result<FileId> FileManager::get_input_thumbnail_file_id(const tl_object_ptr<td_api::InputFile> &thumbnail_input_file,
                                                         DialogId owner_dialog_id, bool is_encrypted) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (thumbnail_input_file == nullptr) {
     return Status::Error(6, "inputThumbnail not specified");
   }
@@ -3106,7 +3052,7 @@ Result<FileId> FileManager::get_input_thumbnail_file_id(const tl_object_ptr<td_a
   switch (thumbnail_input_file->get_id()) {
     case td_api::inputFileLocal::ID: {
       const string &path = static_cast<const td_api::inputFileLocal *>(thumbnail_input_file.get())->path_;
-      return register_local_internal(
+      return register_local(
           FullLocalFileLocation(is_encrypted ? FileType::EncryptedThumbnail : FileType::Thumbnail, path, 0),
           owner_dialog_id, 0, false);
     }
@@ -3116,7 +3062,7 @@ Result<FileId> FileManager::get_input_thumbnail_file_id(const tl_object_ptr<td_a
       return Status::Error(6, "InputFileRemote is not supported for thumbnails");
     case td_api::inputFileGenerated::ID: {
       auto *generated_thumbnail = static_cast<const td_api::inputFileGenerated *>(thumbnail_input_file.get());
-      return register_generate_internal(is_encrypted ? FileType::EncryptedThumbnail : FileType::Thumbnail,
+      return register_generate(is_encrypted ? FileType::EncryptedThumbnail : FileType::Thumbnail,
                                FileLocationSource::FromUser, generated_thumbnail->original_path_,
                                generated_thumbnail->conversion_, owner_dialog_id, generated_thumbnail->expected_size_);
     }
@@ -3129,7 +3075,6 @@ Result<FileId> FileManager::get_input_thumbnail_file_id(const tl_object_ptr<td_a
 Result<FileId> FileManager::get_input_file_id(FileType type, const tl_object_ptr<td_api::InputFile> &file,
                                               DialogId owner_dialog_id, bool allow_zero, bool is_encrypted,
                                               bool get_by_hash, bool is_secure) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (file == nullptr) {
     if (allow_zero) {
       return FileId();
@@ -3167,7 +3112,7 @@ Result<FileId> FileManager::get_input_file_id(FileType type, const tl_object_ptr
             }
           }
         }
-        TRY_RESULT(file_id, register_local_internal(FullLocalFileLocation(new_type, path, 0), owner_dialog_id, 0, get_by_hash));
+        TRY_RESULT(file_id, register_local(FullLocalFileLocation(new_type, path, 0), owner_dialog_id, 0, get_by_hash));
         if (!hash.empty()) {
           file_hash_to_file_id_[hash] = file_id;
         }
@@ -3189,7 +3134,7 @@ Result<FileId> FileManager::get_input_file_id(FileType type, const tl_object_ptr
       }
       case td_api::inputFileGenerated::ID: {
         auto *generated_file = static_cast<const td_api::inputFileGenerated *>(file.get());
-        return register_generate_internal(new_type, FileLocationSource::FromUser, generated_file->original_path_,
+        return register_generate(new_type, FileLocationSource::FromUser, generated_file->original_path_,
                                  generated_file->conversion_, owner_dialog_id, generated_file->expected_size_);
       }
       default:
@@ -3203,7 +3148,6 @@ Result<FileId> FileManager::get_input_file_id(FileType type, const tl_object_ptr
 
 Result<FileId> FileManager::get_map_thumbnail_file_id(Location location, int32 zoom, int32 width, int32 height,
                                                       int32 scale, DialogId owner_dialog_id) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   if (!location.is_valid_map_point()) {
     return Status::Error(6, "Invalid location specified");
   }
@@ -3230,13 +3174,12 @@ Result<FileId> FileManager::get_map_thumbnail_file_id(Location location, int32 z
 
   string conversion = PSTRING() << "#map#" << zoom << "#" << x << "#" << y << "#" << width << "#" << height << "#"
                                 << scale << "#";
-  return register_generate_internal(
+  return register_generate(
       owner_dialog_id.get_type() == DialogType::SecretChat ? FileType::EncryptedThumbnail : FileType::Thumbnail,
       FileLocationSource::FromUser, string(), std::move(conversion), owner_dialog_id, 0);
 }
 
 vector<tl_object_ptr<telegram_api::InputDocument>> FileManager::get_input_documents(const vector<FileId> &file_ids) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   vector<tl_object_ptr<telegram_api::InputDocument>> result;
   result.reserve(file_ids.size());
   for (auto file_id : file_ids) {
@@ -3268,7 +3211,6 @@ bool FileManager::extract_was_thumbnail_uploaded(const tl_object_ptr<telegram_ap
 }
 
 string FileManager::extract_file_reference(const tl_object_ptr<telegram_api::InputMedia> &input_media) {
-  // don't lock this method because now it only calls the other extract_file_reference
   if (input_media == nullptr) {
     return string();
   }
@@ -3304,7 +3246,6 @@ bool FileManager::extract_was_uploaded(const tl_object_ptr<telegram_api::InputCh
 }
 
 string FileManager::extract_file_reference(const tl_object_ptr<telegram_api::InputChatPhoto> &input_chat_photo) {
-  // don't lock this method because now it only calls the other extract_file_reference
   if (input_chat_photo == nullptr || input_chat_photo->get_id() != telegram_api::inputChatPhoto::ID) {
     return string();
   }
@@ -3328,8 +3269,6 @@ FileManager::FileNodeId FileManager::next_file_node_id() {
 }
 
 void FileManager::on_start_download(QueryId query_id) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-
   if (is_closed_) {
     return;
   }
@@ -3355,8 +3294,6 @@ void FileManager::on_start_download(QueryId query_id) {
 
 void FileManager::on_partial_download(QueryId query_id, const PartialLocalFileLocation &partial_local, int64 ready_size,
                                       int64 size) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-
   if (is_closed_) {
     return;
   }
@@ -3388,8 +3325,6 @@ void FileManager::on_partial_download(QueryId query_id, const PartialLocalFileLo
 }
 
 void FileManager::on_hash(QueryId query_id, string hash) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-
   if (is_closed_) {
     return;
   }
@@ -3415,8 +3350,6 @@ void FileManager::on_hash(QueryId query_id, string hash) {
 
 void FileManager::on_partial_upload(QueryId query_id, const PartialRemoteFileLocation &partial_remote,
                                     int64 ready_size) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-
   if (is_closed_) {
     return;
   }
@@ -3441,8 +3374,6 @@ void FileManager::on_partial_upload(QueryId query_id, const PartialRemoteFileLoc
 }
 
 void FileManager::on_download_ok(QueryId query_id, const FullLocalFileLocation &local, int64 size, bool is_new) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
-
   if (is_closed_) {
     return;
   }
@@ -3452,7 +3383,7 @@ void FileManager::on_download_ok(QueryId query_id, const FullLocalFileLocation &
   std::tie(query, was_active) = finish_query(query_id);
   auto file_id = query.file_id_;
   LOG(INFO) << "ON DOWNLOAD OK of " << (is_new ? "new" : "checked") << " file " << file_id << " of size " << size;
-  auto r_new_file_id = register_local_internal(local, DialogId(), size, false, false, true);
+  auto r_new_file_id = register_local(local, DialogId(), size, false, false, true);
   Status status = Status::OK();
   if (r_new_file_id.is_error()) {
     status = Status::Error(PSLICE() << "Can't register local file after download: " << r_new_file_id.error().message());
@@ -3460,7 +3391,7 @@ void FileManager::on_download_ok(QueryId query_id, const FullLocalFileLocation &
     if (is_new) {
       context_->on_new_file(size, get_file_view(r_new_file_id.ok()).get_allocated_local_size(), 1);
     }
-    auto r_file_id = merge_internal(r_new_file_id.ok(), file_id);
+    auto r_file_id = merge(r_new_file_id.ok(), file_id);
     if (r_file_id.is_error()) {
       status = r_file_id.move_as_error();
     }
@@ -3555,8 +3486,8 @@ void FileManager::on_upload_full_ok(QueryId query_id, const FullRemoteFileLocati
 
   auto file_id = finish_query(query_id).first.file_id_;
   LOG(INFO) << "ON UPLOAD FULL OK for file " << file_id;
-  auto new_file_id = register_remote_internal(remote, FileLocationSource::FromServer, DialogId(), 0, 0, "");
-  LOG_STATUS(merge_internal(new_file_id, file_id));
+  auto new_file_id = register_remote(remote, FileLocationSource::FromServer, DialogId(), 0, 0, "");
+  LOG_STATUS(merge(new_file_id, file_id));
 }
 
 void FileManager::on_partial_generate(QueryId query_id, const PartialLocalFileLocation &partial_local,
@@ -3616,12 +3547,12 @@ void FileManager::on_generate_ok(QueryId query_id, const FullLocalFileLocation &
 
   auto old_upload_id = file_node->upload_id_;
 
-  auto r_new_file_id = register_local_internal(local, DialogId(), 0);
+  auto r_new_file_id = register_local(local, DialogId(), 0);
   Status status;
   if (r_new_file_id.is_error()) {
     status = Status::Error(PSLICE() << "Can't register local file after generate: " << r_new_file_id.error());
   } else {
-    auto result = merge_internal(r_new_file_id.ok(), generate_file_id);
+    auto result = merge(r_new_file_id.ok(), generate_file_id);
     if (result.is_error()) {
       status = result.move_as_error();
     }
@@ -3740,7 +3671,7 @@ void FileManager::on_error_impl(FileNodePtr node, Query::Type type, bool was_act
       LOG(ERROR) << "Unexpected error, file_reference will be deleted just in case " << status;
     }
     CHECK(!node->file_ids_.empty());
-    delete_file_reference_internal(node->file_ids_.back(), file_reference);
+    delete_file_reference(node->file_ids_.back(), file_reference);
     run_download(node, true);
     return;
   }
@@ -3864,8 +3795,6 @@ void FileManager::destroy_query(int32 file_id) {
 
 
 void FileManager::memory_cleanup() {
-  std::lock_guard<std::shared_timed_mutex> writerLock(memory_cleanup_mutex);
-
   LOG(ERROR) << "Initial registered ids: " << file_id_info_.size() << " registered nodes: " << file_nodes_.size();
 
   std::unordered_set<int32> file_to_be_deleted = {};
