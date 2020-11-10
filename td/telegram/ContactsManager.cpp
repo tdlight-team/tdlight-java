@@ -13174,7 +13174,6 @@ bool ContactsManager::load_channel_full(ChannelId channel_id, bool force, Promis
 }
 
 void ContactsManager::reload_channel_full(ChannelId channel_id, Promise<Unit> &&promise, const char *source) {
-  std::shared_lock<std::shared_timed_mutex> readerLock(memory_cleanup_mutex);
   send_get_channel_full_query(get_channel_full(channel_id, "reload_channel_full"), channel_id, std::move(promise),
                               source);
 }
