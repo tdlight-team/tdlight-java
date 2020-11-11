@@ -5880,6 +5880,7 @@ void MessagesManager::memory_cleanup() {
     auto it = dialogs_.begin();
     while (it != dialogs_.end()) {
       auto &dialog = it->second;
+      clear_active_dialog_actions(it->first);
 
       auto &deleted_message_ids = dialog->deleted_message_ids;
       deleted_message_ids.clear();
@@ -5888,6 +5889,7 @@ void MessagesManager::memory_cleanup() {
       it++;
     }
   }
+  clear_recently_found_dialogs();
   found_public_dialogs_.clear();
   found_public_dialogs_.rehash(0);
   found_on_server_dialogs_.clear();
