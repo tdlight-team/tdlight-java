@@ -69,3 +69,5 @@ tdlight-java.iml
 /build-tdlight
 /dependencies/tdlight/bin-td-cross
 /src/main/java/it/tdlight/jni/TdApi.java
+tdlib/.flattened-pom.xml
+tdlight/.flattened-pom.xml
