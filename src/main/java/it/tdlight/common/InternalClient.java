@@ -1,10 +1,12 @@
 package it.tdlight.common;
 
+import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.Object;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class InternalClient implements ClientEventsHandler, TelegramClient {
@@ -18,7 +20,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 	private final MultiHandler updatesHandler;
 	private final ExceptionHandler defaultExceptionHandler;
 
-	private volatile boolean isClosed;
+	private final AtomicBoolean isClosed = new AtomicBoolean();
 
 	public InternalClient(InternalClientManager clientManager,
 			ResultHandler updateHandler,
@@ -92,8 +94,17 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 		}
 
 		if (isClosed) {
-			this.isClosed = true;
+			if (this.isClosed.compareAndSet(false, true)) {
+				handleClose();
+			}
 		}
+	}
+
+	private void handleClose() {
+		handlers.forEach((eventId, handler) -> {
+			handleResponse(eventId, new Error(500, "Instance closed"), handler);
+		});
+		handlers.clear();
 	}
 
 	/**
@@ -148,7 +159,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 	}
 
 	private void ensureOpen() {
-		if (isClosed) {
+		if (isClosed.get()) {
 			throw new IllegalStateException("The client is closed!");
 		}
 	}
