@@ -180,7 +180,7 @@ if (NOT CMAKE_CROSSCOMPILING)
           )
   add_dependencies(generate_td_api_tlo build_tl_parser)
 
-  add_dependencies(tl_generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo)
+  add_dependencies(generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo)
   # End of .tlo update
 
   add_executable(generate_c ${TL_GENERATE_C_SOURCE})
@@ -191,6 +191,7 @@ if (NOT CMAKE_CROSSCOMPILING)
     COMMENT "Generate C tl source files"
     DEPENDS generate_c ${TL_TD_API_TLO}
   )
+  add_dependencies(tl_generate_c generate_td_api_tlo)
 
   add_executable(td_generate_java_api ${TL_GENERATE_JAVA_SOURCE})
   target_link_libraries(td_generate_java_api PRIVATE tdtl)
@@ -203,6 +204,7 @@ if (NOT CMAKE_CROSSCOMPILING)
     COMMENT "Generate JSON tl source files"
     DEPENDS generate_json ${TL_TD_API_TLO}
   )
+  add_dependencies(tl_generate_json generate_td_api_tlo)
 
   if (TD_ENABLE_JNI)
     install(TARGETS td_generate_java_api RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
