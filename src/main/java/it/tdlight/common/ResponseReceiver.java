@@ -1,16 +1,15 @@
 package it.tdlight.common;
 
-import static it.tdlight.common.InternalClient.clientInitializationLock;
-
 import it.tdlight.common.utils.IntSwapper;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class ResponseReceiver extends Thread implements AutoCloseable {
@@ -33,7 +32,7 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 	private final TdApi.Object[] events = new TdApi.Object[MAX_EVENTS];
 
 	private final CountDownLatch closeWait = new CountDownLatch(1);
-	private AtomicInteger registeredClients = new AtomicInteger(0);
+	private final Set<Integer> registeredClients = new ConcurrentSkipListSet<>();
 	private volatile boolean closeRequested = false;
 
 
@@ -46,24 +45,19 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 		this.start();
 	}
 
-	@SuppressWarnings({"UnnecessaryLocalVariable", "InfiniteLoopStatement"})
+	@SuppressWarnings({"UnnecessaryLocalVariable"})
 	@Override
 	public void run() {
 		int[] sortIndex;
 		try {
-			while(!closeRequested || registeredClients.get() > 0) {
+			while(!closeRequested || !registeredClients.isEmpty()) {
 				int resultsCount;
-				clientInitializationLock.readLock().lock();
-				try {
-					resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
-				} finally {
-					clientInitializationLock.readLock().unlock();
-				}
+				resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
 
 				if (resultsCount <= 0)
 					continue;
 
-				int closedClients = 0;
+				Set<Integer> closedClients = new HashSet<>();
 
 				if (USE_OPTIMIZED_DISPATCHER) {
 					// Generate a list of indices sorted by client id, from 0 to resultsCount
@@ -87,7 +81,7 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 										TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) clientEvents[j]).authorizationState;
 										if (authorizationState instanceof TdApi.AuthorizationStateClosed) {
 											lastClientClosed = true;
-											closedClients++;
+											closedClients.add(clientId);
 										}
 									}
 								}
@@ -139,7 +133,7 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 								TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) e.event).authorizationState;
 								if (authorizationState instanceof TdApi.AuthorizationStateClosed) {
 									closed = true;
-									closedClients++;
+									closedClients.add(clientId);
 								}
 							}
 						}
@@ -151,8 +145,8 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 				Arrays.fill(eventIds, 0);
 				Arrays.fill(events, null);
 
-				if (closedClients > 0) {
-					this.registeredClients.addAndGet(-closedClients);
+				if (!closedClients.isEmpty()) {
+					this.registeredClients.addAll(closedClients);
 				}
 			}
 		} finally {
@@ -169,8 +163,8 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 		return sortedIndices;
 	}
 
-	public void registerClient() {
-		registeredClients.incrementAndGet();
+	public void registerClient(int clientId) {
+		registeredClients.add(clientId);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package it.tdlight.common;
 
+import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -43,11 +44,14 @@ public class InternalClientManager implements AutoCloseable {
 	}
 
 	public void registerClient(int clientId, InternalClient internalClient) {
-		responseReceiver.registerClient();
+		responseReceiver.registerClient(clientId);
 		boolean replaced = registeredClientEventHandlers.put(clientId, internalClient) != null;
 		if (replaced) {
 			throw new IllegalStateException("Client " + clientId + " already registered");
 		}
+
+		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
+		internalClient.send(new TdApi.GetAuthorizationState(), null, null);
 	}
 
 	public String getImplementationName() {
