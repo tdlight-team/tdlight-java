@@ -114,12 +114,6 @@ if (NOT CMAKE_CROSSCOMPILING)
     COMMENT "Generate common tl source files"
     DEPENDS generate_common scheme/telegram_api.tlo scheme/secret_api.tlo scheme/td_api.tlo DoxygenTlDocumentationGenerator.php
   )
-  if (TD_ENABLE_JNI)
-    target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)
-  endif()
-  if (TD_ENABLE_DOTNET)
-    target_compile_definitions(generate_common PRIVATE DISABLE_HPP_DOCUMENTATION=1)
-  endif()
 
   # Start of .tlo update
   if (WIN32 OR CYGWIN)
@@ -182,6 +176,13 @@ if (NOT CMAKE_CROSSCOMPILING)
 
   add_dependencies(generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo)
   # End of .tlo update
+
+  if (TD_ENABLE_JNI)
+    target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)
+  endif()
+  if (TD_ENABLE_DOTNET)
+    target_compile_definitions(generate_common PRIVATE DISABLE_HPP_DOCUMENTATION=1)
+  endif()
 
   add_executable(generate_c ${TL_GENERATE_C_SOURCE})
   target_link_libraries(generate_c PRIVATE tdtl)
