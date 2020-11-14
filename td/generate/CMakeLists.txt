@@ -112,8 +112,14 @@ if (NOT CMAKE_CROSSCOMPILING)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND ${GENERATE_COMMON_CMD}
     COMMENT "Generate common tl source files"
-    DEPENDS generate_common scheme/telegram_api.tlo scheme/secret_api.tlo scheme/td_api.tlo DoxygenTlDocumentationGenerator.php
+    DEPENDS generate_common scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
   )
+  if (TD_ENABLE_JNI)
+    target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)
+  endif()
+  if (TD_ENABLE_DOTNET)
+    target_compile_definitions(generate_common PRIVATE DISABLE_HPP_DOCUMENTATION=1)
+  endif()
 
   # Start of .tlo update
   if (WIN32 OR CYGWIN)
@@ -177,20 +183,13 @@ if (NOT CMAKE_CROSSCOMPILING)
   add_dependencies(generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo)
   # End of .tlo update
 
-  if (TD_ENABLE_JNI)
-    target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)
-  endif()
-  if (TD_ENABLE_DOTNET)
-    target_compile_definitions(generate_common PRIVATE DISABLE_HPP_DOCUMENTATION=1)
-  endif()
-
   add_executable(generate_c ${TL_GENERATE_C_SOURCE})
   target_link_libraries(generate_c PRIVATE tdtl)
   add_custom_target(tl_generate_c
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND generate_c
     COMMENT "Generate C tl source files"
-    DEPENDS generate_c scheme/td_api.tlo
+    DEPENDS generate_c ${TL_TD_API_TLO}
   )
   add_dependencies(tl_generate_c generate_td_api_tlo)
 
@@ -203,7 +202,7 @@ if (NOT CMAKE_CROSSCOMPILING)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND generate_json
     COMMENT "Generate JSON tl source files"
-    DEPENDS generate_json scheme/td_api.tlo
+    DEPENDS generate_json ${TL_TD_API_TLO}
   )
   add_dependencies(tl_generate_json generate_td_api_tlo)
 
@@ -226,7 +225,7 @@ if (NOT CMAKE_CROSSCOMPILING)
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMAND ${GENERATE_DOTNET_API_CMD} ${TL_TD_API_TLO}
       COMMENT "Generate .NET API files"
-      DEPENDS td_generate_dotnet_api scheme/td_api.tlo DotnetTlDocumentationGenerator.php
+      DEPENDS td_generate_dotnet_api ${TL_TD_API_TLO} DotnetTlDocumentationGenerator.php
     )
   endif()
 
