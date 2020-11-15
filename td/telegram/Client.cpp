@@ -78,7 +78,7 @@ class TdReceiver {
 
 class ClientManager::Impl final {
  public:
-  ClientId create_client() {
+  ClientId create_client_id() {
     CHECK(client_id_ != std::numeric_limits<ClientId>::max());
     auto client_id = ++client_id_;
     pending_clients_.insert(client_id);
@@ -206,7 +206,7 @@ class ClientManager::Impl final {
 
 class Client::Impl final {
  public:
-  Impl() : client_id_(impl_.create_client()) {
+  Impl() : client_id_(impl_.create_client_id()) {
   }
 
   void send(Request request) {
@@ -456,7 +456,7 @@ class MultiImplPool {
 
 class ClientManager::Impl final {
  public:
-  ClientId create_client() {
+  ClientId create_client_id() {
     auto client_id = MultiImpl::create_id();
     {
       auto lock = impls_mutex_.lock_write().move_as_ok();
@@ -640,8 +640,8 @@ Client &Client::operator=(Client &&other) = default;
 ClientManager::ClientManager() : impl_(std::make_unique<Impl>()) {
 }
 
-ClientManager::ClientId ClientManager::create_client() {
-  return impl_->create_client();
+ClientManager::ClientId ClientManager::create_client_id() {
+  return impl_->create_client_id();
 }
 
 void ClientManager::send(ClientId client_id, RequestId request_id, td_api::object_ptr<td_api::Function> &&request) {

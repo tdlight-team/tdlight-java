@@ -13,11 +13,11 @@
  * and is able to work with JSON.
  *
  * The JSON serialization of TDLib API objects is straightforward: all API objects are represented as JSON objects with
- * the same keys as the API object field names. The object type name is stored in the special field '@type' which is
+ * the same keys as the API object field names. The object type name is stored in the special field "@type" which is
  * optional in places where type is uniquely determined by the context.
  * Fields of Bool type are stored as Boolean, fields of int32, int53, and double types are stored as Number, fields of
  * int64 and string types are stored as String, fields of bytes type are base64 encoded and then stored as String,
- * fields of vector type are stored as Array.
+ * fields of array type are stored as Array.
  * The main TDLib interface is asynchronous. To match requests with a corresponding response a field "@extra" can
  * be added to the request object. The corresponding response will have an "@extra" field with exactly the same value.
  *
@@ -102,7 +102,7 @@ TDJSON_EXPORT void td_json_client_destroy(void *client);
  * Each returned object will have an "@client_id" field, containing and identifier of the client for which
  * a response or an update is received.
  *
- * A TDLib client instance can be created through td_create_client.
+ * A TDLib client instance can be created through td_create_client_id.
  * Requests then can be sent using td_send from any thread and the received client identifier.
  * New updates and request responses can be received through td_receive from any thread. This function
  * must not be called simultaneously from two different threads. Also note that all updates and request responses
@@ -112,7 +112,7 @@ TDJSON_EXPORT void td_json_client_destroy(void *client);
  *
  * General pattern of usage:
  * \code
- * int client_id = td_create_client();
+ * int client_id = td_create_client_id();
  * // share the client_id with other threads, which will be able to send requests via td_send
  *
  * const double WAIT_TIMEOUT = 10.0; // seconds
@@ -126,10 +126,11 @@ TDJSON_EXPORT void td_json_client_destroy(void *client);
  */
 
 /**
- * Creates a new instance of TDLib. The TDLib instance will not send updates until the first request is sent to it.
- * \return Opaque indentifier of the created TDLib instance.
+ * Returns an opaque identifier of a new TDLib instance.
+ * The TDLib instance will not send updates until the first request is sent to it.
+ * \return Opaque indentifier of a new TDLib instance.
  */
-TDJSON_EXPORT int td_create_client();
+TDJSON_EXPORT int td_create_client_id();
 
 /**
  * Sends request to the TDLib client. May be called from any thread.
