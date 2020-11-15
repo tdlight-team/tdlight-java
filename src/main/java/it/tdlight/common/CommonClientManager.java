@@ -1,5 +1,7 @@
 package it.tdlight.common;
 
+import it.tdlight.jni.TdApi;
+
 public abstract class CommonClientManager {
 
 	private static InternalClientManager getClientManager(String implementationName) {
@@ -32,6 +34,8 @@ public abstract class CommonClientManager {
 	}
 
 	private static TelegramClient create(InternalClient internalClient) {
+		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
+		internalClient.send(new TdApi.GetAuthorizationState(), null, null);
 		return internalClient;
 	}
 }

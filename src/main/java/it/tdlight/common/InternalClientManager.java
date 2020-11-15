@@ -1,6 +1,5 @@
 package it.tdlight.common;
 
-import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
