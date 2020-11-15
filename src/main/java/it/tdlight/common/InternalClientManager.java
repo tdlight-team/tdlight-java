@@ -49,9 +49,6 @@ public class InternalClientManager implements AutoCloseable {
 		if (replaced) {
 			throw new IllegalStateException("Client " + clientId + " already registered");
 		}
-
-		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
-		internalClient.send(new TdApi.GetAuthorizationState(), null, null);
 	}
 
 	public String getImplementationName() {

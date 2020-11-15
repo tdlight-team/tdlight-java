@@ -7,9 +7,11 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class InternalClient implements ClientEventsHandler, TelegramClient {
 
+	static final ReentrantReadWriteLock clientInitializationLock = new ReentrantReadWriteLock(true);
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
 
 	private final int clientId;
@@ -24,13 +26,18 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 			ResultHandler updateHandler,
 			ExceptionHandler updateExceptionHandler,
 			ExceptionHandler defaultExceptionHandler) {
-		this.updateHandler = new Handler(updateHandler, updateExceptionHandler);
-		this.updatesHandler = null;
-		this.defaultExceptionHandler = defaultExceptionHandler;
-		this.clientManager = clientManager;
-		this.clientId = NativeClientAccess.create();
+		clientInitializationLock.writeLock().lock();
+		try {
+			this.updateHandler = new Handler(updateHandler, updateExceptionHandler);
+			this.updatesHandler = null;
+			this.defaultExceptionHandler = defaultExceptionHandler;
+			this.clientManager = clientManager;
+			this.clientId = NativeClientAccess.create();
 
-		clientManager.registerClient(clientId, this);
+			clientManager.registerClient(clientId, this);
+		} finally {
+			clientInitializationLock.writeLock().unlock();
+		}
 	}
 
 	public InternalClient(InternalClientManager clientManager,

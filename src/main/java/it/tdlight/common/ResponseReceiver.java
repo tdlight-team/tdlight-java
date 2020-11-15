@@ -1,5 +1,7 @@
 package it.tdlight.common;
 
+import static it.tdlight.common.InternalClient.clientInitializationLock;
+
 import it.tdlight.common.utils.IntSwapper;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
@@ -52,7 +54,12 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 		try {
 			while(!closeRequested || !registeredClients.isEmpty()) {
 				int resultsCount;
-				resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
+				clientInitializationLock.readLock().lock();
+				try {
+					resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/)
+				} finally {
+					clientInitializationLock.readLock().unlock();
+				};
 
 				if (resultsCount <= 0)
 					continue;
