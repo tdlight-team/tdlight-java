@@ -56,7 +56,7 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 				int resultsCount;
 				clientInitializationLock.readLock().lock();
 				try {
-					resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/)
+					resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
 				} finally {
 					clientInitializationLock.readLock().unlock();
 				};
