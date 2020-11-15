@@ -173,13 +173,14 @@ if (NOT CMAKE_CROSSCOMPILING)
   endif()
 
   add_executable(generate_common ${TL_GENERATE_COMMON_SOURCE})
-  add_dependencies(generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo)
+  add_dependencies(generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo tree_test)
+  add_dependencies(tl_generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo tree_test)
   target_link_libraries(generate_common PRIVATE tdtl)
   add_custom_target(tl_generate_common
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
           COMMAND ${GENERATE_COMMON_CMD}
           COMMENT "Generate common tl source files"
-          DEPENDS generate_common tree_test scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
+          DEPENDS generate_common scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
           )
   if (TD_ENABLE_JNI)
     target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)
