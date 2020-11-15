@@ -35,7 +35,7 @@ public abstract class CommonClientManager {
 
 	private static TelegramClient create(InternalClient internalClient) {
 		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
-		internalClient.send(new TdApi.GetAuthorizationState(), null, null);
+		internalClient.send(new TdApi.GetAuthorizationState(), (result) -> {}, ex -> {});
 		return internalClient;
 	}
 }

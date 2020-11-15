@@ -55,13 +55,11 @@
 			<artifactId>tdlight-natives-windows-amd64</artifactId>
 			<version>${natives-version}</version>
 		</dependency>
-		<!-- Travis exploded
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-osx-amd64</artifactId>
 			<version>${natives-version}</version>
 		</dependency>
-		-->
 		<dependency>
 			<groupId>it.cavallium</groupId>
 			<artifactId>concurrent-locks</artifactId>
