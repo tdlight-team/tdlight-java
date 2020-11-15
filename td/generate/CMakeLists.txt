@@ -152,12 +152,6 @@ if (NOT CMAKE_CROSSCOMPILING)
           DEPENDS scheme/td_api.tl
           )
   add_dependencies(generate_td_api_tlo build_tl_parser)
-
-  add_custom_target(tree_test
-          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-          COMMAND tree scheme
-          COMMENT "Debug output"
-          )
    # End of .tlo update
 
   find_program(PHP_EXECUTABLE php)
@@ -173,15 +167,14 @@ if (NOT CMAKE_CROSSCOMPILING)
   endif()
 
   add_executable(generate_common ${TL_GENERATE_COMMON_SOURCE})
-  add_dependencies(generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo tree_test)
+  add_dependencies(generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo)
   target_link_libraries(generate_common PRIVATE tdtl)
   add_custom_target(tl_generate_common
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
           COMMAND ${GENERATE_COMMON_CMD}
           COMMENT "Generate common tl source files"
-          DEPENDS generate_common scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
+          DEPENDS generate_common DoxygenTlDocumentationGenerator.php
           )
-  add_dependencies(tl_generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo tree_test)
   if (TD_ENABLE_JNI)
     target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)
   endif()
@@ -195,7 +188,7 @@ if (NOT CMAKE_CROSSCOMPILING)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND generate_c
     COMMENT "Generate C tl source files"
-    DEPENDS generate_c ${TL_TD_API_TLO}
+    DEPENDS generate_c generate_td_api_tlo
   )
   add_dependencies(tl_generate_c generate_td_api_tlo)
 
@@ -208,7 +201,7 @@ if (NOT CMAKE_CROSSCOMPILING)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND generate_json
     COMMENT "Generate JSON tl source files"
-    DEPENDS generate_json ${TL_TD_API_TLO}
+    DEPENDS generate_json generate_td_api_tlo
   )
   add_dependencies(tl_generate_json generate_td_api_tlo)
 
@@ -231,7 +224,7 @@ if (NOT CMAKE_CROSSCOMPILING)
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMAND ${GENERATE_DOTNET_API_CMD} ${TL_TD_API_TLO}
       COMMENT "Generate .NET API files"
-      DEPENDS td_generate_dotnet_api ${TL_TD_API_TLO} DotnetTlDocumentationGenerator.php
+      DEPENDS td_generate_dotnet_api generate_td_api_tlo DotnetTlDocumentationGenerator.php
     )
   endif()
 

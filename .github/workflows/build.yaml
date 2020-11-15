@@ -36,13 +36,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.SAFE_ARCH }}-ccache-
       - name: Install build tools
-        run: sudo apt-get install -y make git zlib1g-dev libssl-dev gperf php-cli cmake clang-6.0 libc++-dev libc++abi-dev ccache tree
+        run: sudo apt-get install -y make git zlib1g-dev libssl-dev gperf php-cli cmake clang-6.0 libc++-dev libc++abi-dev ccache
       - name: Build
         run: |
           mkdir build
           cd build
           CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-10 CXX=/usr/bin/clang++-10 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib ..
-          cmake --build . --target install
+          cmake --build . --target install -- -j4
       - uses: actions/upload-artifact@v2
         with:
           name: tdlight-${{ env.SAFE_ARCH }}
