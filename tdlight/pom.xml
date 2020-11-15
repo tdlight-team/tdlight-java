@@ -8,7 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-		<natives-version>3.0.152</natives-version>
+		<natives-version>3.0.154</natives-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -55,11 +55,13 @@
 			<artifactId>tdlight-natives-windows-amd64</artifactId>
 			<version>${natives-version}</version>
 		</dependency>
+		<!-- Travis exploded
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-osx-amd64</artifactId>
 			<version>${natives-version}</version>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>it.cavallium</groupId>
 			<artifactId>concurrent-locks</artifactId>
