@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         arch: [linux/386, linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/ppc64le]
@@ -41,8 +41,8 @@ jobs:
         run: |
           mkdir build
           cd build
-          CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-6.0 CXX=/usr/bin/clang++-6.0 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib ..
-          cmake --build . --target install -- -j4
+          CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-10 CXX=/usr/bin/clang++-10 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib ..
+          cmake --build . --target install
       - uses: actions/upload-artifact@v2
         with:
           name: tdlight-${{ env.SAFE_ARCH }}
