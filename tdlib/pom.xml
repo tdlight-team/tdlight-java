@@ -8,7 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-		<natives-version>3.0.151</natives-version>
+		<natives-version>3.0.152</natives-version>
 	</properties>
 	<repositories>
 		<repository>
