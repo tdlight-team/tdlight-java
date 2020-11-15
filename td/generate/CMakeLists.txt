@@ -152,6 +152,12 @@ if (NOT CMAKE_CROSSCOMPILING)
           DEPENDS scheme/td_api.tl
           )
   add_dependencies(generate_td_api_tlo build_tl_parser)
+
+  add_custom_target(tree_test
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMAND tree scheme
+          COMMENT "Debug output"
+          )
    # End of .tlo update
 
   find_program(PHP_EXECUTABLE php)
@@ -173,7 +179,7 @@ if (NOT CMAKE_CROSSCOMPILING)
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
           COMMAND ${GENERATE_COMMON_CMD}
           COMMENT "Generate common tl source files"
-          DEPENDS generate_common scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
+          DEPENDS generate_common tree_test scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
           )
   if (TD_ENABLE_JNI)
     target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)

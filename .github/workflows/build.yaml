@@ -36,7 +36,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.SAFE_ARCH }}-ccache-
       - name: Install build tools
-        run: sudo apt-get install -y make git zlib1g-dev libssl-dev gperf php-cli cmake clang-6.0 libc++-dev libc++abi-dev ccache
+        run: sudo apt-get install -y make git zlib1g-dev libssl-dev gperf php-cli cmake clang-6.0 libc++-dev libc++abi-dev ccache tree
       - name: Build
         run: |
           mkdir build
