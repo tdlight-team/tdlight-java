@@ -94,33 +94,6 @@ set(TL_GENERATE_JSON_SOURCE
 )
 
 if (NOT CMAKE_CROSSCOMPILING)
-  find_program(PHP_EXECUTABLE php)
-
-  if ((CMAKE_SYSTEM_NAME MATCHES "FreeBSD") AND (CMAKE_SYSTEM_VERSION MATCHES "HBSD"))
-    set(PHP_EXECUTABLE "PHP_EXECUTABLE-NOTFOUND")
-  endif()
-
-  if (PHP_EXECUTABLE AND NOT TD_ENABLE_DOTNET)
-    set(GENERATE_COMMON_CMD generate_common && ${PHP_EXECUTABLE} DoxygenTlDocumentationGenerator.php scheme/td_api.tl auto/td/telegram/td_api.h)
-  else()
-    set(GENERATE_COMMON_CMD generate_common)
-  endif()
-
-  add_executable(generate_common ${TL_GENERATE_COMMON_SOURCE})
-  target_link_libraries(generate_common PRIVATE tdtl)
-  add_custom_target(tl_generate_common
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMAND ${GENERATE_COMMON_CMD}
-    COMMENT "Generate common tl source files"
-    DEPENDS generate_common scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
-  )
-  if (TD_ENABLE_JNI)
-    target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)
-  endif()
-  if (TD_ENABLE_DOTNET)
-    target_compile_definitions(generate_common PRIVATE DISABLE_HPP_DOCUMENTATION=1)
-  endif()
-
   # Start of .tlo update
   if (WIN32 OR CYGWIN)
     add_custom_target(build_tl_parser
@@ -179,9 +152,35 @@ if (NOT CMAKE_CROSSCOMPILING)
           DEPENDS scheme/td_api.tl
           )
   add_dependencies(generate_td_api_tlo build_tl_parser)
+   # End of .tlo update
 
+  find_program(PHP_EXECUTABLE php)
+
+  if ((CMAKE_SYSTEM_NAME MATCHES "FreeBSD") AND (CMAKE_SYSTEM_VERSION MATCHES "HBSD"))
+    set(PHP_EXECUTABLE "PHP_EXECUTABLE-NOTFOUND")
+  endif()
+
+  if (PHP_EXECUTABLE AND NOT TD_ENABLE_DOTNET)
+    set(GENERATE_COMMON_CMD generate_common && ${PHP_EXECUTABLE} DoxygenTlDocumentationGenerator.php scheme/td_api.tl auto/td/telegram/td_api.h)
+  else()
+    set(GENERATE_COMMON_CMD generate_common)
+  endif()
+
+  add_executable(generate_common ${TL_GENERATE_COMMON_SOURCE})
   add_dependencies(generate_common generate_mtproto_api_tlo generate_secret_api_tlo generate_telegram_api_tlo generate_td_api_tlo)
-  # End of .tlo update
+  target_link_libraries(generate_common PRIVATE tdtl)
+  add_custom_target(tl_generate_common
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMAND ${GENERATE_COMMON_CMD}
+          COMMENT "Generate common tl source files"
+          DEPENDS generate_common scheme/telegram_api.tlo scheme/secret_api.tlo ${TL_TD_API_TLO} DoxygenTlDocumentationGenerator.php
+          )
+  if (TD_ENABLE_JNI)
+    target_compile_definitions(generate_common PRIVATE TD_ENABLE_JNI=1)
+  endif()
+  if (TD_ENABLE_DOTNET)
+    target_compile_definitions(generate_common PRIVATE DISABLE_HPP_DOCUMENTATION=1)
+  endif()
 
   add_executable(generate_c ${TL_GENERATE_C_SOURCE})
   target_link_libraries(generate_c PRIVATE tdtl)
