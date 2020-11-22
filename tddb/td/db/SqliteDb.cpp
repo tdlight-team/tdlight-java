@@ -19,7 +19,52 @@
 namespace td {
 
 namespace {
+string quote_string(Slice str) {
+  size_t cnt = 0;
+  for (auto &c : str) {
+    if (c == '\'') {
+      cnt++;
+    }
+  }
+  if (cnt == 0) {
+    return str.str();
+  }
 
+  string result;
+  result.reserve(str.size() + cnt);
+  for (auto &c : str) {
+    if (c == '\'') {
+      result += '\'';
+    }
+    result += c;
+  }
+  return result;
+}
+
+string db_key_to_sqlcipher_key(const DbKey &db_key) {
+  if (db_key.is_empty()) {
+    return "''";
+  }
+  if (db_key.is_password()) {
+    return PSTRING() << "'" << quote_string(db_key.data()) << "'";
+  }
+  CHECK(db_key.is_raw_key());
+  Slice raw_key = db_key.data();
+  CHECK(raw_key.size() == 32);
+  size_t expected_size = 64 + 5;
+  string res(expected_size + 50, ' ');
+  StringBuilder sb(res);
+  sb << '"';
+  sb << 'x';
+  sb << '\'';
+  sb << format::as_hex_dump<0>(raw_key);
+  sb << '\'';
+  sb << '"';
+  CHECK(!sb.is_error());
+  CHECK(sb.as_cslice().size() == expected_size);
+  res.resize(expected_size);
+  return res;
+}
 }  // namespace
 
 SqliteDb::~SqliteDb() = default;
@@ -176,7 +221,52 @@ Result<SqliteDb> SqliteDb::change_key(CSlice path, const DbKey &new_db_key, cons
   SqliteDb db;
   TRY_STATUS(db.init(path));
 
-  return std::move(db);
+  // fast path
+  {
+    auto r_db = open_with_key(path, new_db_key);
+    if (r_db.is_ok()) {
+      return r_db;
+    }
+  }
+
+  TRY_RESULT(db, open_with_key(path, old_db_key));
+  TRY_RESULT(user_version, db.user_version());
+  auto new_key = db_key_to_sqlcipher_key(new_db_key);
+  if (old_db_key.is_empty() && !new_db_key.is_empty()) {
+    LOG(DEBUG) << "ENCRYPT";
+    PerfWarningTimer timer("Encrypt SQLite database", 0.1);
+    auto tmp_path = path.str() + ".encrypted";
+    TRY_STATUS(destroy(tmp_path));
+
+    // make shure that database is not empty
+    TRY_STATUS(db.exec("CREATE TABLE IF NOT EXISTS encryption_dummy_table(id INT PRIMARY KEY)"));
+    TRY_STATUS(db.exec(PSLICE() << "ATTACH DATABASE '" << quote_string(tmp_path) << "' AS encrypted KEY " << new_key));
+    TRY_STATUS(db.exec("SELECT sqlcipher_export('encrypted')"));
+    TRY_STATUS(db.exec(PSLICE() << "PRAGMA encrypted.user_version = " << user_version));
+    TRY_STATUS(db.exec("DETACH DATABASE encrypted"));
+    db.close();
+    TRY_STATUS(rename(tmp_path, path));
+  } else if (!old_db_key.is_empty() && new_db_key.is_empty()) {
+    LOG(DEBUG) << "DECRYPT";
+    PerfWarningTimer timer("Decrypt SQLite database", 0.1);
+    auto tmp_path = path.str() + ".encrypted";
+    TRY_STATUS(destroy(tmp_path));
+
+    TRY_STATUS(db.exec(PSLICE() << "ATTACH DATABASE '" << quote_string(tmp_path) << "' AS decrypted KEY ''"));
+    TRY_STATUS(db.exec("SELECT sqlcipher_export('decrypted')"));
+    TRY_STATUS(db.exec(PSLICE() << "PRAGMA decrypted.user_version = " << user_version));
+    TRY_STATUS(db.exec("DETACH DATABASE decrypted"));
+    db.close();
+    TRY_STATUS(rename(tmp_path, path));
+  } else {
+    LOG(DEBUG) << "REKEY";
+    PerfWarningTimer timer("Rekey SQLite database", 0.1);
+    TRY_STATUS(db.exec(PSLICE() << "PRAGMA rekey = " << new_key));
+  }
+
+  TRY_RESULT(new_db, open_with_key(path, new_db_key));
+  LOG_CHECK(new_db.user_version().ok() == user_version) << new_db.user_version().ok() << " " << user_version;
+  return std::move(new_db);
 }
 
 Status SqliteDb::destroy(Slice path) {

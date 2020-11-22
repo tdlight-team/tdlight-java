@@ -90,8 +90,8 @@ Status PartsManager::init_no_size(size_t part_size, const std::vector<int> &read
   if (part_size != 0) {
     part_size_ = part_size;
   } else {
-    part_size_ = 32 * (1 << 10);
-    while (use_part_count_limit_ && calc_part_count(expected_size_, part_size_) > MAX_PART_COUNT) {
+    part_size_ = 32 << 10;
+    while (calc_part_count(expected_size_, part_size_) > MAX_PART_COUNT) {
       part_size_ *= 2;
       CHECK(part_size_ <= MAX_PART_SIZE);
     }
@@ -128,11 +128,12 @@ Status PartsManager::init(int64 size, int64 expected_size, bool is_size_final, s
   if (part_size != 0) {
     part_size_ = part_size;
     if (use_part_count_limit_ && calc_part_count(expected_size_, part_size_) > MAX_PART_COUNT) {
+      CHECK(is_upload_);
       return Status::Error("FILE_UPLOAD_RESTART");
     }
   } else {
-    part_size_ = 64 * (1 << 10);
-    while (use_part_count_limit && calc_part_count(expected_size_, part_size_) > MAX_PART_COUNT) {
+    part_size_ = 64 << 10;
+    while (calc_part_count(expected_size_, part_size_) > MAX_PART_COUNT) {
       part_size_ *= 2;
       CHECK(part_size_ <= MAX_PART_SIZE);
     }
@@ -285,7 +286,7 @@ Result<Part> PartsManager::start_part() {
   if (part_i == part_count_) {
     if (unknown_size_flag_) {
       part_count_++;
-      if (part_count_ > MAX_PART_COUNT) {
+      if (part_count_ > MAX_PART_COUNT + (use_part_count_limit_ ? 0 : 64)) {
         if (!is_upload_) {
           // Caller will try to increase part size if it is possible
           return Status::Error("FILE_DOWNLOAD_RESTART_INCREASE_PART_SIZE");

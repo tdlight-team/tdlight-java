@@ -20582,6 +20582,9 @@ std::pair<int32, vector<MessageId>> MessagesManager::search_dialog_messages(
             promise.set_value(Unit());
             return result;
           case DialogType::None:
+            if (sender_dialog_id == DialogId()) {
+              break;
+            }
             promise.set_error(Status::Error(6, "Invalid sender chat identifier specified"));
             return result;
           default:
@@ -20592,7 +20595,7 @@ std::pair<int32, vector<MessageId>> MessagesManager::search_dialog_messages(
       default:
         UNREACHABLE();
     }
-    if (!have_input_peer(sender_dialog_id, AccessRights::Read)) {
+    if (sender_dialog_id != DialogId() && !have_input_peer(sender_dialog_id, AccessRights::Read)) {
       promise.set_error(Status::Error(6, "Invalid message sender specified"));
       return result;
     }
@@ -21307,9 +21310,8 @@ MessagesManager::FoundMessages MessagesManager::offline_search_messages(DialogId
   found_fts_messages_[random_id];  // reserve place for result
 
   G()->td_db()->get_messages_db_async()->get_messages_fts(
-      std::move(fts_query),
-      PromiseCreator::lambda([random_id, offset = std::move(offset), limit,
-                              promise = std::move(promise)](Result<MessagesDbFtsResult> fts_result) mutable {
+      std::move(fts_query), PromiseCreator::lambda([random_id, offset, limit, promise = std::move(promise)](
+                                                       Result<MessagesDbFtsResult> fts_result) mutable {
         send_closure(G()->messages_manager(), &MessagesManager::on_messages_db_fts_result, std::move(fts_result),
                      std::move(offset), limit, random_id, std::move(promise));
       }));
