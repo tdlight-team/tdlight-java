@@ -2,13 +2,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.tdlight</groupId>
 	<artifactId>tdlib-java</artifactId>
-	<version>3.169.${revision}</version>
+	<version>3.170.${revision}</version>
 	<name>TDLib Java Wrapper</name>
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-		<natives-version>3.0.154</natives-version>
+		<natives-version>3.0.155</natives-version>
 	</properties>
 	<repositories>
 		<repository>
