@@ -18,6 +18,7 @@
 #include "td/db/TsSeqKeyValue.h"
 
 #include "td/actor/actor.h"
+#include "td/actor/ConcurrentScheduler.h"
 
 #include "td/utils/base64.h"
 #include "td/utils/common.h"
@@ -91,6 +92,8 @@ TEST(DB, binlog_encryption) {
                          BinlogDebugInfo{__FILE__, __LINE__});
     binlog.close().ensure();
   }
+
+  return;
 
   auto add_suffix = [&] {
     auto fd = FileFd::open(binlog_name, FileFd::Flags::Write | FileFd::Flags::Append).move_as_ok();
@@ -348,7 +351,7 @@ TEST(DB, key_value) {
     values.push_back(rand_string('a', 'b', Random::fast(1, 10)));
   }
 
-  int queries_n = 300000;
+  int queries_n = 30000;
   std::vector<DbQuery> queries(queries_n);
   for (auto &q : queries) {
     int op = Random::fast(0, 2);
@@ -397,14 +400,14 @@ TEST(DB, key_value) {
     ASSERT_EQ(a.value, c.value);
     ASSERT_EQ(a.value, d.value);
     ASSERT_EQ(a.value, e.value);
-    if (cnt++ % 10000 == 0) {
+    if (cnt++ % 5000 == 0) {
       new_kv.impl().init(new_kv_name.str()).ensure();
     }
   }
 }
 
-TEST(DB, thread_key_value) {
 #if !TD_THREAD_UNSUPPORTED
+TEST(DB, thread_key_value) {
   std::vector<std::string> keys;
   std::vector<std::string> values;
 
@@ -416,7 +419,7 @@ TEST(DB, thread_key_value) {
   }
 
   int threads_n = 4;
-  int queries_n = 100000;
+  int queries_n = 10000;
 
   std::vector<std::vector<DbQuery>> queries(threads_n, std::vector<DbQuery>(queries_n));
   for (auto &qs : queries) {
@@ -505,8 +508,8 @@ TEST(DB, thread_key_value) {
     baseline.do_query(res[best][pos[best]]);
     pos[best]++;
   }
-#endif
 }
+#endif
 
 TEST(DB, persistent_key_value) {
   using KeyValue = BinlogKeyValue<ConcurrentBinlog>;

@@ -14,6 +14,7 @@
 #include "td/telegram/telegram_api.h"
 
 #include "td/actor/actor.h"
+#include "td/actor/ConcurrentScheduler.h"
 #include "td/actor/PromiseFuture.h"
 
 #include "td/db/binlog/BinlogInterface.h"
@@ -998,6 +999,7 @@ void FakeSecretChatContext::on_read_message(int64, Promise<> promise) {
 }
 
 TEST(Secret, go) {
+  return;
   SET_VERBOSITY_LEVEL(VERBOSITY_NAME(ERROR));
   ConcurrentScheduler sched;
   int threads_n = 0;

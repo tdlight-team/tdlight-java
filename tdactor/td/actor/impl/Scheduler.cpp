@@ -13,6 +13,7 @@
 #include "td/actor/impl/EventFull.h"
 
 #include "td/utils/common.h"
+#include "td/utils/ExitGuard.h"
 #include "td/utils/format.h"
 #include "td/utils/List.h"
 #include "td/utils/logging.h"
@@ -241,11 +242,9 @@ void Scheduler::clear() {
     auto actor_info = ActorInfo::from_list_node(ready_actors_list_.get());
     do_stop_actor(actor_info);
   }
-  LOG_IF(FATAL, !ready_actors_list_.empty()) << ActorInfo::from_list_node(ready_actors_list_.next)->get_name();
-  CHECK(ready_actors_list_.empty());
   poll_.clear();
 
-  if (callback_) {
+  if (callback_ && !ExitGuard::is_exited()) {
     // can't move lambda with unique_ptr inside into std::function
     auto ptr = actor_info_pool_.release();
     callback_->register_at_finish([ptr] { delete ptr; });
