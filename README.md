@@ -3,10 +3,15 @@ TDLight is a fork of tdlib, focused on memory footprint and performance.
 
 TDLight is 100% compatible with tdlib, if you don't use the sqlite database.
 
+⚠️ Memory Cleanup remove nearly every cached value, so you must use it with caution!
+This function is not suggested for GUI clients, because they heavily rely on retrieving cached data!
+TDLib developers strongly advise against the use of this feature, since it is not an intended behavior.
+
 ## Added features
 ### Memory cleanup
 TDLight can clean itself and release some ram to the OS if you want. Look at **TdApi.OptimizeMemory** in "Modified features" paragraph to see how.
-### Constant memory usage
+
+### (Almost) constant memory usage
 TDLight if used with care doesn't grow in memory usage with time. Look at **TdApi.OptimizeMemory** in "Modified features" paragraph to see how
 
 ![memory usage](info/memory-usage.jpg)
