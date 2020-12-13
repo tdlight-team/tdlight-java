@@ -154,7 +154,8 @@ void MemoryManager::get_memory_stats(bool full, Promise<MemoryStats> promise) co
 
   output.push_back("}}");
 
-  string s = accumulate(output.begin(), output.end(), s);
+  string s;
+  s = accumulate(output.begin(), output.end(), s);
   auto value = MemoryStats(s);
 
   promise.set_value(std::move(value));
