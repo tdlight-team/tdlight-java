@@ -104,21 +104,24 @@ if (NOT CMAKE_CROSSCOMPILING)
             )
     set(TL_PARSER_BIN "${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/contrib/vs/build/x64/Release/tl-parser")
   else()
+    add_custom_target(prepare_tl_parser ALL
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/build)
     add_custom_target(configure_tl_parser
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser
-            COMMAND sh ./configure
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/build
+            COMMAND cmake -DCMAKE_BUILD_TYPE=Release ../
             COMMENT "Configure tl-parser"
             DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
             )
+    add_dependencies(configure_tl_parser prepare_tl_parser)
 
     add_custom_target(build_tl_parser
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser
-            COMMAND make
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/build
+            COMMAND ${CMAKE_COMMAND} --build .
             COMMENT "Build tl-parser"
             DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
             )
     add_dependencies(build_tl_parser configure_tl_parser)
-    set(TL_PARSER_BIN ./tl-parser/bin/tl-parser)
+    set(TL_PARSER_BIN ./tl-parser/build/tl-parser)
   endif()
 
   add_custom_target(generate_mtproto_api_tlo
