@@ -108,7 +108,7 @@ if (NOT CMAKE_CROSSCOMPILING)
             COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/build)
     add_custom_target(configure_tl_parser
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/build
-            COMMAND cmake -DCMAKE_BUILD_TYPE=Release ../
+            COMMAND cmake -DCMAKE_BUILD_TYPE=Debug ../
             COMMENT "Configure tl-parser"
             DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
             )
@@ -116,7 +116,7 @@ if (NOT CMAKE_CROSSCOMPILING)
 
     add_custom_target(build_tl_parser
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/build
-            COMMAND ${CMAKE_COMMAND} --build . --config Release
+            COMMAND ${CMAKE_COMMAND} --build .
             COMMENT "Build tl-parser"
             DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
             )
