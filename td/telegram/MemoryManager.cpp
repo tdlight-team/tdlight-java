@@ -71,23 +71,21 @@ MemoryManager::MemoryManager(Td *td, ActorShared<> parent) : td_(td), parent_(st
 }
 
 void MemoryManager::start_up() {
-  init();
+  LOG(INFO) << "Start MemoryManager";
 }
 
 void MemoryManager::tear_down() {
+  LOG(INFO) << "Stopping MemoryManager";
   parent_.reset();
+  LOG(INFO) << "Stopped MemoryManager";
 }
 
-void MemoryManager::init() {
-  if (!td_->auth_manager_->is_authorized() || G()->close_flag()) {
-    return;
-  }
-  LOG(INFO) << "Init MemoryManager";
-  is_inited_ = true;
+bool MemoryManager::can_manage_memory() const {
+  return td_->auth_manager_->is_authorized() && !G()->close_flag();
 }
 
 void MemoryManager::get_memory_stats(bool full, Promise<MemoryStats> promise) const {
-  if (!is_inited_) {
+  if (!can_manage_memory()) {
     promise.set_error(Status::Error(500, "Request aborted"));
     return;
   }
@@ -162,7 +160,7 @@ void MemoryManager::get_memory_stats(bool full, Promise<MemoryStats> promise) co
 }
 
 void MemoryManager::clean_memory(bool full, Promise<Unit> promise) const {
-  if (!is_inited_) {
+  if (!can_manage_memory()) {
     promise.set_error(Status::Error(500, "Request aborted"));
     return;
   }

@@ -48,7 +48,7 @@ class MemoryManager : public Actor {
  public:
   MemoryManager(Td *td, ActorShared<> parent);
 
-  void init();
+  bool can_manage_memory() const;
 
   void get_memory_stats(bool full, Promise<MemoryStats> promise) const;
 
@@ -63,8 +63,6 @@ class MemoryManager : public Actor {
 
   Td *td_;
   ActorShared<> parent_;
-
-  bool is_inited_ = false;
 };
 
 }  // namespace td
