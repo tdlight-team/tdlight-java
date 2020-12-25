@@ -25,6 +25,7 @@
 #include "td/telegram/FullMessageId.h"
 #include "td/telegram/Global.h"
 #include "td/telegram/InputDialogId.h"
+#include "td/telegram/InputGroupCallId.h"
 #include "td/telegram/logevent/LogEventHelper.h"
 #include "td/telegram/MessageContentType.h"
 #include "td/telegram/MessageCopyOptions.h"
@@ -335,6 +336,10 @@ class MessagesManager : public Actor {
   void on_update_dialog_has_scheduled_server_messages(DialogId dialog_id, bool has_scheduled_server_messages);
 
   void on_update_dialog_folder_id(DialogId dialog_id, FolderId folder_id);
+
+  void on_update_dialog_group_call(DialogId dialog_id, bool has_active_group_call, bool is_group_call_empty);
+
+  void on_update_dialog_group_call_id(DialogId dialog_id, InputGroupCallId input_group_call_id);
 
   void on_update_dialog_filters();
 
@@ -1110,6 +1115,7 @@ class MessagesManager : public Actor {
     int32 forward_count = 0;
     MessageReplyInfo reply_info;
     unique_ptr<DraftMessage> thread_draft_message;
+    int32 interaction_info_update_date = 0;
 
     int32 legacy_layer = 0;
 
@@ -1195,6 +1201,7 @@ class MessagesManager : public Actor {
     std::unordered_map<int64, LogEventIdWithGeneration> read_history_log_event_ids;
     std::unordered_set<MessageId, MessageIdHash> updated_read_history_message_ids;
     LogEventIdWithGeneration set_folder_id_log_event_id;
+    InputGroupCallId active_group_call_id;
 
     FolderId folder_id;
     vector<DialogListId> dialog_list_ids;  // TODO replace with mask
@@ -1266,6 +1273,8 @@ class MessagesManager : public Actor {
     bool has_loaded_scheduled_messages_from_database = false;
     bool sent_scheduled_messages = false;
     bool had_last_yet_unsent_message = false;  // whether the dialog was stored to database without last message
+    bool has_active_group_call = false;
+    bool is_group_call_empty = false;
 
     bool increment_view_counter = false;
 
@@ -2090,7 +2099,7 @@ class MessagesManager : public Actor {
   void update_reply_count_by_message(Dialog *d, int diff, const Message *m);
 
   void update_message_reply_count(Dialog *d, MessageId message_id, DialogId replier_dialog_id,
-                                  MessageId reply_message_id, int diff, bool is_recursive = false);
+                                  MessageId reply_message_id, int32 update_date, int diff, bool is_recursive = false);
 
   Message *add_message_to_dialog(DialogId dialog_id, unique_ptr<Message> message, bool from_update, bool *need_update,
                                  bool *need_update_dialog_pos, const char *source);
@@ -2247,6 +2256,8 @@ class MessagesManager : public Actor {
 
   void send_update_chat_action_bar(const Dialog *d);
 
+  void send_update_chat_voice_chat(const Dialog *d);
+
   void send_update_chat_has_scheduled_messages(Dialog *d, bool from_deletion);
 
   void send_update_user_chat_action(DialogId dialog_id, MessageId top_thread_message_id, UserId user_id,
@@ -2255,6 +2266,10 @@ class MessagesManager : public Actor {
   void repair_dialog_action_bar(Dialog *d, const char *source);
 
   void hide_dialog_action_bar(Dialog *d);
+
+  void repair_dialog_active_group_call_id(DialogId dialog_id);
+
+  void do_repair_dialog_active_group_call_id(DialogId dialog_id);
 
   static Result<int32> get_message_schedule_date(td_api::object_ptr<td_api::MessageSchedulingState> &&scheduling_state);
 
@@ -2895,7 +2910,7 @@ class MessagesManager : public Actor {
 
   void update_top_dialogs(DialogId dialog_id, const Message *m);
 
-  void update_forward_count(DialogId dialog_id, MessageId message_id);
+  void update_forward_count(DialogId dialog_id, MessageId message_id, int32 update_date);
 
   void try_hide_distance(DialogId dialog_id, const Message *m);
 
@@ -3280,6 +3295,8 @@ class MessagesManager : public Actor {
   };
 
   std::unordered_map<DialogId, OnlineMemberCountInfo, DialogIdHash> dialog_online_member_counts_;
+
+  std::unordered_map<DialogId, std::pair<bool, bool>, DialogIdHash> pending_dialog_group_call_updates_;
 
   std::unordered_map<string, int32> auth_notification_id_date_;
 

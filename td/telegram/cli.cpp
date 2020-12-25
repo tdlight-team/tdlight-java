@@ -633,6 +633,10 @@ class CliClient final : public Actor {
     return to_integer<int32>(trim(std::move(str)));
   }
 
+  static int32 as_group_call_id(string str) {
+    return to_integer<int32>(trim(std::move(str)));
+  }
+
   static int32 as_proxy_id(string str) {
     return to_integer<int32>(trim(std::move(str)));
   }
@@ -1195,9 +1199,6 @@ class CliClient final : public Actor {
     }
     if (action == "uvn" || action == "upload_video_note") {
       return td_api::make_object<td_api::chatActionUploadingVideoNote>(50);
-    }
-    if (action == "sic" || action == "speaking_in_call") {
-      return td_api::make_object<td_api::chatActionSpeakingInCall>();
     }
     return td_api::make_object<td_api::chatActionTyping>();
   }
@@ -2837,12 +2838,56 @@ class CliClient final : public Actor {
           as_call_id(call_id), to_integer<int32>(rating), "Wow, such good call! (TDLib test)", std::move(problems)));
     } else if (op == "scdi" || op == "SendCallDebugInformation") {
       send_request(td_api::make_object<td_api::sendCallDebugInformation>(as_call_id(args), "{}"));
-    } else if (op == "ccgc") {
-      send_request(td_api::make_object<td_api::createChatGroupCall>(as_chat_id(args)));
+    } else if (op == "cvc") {
+      send_request(td_api::make_object<td_api::createVoiceChat>(as_chat_id(args)));
+    } else if (op == "ggc") {
+      send_request(td_api::make_object<td_api::getGroupCall>(as_group_call_id(args)));
+    } else if (op == "jgc") {
+      vector<td_api::object_ptr<td_api::groupCallPayloadFingerprint>> fingerprints;
+      fingerprints.push_back(td_api::make_object<td_api::groupCallPayloadFingerprint>("hash", "setup", "fingerprint"));
+      fingerprints.push_back(td_api::make_object<td_api::groupCallPayloadFingerprint>("h2", "s2", "fingerprint2"));
+      send_request(td_api::make_object<td_api::joinGroupCall>(
+          as_group_call_id(args),
+          td_api::make_object<td_api::groupCallPayload>("ufrag", "pwd", std::move(fingerprints)), 123, true));
+    } else if (op == "jgcc") {
+      send_request(td_api::make_object<td_api::joinGroupCall>(as_group_call_id(args), nullptr, 123, true));
+    } else if (op == "tgcmnp" || op == "tgcmnpe") {
+      send_request(
+          td_api::make_object<td_api::toggleGroupCallMuteNewParticipants>(as_group_call_id(args), op == "tgcmnme"));
+    } else if (op == "sgcpis") {
+      string group_call_id;
+      string source;
+      string is_speaking;
+      std::tie(group_call_id, args) = split(args);
+      std::tie(source, is_speaking) = split(args);
+      send_request(td_api::make_object<td_api::setGroupCallParticipantIsSpeaking>(
+          as_group_call_id(group_call_id), to_integer<int32>(source), as_bool(is_speaking)));
+    } else if (op == "igcp") {
+      string group_call_id;
+      string user_ids;
+      std::tie(group_call_id, user_ids) = split(args);
+      send_request(td_api::make_object<td_api::inviteGroupCallParticipants>(as_group_call_id(group_call_id),
+                                                                            as_user_ids(user_ids)));
+    } else if (op == "tgcpim") {
+      string group_call_id;
+      string user_id;
+      string is_muted;
+      std::tie(group_call_id, args) = split(args);
+      std::tie(user_id, is_muted) = split(args);
+      send_request(td_api::make_object<td_api::toggleGroupCallParticipantIsMuted>(
+          as_group_call_id(group_call_id), as_user_id(user_id), as_bool(is_muted)));
+    } else if (op == "cgcij") {
+      send_request(td_api::make_object<td_api::checkGroupCallIsJoined>(as_group_call_id(args)));
+    } else if (op == "lgcp") {
+      string group_call_id;
+      string limit;
+      std::tie(group_call_id, limit) = split(args);
+      send_request(td_api::make_object<td_api::loadGroupCallParticipants>(as_group_call_id(group_call_id),
+                                                                          to_integer<int32>(limit)));
     } else if (op == "lgc") {
-      send_request(td_api::make_object<td_api::leaveGroupCall>(args, 123));
+      send_request(td_api::make_object<td_api::leaveGroupCall>(as_group_call_id(args)));
     } else if (op == "dgc") {
-      send_request(td_api::make_object<td_api::discardGroupCall>(args));
+      send_request(td_api::make_object<td_api::discardGroupCall>(as_group_call_id(args)));
     } else if (op == "gcil") {
       send_request(td_api::make_object<td_api::generateChatInviteLink>(as_chat_id(args)));
     } else if (op == "ccil") {
@@ -3838,6 +3883,8 @@ class CliClient final : public Actor {
         status = td_api::make_object<td_api::chatMemberStatusBanned>(std::numeric_limits<int32>::max());
       } else if (status_str == "creator") {
         status = td_api::make_object<td_api::chatMemberStatusCreator>("", false, true);
+      } else if (status_str == "creatortitle") {
+        status = td_api::make_object<td_api::chatMemberStatusCreator>("owner", false, true);
       } else if (status_str == "creatoranon") {
         status = td_api::make_object<td_api::chatMemberStatusCreator>("", true, true);
       } else if (status_str == "uncreator") {

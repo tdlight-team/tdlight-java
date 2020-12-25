@@ -6067,34 +6067,87 @@ void Td::on_request(uint64 id, td_api::sendCallDebugInformation &request) {
                std::move(request.debug_information_), std::move(promise));
 }
 
-void Td::on_request(uint64 id, const td_api::createChatGroupCall &request) {
+void Td::on_request(uint64 id, const td_api::createVoiceChat &request) {
   CHECK_IS_USER();
   CREATE_REQUEST_PROMISE();
-  auto query_promise = PromiseCreator::lambda([promise = std::move(promise)](Result<InputGroupCallId> result) mutable {
+  auto query_promise = PromiseCreator::lambda([promise = std::move(promise)](Result<GroupCallId> result) mutable {
     if (result.is_error()) {
       promise.set_error(result.move_as_error());
     } else {
-      promise.set_value(td_api::make_object<td_api::groupCallId>(result.ok().get_group_call_id()));
+      promise.set_value(td_api::make_object<td_api::groupCallId>(result.ok().get()));
     }
   });
+  group_call_manager_->create_voice_chat(DialogId(request.chat_id_), std::move(query_promise));
+}
 
-  contacts_manager_->create_channel_group_call(DialogId(request.chat_id_), std::move(query_promise));
+void Td::on_request(uint64 id, const td_api::getGroupCall &request) {
+  CHECK_IS_USER();
+  CREATE_REQUEST_PROMISE();
+  group_call_manager_->get_group_call(GroupCallId(request.group_call_id_), std::move(promise));
+}
+
+void Td::on_request(uint64 id, td_api::joinGroupCall &request) {
+  CHECK_IS_USER();
+  CREATE_REQUEST_PROMISE();
+  group_call_manager_->join_group_call(GroupCallId(request.group_call_id_), std::move(request.payload_),
+                                       request.source_, request.is_muted_, std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::toggleGroupCallMuteNewParticipants &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  group_call_manager_->toggle_group_call_mute_new_participants(GroupCallId(request.group_call_id_),
+                                                               request.mute_new_participants_, std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::inviteGroupCallParticipants &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  vector<UserId> user_ids;
+  for (auto &user_id : request.user_ids_) {
+    user_ids.emplace_back(user_id);
+  }
+  group_call_manager_->invite_group_call_participants(GroupCallId(request.group_call_id_), std::move(user_ids),
+                                                      std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::setGroupCallParticipantIsSpeaking &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  group_call_manager_->set_group_call_participant_is_speaking(GroupCallId(request.group_call_id_), request.source_,
+                                                              request.is_speaking_, std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::toggleGroupCallParticipantIsMuted &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  group_call_manager_->toggle_group_call_participant_is_muted(
+      GroupCallId(request.group_call_id_), UserId(request.user_id_), request.is_muted_, std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::checkGroupCallIsJoined &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  group_call_manager_->check_group_call_is_joined(GroupCallId(request.group_call_id_), std::move(promise));
+}
+
+void Td::on_request(uint64 id, const td_api::loadGroupCallParticipants &request) {
+  CHECK_IS_USER();
+  CREATE_OK_REQUEST_PROMISE();
+  group_call_manager_->load_group_call_participants(GroupCallId(request.group_call_id_), request.limit_,
+                                                    std::move(promise));
 }
 
 void Td::on_request(uint64 id, const td_api::leaveGroupCall &request) {
   CHECK_IS_USER();
   CREATE_OK_REQUEST_PROMISE();
-  TRY_RESULT_PROMISE(promise, group_call_id, InputGroupCallId::from_group_call_id(request.group_call_id_));
-
-  group_call_manager_->leave_group_call(group_call_id, request.source_, std::move(promise));
+  group_call_manager_->leave_group_call(GroupCallId(request.group_call_id_), std::move(promise));
 }
 
 void Td::on_request(uint64 id, const td_api::discardGroupCall &request) {
   CHECK_IS_USER();
   CREATE_OK_REQUEST_PROMISE();
-  TRY_RESULT_PROMISE(promise, group_call_id, InputGroupCallId::from_group_call_id(request.group_call_id_));
-
-  group_call_manager_->discard_group_call(group_call_id, std::move(promise));
+  group_call_manager_->discard_group_call(GroupCallId(request.group_call_id_), std::move(promise));
 }
 
 void Td::on_request(uint64 id, const td_api::upgradeBasicGroupChatToSupergroupChat &request) {

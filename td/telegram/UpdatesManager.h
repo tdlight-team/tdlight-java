@@ -238,6 +238,8 @@ class UpdatesManager : public Actor {
 
   void on_update(tl_object_ptr<telegram_api::updateDcOptions> update, bool /*force_apply*/);
 
+  void on_update(tl_object_ptr<telegram_api::updateChat> update, bool /*force_apply*/);
+
   void on_update(tl_object_ptr<telegram_api::updateNewChannelMessage> update, bool /*force_apply*/);
   void on_update(tl_object_ptr<telegram_api::updateReadChannelInbox> update, bool /*force_apply*/);
   void on_update(tl_object_ptr<telegram_api::updateReadChannelOutbox> update, bool /*force_apply*/);
@@ -245,16 +247,16 @@ class UpdatesManager : public Actor {
   void on_update(tl_object_ptr<telegram_api::updateChannelTooLong> update, bool force_apply);
   void on_update(tl_object_ptr<telegram_api::updateChannel> update, bool force_apply);
   void on_update(tl_object_ptr<telegram_api::updateEditChannelMessage> update, bool /*force_apply*/);
-  void on_update(tl_object_ptr<telegram_api::updateDeleteChannelMessages> update, bool force_apply);
-  void on_update(tl_object_ptr<telegram_api::updateChannelMessageViews> update, bool force_apply);
-  void on_update(tl_object_ptr<telegram_api::updateChannelMessageForwards> update, bool force_apply);
+  void on_update(tl_object_ptr<telegram_api::updateDeleteChannelMessages> update, bool /*force_apply*/);
+  void on_update(tl_object_ptr<telegram_api::updateChannelMessageViews> update, bool /*force_apply*/);
+  void on_update(tl_object_ptr<telegram_api::updateChannelMessageForwards> update, bool /*force_apply*/);
   void on_update(tl_object_ptr<telegram_api::updateChannelAvailableMessages> update, bool /*force_apply*/);
 
   void on_update(tl_object_ptr<telegram_api::updateReadChannelDiscussionInbox> update, bool /*force_apply*/);
   void on_update(tl_object_ptr<telegram_api::updateReadChannelDiscussionOutbox> update, bool /*force_apply*/);
 
   void on_update(tl_object_ptr<telegram_api::updatePinnedMessages> update, bool force_apply);
-  void on_update(tl_object_ptr<telegram_api::updatePinnedChannelMessages> update, bool force_apply);
+  void on_update(tl_object_ptr<telegram_api::updatePinnedChannelMessages> update, bool /*force_apply*/);
 
   void on_update(tl_object_ptr<telegram_api::updateDraftMessage> update, bool /*force_apply*/);
 
@@ -302,6 +304,7 @@ class UpdatesManager : public Actor {
   void on_update(tl_object_ptr<telegram_api::updatePhoneCallSignalingData> update, bool /*force_apply*/);
 
   void on_update(tl_object_ptr<telegram_api::updateGroupCall> update, bool /*force_apply*/);
+  void on_update(tl_object_ptr<telegram_api::updateGroupCallParticipants> update, bool /*force_apply*/);
 
   void on_update(tl_object_ptr<telegram_api::updateContactsReset> update, bool /*force_apply*/);
 
@@ -323,8 +326,6 @@ class UpdatesManager : public Actor {
   // unsupported updates
 
   void on_update(tl_object_ptr<telegram_api::updateTheme> update, bool /*force_apply*/);
-
-  void on_update(tl_object_ptr<telegram_api::updateGroupCallParticipants> update, bool /*force_apply*/);
 };
 
 }  // namespace td

@@ -62,7 +62,8 @@ class InlineQueriesManager : public Actor {
 
   tl_object_ptr<td_api::inlineQueryResults> get_inline_query_results_object(uint64 query_hash);
 
-  void on_new_query(int64 query_id, UserId sender_user_id, Location user_location, const string &query,
+  void on_new_query(int64 query_id, UserId sender_user_id, Location user_location,
+                    tl_object_ptr<telegram_api::InlineQueryPeerType> peer_type, const string &query,
                     const string &offset);
 
   void on_chosen_result(UserId user_id, Location user_location, const string &query, const string &result_id,
@@ -119,7 +120,7 @@ class InlineQueriesManager : public Actor {
   struct PendingInlineQuery {
     uint64 query_hash;
     UserId bot_user_id;
-    DialogId dialog_id;
+    tl_object_ptr<telegram_api::InputPeer> input_peer;
     Location user_location;
     string query;
     string offset;

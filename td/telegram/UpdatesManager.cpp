@@ -618,8 +618,10 @@ bool UpdatesManager::is_acceptable_message(const telegram_api::Message *message_
         }
         case telegram_api::messageActionInviteToGroupCall::ID: {
           auto invite_to_group_call = static_cast<const telegram_api::messageActionInviteToGroupCall *>(action);
-          if (!is_acceptable_user(UserId(invite_to_group_call->user_id_))) {
-            return false;
+          for (auto &user : invite_to_group_call->users_) {
+            if (!is_acceptable_user(UserId(user))) {
+              return false;
+            }
           }
           break;
         }
@@ -902,27 +904,25 @@ vector<const tl_object_ptr<telegram_api::Message> *> UpdatesManager::get_new_mes
 }
 
 vector<InputGroupCallId> UpdatesManager::get_update_new_group_call_ids(const telegram_api::Updates *updates_ptr) {
-  vector<InputGroupCallId> group_call_ids;
+  vector<InputGroupCallId> input_group_call_ids;
   auto updates = get_updates(updates_ptr);
   if (updates != nullptr) {
     for (auto &update : *updates) {
-      InputGroupCallId group_call_id;
+      InputGroupCallId input_group_call_id;
       if (update->get_id() == telegram_api::updateGroupCall::ID) {
         auto group_call_ptr = static_cast<const telegram_api::updateGroupCall *>(update.get())->call_.get();
         if (group_call_ptr->get_id() == telegram_api::groupCall::ID) {
           auto group_call = static_cast<const telegram_api::groupCall *>(group_call_ptr);
-          group_call_id = InputGroupCallId(group_call->id_, group_call->access_hash_);
+          input_group_call_id = InputGroupCallId(group_call->id_, group_call->access_hash_);
         }
       }
 
-      if (group_call_id.is_valid()) {
-        group_call_ids.push_back(group_call_id);
-      } else {
-        LOG(ERROR) << "Receive unexpected " << to_string(update);
+      if (input_group_call_id.is_valid()) {
+        input_group_call_ids.push_back(input_group_call_id);
       }
     }
   }
-  return group_call_ids;
+  return input_group_call_ids;
 }
 
 vector<DialogId> UpdatesManager::get_update_notify_settings_dialog_ids(const telegram_api::Updates *updates_ptr) {
@@ -1704,6 +1704,10 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateServiceNotifica
   td_->messages_manager_->on_update_service_notification(std::move(update), true, Promise<Unit>());
 }
 
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChat> update, bool /*force_apply*/) {
+  // nothing to do
+}
+
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateReadChannelInbox> update, bool /*force_apply*/) {
   CHECK(update != nullptr);
   td_->messages_manager_->on_update_read_channel_inbox(std::move(update));
@@ -2018,7 +2022,7 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateDcOptions> upda
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateBotInlineQuery> update, bool /*force_apply*/) {
   td_->inline_queries_manager_->on_new_query(update->query_id_, UserId(update->user_id_), Location(update->geo_),
-                                             update->query_, update->offset_);
+                                             std::move(update->peer_type_), update->query_, update->offset_);
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateBotInlineSend> update, bool /*force_apply*/) {
@@ -2148,7 +2152,19 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updatePhoneCallSignal
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateGroupCall> update, bool /*force_apply*/) {
-  send_closure(G()->group_call_manager(), &GroupCallManager::on_update_group_call, std::move(update->call_));
+  DialogId dialog_id(ChatId(update->chat_id_));
+  if (!td_->messages_manager_->have_dialog(dialog_id)) {
+    dialog_id = DialogId(ChannelId(update->chat_id_));
+    if (!td_->messages_manager_->have_dialog(dialog_id)) {
+      dialog_id = DialogId();
+    }
+  }
+  send_closure(G()->group_call_manager(), &GroupCallManager::on_update_group_call, std::move(update->call_), dialog_id);
+}
+
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateGroupCallParticipants> update, bool /*force_apply*/) {
+  send_closure(G()->group_call_manager(), &GroupCallManager::on_update_group_call_participants,
+               InputGroupCallId(update->call_), std::move(update->participants_), update->version_);
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateContactsReset> update, bool /*force_apply*/) {
@@ -2208,9 +2224,6 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChannelParticip
 // unsupported updates
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateTheme> update, bool /*force_apply*/) {
-}
-
-void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateGroupCallParticipants> update, bool /*force_apply*/) {
 }
 
 }  // namespace td

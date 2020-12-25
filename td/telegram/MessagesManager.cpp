@@ -22,6 +22,8 @@
 #include "td/telegram/files/FileManager.h"
 #include "td/telegram/files/FileType.h"
 #include "td/telegram/Global.h"
+#include "td/telegram/GroupCallManager.h"
+#include "td/telegram/GroupCallParticipant.h"
 #include "td/telegram/InlineQueriesManager.h"
 #include "td/telegram/InputMessageText.h"
 #include "td/telegram/Location.h"
@@ -4581,6 +4583,7 @@ void MessagesManager::Message::store(StorerT &storer) const {
   bool has_thread_draft_message = thread_draft_message != nullptr;
   bool has_local_thread_message_ids = !local_thread_message_ids.empty();
   bool has_linked_top_thread_message_id = linked_top_thread_message_id.is_valid();
+  bool has_interaction_info_update_date = interaction_info_update_date != 0;
   BEGIN_STORE_FLAGS();
   STORE_FLAG(is_channel_post);
   STORE_FLAG(is_outgoing);
@@ -4638,6 +4641,7 @@ void MessagesManager::Message::store(StorerT &storer) const {
     STORE_FLAG(has_local_thread_message_ids);
     STORE_FLAG(has_linked_top_thread_message_id);
     STORE_FLAG(is_pinned);
+    STORE_FLAG(has_interaction_info_update_date);
     END_STORE_FLAGS();
   }
 
@@ -4740,6 +4744,9 @@ void MessagesManager::Message::store(StorerT &storer) const {
   if (has_linked_top_thread_message_id) {
     store(linked_top_thread_message_id, storer);
   }
+  if (has_interaction_info_update_date) {
+    store(interaction_info_update_date, storer);
+  }
   store_message_content(content.get(), storer);
   if (has_reply_markup) {
     store(reply_markup, storer);
@@ -4781,6 +4788,7 @@ void MessagesManager::Message::parse(ParserT &parser) {
   bool has_thread_draft_message = false;
   bool has_local_thread_message_ids = false;
   bool has_linked_top_thread_message_id = false;
+  bool has_interaction_info_update_date = false;
   BEGIN_PARSE_FLAGS();
   PARSE_FLAG(is_channel_post);
   PARSE_FLAG(is_outgoing);
@@ -4838,6 +4846,7 @@ void MessagesManager::Message::parse(ParserT &parser) {
     PARSE_FLAG(has_local_thread_message_ids);
     PARSE_FLAG(has_linked_top_thread_message_id);
     PARSE_FLAG(is_pinned);
+    PARSE_FLAG(has_interaction_info_update_date);
     END_PARSE_FLAGS();
   }
 
@@ -4946,6 +4955,9 @@ void MessagesManager::Message::parse(ParserT &parser) {
   if (has_linked_top_thread_message_id) {
     parse(linked_top_thread_message_id, parser);
   }
+  if (has_interaction_info_update_date) {
+    parse(interaction_info_update_date, parser);
+  }
   parse_message_content(content, parser);
   if (has_reply_markup) {
     parse(reply_markup, parser);
@@ -5014,6 +5026,7 @@ void MessagesManager::Dialog::store(StorerT &storer) const {
   bool has_pending_read_channel_inbox = pending_read_channel_inbox_pts != 0;
   bool has_distance = distance >= 0;
   bool has_last_yet_unsent_message = last_message_id.is_valid() && last_message_id.is_yet_unsent();
+  bool has_active_group_call_id = active_group_call_id.is_valid();
   BEGIN_STORE_FLAGS();
   STORE_FLAG(has_draft_message);
   STORE_FLAG(has_last_database_message);
@@ -5069,6 +5082,9 @@ void MessagesManager::Dialog::store(StorerT &storer) const {
     STORE_FLAG(has_last_yet_unsent_message);
     STORE_FLAG(is_blocked);
     STORE_FLAG(is_is_blocked_inited);
+    STORE_FLAG(has_active_group_call);
+    STORE_FLAG(is_group_call_empty);
+    STORE_FLAG(has_active_group_call_id);
     END_STORE_FLAGS();
   }
 
@@ -5153,6 +5169,9 @@ void MessagesManager::Dialog::store(StorerT &storer) const {
   if (has_distance) {
     store(distance, storer);
   }
+  if (has_active_group_call_id) {
+    store(active_group_call_id, storer);
+  }
 }
 
 // do not forget to resolve dialog dependencies including dependencies of last_message
@@ -5182,6 +5201,7 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
   bool has_folder_id = false;
   bool has_pending_read_channel_inbox = false;
   bool has_distance = false;
+  bool has_active_group_call_id = false;
   BEGIN_PARSE_FLAGS();
   PARSE_FLAG(has_draft_message);
   PARSE_FLAG(has_last_database_message);
@@ -5237,6 +5257,9 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
     PARSE_FLAG(had_last_yet_unsent_message);
     PARSE_FLAG(is_blocked);
     PARSE_FLAG(is_is_blocked_inited);
+    PARSE_FLAG(has_active_group_call);
+    PARSE_FLAG(is_group_call_empty);
+    PARSE_FLAG(has_active_group_call_id);
     END_PARSE_FLAGS();
   } else {
     is_folder_id_inited = false;
@@ -5253,6 +5276,8 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
     had_last_yet_unsent_message = false;
     is_blocked = false;
     is_is_blocked_inited = false;
+    has_active_group_call = false;
+    is_group_call_empty = false;
   }
 
   parse(last_new_message_id, parser);
@@ -5368,6 +5393,9 @@ void MessagesManager::Dialog::parse(ParserT &parser) {
   }
   if (has_distance) {
     parse(distance, parser);
+  }
+  if (has_active_group_call_id) {
+    parse(active_group_call_id, parser);
   }
 }
 
@@ -5830,11 +5858,13 @@ void MessagesManager::update_reply_count_by_message(Dialog *d, int diff, const M
 
   auto replier_dialog_id =
       has_message_sender_user_id(d->dialog_id, m) ? DialogId(m->sender_user_id) : m->sender_dialog_id;
-  update_message_reply_count(d, m->top_thread_message_id, replier_dialog_id, m->message_id, diff);
+  update_message_reply_count(d, m->top_thread_message_id, replier_dialog_id, m->message_id,
+                             diff < 0 ? G()->unix_time() : m->date, diff);
 }
 
 void MessagesManager::update_message_reply_count(Dialog *d, MessageId message_id, DialogId replier_dialog_id,
-                                                 MessageId reply_message_id, int diff, bool is_recursive) {
+                                                 MessageId reply_message_id, int32 update_date, int diff,
+                                                 bool is_recursive) {
   if (d == nullptr) {
     return;
   }
@@ -5845,14 +5875,15 @@ void MessagesManager::update_message_reply_count(Dialog *d, MessageId message_id
   }
   LOG(INFO) << "Update reply count to " << message_id << " in " << d->dialog_id << " by " << diff << " from "
             << reply_message_id << " sent by " << replier_dialog_id;
-  if (m->reply_info.add_reply(replier_dialog_id, reply_message_id, diff)) {
+  if (m->interaction_info_update_date < update_date &&
+      m->reply_info.add_reply(replier_dialog_id, reply_message_id, diff)) {
     on_message_reply_info_changed(d->dialog_id, m);
     on_message_changed(d, m, true, "update_message_reply_count_by_message");
   }
 
   if (!is_recursive && is_discussion_message(d->dialog_id, m)) {
     update_message_reply_count(get_dialog(m->forward_info->from_dialog_id), m->forward_info->from_message_id,
-                               replier_dialog_id, reply_message_id, diff, true);
+                               replier_dialog_id, reply_message_id, update_date, diff, true);
   }
 }
 
@@ -6844,6 +6875,7 @@ bool MessagesManager::update_message_interaction_info(DialogId dialog_id, Messag
                                                       int32 forward_count, bool has_reply_info,
                                                       MessageReplyInfo &&reply_info) {
   CHECK(m != nullptr);
+  m->interaction_info_update_date = G()->unix_time();  // doesn't force message saving
   if (m->message_id.is_valid_scheduled()) {
     has_reply_info = false;
   }
@@ -7110,16 +7142,31 @@ void MessagesManager::on_user_dialog_action(DialogId dialog_id, MessageId top_th
   if (td_->auth_manager_->is_bot() || !user_id.is_valid() || is_broadcast_channel(dialog_id)) {
     return;
   }
-  if (!have_dialog(dialog_id)) {
-    LOG(DEBUG) << "Ignore typing in unknown " << dialog_id;
+  if (top_thread_message_id != MessageId() && !top_thread_message_id.is_valid()) {
+    LOG(ERROR) << "Ignore typing in the message thread of " << top_thread_message_id;
     return;
   }
+
+  auto dialog_type = dialog_id.get_type();
+  if (action == DialogAction::get_speaking_action()) {
+    if ((dialog_type != DialogType::Chat && dialog_type != DialogType::Channel) || top_thread_message_id.is_valid()) {
+      LOG(ERROR) << "Receive " << action << " in thread of " << top_thread_message_id << " in " << dialog_id;
+      return;
+    }
+    const Dialog *d = get_dialog_force(dialog_id);
+    if (d != nullptr && d->active_group_call_id.is_valid()) {
+      auto group_call_id = td_->group_call_manager_->get_group_call_id(d->active_group_call_id, dialog_id);
+      td_->group_call_manager_->on_user_speaking_in_group_call(group_call_id, user_id, date);
+    }
+    return;
+  }
+
   if (!td_->contacts_manager_->have_min_user(user_id)) {
     LOG(DEBUG) << "Ignore typing of unknown " << user_id;
     return;
   }
-  if (top_thread_message_id != MessageId() && !top_thread_message_id.is_valid()) {
-    LOG(ERROR) << "Ignore typing in the message thread of " << top_thread_message_id;
+  if (!have_dialog(dialog_id)) {
+    LOG(DEBUG) << "Ignore typing in unknown " << dialog_id;
     return;
   }
 
@@ -7128,7 +7175,6 @@ void MessagesManager::on_user_dialog_action(DialogId dialog_id, MessageId top_th
     td_->contacts_manager_->on_update_user_local_was_online(user_id, date);
   }
 
-  auto dialog_type = dialog_id.get_type();
   if (dialog_type == DialogType::User || dialog_type == DialogType::SecretChat) {
     if (!td_->contacts_manager_->is_user_bot(user_id) && !td_->contacts_manager_->is_user_status_exact(user_id) &&
         !get_dialog(dialog_id)->is_opened && !is_canceled) {
@@ -8060,6 +8106,30 @@ void MessagesManager::remove_dialog_action_bar(DialogId dialog_id, Promise<Unit>
   hide_dialog_action_bar(d);
 
   change_dialog_report_spam_state_on_server(dialog_id, false, 0, std::move(promise));
+}
+
+void MessagesManager::repair_dialog_active_group_call_id(DialogId dialog_id) {
+  if (have_input_peer(dialog_id, AccessRights::Read)) {
+    create_actor<SleepActor>("RepairChatActiveVoiceChatId", 1.0,
+                             PromiseCreator::lambda([actor_id = actor_id(this), dialog_id](Result<Unit> result) {
+                               send_closure(actor_id, &MessagesManager::do_repair_dialog_active_group_call_id,
+                                            dialog_id);
+                             }))
+        .release();
+  }
+}
+
+void MessagesManager::do_repair_dialog_active_group_call_id(DialogId dialog_id) {
+  Dialog *d = get_dialog(dialog_id);
+  CHECK(d != nullptr);
+  if (!d->has_active_group_call || d->active_group_call_id.is_valid()) {
+    return;
+  }
+  if (!have_input_peer(dialog_id, AccessRights::Read)) {
+    return;
+  }
+
+  reload_dialog_info_full(dialog_id);
 }
 
 class MessagesManager::ChangeDialogReportSpamStateOnServerLogEvent {
@@ -19552,6 +19622,8 @@ td_api::object_ptr<td_api::chat> MessagesManager::get_chat_object(const Dialog *
   // TODO hide/show draft message when can_send_message(dialog_id) changes
   auto draft_message = can_send_message(d->dialog_id).is_ok() ? get_draft_message_object(d->draft_message) : nullptr;
 
+  auto active_group_call_id = td_->group_call_manager_->get_group_call_id(d->active_group_call_id, d->dialog_id);
+
   return make_tl_object<td_api::chat>(
       d->dialog_id.get(), get_chat_type_object(d->dialog_id), get_dialog_title(d->dialog_id),
       get_chat_photo_info_object(td_->file_manager_.get(), get_dialog_photo(d->dialog_id)),
@@ -19562,6 +19634,7 @@ td_api::object_ptr<td_api::chat> MessagesManager::get_chat_object(const Dialog *
       d->server_unread_count + d->local_unread_count, d->last_read_inbox_message_id.get(),
       d->last_read_outbox_message_id.get(), d->unread_mention_count,
       get_chat_notification_settings_object(&d->notification_settings), get_chat_action_bar_object(d),
+      active_group_call_id.get(), active_group_call_id.is_valid() ? d->is_group_call_empty : true,
       d->reply_markup_message_id.get(), std::move(draft_message), d->client_data);
 }
 
@@ -25889,6 +25962,7 @@ Result<vector<MessageId>> MessagesManager::forward_messages(DialogId to_dialog_i
         !(m->message_id.is_scheduled() && is_broadcast_channel(to_dialog_id))) {
       m->view_count = forwarded_message->view_count;
       m->forward_count = forwarded_message->forward_count;
+      m->interaction_info_update_date = G()->unix_time();
     }
 
     if (is_game) {
@@ -28052,6 +28126,20 @@ void MessagesManager::send_update_chat_action_bar(const Dialog *d) {
   send_update_secret_chats_with_user_action_bar(d);
 }
 
+void MessagesManager::send_update_chat_voice_chat(const Dialog *d) {
+  if (td_->auth_manager_->is_bot()) {
+    return;
+  }
+
+  CHECK(d != nullptr);
+  LOG_CHECK(d->is_update_new_chat_sent) << "Wrong " << d->dialog_id << " in send_update_chat_voice_chat";
+  on_dialog_updated(d->dialog_id, "send_update_chat_voice_chat");
+  auto group_call_id = td_->group_call_manager_->get_group_call_id(d->active_group_call_id, d->dialog_id);
+  send_closure(G()->td(), &Td::send_update,
+               td_api::make_object<td_api::updateChatVoiceChat>(d->dialog_id.get(), group_call_id.get(),
+                                                                d->is_group_call_empty));
+}
+
 void MessagesManager::send_update_chat_has_scheduled_messages(Dialog *d, bool from_deletion) {
   if (td_->auth_manager_->is_bot()) {
     return;
@@ -29202,6 +29290,71 @@ void MessagesManager::do_set_dialog_folder_id(Dialog *d, FolderId folder_id) {
   }
 
   on_dialog_updated(d->dialog_id, "do_set_dialog_folder_id");
+}
+
+void MessagesManager::on_update_dialog_group_call(DialogId dialog_id, bool has_active_group_call,
+                                                  bool is_group_call_empty) {
+  if (td_->auth_manager_->is_bot()) {
+    return;
+  }
+
+  CHECK(dialog_id.is_valid());
+  Dialog *d = get_dialog(dialog_id);  // must not create the Dialog, because is called from on_get_chat
+  if (d == nullptr) {
+    pending_dialog_group_call_updates_[dialog_id] = {has_active_group_call, is_group_call_empty};
+    return;
+  }
+
+  if (!has_active_group_call) {
+    is_group_call_empty = false;
+  }
+  if (d->has_active_group_call == has_active_group_call && d->is_group_call_empty == is_group_call_empty) {
+    return;
+  }
+
+  if (d->has_active_group_call && !has_active_group_call && d->active_group_call_id.is_valid()) {
+    d->active_group_call_id = InputGroupCallId();
+    d->has_active_group_call = false;
+    d->is_group_call_empty = false;
+    send_update_chat_voice_chat(d);
+  } else if (d->has_active_group_call && has_active_group_call) {
+    d->is_group_call_empty = is_group_call_empty;
+    send_update_chat_voice_chat(d);
+  } else {
+    d->has_active_group_call = has_active_group_call;
+    d->is_group_call_empty = is_group_call_empty;
+    on_dialog_updated(dialog_id, "on_update_dialog_group_call");
+
+    if (has_active_group_call && !d->active_group_call_id.is_valid()) {
+      repair_dialog_active_group_call_id(dialog_id);
+    }
+  }
+}
+
+void MessagesManager::on_update_dialog_group_call_id(DialogId dialog_id, InputGroupCallId input_group_call_id) {
+  if (td_->auth_manager_->is_bot()) {
+    return;
+  }
+
+  auto d = get_dialog_force(dialog_id);
+  if (d == nullptr) {
+    // nothing to do
+    return;
+  }
+
+  if (d->active_group_call_id != input_group_call_id) {
+    d->active_group_call_id = input_group_call_id;
+    bool has_active_group_call = input_group_call_id.is_valid();
+    if (has_active_group_call != d->has_active_group_call) {
+      LOG(ERROR) << "Receive invalid has_active_group_call flag " << d->has_active_group_call << ", but have "
+                 << input_group_call_id << " in " << dialog_id;
+      d->has_active_group_call = has_active_group_call;
+      if (!has_active_group_call) {
+        d->is_group_call_empty = false;
+      }
+    }
+    send_update_chat_voice_chat(d);
+  }
 }
 
 void MessagesManager::on_update_dialog_filters() {
@@ -30820,11 +30973,14 @@ tl_object_ptr<telegram_api::channelAdminLogEventsFilter> MessagesManager::get_ch
   if (filters->setting_changes_) {
     flags |= telegram_api::channelAdminLogEventsFilter::SETTINGS_MASK;
   }
+  if (filters->voice_chat_changes_) {
+    flags |= telegram_api::channelAdminLogEventsFilter::GROUP_CALL_MASK;
+  }
 
   return make_tl_object<telegram_api::channelAdminLogEventsFilter>(
       flags, false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/,
       false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/,
-      false /*ignored*/, false /*ignored*/, false /*ignored*/);
+      false /*ignored*/, false /*ignored*/, false /*ignored*/, false /*ignored*/);
 }
 
 int64 MessagesManager::get_dialog_event_log(DialogId dialog_id, const string &query, int64 from_event_id, int32 limit,
@@ -31073,6 +31229,46 @@ tl_object_ptr<td_api::ChatEventAction> MessagesManager::get_chat_event_action_ob
       auto old_slow_mode_delay = clamp(action->prev_value_, 0, 86400 * 366);
       auto new_slow_mode_delay = clamp(action->new_value_, 0, 86400 * 366);
       return make_tl_object<td_api::chatEventSlowModeDelayChanged>(old_slow_mode_delay, new_slow_mode_delay);
+    }
+    case telegram_api::channelAdminLogEventActionStartGroupCall::ID: {
+      auto action = move_tl_object_as<telegram_api::channelAdminLogEventActionStartGroupCall>(action_ptr);
+      auto input_group_call_id = InputGroupCallId(action->call_);
+      if (!input_group_call_id.is_valid()) {
+        return nullptr;
+      }
+      return make_tl_object<td_api::chatEventVoiceChatCreated>(
+          td_->group_call_manager_->get_group_call_id(input_group_call_id, DialogId(channel_id)).get());
+    }
+    case telegram_api::channelAdminLogEventActionDiscardGroupCall::ID: {
+      auto action = move_tl_object_as<telegram_api::channelAdminLogEventActionDiscardGroupCall>(action_ptr);
+      auto input_group_call_id = InputGroupCallId(action->call_);
+      if (!input_group_call_id.is_valid()) {
+        return nullptr;
+      }
+      return make_tl_object<td_api::chatEventVoiceChatDiscarded>(
+          td_->group_call_manager_->get_group_call_id(input_group_call_id, DialogId(channel_id)).get());
+    }
+    case telegram_api::channelAdminLogEventActionParticipantMute::ID: {
+      auto action = move_tl_object_as<telegram_api::channelAdminLogEventActionParticipantMute>(action_ptr);
+      GroupCallParticipant participant(std::move(action->participant_));
+      if (!participant.is_valid()) {
+        return nullptr;
+      }
+      return make_tl_object<td_api::chatEventVoiceChatParticipantIsMutedToggled>(
+          td_->contacts_manager_->get_user_id_object(participant.user_id, "LogEventActionParticipantMute"), true);
+    }
+    case telegram_api::channelAdminLogEventActionParticipantUnmute::ID: {
+      auto action = move_tl_object_as<telegram_api::channelAdminLogEventActionParticipantUnmute>(action_ptr);
+      GroupCallParticipant participant(std::move(action->participant_));
+      if (!participant.is_valid()) {
+        return nullptr;
+      }
+      return make_tl_object<td_api::chatEventVoiceChatParticipantIsMutedToggled>(
+          td_->contacts_manager_->get_user_id_object(participant.user_id, "LogEventActionParticipantUnmute"), false);
+    }
+    case telegram_api::channelAdminLogEventActionToggleGroupCallSetting::ID: {
+      auto action = move_tl_object_as<telegram_api::channelAdminLogEventActionToggleGroupCallSetting>(action_ptr);
+      return make_tl_object<td_api::chatEventVoiceChatMuteNewParticipantsToggled>(action->join_muted_);
     }
     default:
       UNREACHABLE();
@@ -32095,7 +32291,7 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
       m->forward_info->sender_dialog_id.is_valid() && m->forward_info->message_id.is_valid() &&
       (!is_discussion_message(dialog_id, m) || m->forward_info->sender_dialog_id != m->forward_info->from_dialog_id ||
        m->forward_info->message_id != m->forward_info->from_message_id)) {
-    update_forward_count(m->forward_info->sender_dialog_id, m->forward_info->message_id);
+    update_forward_count(m->forward_info->sender_dialog_id, m->forward_info->message_id, m->date);
   }
 
   return result_message;
@@ -33306,6 +33502,20 @@ MessagesManager::Dialog *MessagesManager::add_new_dialog(unique_ptr<Dialog> &&d,
   if (d->mention_notification_group.group_id.is_valid()) {
     notification_group_id_to_dialog_id_.emplace(d->mention_notification_group.group_id, d->dialog_id);
   }
+  if (pending_dialog_group_call_updates_.count(dialog_id) > 0) {
+    auto it = pending_dialog_group_call_updates_.find(dialog_id);
+    bool has_active_group_call = it->second.first;
+    bool is_group_call_empty = it->second.second;
+    pending_dialog_group_call_updates_.erase(it);
+    if (d->has_active_group_call != has_active_group_call || d->is_group_call_empty != is_group_call_empty) {
+      if (!has_active_group_call) {
+        d->active_group_call_id = InputGroupCallId();
+      }
+      d->has_active_group_call = has_active_group_call;
+      d->is_group_call_empty = is_group_call_empty;
+      on_dialog_updated(dialog_id, "pending update_dialog_group_call");
+    }
+  }
 
   if (!is_loaded_from_database) {
     CHECK(order == DEFAULT_ORDER);
@@ -33370,6 +33580,9 @@ void MessagesManager::fix_new_dialog(Dialog *d, unique_ptr<Message> &&last_datab
       dialog_id != get_my_dialog_id() && have_input_peer(dialog_id, AccessRights::Read)) {
     // asynchronously get action bar from the server
     reget_dialog_action_bar(dialog_id, "fix_new_dialog");
+  }
+  if (d->has_active_group_call && !d->active_group_call_id.is_valid()) {
+    repair_dialog_active_group_call_id(dialog_id);
   }
 
   if (d->notification_settings.is_synchronized && !d->notification_settings.is_use_default_fixed &&
@@ -35423,7 +35636,7 @@ void MessagesManager::update_top_dialogs(DialogId dialog_id, const Message *m) {
   }
 }
 
-void MessagesManager::update_forward_count(DialogId dialog_id, MessageId message_id) {
+void MessagesManager::update_forward_count(DialogId dialog_id, MessageId message_id, int32 update_date) {
   CHECK(!td_->auth_manager_->is_bot());
   Dialog *d = get_dialog(dialog_id);
   if (d == nullptr) {
@@ -35431,7 +35644,8 @@ void MessagesManager::update_forward_count(DialogId dialog_id, MessageId message
     return;
   }
   Message *m = get_message_force(d, message_id, "update_forward_count");
-  if (m != nullptr && !m->message_id.is_scheduled() && m->message_id.is_server() && m->view_count > 0) {
+  if (m != nullptr && !m->message_id.is_scheduled() && m->message_id.is_server() && m->view_count > 0 &&
+      m->interaction_info_update_date < update_date) {
     if (m->forward_count == 0) {
       m->forward_count++;
       send_update_message_interaction_info(dialog_id, m);
