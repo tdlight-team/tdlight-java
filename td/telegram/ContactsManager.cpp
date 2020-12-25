@@ -5960,7 +5960,9 @@ void ContactsManager::on_create_channel_group_call(ChannelId channel_id, InputGr
   }
 
   Channel *c = get_channel(channel_id);
-  CHECK(c != nullptr);
+  if (c == nullptr) {
+    return promise.set_error(Status::Error(500, "Channel not found"));
+  }
   if (!c->has_active_group_call) {
     c->has_active_group_call = true;
     c->is_changed = true;
