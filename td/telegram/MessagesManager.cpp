@@ -14806,7 +14806,9 @@ void MessagesManager::on_message_deleted(Dialog *d, Message *m, bool is_permanen
     auto it = d->yet_unsent_thread_message_ids.find(m->top_thread_message_id);
     CHECK(it != d->yet_unsent_thread_message_ids.end());
     auto is_deleted = it->second.erase(m->message_id) > 0;
-    CHECK(is_deleted);
+    if (!is_deleted) {
+      return;
+    }
     if (it->second.empty()) {
       d->yet_unsent_thread_message_ids.erase(it);
     }
@@ -14814,7 +14816,9 @@ void MessagesManager::on_message_deleted(Dialog *d, Message *m, bool is_permanen
 
   cancel_send_deleted_message(d->dialog_id, m, is_permanently_deleted);
 
-  CHECK(m->message_id.is_valid());
+  if (!m->message_id.is_valid()) {
+    return;
+  }
   switch (d->dialog_id.get_type()) {
     case DialogType::User:
     case DialogType::Chat:
