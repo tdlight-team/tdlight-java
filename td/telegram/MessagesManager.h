@@ -401,7 +401,7 @@ class MessagesManager : public Actor {
 
   void delete_dialog(DialogId dialog_id);
 
-  void reload_dialog_group_call(DialogId dialog_id);
+  void on_update_dialog_group_call_rights(DialogId dialog_id);
 
   void read_all_dialog_mentions(DialogId dialog_id, Promise<Unit> &&promise);
 
@@ -538,8 +538,8 @@ class MessagesManager : public Actor {
 
   std::pair<int32, vector<DialogParticipant>> search_dialog_participants(DialogId dialog_id, const string &query,
                                                                          int32 limit, DialogParticipantsFilter filter,
-                                                                         int64 &random_id, bool force,
-                                                                         Promise<Unit> &&promise);
+                                                                         int64 &random_id, bool without_bot_info,
+                                                                         bool force, Promise<Unit> &&promise);
 
   vector<DialogAdministrator> get_dialog_administrators(DialogId dialog_id, int left_tries, Promise<Unit> &&promise);
 
@@ -791,9 +791,10 @@ class MessagesManager : public Actor {
   tl_object_ptr<td_api::message> get_message_object(FullMessageId full_message_id);
 
   tl_object_ptr<td_api::messages> get_messages_object(int32 total_count, DialogId dialog_id,
-                                                      const vector<MessageId> &message_ids);
+                                                      const vector<MessageId> &message_ids, bool skip_not_found);
 
-  tl_object_ptr<td_api::messages> get_messages_object(int32 total_count, const vector<FullMessageId> &full_message_ids);
+  tl_object_ptr<td_api::messages> get_messages_object(int32 total_count, const vector<FullMessageId> &full_message_ids,
+                                                      bool skip_not_found);
 
   void add_pending_update(tl_object_ptr<telegram_api::Update> &&update, int32 new_pts, int32 pts_count,
                           bool force_apply, const char *source);
@@ -1110,6 +1111,8 @@ class MessagesManager : public Actor {
 
     DialogId real_forward_from_dialog_id;    // for resend_message
     MessageId real_forward_from_message_id;  // for resend_message
+
+    string send_emoji;  // for send_message
 
     NotificationId notification_id;
     NotificationId removed_notification_id;
@@ -1679,7 +1682,7 @@ class MessagesManager : public Actor {
   static constexpr int32 MAX_GET_DIALOGS = 100;                    // server side limit
   static constexpr int32 MAX_GET_HISTORY = 100;                    // server side limit
   static constexpr int32 MAX_SEARCH_MESSAGES = 100;                // server side limit
-  static constexpr int32 MIN_SEARCH_PUBLIC_DIALOG_PREFIX_LEN = 5;  // server side limit
+  static constexpr int32 MIN_SEARCH_PUBLIC_DIALOG_PREFIX_LEN = 4;  // server side limit
   static constexpr int32 MIN_CHANNEL_DIFFERENCE = 10;
   static constexpr int32 MAX_CHANNEL_DIFFERENCE = 100;
   static constexpr int32 MAX_BOT_CHANNEL_DIFFERENCE = 100000;   // server side limit
@@ -2284,7 +2287,8 @@ class MessagesManager : public Actor {
                                                     bool for_event_log = false) const;
 
   static tl_object_ptr<td_api::messages> get_messages_object(int32 total_count,
-                                                             vector<tl_object_ptr<td_api::message>> &&messages);
+                                                             vector<tl_object_ptr<td_api::message>> &&messages,
+                                                             bool skip_not_found);
 
   vector<DialogId> sort_dialogs_by_order(const vector<DialogId> &dialog_ids, int32 limit) const;
 

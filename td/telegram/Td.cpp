@@ -1136,7 +1136,7 @@ class GetMessagesRequest : public RequestOnceActor {
   }
 
   void do_send_result() override {
-    send_result(td->messages_manager_->get_messages_object(-1, dialog_id_, message_ids_));
+    send_result(td->messages_manager_->get_messages_object(-1, dialog_id_, message_ids_, false));
   }
 
  public:
@@ -1447,7 +1447,7 @@ class GetMessageThreadHistoryRequest : public RequestActor<> {
   }
 
   void do_send_result() override {
-    send_result(td->messages_manager_->get_messages_object(-1, messages_.first, messages_.second));
+    send_result(td->messages_manager_->get_messages_object(-1, messages_.first, messages_.second, true));
   }
 
  public:
@@ -1484,7 +1484,7 @@ class SearchChatMessagesRequest : public RequestActor<> {
   }
 
   void do_send_result() override {
-    send_result(td->messages_manager_->get_messages_object(messages_.first, dialog_id_, messages_.second));
+    send_result(td->messages_manager_->get_messages_object(messages_.first, dialog_id_, messages_.second, true));
   }
 
   void do_send_error(Status &&status) override {
@@ -1568,7 +1568,7 @@ class SearchMessagesRequest : public RequestActor<> {
   }
 
   void do_send_result() override {
-    send_result(td->messages_manager_->get_messages_object(messages_.first, messages_.second));
+    send_result(td->messages_manager_->get_messages_object(messages_.first, messages_.second, true));
   }
 
   void do_send_error(Status &&status) override {
@@ -1613,7 +1613,7 @@ class SearchCallMessagesRequest : public RequestActor<> {
   }
 
   void do_send_result() override {
-    send_result(td->messages_manager_->get_messages_object(messages_.first, messages_.second));
+    send_result(td->messages_manager_->get_messages_object(messages_.first, messages_.second, true));
   }
 
  public:
@@ -1640,7 +1640,7 @@ class SearchChatRecentLocationMessagesRequest : public RequestActor<> {
   }
 
   void do_send_result() override {
-    send_result(td->messages_manager_->get_messages_object(messages_.first, dialog_id_, messages_.second));
+    send_result(td->messages_manager_->get_messages_object(messages_.first, dialog_id_, messages_.second, true));
   }
 
  public:
@@ -1657,7 +1657,7 @@ class GetActiveLiveLocationMessagesRequest : public RequestActor<> {
   }
 
   void do_send_result() override {
-    send_result(td->messages_manager_->get_messages_object(-1, full_message_ids_));
+    send_result(td->messages_manager_->get_messages_object(-1, full_message_ids_, true));
   }
 
  public:
@@ -1725,7 +1725,7 @@ class GetChatScheduledMessagesRequest : public RequestActor<> {
   }
 
   void do_send_result() override {
-    send_result(td->messages_manager_->get_messages_object(-1, dialog_id_, message_ids_));
+    send_result(td->messages_manager_->get_messages_object(-1, dialog_id_, message_ids_, true));
   }
 
  public:
@@ -1971,7 +1971,7 @@ class SearchChatMembersRequest : public RequestActor<> {
 
   void do_run(Promise<Unit> &&promise) override {
     participants_ = td->messages_manager_->search_dialog_participants(dialog_id_, query_, limit_, filter_, random_id_,
-                                                                      get_tries() < 3, std::move(promise));
+                                                                      false, get_tries() < 3, std::move(promise));
   }
 
   void do_send_result() override {
@@ -2287,8 +2287,8 @@ class GetSupergroupMembersRequest : public RequestActor<> {
   std::pair<int32, vector<DialogParticipant>> participants_;
 
   void do_run(Promise<Unit> &&promise) override {
-    participants_ = td->contacts_manager_->get_channel_participants(channel_id_, filter_, string(), offset_, limit_, -1,
-                                                                    random_id_, get_tries() < 3, std::move(promise));
+    participants_ = td->contacts_manager_->get_channel_participants(
+        channel_id_, filter_, string(), offset_, limit_, -1, random_id_, false, get_tries() < 3, std::move(promise));
   }
 
   void do_send_result() override {
@@ -3623,7 +3623,7 @@ void Td::on_result(NetQueryPtr query) {
       LOG(ERROR) << "Failed to fetch update: " << parser.get_error() << format::as_hex_dump<4>(ok.as_slice());
       updates_manager_->schedule_get_difference("failed to fetch update");
     } else {
-      updates_manager_->on_get_updates(std::move(ptr));
+      updates_manager_->on_get_updates(std::move(ptr), Promise<Unit>());
       if (auth_manager_->is_bot() && auth_manager_->is_authorized()) {
         alarm_timeout_.set_timeout_in(PING_SERVER_ALARM_ID,
                                       PING_SERVER_TIMEOUT + Random::fast(0, PING_SERVER_TIMEOUT / 5));
@@ -5730,7 +5730,7 @@ void Td::on_request(uint64 id, td_api::sendMessageAlbum &request) {
   }
 
   send_closure(actor_id(this), &Td::send_result, id,
-               messages_manager_->get_messages_object(-1, dialog_id, r_message_ids.ok()));
+               messages_manager_->get_messages_object(-1, dialog_id, r_message_ids.ok(), false));
 }
 
 void Td::on_request(uint64 id, td_api::sendBotStartMessage &request) {
@@ -5927,7 +5927,7 @@ void Td::on_request(uint64 id, td_api::forwardMessages &request) {
   }
 
   send_closure(actor_id(this), &Td::send_result, id,
-               messages_manager_->get_messages_object(-1, dialog_id, r_message_ids.ok()));
+               messages_manager_->get_messages_object(-1, dialog_id, r_message_ids.ok(), false));
 }
 
 void Td::on_request(uint64 id, const td_api::resendMessages &request) {
@@ -5939,7 +5939,7 @@ void Td::on_request(uint64 id, const td_api::resendMessages &request) {
   }
 
   send_closure(actor_id(this), &Td::send_result, id,
-               messages_manager_->get_messages_object(-1, dialog_id, r_message_ids.ok()));
+               messages_manager_->get_messages_object(-1, dialog_id, r_message_ids.ok(), false));
 }
 
 void Td::on_request(uint64 id, td_api::getWebPagePreview &request) {

@@ -200,9 +200,10 @@ class ContactsManager : public Actor {
   void on_update_channel_sticker_set(ChannelId channel_id, StickerSetId sticker_set_id);
   void on_update_channel_linked_channel_id(ChannelId channel_id, ChannelId group_channel_id);
   void on_update_channel_location(ChannelId channel_id, const DialogLocation &location);
-  void on_update_channel_slow_mode_delay(ChannelId channel_id, int32 slow_mode_delay);
+  void on_update_channel_slow_mode_delay(ChannelId channel_id, int32 slow_mode_delay, Promise<Unit> &&promise);
   void on_update_channel_slow_mode_next_send_date(ChannelId channel_id, int32 slow_mode_next_send_date);
-  void on_update_channel_is_all_history_available(ChannelId channel_id, bool is_all_history_available);
+  void on_update_channel_is_all_history_available(ChannelId channel_id, bool is_all_history_available,
+                                                  Promise<Unit> &&promise);
   void on_update_channel_default_permissions(ChannelId channel_id, RestrictedRights default_permissions);
   void on_update_channel_administrator_count(ChannelId channel_id, int32 administrator_count);
   void on_update_channel_participant(ChannelId channel_id, UserId user_id, int32 date,
@@ -513,8 +514,8 @@ class ContactsManager : public Actor {
 
   std::pair<int32, vector<DialogParticipant>> get_channel_participants(
       ChannelId channel_id, const tl_object_ptr<td_api::SupergroupMembersFilter> &filter,
-      const string &additional_query, int32 offset, int32 limit, int32 additional_limit, int64 &random_id, bool force,
-      Promise<Unit> &&promise);
+      const string &additional_query, int32 offset, int32 limit, int32 additional_limit, int64 &random_id,
+      bool without_bot_info, bool force, Promise<Unit> &&promise);
 
   void send_get_channel_participants_query(ChannelId channel_id, ChannelParticipantsFilter filter, int32 offset,
                                            int32 limit, int64 random_id, Promise<Unit> &&promise);

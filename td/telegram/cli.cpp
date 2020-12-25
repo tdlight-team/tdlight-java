@@ -2848,12 +2848,13 @@ class CliClient final : public Actor {
       fingerprints.push_back(td_api::make_object<td_api::groupCallPayloadFingerprint>("h2", "s2", "fingerprint2"));
       send_request(td_api::make_object<td_api::joinGroupCall>(
           as_group_call_id(args),
-          td_api::make_object<td_api::groupCallPayload>("ufrag", "pwd", std::move(fingerprints)), 123, true));
+          td_api::make_object<td_api::groupCallPayload>("ufrag", "pwd", std::move(fingerprints)), group_call_source_,
+          true));
     } else if (op == "jgcc") {
-      send_request(td_api::make_object<td_api::joinGroupCall>(as_group_call_id(args), nullptr, 123, true));
+      send_request(td_api::make_object<td_api::joinGroupCall>(as_group_call_id(args), nullptr, 0, true));
     } else if (op == "tgcmnp" || op == "tgcmnpe") {
       send_request(
-          td_api::make_object<td_api::toggleGroupCallMuteNewParticipants>(as_group_call_id(args), op == "tgcmnme"));
+          td_api::make_object<td_api::toggleGroupCallMuteNewParticipants>(as_group_call_id(args), op == "tgcmnpe"));
     } else if (op == "sgcpis") {
       string group_call_id;
       string source;
@@ -3595,8 +3596,8 @@ class CliClient final : public Actor {
       string sticker_path;
       std::tie(chat_id, sticker_path) = split(args);
 
-      send_message(chat_id,
-                   td_api::make_object<td_api::inputMessageSticker>(as_input_file(sticker_path), nullptr, 0, 0));
+      send_message(chat_id, td_api::make_object<td_api::inputMessageSticker>(as_input_file(sticker_path), nullptr, 0, 0,
+                                                                             string()));
     } else if (op == "sstt") {
       string chat_id;
       string sticker_path;
@@ -3604,14 +3605,17 @@ class CliClient final : public Actor {
       std::tie(chat_id, args) = split(args);
       std::tie(sticker_path, thumbnail_path) = split(args);
 
-      send_message(chat_id, td_api::make_object<td_api::inputMessageSticker>(as_input_file(sticker_path),
-                                                                             as_input_thumbnail(thumbnail_path), 0, 0));
+      send_message(chat_id, td_api::make_object<td_api::inputMessageSticker>(
+                                as_input_file(sticker_path), as_input_thumbnail(thumbnail_path), 0, 0, string()));
     } else if (op == "ssid") {
       string chat_id;
       string file_id;
-      std::tie(chat_id, file_id) = split(args);
+      string emoji;
+      std::tie(chat_id, args) = split(args);
+      std::tie(file_id, emoji) = split(args);
 
-      send_message(chat_id, td_api::make_object<td_api::inputMessageSticker>(as_input_file_id(file_id), nullptr, 0, 0));
+      send_message(chat_id,
+                   td_api::make_object<td_api::inputMessageSticker>(as_input_file_id(file_id), nullptr, 0, 0, emoji));
     } else if (op == "sv" || op == "svttl") {
       string chat_id;
       string video_path;
@@ -3898,6 +3902,9 @@ class CliClient final : public Actor {
       } else if (status_str == "addadmin") {
         status = td_api::make_object<td_api::chatMemberStatusAdministrator>("anon", false, false, false, false, false,
                                                                             false, false, false, true, false, false);
+      } else if (status_str == "calladmin") {
+        status = td_api::make_object<td_api::chatMemberStatusAdministrator>("anon", false, false, false, false, false,
+                                                                            false, false, false, false, true, false);
       } else if (status_str == "admin") {
         status = td_api::make_object<td_api::chatMemberStatusAdministrator>("", true, true, true, true, true, true,
                                                                             true, true, true, false, false);
@@ -4550,6 +4557,8 @@ class CliClient final : public Actor {
   bool disable_network_ = false;
   int api_id_ = 0;
   std::string api_hash_;
+
+  int32 group_call_source_ = Random::fast(1, 1000000000);
 
   static std::atomic<uint64> cpu_counter_;
 };

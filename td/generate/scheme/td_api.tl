@@ -719,7 +719,7 @@ messageSendingStateFailed error_code:int32 error_message:string can_retry:Bool r
 //@ttl_expires_in Time left before the message expires, in seconds
 //@via_bot_user_id If non-zero, the user identifier of the bot through which this message was sent
 //@author_signature For channel posts and anonymous group messages, optional author signature
-//@media_album_id Unique identifier of an album this message belongs to. Only photos and videos can be grouped together in albums
+//@media_album_id Unique identifier of an album this message belongs to. Only audios, documents, photos and videos can be grouped together in albums
 //@restriction_reason If non-empty, contains a human-readable description of the reason why access to this message must be restricted
 //@content Content of the message
 //@reply_markup Reply markup for the message; may be null
@@ -953,7 +953,7 @@ keyboardButton text:string type:KeyboardButtonType = KeyboardButton;
 //@description A button that opens a specified URL @url HTTP or tg:// URL to open
 inlineKeyboardButtonTypeUrl url:string = InlineKeyboardButtonType;
 
-//@description A button that opens a specified URL and automatically logs in in current user if they allowed to do that @url An HTTP URL to open @id Unique button identifier @forward_text If non-empty, new text of the button in forwarded messages
+//@description A button that opens a specified URL and automatically authorize the current user if allowed to do so @url An HTTP URL to open @id Unique button identifier @forward_text If non-empty, new text of the button in forwarded messages
 inlineKeyboardButtonTypeLoginUrl url:string id:int32 forward_text:string = InlineKeyboardButtonType;
 
 //@description A button that sends a callback query to a bot @data Data to be sent to the bot via a callback query
@@ -1816,8 +1816,8 @@ inputMessageDocument document:InputFile thumbnail:inputThumbnail disable_content
 //@ttl Photo TTL (Time To Live), in seconds (0-60). A non-zero TTL can be specified only in private chats
 inputMessagePhoto photo:InputFile thumbnail:inputThumbnail added_sticker_file_ids:vector<int32> width:int32 height:int32 caption:formattedText ttl:int32 = InputMessageContent;
 
-//@description A sticker message @sticker Sticker to be sent @thumbnail Sticker thumbnail, if available @width Sticker width @height Sticker height
-inputMessageSticker sticker:InputFile thumbnail:inputThumbnail width:int32 height:int32 = InputMessageContent;
+//@description A sticker message @sticker Sticker to be sent @thumbnail Sticker thumbnail, if available @width Sticker width @height Sticker height @emoji Emoji used to choose the sticker
+inputMessageSticker sticker:InputFile thumbnail:inputThumbnail width:int32 height:int32 emoji:string = InputMessageContent;
 
 //@description A video message @video Video to be sent @thumbnail Video thumbnail, if available @added_sticker_file_ids File identifiers of the stickers added to the video, if applicable
 //@duration Duration of the video, in seconds @width Video width @height Video height @supports_streaming True, if the video should be tried to be streamed
@@ -1989,7 +1989,7 @@ stickerSet id:int64 title:string name:string thumbnail:thumbnail thumbnail_outli
 //@description Represents short information about a sticker set
 //@id Identifier of the sticker set @title Title of the sticker set @name Name of the sticker set @thumbnail Sticker set thumbnail in WEBP or TGS format with width and height 100; may be null
 //@thumbnail_outline Sticker set thumbnail's outline represented as a list of closed vector paths; may be empty. The coordinate system origin is in the upper-left corner
-//@is_installed True, if the sticker set has been installed by current user @is_archived True, if the sticker set has been archived. A sticker set can't be installed and archived simultaneously
+//@is_installed True, if the sticker set has been installed by the current user @is_archived True, if the sticker set has been archived. A sticker set can't be installed and archived simultaneously
 //@is_official True, if the sticker set is official @is_animated True, is the stickers in the set are animated @is_masks True, if the stickers in the set are masks @is_viewed True for already viewed trending sticker sets
 //@size Total number of stickers in the set @covers Contains up to the first 5 stickers from the set, depending on the context. If the application needs more stickers the full set should be requested
 stickerSetInfo id:int64 title:string name:string thumbnail:thumbnail thumbnail_outline:vector<closedVectorPath> is_installed:Bool is_archived:Bool is_official:Bool is_animated:Bool is_masks:Bool is_viewed:Bool size:int32 covers:vector<sticker> = StickerSetInfo;
@@ -2070,14 +2070,16 @@ callStateError error:error = CallState;
 //@id Group call identifier
 //@is_active True, if the call is active
 //@is_joined True, if the call is joined
-//@can_unmute_self True, if the user can unmute themself
+//@need_rejoin True, if user was kicked from the call because of network loss and the call needs to be rejoined
+//@can_unmute_self True, if the current user can unmute themself
+//@can_be_managed True, if the current user can manage the group call
 //@participant_count Number of participants in the group call
 //@loaded_all_participants True, if all group call participants are loaded
 //@recent_speaker_user_ids Identifiers of recently speaking users in the group call
 //@mute_new_participants True, if only group call administrators can unmute new participants
 //@allowed_change_mute_new_participants True, if group call administrators can enable or disable mute_new_participants setting
 //@duration Call duration; for ended calls only
-groupCall id:int32 is_active:Bool is_joined:Bool can_unmute_self:Bool participant_count:int32 loaded_all_participants:Bool recent_speaker_user_ids:vector<int32> mute_new_participants:Bool allowed_change_mute_new_participants:Bool duration:int32 = GroupCall;
+groupCall id:int32 is_active:Bool is_joined:Bool need_rejoin:Bool can_unmute_self:Bool can_be_managed:Bool participant_count:int32 loaded_all_participants:Bool recent_speaker_user_ids:vector<int32> mute_new_participants:Bool allowed_change_mute_new_participants:Bool duration:int32 = GroupCall;
 
 //@description Describes a payload fingerprint for interaction with tgcalls @hash Value of the field hash @setup Value of the field setup @fingerprint Value of the field fingerprint
 groupCallPayloadFingerprint hash:string setup:string fingerprint:string = GroupCallPayloadFingerprint;
@@ -2093,10 +2095,16 @@ groupCallJoinResponseCandidate port:string protocol:string network:string genera
 //@description Describes a join response for interaction with tgcalls @payload Join response payload to pass to tgcalls @candidates Join response candidates to pass to tgcalls
 groupCallJoinResponse payload:groupCallPayload candidates:vector<groupCallJoinResponseCandidate> = GroupCallJoinResponse;
 
-//@description Represents a group call participant @user_id Identifier of the user @source User's synchronization source
-//@is_speaking True, if the user is speaking as set by setGroupCallParticipantIsSpeaking @is_muted True, if the user is muted @can_unmute_self True, if the user can unmute themself
+//@description Represents a group call participant
+//@user_id Identifier of the user
+//@source User's synchronization source
+//@is_speaking True, if the participant is speaking as set by setGroupCallParticipantIsSpeaking
+//@can_be_muted True, if the current user can mute the participant
+//@can_be_unmuted True, if the current user can allow the participant to unmute themself or unmute the participant (only for self)
+//@is_muted True, if the participant is muted
+//@can_unmute_self True, if the participant can unmute themself
 //@order User's order in the group call participant list. The bigger is order, the higher is user in the list. If order is 0, the user must be removed from the participant list
-groupCallParticipant user_id:int32 source:int32 is_speaking:Bool is_muted:Bool can_unmute_self:Bool order:int64 = GroupCallParticipant;
+groupCallParticipant user_id:int32 source:int32 is_speaking:Bool can_be_muted:Bool can_be_unmuted:Bool is_muted:Bool can_unmute_self:Bool order:int64 = GroupCallParticipant;
 
 
 //@class CallProblem @description Describes the exact type of a problem with a call
@@ -3413,8 +3421,7 @@ updateCall call:call = Update;
 updateGroupCall group_call:groupCall = Update;
 
 //@description Information about a group call participant was changed. The updates are sent only after the group call is received through getGroupCall and only if the call is joined or being joined
-//@group_call_id Identifier of group call
-//@participant New data about a participant. If this is a current user with different source, then the current user joined the call from another device and the call must not be rejoined automatically
+//@group_call_id Identifier of group call @participant New data about a participant
 updateGroupCallParticipant group_call_id:int32 participant:groupCallParticipant = Update;
 
 //@description New call signaling data arrived @call_id The call identifier @data The data
@@ -4227,10 +4234,10 @@ unpinChatMessage chat_id:int53 message_id:int53 = Ok;
 unpinAllChatMessages chat_id:int53 = Ok;
 
 
-//@description Adds current user as a new member to a chat. Private and secret chats can't be joined using this method @chat_id Chat identifier
+//@description Adds the current user as a new member to a chat. Private and secret chats can't be joined using this method @chat_id Chat identifier
 joinChat chat_id:int53 = Ok;
 
-//@description Removes current user from chat members. Private and secret chats can't be left using this method @chat_id Chat identifier
+//@description Removes the current user from chat members. Private and secret chats can't be left using this method @chat_id Chat identifier
 leaveChat chat_id:int53 = Ok;
 
 //@description Adds a new member to a chat. Members can't be added to private or secret chats. Members will not be added until the chat state has been synchronized with the server
@@ -4382,10 +4389,10 @@ toggleGroupCallMuteNewParticipants group_call_id:int32 mute_new_participants:Boo
 inviteGroupCallParticipants group_call_id:int32 user_ids:vector<int32> = Ok;
 
 //@description Informs TDLib that a group call participant speaking state has changed @group_call_id Group call identifier
-//@source Group call participant's synchronization source identifier @is_speaking True, if the user is speaking
+//@source Group call participant's synchronization source identifier, or 0 for the current user @is_speaking True, if the user is speaking
 setGroupCallParticipantIsSpeaking group_call_id:int32 source:int32 is_speaking:Bool = Ok;
 
-//@description Toggles whether a group call participant is muted. Requires can_manage_voice_chats rights to mute other group call participants
+//@description Toggles whether a group call participant is muted, unmuted, or allowed to unmute themself
 //@group_call_id Group call identifier @user_id User identifier @is_muted Pass true if the user must be muted and false otherwise
 toggleGroupCallParticipantIsMuted group_call_id:int32 user_id:int32 is_muted:Bool = Ok;
 
@@ -4437,7 +4444,7 @@ removeContacts user_ids:vector<int32> = Ok;
 //@description Returns the total number of imported contacts
 getImportedContactCount = Count;
 
-//@description Changes imported contacts using the list of current user contacts saved on the device. Imports newly added contacts and, if at least the file database is enabled, deletes recently deleted contacts.
+//@description Changes imported contacts using the list of contacts saved on the device. Imports newly added contacts and, if at least the file database is enabled, deletes recently deleted contacts.
 //-Query result depends on the result of the previous query, so only one query is possible at the same time @contacts The new list of contacts, contact's vCard are ignored and are not imported
 changeImportedContacts contacts:vector<contact> = ImportedContacts;
 
@@ -4951,7 +4958,7 @@ setAlarm seconds:double = Ok;
 //@description Returns information about existing countries. Can be called before authorization
 getCountries = Countries;
 
-//@description Uses current user IP address to find their country. Returns two-letter ISO 3166-1 alpha-2 country code. Can be called before authorization
+//@description Uses the current IP address to find the current country. Returns two-letter ISO 3166-1 alpha-2 country code. Can be called before authorization
 getCountryCode = Text;
 
 //@description Returns information about a phone number by its prefix. Can be called before authorization @phone_number_prefix The phone number prefix

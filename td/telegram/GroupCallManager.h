@@ -41,6 +41,8 @@ class GroupCallManager : public Actor {
 
   void get_group_call(GroupCallId group_call_id, Promise<td_api::object_ptr<td_api::groupCall>> &&promise);
 
+  void on_update_group_call_rights(InputGroupCallId input_group_call_id);
+
   void reload_group_call(InputGroupCallId input_group_call_id,
                          Promise<td_api::object_ptr<td_api::groupCall>> &&promise);
 
@@ -112,7 +114,9 @@ class GroupCallManager : public Actor {
   const GroupCall *get_group_call(InputGroupCallId input_group_call_id) const;
   GroupCall *get_group_call(InputGroupCallId input_group_call_id);
 
-  Status can_manage_group_calls(DialogId dialog_id);
+  Status can_manage_group_calls(DialogId dialog_id) const;
+
+  bool can_manage_group_call(InputGroupCallId input_group_call_id) const;
 
   void on_voice_chat_created(DialogId dialog_id, InputGroupCallId input_group_call_id, Promise<GroupCallId> &&promise);
 
@@ -131,15 +135,28 @@ class GroupCallManager : public Actor {
                                        vector<tl_object_ptr<telegram_api::groupCallParticipant>> &&participants,
                                        bool is_load, bool is_sync);
 
+  bool update_group_call_participant_can_be_muted(bool can_manage, const GroupCallParticipants *participants,
+                                                  GroupCallParticipant &participant);
+
+  void update_group_call_participants_can_be_muted(InputGroupCallId input_group_call_id, bool can_manage,
+                                                   GroupCallParticipants *participants);
+
   int process_group_call_participant(InputGroupCallId group_call_id, GroupCallParticipant &&participant);
+
+  void try_load_group_call_administrators(InputGroupCallId input_group_call_id, DialogId dialog_id);
+
+  void finish_load_group_call_administrators(InputGroupCallId input_group_call_id, int64 random_id,
+                                             Result<Unit> &&result);
 
   bool on_join_group_call_response(InputGroupCallId input_group_call_id, string json_response);
 
   void finish_join_group_call(InputGroupCallId input_group_call_id, uint64 generation, Status error);
 
-  void on_group_call_left(InputGroupCallId input_group_call_id, int32 source);
+  GroupCallParticipants *add_group_call_participants(InputGroupCallId input_group_call_id);
 
-  void on_group_call_left_impl(GroupCall *group_call);
+  void on_group_call_left(InputGroupCallId input_group_call_id, int32 source, bool need_rejoin);
+
+  void on_group_call_left_impl(GroupCall *group_call, bool need_rejoin);
 
   InputGroupCallId update_group_call(const tl_object_ptr<telegram_api::GroupCall> &group_call_ptr, DialogId dialog_id);
 
