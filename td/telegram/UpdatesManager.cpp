@@ -557,6 +557,7 @@ bool UpdatesManager::is_acceptable_message(const telegram_api::Message *message_
         case telegram_api::messageActionSecureValuesSent::ID:
         case telegram_api::messageActionSecureValuesSentMe::ID:
         case telegram_api::messageActionContactSignUp::ID:
+        case telegram_api::messageActionGroupCall::ID:
           break;
         case telegram_api::messageActionChatCreate::ID: {
           auto chat_create = static_cast<const telegram_api::messageActionChatCreate *>(action);
@@ -610,6 +611,13 @@ bool UpdatesManager::is_acceptable_message(const telegram_api::Message *message_
             return false;
           }
           if (!is_acceptable_peer(geo_proximity_reached->to_id_)) {
+            return false;
+          }
+          break;
+        }
+        case telegram_api::messageActionInviteToGroupCall::ID: {
+          auto invite_to_group_call = static_cast<const telegram_api::messageActionInviteToGroupCall *>(action);
+          if (!is_acceptable_user(UserId(invite_to_group_call->user_id_))) {
             return false;
           }
           break;
@@ -2171,6 +2179,12 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateChannelParticip
 // unsupported updates
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateTheme> update, bool /*force_apply*/) {
+}
+
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateGroupCallParticipants> update, bool /*force_apply*/) {
+}
+
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateGroupCall> update, bool /*force_apply*/) {
 }
 
 }  // namespace td

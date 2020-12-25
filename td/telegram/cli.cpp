@@ -1196,6 +1196,9 @@ class CliClient final : public Actor {
     if (action == "uvn" || action == "upload_video_note") {
       return td_api::make_object<td_api::chatActionUploadingVideoNote>(50);
     }
+    if (action == "sic" || action == "speaking_in_call") {
+      return td_api::make_object<td_api::chatActionSpeakingInCall>();
+    }
     return td_api::make_object<td_api::chatActionTyping>();
   }
 
@@ -3835,25 +3838,25 @@ class CliClient final : public Actor {
         status = td_api::make_object<td_api::chatMemberStatusCreator>("", false, false);
       } else if (status_str == "anon") {
         status = td_api::make_object<td_api::chatMemberStatusAdministrator>("anon", true, true, true, true, true, true,
-                                                                            true, true, true, true);
+                                                                            true, true, true, false, true);
       } else if (status_str == "anonadmin") {
         status = td_api::make_object<td_api::chatMemberStatusAdministrator>("anon", false, false, false, false, false,
-                                                                            false, false, false, false, true);
+                                                                            false, false, false, false, false, true);
       } else if (status_str == "addadmin") {
         status = td_api::make_object<td_api::chatMemberStatusAdministrator>("anon", false, false, false, false, false,
-                                                                            false, false, false, true, false);
+                                                                            false, false, false, true, false, false);
       } else if (status_str == "admin") {
         status = td_api::make_object<td_api::chatMemberStatusAdministrator>("", true, true, true, true, true, true,
-                                                                            true, true, true, false);
+                                                                            true, true, true, false, false);
       } else if (status_str == "adminq") {
         status = td_api::make_object<td_api::chatMemberStatusAdministrator>("title", true, true, true, true, true, true,
-                                                                            true, true, true, false);
+                                                                            true, true, true, false, false);
       } else if (status_str == "minadmin") {
         status = td_api::make_object<td_api::chatMemberStatusAdministrator>("", true, true, false, false, false, false,
-                                                                            false, false, false, false);
+                                                                            false, false, false, false, false);
       } else if (status_str == "unadmin") {
         status = td_api::make_object<td_api::chatMemberStatusAdministrator>("", true, false, false, false, false, false,
-                                                                            false, false, false, false);
+                                                                            false, false, false, false, false);
       } else if (status_str == "rest") {
         status = td_api::make_object<td_api::chatMemberStatusRestricted>(
             true, static_cast<int32>(120 + std::time(nullptr)),
