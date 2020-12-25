@@ -127,11 +127,13 @@ class BufferedStdinImpl : public Iocp::Callback {
         break;
       }
       writer_.confirm_append(r_size.ok());
-      if (iocp_ref_.post(0, this, nullptr)) {
-        inc_refcnt();
+      inc_refcnt();
+      if (!iocp_ref_.post(0, this, nullptr)) {
+        dec_refcnt();
       }
     }
     if (!iocp_ref_.post(0, this, nullptr)) {
+      read_thread_.detach();
       dec_refcnt();
     }
   }

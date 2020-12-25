@@ -9,6 +9,7 @@
 #include "td/utils/ExitGuard.h"
 #include "td/utils/MpscPollableQueue.h"
 #include "td/utils/port/thread_local.h"
+#include "td/utils/ScopeGuard.h"
 
 #include <memory>
 
@@ -137,10 +138,12 @@ void ConcurrentScheduler::finish() {
 #endif
 
   if (ExitGuard::is_exited()) {
+#if !TD_THREAD_UNSUPPORTED && !TD_EVENTFD_UNSUPPORTED
     // prevent closing of schedulers from already killed by OS threads
     for (auto &thread : threads_) {
       thread.detach();
     }
+#endif
 
 #if TD_PORT_WINDOWS
     iocp_->interrupt_loop();
