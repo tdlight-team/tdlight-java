@@ -41,6 +41,9 @@ class GroupCallManager : public Actor {
 
   void get_group_call(GroupCallId group_call_id, Promise<td_api::object_ptr<td_api::groupCall>> &&promise);
 
+  void reload_group_call(InputGroupCallId input_group_call_id,
+                         Promise<td_api::object_ptr<td_api::groupCall>> &&promise);
+
   void join_group_call(GroupCallId group_call_id, td_api::object_ptr<td_api::groupCallPayload> &&payload, int32 source,
                        bool is_muted, Promise<td_api::object_ptr<td_api::groupCallJoinResponse>> &&promise);
 
@@ -109,10 +112,9 @@ class GroupCallManager : public Actor {
   const GroupCall *get_group_call(InputGroupCallId input_group_call_id) const;
   GroupCall *get_group_call(InputGroupCallId input_group_call_id);
 
-  void on_voice_chat_created(DialogId dialog_id, InputGroupCallId input_group_call_id, Promise<GroupCallId> &&promise);
+  Status can_manage_group_calls(DialogId dialog_id);
 
-  void reload_group_call(InputGroupCallId input_group_call_id,
-                         Promise<td_api::object_ptr<td_api::groupCall>> &&promise);
+  void on_voice_chat_created(DialogId dialog_id, InputGroupCallId input_group_call_id, Promise<GroupCallId> &&promise);
 
   void finish_get_group_call(InputGroupCallId input_group_call_id,
                              Result<tl_object_ptr<telegram_api::phone_groupCall>> &&result);
@@ -123,12 +125,11 @@ class GroupCallManager : public Actor {
 
   void sync_group_call_participants(InputGroupCallId input_group_call_id);
 
+  void on_sync_group_call_participants_failed(InputGroupCallId input_group_call_id);
+
   void process_group_call_participants(InputGroupCallId group_call_id,
                                        vector<tl_object_ptr<telegram_api::groupCallParticipant>> &&participants,
-                                       bool is_load);
-
-  int32 process_group_call_participants_from_updates(
-      InputGroupCallId group_call_id, vector<tl_object_ptr<telegram_api::groupCallParticipant>> &&participants);
+                                       bool is_load, bool is_sync);
 
   int process_group_call_participant(InputGroupCallId group_call_id, GroupCallParticipant &&participant);
 
@@ -138,18 +139,28 @@ class GroupCallManager : public Actor {
 
   void on_group_call_left(InputGroupCallId input_group_call_id, int32 source);
 
+  void on_group_call_left_impl(GroupCall *group_call);
+
   InputGroupCallId update_group_call(const tl_object_ptr<telegram_api::GroupCall> &group_call_ptr, DialogId dialog_id);
 
   void on_receive_group_call_version(InputGroupCallId input_group_call_id, int32 version);
 
+  void on_participant_speaking_in_group_call(InputGroupCallId input_group_call_id,
+                                             const GroupCallParticipant &participant);
+
+  void remove_recent_group_call_speaker(InputGroupCallId input_group_call_id, UserId user_id);
+
   void on_group_call_recent_speakers_updated(const GroupCall *group_call, GroupCallRecentSpeakers *recent_speakers);
 
-  UserId get_group_call_participant_by_source(InputGroupCallId input_group_call_id, int32 source);
+  UserId set_group_call_participant_is_speaking_by_source(InputGroupCallId input_group_call_id, int32 source,
+                                                          bool is_speaking, int32 date);
 
   static Result<td_api::object_ptr<td_api::groupCallJoinResponse>> get_group_call_join_response_object(
       string json_response);
 
   void try_clear_group_call_participants(InputGroupCallId input_group_call_id);
+
+  void update_group_call_dialog(const GroupCall *group_call, const char *source);
 
   vector<int32> get_recent_speaker_user_ids(const GroupCall *group_call, bool for_update);
 
@@ -162,7 +173,7 @@ class GroupCallManager : public Actor {
   tl_object_ptr<td_api::updateGroupCallParticipant> get_update_group_call_participant_object(
       GroupCallId group_call_id, const GroupCallParticipant &participant);
 
-  void send_update_group_call(const GroupCall *group_call);
+  void send_update_group_call(const GroupCall *group_call, const char *source);
 
   void send_update_group_call_participant(GroupCallId group_call_id, const GroupCallParticipant &participant);
 

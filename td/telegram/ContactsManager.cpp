@@ -10983,16 +10983,17 @@ void ContactsManager::drop_channel_photos(ChannelId channel_id, bool is_empty, b
   }
 }
 
-void ContactsManager::invalidate_channel_full(ChannelId channel_id, bool drop_invite_link, bool drop_slow_mode_delay) {
+void ContactsManager::invalidate_channel_full(ChannelId channel_id, bool need_drop_invite_link,
+                                              bool need_drop_slow_mode_delay) {
   LOG(INFO) << "Invalidate supergroup full for " << channel_id;
   // drop channel full cache
   auto channel_full = get_channel_full_force(channel_id, "invalidate_channel_full");
   if (channel_full != nullptr) {
     channel_full->expires_at = 0.0;
-    if (drop_invite_link) {
+    if (need_drop_invite_link) {
       on_update_channel_full_invite_link(channel_full, nullptr);
     }
-    if (drop_slow_mode_delay && channel_full->slow_mode_delay != 0) {
+    if (need_drop_slow_mode_delay && channel_full->slow_mode_delay != 0) {
       channel_full->slow_mode_delay = 0;
       channel_full->slow_mode_next_send_date = 0;
       channel_full->is_slow_mode_next_send_date_changed = true;
@@ -11000,7 +11001,7 @@ void ContactsManager::invalidate_channel_full(ChannelId channel_id, bool drop_in
     }
     update_channel_full(channel_full, channel_id);
   }
-  if (drop_invite_link) {
+  if (need_drop_invite_link) {
     remove_dialog_access_by_invite_link(DialogId(channel_id));
 
     auto it = dialog_invite_links_.find(DialogId(channel_id));
@@ -11705,7 +11706,8 @@ void ContactsManager::on_update_chat_delete_user(ChatId chat_id, UserId user_id,
 void ContactsManager::on_update_chat_status(Chat *c, ChatId chat_id, DialogParticipantStatus status) {
   if (c->status != status) {
     LOG(INFO) << "Update " << chat_id << " status from " << c->status << " to " << status;
-    bool drop_invite_link = c->status.is_left() != status.is_left();
+    bool need_drop_invite_link = c->status.is_left() != status.is_left();
+    bool need_reload_group_call = c->status.can_manage_calls() != status.can_manage_calls();
 
     c->status = status;
 
@@ -11717,11 +11719,14 @@ void ContactsManager::on_update_chat_status(Chat *c, ChatId chat_id, DialogParti
 
       drop_chat_full(chat_id);
     }
-    if (drop_invite_link) {
+    if (need_drop_invite_link) {
       auto it = dialog_invite_links_.find(DialogId(chat_id));
       if (it != dialog_invite_links_.end()) {
         invalidate_invite_link_info(it->second);
       }
+    }
+    if (need_reload_group_call) {
+      td_->messages_manager_->reload_dialog_group_call(DialogId(chat_id));
     }
 
     c->is_changed = true;
@@ -12048,9 +12053,10 @@ void ContactsManager::on_channel_status_changed(Channel *c, ChannelId channel_id
                                                 const DialogParticipantStatus &new_status) {
   CHECK(c->is_update_supergroup_sent);
 
-  bool drop_invite_link = old_status.is_administrator() != new_status.is_administrator() ||
-                          old_status.is_member() != new_status.is_member();
-  invalidate_channel_full(channel_id, drop_invite_link, !c->is_slow_mode_enabled);
+  bool need_drop_invite_link = old_status.is_administrator() != new_status.is_administrator() ||
+                               old_status.is_member() != new_status.is_member();
+  bool need_reload_group_call = old_status.can_manage_calls() != new_status.can_manage_calls();
+  invalidate_channel_full(channel_id, need_drop_invite_link, !c->is_slow_mode_enabled);
 
   if (old_status.is_creator() != new_status.is_creator()) {
     for (size_t i = 0; i < 2; i++) {
@@ -12060,6 +12066,9 @@ void ContactsManager::on_channel_status_changed(Channel *c, ChannelId channel_id
 
     send_get_channel_full_query(nullptr, channel_id, Auto(), "update channel owner");
     reload_dialog_administrators(DialogId(channel_id), 0, Auto());
+  }
+  if (need_reload_group_call) {
+    td_->messages_manager_->reload_dialog_group_call(DialogId(channel_id));
   }
 }
 
@@ -13832,7 +13841,8 @@ void ContactsManager::on_chat_update(telegram_api::chat &chat, const char *sourc
 
   bool has_active_group_call = (chat.flags_ & CHAT_FLAG_HAS_ACTIVE_GROUP_CALL) != 0;
   bool is_group_call_empty = (chat.flags_ & CHAT_FLAG_IS_GROUP_CALL_NON_EMPTY) == 0;
-  td_->messages_manager_->on_update_dialog_group_call(DialogId(chat_id), has_active_group_call, is_group_call_empty);
+  td_->messages_manager_->on_update_dialog_group_call(DialogId(chat_id), has_active_group_call, is_group_call_empty,
+                                                      "receive chat");
 }
 
 void ContactsManager::on_chat_update(telegram_api::chatForbidden &chat, const char *source) {
@@ -14025,7 +14035,8 @@ void ContactsManager::on_chat_update(telegram_api::channel &channel, const char 
 
   bool has_active_group_call = (channel.flags_ & CHANNEL_FLAG_HAS_ACTIVE_GROUP_CALL) != 0;
   bool is_group_call_empty = (channel.flags_ & CHANNEL_FLAG_IS_GROUP_CALL_NON_EMPTY) == 0;
-  td_->messages_manager_->on_update_dialog_group_call(DialogId(channel_id), has_active_group_call, is_group_call_empty);
+  td_->messages_manager_->on_update_dialog_group_call(DialogId(channel_id), has_active_group_call, is_group_call_empty,
+                                                      "receive channel");
 }
 
 void ContactsManager::on_chat_update(telegram_api::channelForbidden &channel, const char *source) {
@@ -14064,7 +14075,7 @@ void ContactsManager::on_chat_update(telegram_api::channelForbidden &channel, co
   // on_update_channel_username(c, channel_id, "");  // don't know if channel username is empty, so don't update it
   tl_object_ptr<telegram_api::chatBannedRights> banned_rights;  // == nullptr
   on_update_channel_default_permissions(c, channel_id, get_restricted_rights(banned_rights));
-  td_->messages_manager_->on_update_dialog_group_call(DialogId(channel_id), false, false);
+  td_->messages_manager_->on_update_dialog_group_call(DialogId(channel_id), false, false, "receive channelForbidden");
 
   bool sign_messages = false;
   bool is_slow_mode_enabled = false;

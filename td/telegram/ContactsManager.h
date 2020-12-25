@@ -219,7 +219,7 @@ class ContactsManager : public Actor {
 
   void speculative_delete_channel_participant(ChannelId channel_id, UserId deleted_user_id, bool by_me);
 
-  void invalidate_channel_full(ChannelId channel_id, bool drop_invite_link, bool drop_slow_mode_delay);
+  void invalidate_channel_full(ChannelId channel_id, bool need_drop_invite_link, bool need_drop_slow_mode_delay);
 
   bool on_get_channel_error(ChannelId channel_id, const Status &status, const string &source);
 
@@ -721,7 +721,7 @@ class ContactsManager : public Actor {
     DialogParticipantStatus status = DialogParticipantStatus::Banned(0);
     RestrictedRights default_permissions{false, false, false, false, false, false, false, false, false, false, false};
 
-    static constexpr uint32 CACHE_VERSION = 2;
+    static constexpr uint32 CACHE_VERSION = 3;
     uint32 cache_version = 0;
 
     bool is_active = false;
@@ -788,7 +788,7 @@ class ContactsManager : public Actor {
     int32 date = 0;
     int32 participant_count = 0;
 
-    static constexpr uint32 CACHE_VERSION = 5;
+    static constexpr uint32 CACHE_VERSION = 6;
     uint32 cache_version = 0;
 
     bool has_linked_channel = false;

@@ -2070,13 +2070,14 @@ callStateError error:error = CallState;
 //@id Group call identifier
 //@is_active True, if the call is active
 //@is_joined True, if the call is joined
+//@can_unmute_self True, if the user can unmute themself
 //@participant_count Number of participants in the group call
 //@loaded_all_participants True, if all group call participants are loaded
 //@recent_speaker_user_ids Identifiers of recently speaking users in the group call
 //@mute_new_participants True, if only group call administrators can unmute new participants
 //@allowed_change_mute_new_participants True, if group call administrators can enable or disable mute_new_participants setting
 //@duration Call duration; for ended calls only
-groupCall id:int32 is_active:Bool is_joined:Bool participant_count:int32 loaded_all_participants:Bool recent_speaker_user_ids:vector<int32> mute_new_participants:Bool allowed_change_mute_new_participants:Bool duration:int32 = GroupCall;
+groupCall id:int32 is_active:Bool is_joined:Bool can_unmute_self:Bool participant_count:int32 loaded_all_participants:Bool recent_speaker_user_ids:vector<int32> mute_new_participants:Bool allowed_change_mute_new_participants:Bool duration:int32 = GroupCall;
 
 //@description Describes a payload fingerprint for interaction with tgcalls @hash Value of the field hash @setup Value of the field setup @fingerprint Value of the field fingerprint
 groupCallPayloadFingerprint hash:string setup:string fingerprint:string = GroupCallPayloadFingerprint;
@@ -2093,9 +2094,9 @@ groupCallJoinResponseCandidate port:string protocol:string network:string genera
 groupCallJoinResponse payload:groupCallPayload candidates:vector<groupCallJoinResponseCandidate> = GroupCallJoinResponse;
 
 //@description Represents a group call participant @user_id Identifier of the user @source User's synchronization source
-//@is_speaking True, if the user is speaking as set by setGroupCallParticipantIsSpeaking @is_muted True, if the user is muted @can_self_unmute True, if the user can unmute themself
+//@is_speaking True, if the user is speaking as set by setGroupCallParticipantIsSpeaking @is_muted True, if the user is muted @can_unmute_self True, if the user can unmute themself
 //@order User's order in the group call participant list. The bigger is order, the higher is user in the list. If order is 0, the user must be removed from the participant list
-groupCallParticipant user_id:int32 source:int32 is_speaking:Bool is_muted:Bool can_self_unmute:Bool order:int64 = GroupCallParticipant;
+groupCallParticipant user_id:int32 source:int32 is_speaking:Bool is_muted:Bool can_unmute_self:Bool order:int64 = GroupCallParticipant;
 
 
 //@class CallProblem @description Describes the exact type of a problem with a call
@@ -4369,7 +4370,7 @@ createVoiceChat chat_id:int53 = GroupCallId;
 //@description Returns information about a group call @group_call_id Group call identifier
 getGroupCall group_call_id:int32 = GroupCall;
 
-//@description Joins a group call @group_call_id Group call identifier @payload Group join payload, received from tgcalls @source Caller synchronization source identifier; received from tgcalls @is_muted True, if the user's microphone is muted
+//@description Joins a group call @group_call_id Group call identifier @payload Group join payload, received from tgcalls. Use null to cancel previous joinGroupCall request @source Caller synchronization source identifier; received from tgcalls @is_muted True, if the user's microphone is muted
 joinGroupCall group_call_id:int32 payload:groupCallPayload source:int32 is_muted:Bool = GroupCallJoinResponse;
 
 //@description Toggles whether new participants of a group call can be unmuted only by administrators of the group call. Requires can_manage_voice_chats rights in the corresponding chat and allowed_change_mute_mew_participants group call flag
@@ -4391,7 +4392,9 @@ toggleGroupCallParticipantIsMuted group_call_id:int32 user_id:int32 is_muted:Boo
 //@description Checks whether a group call is still joined. Should be called every 10 seconds when tgcalls notifies about lost connection with the server @group_call_id Group call identifier
 checkGroupCallIsJoined group_call_id:int32 = Ok;
 
-//@description Loads more group call participants. The loaded participants will be received through updates @group_call_id Group call identifier @limit Maximum number of participants to load
+//@description Loads more group call participants. The loaded participants will be received through updates. Use the field groupCall.loaded_all_participants to check whether all participants has already been loaded
+//@group_call_id Group call identifier. The group call must be previously received through getGroupCall and must be joined or being joined
+//@limit Maximum number of participants to load
 loadGroupCallParticipants group_call_id:int32 limit:int32 = Ok;
 
 //@description Leaves a group call @group_call_id Group call identifier

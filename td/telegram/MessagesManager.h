@@ -337,7 +337,8 @@ class MessagesManager : public Actor {
 
   void on_update_dialog_folder_id(DialogId dialog_id, FolderId folder_id);
 
-  void on_update_dialog_group_call(DialogId dialog_id, bool has_active_group_call, bool is_group_call_empty);
+  void on_update_dialog_group_call(DialogId dialog_id, bool has_active_group_call, bool is_group_call_empty,
+                                   const char *source);
 
   void on_update_dialog_group_call_id(DialogId dialog_id, InputGroupCallId input_group_call_id);
 
@@ -399,6 +400,8 @@ class MessagesManager : public Actor {
   void delete_dialog_messages_from_user(DialogId dialog_id, UserId user_id, Promise<Unit> &&promise);
 
   void delete_dialog(DialogId dialog_id);
+
+  void reload_dialog_group_call(DialogId dialog_id);
 
   void read_all_dialog_mentions(DialogId dialog_id, Promise<Unit> &&promise);
 
