@@ -21,6 +21,7 @@
 #include "td/telegram/files/FileSourceId.h"
 #include "td/telegram/FolderId.h"
 #include "td/telegram/FullMessageId.h"
+#include "td/telegram/InputGroupCallId.h"
 #include "td/telegram/Location.h"
 #include "td/telegram/MessageId.h"
 #include "td/telegram/net/DcId.h"
@@ -219,7 +220,8 @@ class ContactsManager : public Actor {
 
   void speculative_delete_channel_participant(ChannelId channel_id, UserId deleted_user_id, bool by_me);
 
-  void invalidate_channel_full(ChannelId channel_id, bool drop_invite_link, bool drop_slow_mode_delay);
+  void invalidate_channel_full(ChannelId channel_id, bool drop_invite_link, bool drop_slow_mode_delay,
+                               bool drop_active_group_call_id = false);
 
   bool on_get_channel_error(ChannelId channel_id, const Status &status, const string &source);
 
@@ -366,6 +368,8 @@ class ContactsManager : public Actor {
   void set_channel_location(DialogId dialog_id, const DialogLocation &location, Promise<Unit> &&promise);
 
   void set_channel_slow_mode_delay(DialogId dialog_id, int32 slow_mode_delay, Promise<Unit> &&promise);
+
+  void create_channel_group_call(DialogId dialog_id, Promise<InputGroupCallId> &&promise);
 
   void report_channel_spam(ChannelId channel_id, UserId user_id, const vector<MessageId> &message_ids,
                            Promise<Unit> &&promise);
@@ -793,6 +797,7 @@ class ContactsManager : public Actor {
 
     bool has_linked_channel = false;
     bool has_location = false;
+    bool has_active_group_call = false;
     bool sign_messages = false;
     bool is_slow_mode_enabled = false;
 
@@ -850,6 +855,8 @@ class ContactsManager : public Actor {
     DialogLocation location;
 
     DcId stats_dc_id;
+
+    InputGroupCallId active_group_call_id;
 
     int32 slow_mode_delay = 0;
     int32 slow_mode_next_send_date = 0;
@@ -1021,6 +1028,7 @@ class ContactsManager : public Actor {
   static constexpr int32 CHANNEL_FLAG_HAS_LINKED_CHAT = 1 << 20;
   static constexpr int32 CHANNEL_FLAG_HAS_LOCATION = 1 << 21;
   static constexpr int32 CHANNEL_FLAG_IS_SLOW_MODE_ENABLED = 1 << 22;
+  static constexpr int32 CHANNEL_FLAG_HAS_ACTIVE_GROUP_CALL = 1 << 23;
 
   static constexpr int32 CHANNEL_FULL_FLAG_HAS_PARTICIPANT_COUNT = 1 << 0;
   static constexpr int32 CHANNEL_FULL_FLAG_HAS_ADMINISTRATOR_COUNT = 1 << 1;
@@ -1043,6 +1051,7 @@ class ContactsManager : public Actor {
   static constexpr int32 CHANNEL_FULL_FLAG_HAS_SLOW_MODE_NEXT_SEND_DATE = 1 << 18;
   static constexpr int32 CHANNEL_FULL_FLAG_HAS_SCHEDULED_MESSAGES = 1 << 19;
   static constexpr int32 CHANNEL_FULL_FLAG_CAN_VIEW_STATISTICS = 1 << 20;
+  static constexpr int32 CHANNEL_FULL_FLAG_HAS_ACTIVE_GROUP_CALL = 1 << 21;
   static constexpr int32 CHANNEL_FULL_FLAG_IS_BLOCKED = 1 << 22;
 
   static constexpr int32 CHAT_INVITE_FLAG_IS_CHANNEL = 1 << 0;
@@ -1311,6 +1320,9 @@ class ContactsManager : public Actor {
   void update_channel_full(ChannelFull *channel_full, ChannelId channel_id, bool from_database = false);
 
   void update_bot_info(BotInfo *bot_info, UserId user_id, bool send_update, bool from_database);
+
+  void on_create_channel_group_call(ChannelId channel_id, InputGroupCallId group_call_id,
+                                    Promise<InputGroupCallId> &&promise);
 
   bool is_chat_full_outdated(const ChatFull *chat_full, const Chat *c, ChatId chat_id);
 

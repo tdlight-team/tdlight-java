@@ -38,6 +38,7 @@ class ConnectionCreator;
 class ContactsManager;
 class FileManager;
 class FileReferenceManager;
+class GroupCallManager;
 class LanguagePackManager;
 class MessagesManager;
 class MtprotoHeader;
@@ -214,6 +215,13 @@ class Global : public ActorContext {
   }
   void set_file_reference_manager(ActorId<FileReferenceManager> file_reference_manager) {
     file_reference_manager_ = std::move(file_reference_manager);
+  }
+
+  ActorId<GroupCallManager> group_call_manager() const {
+    return group_call_manager_;
+  }
+  void set_group_call_manager(ActorId<GroupCallManager> group_call_manager) {
+    group_call_manager_ = group_call_manager;
   }
 
   ActorId<LanguagePackManager> language_pack_manager() const {
@@ -393,6 +401,7 @@ class Global : public ActorContext {
   ActorId<ContactsManager> contacts_manager_;
   ActorId<FileManager> file_manager_;
   ActorId<FileReferenceManager> file_reference_manager_;
+  ActorId<GroupCallManager> group_call_manager_;
   ActorId<LanguagePackManager> language_pack_manager_;
   ActorId<MessagesManager> messages_manager_;
   ActorId<NotificationManager> notification_manager_;

@@ -21,6 +21,7 @@
 #include "td/telegram/DialogId.h"
 #include "td/telegram/FolderId.h"
 #include "td/telegram/Global.h"
+#include "td/telegram/GroupCallManager.h"
 #include "td/telegram/InlineQueriesManager.h"
 #include "td/telegram/LanguagePackManager.h"
 #include "td/telegram/Location.h"
@@ -898,6 +899,30 @@ vector<const tl_object_ptr<telegram_api::Message> *> UpdatesManager::get_new_mes
     }
   }
   return messages;
+}
+
+vector<InputGroupCallId> UpdatesManager::get_update_new_group_call_ids(const telegram_api::Updates *updates_ptr) {
+  vector<InputGroupCallId> group_call_ids;
+  auto updates = get_updates(updates_ptr);
+  if (updates != nullptr) {
+    for (auto &update : *updates) {
+      InputGroupCallId group_call_id;
+      if (update->get_id() == telegram_api::updateGroupCall::ID) {
+        auto group_call_ptr = static_cast<const telegram_api::updateGroupCall *>(update.get())->call_.get();
+        if (group_call_ptr->get_id() == telegram_api::groupCall::ID) {
+          auto group_call = static_cast<const telegram_api::groupCall *>(group_call_ptr);
+          group_call_id = InputGroupCallId(group_call->id_, group_call->access_hash_);
+        }
+      }
+
+      if (group_call_id.is_valid()) {
+        group_call_ids.push_back(group_call_id);
+      } else {
+        LOG(ERROR) << "Receive unexpected " << to_string(update);
+      }
+    }
+  }
+  return group_call_ids;
 }
 
 vector<DialogId> UpdatesManager::get_update_notify_settings_dialog_ids(const telegram_api::Updates *updates_ptr) {
@@ -2122,6 +2147,10 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updatePhoneCallSignal
                update->data_.as_slice().str());
 }
 
+void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateGroupCall> update, bool /*force_apply*/) {
+  send_closure(G()->group_call_manager(), &GroupCallManager::on_update_group_call, std::move(update->call_));
+}
+
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateContactsReset> update, bool /*force_apply*/) {
   td_->contacts_manager_->on_update_contacts_reset();
 }
@@ -2182,9 +2211,6 @@ void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateTheme> update, 
 }
 
 void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateGroupCallParticipants> update, bool /*force_apply*/) {
-}
-
-void UpdatesManager::on_update(tl_object_ptr<telegram_api::updateGroupCall> update, bool /*force_apply*/) {
 }
 
 }  // namespace td
