@@ -158,7 +158,9 @@ void GroupCallManager::on_update_group_call(tl_object_ptr<telegram_api::GroupCal
 }
 
 InputGroupCallId GroupCallManager::update_group_call(const tl_object_ptr<telegram_api::GroupCall> &group_call_ptr) {
-  CHECK(group_call_ptr != nullptr);
+  if (group_call_ptr == nullptr) {
+    return {};
+  }
 
   InputGroupCallId call_id;
   GroupCall call;
