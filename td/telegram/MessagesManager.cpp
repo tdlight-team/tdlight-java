@@ -7918,7 +7918,9 @@ void MessagesManager::on_scope_unmute(NotificationSettingsScope scope) {
   }
 
   auto notification_settings = get_scope_notification_settings(scope);
-  CHECK(notification_settings != nullptr);
+  if (notification_settings == nullptr) {
+    return;
+  }
 
   if (notification_settings->mute_until == 0) {
     return;
@@ -7970,7 +7972,9 @@ void MessagesManager::on_update_scope_notify_settings(
   }
 
   auto old_notification_settings = get_scope_notification_settings(scope);
-  CHECK(old_notification_settings != nullptr);
+  if (old_notification_settings == nullptr) {
+    return;
+  }
 
   const ScopeNotificationSettings notification_settings = ::td::get_scope_notification_settings(
       std::move(peer_notify_settings), old_notification_settings->disable_pinned_message_notifications,
@@ -7988,7 +7992,9 @@ bool MessagesManager::update_dialog_silent_send_message(Dialog *d, bool silent_s
     return false;
   }
 
-  CHECK(d != nullptr);
+  if (d == nullptr) {
+    return false;
+  }
   LOG_IF(WARNING, !d->notification_settings.is_synchronized)
       << "Have unknown notification settings in " << d->dialog_id;
   if (d->notification_settings.silent_send_message == silent_send_message) {
@@ -8030,7 +8036,9 @@ void MessagesManager::reget_dialog_action_bar(DialogId dialog_id, const char *so
 }
 
 void MessagesManager::repair_dialog_action_bar(Dialog *d, const char *source) {
-  CHECK(d != nullptr);
+  if (d == nullptr) {
+    return;
+  }
   auto dialog_id = d->dialog_id;
   d->know_action_bar = false;
   if (have_input_peer(dialog_id, AccessRights::Read)) {
@@ -8122,7 +8130,9 @@ void MessagesManager::repair_dialog_active_group_call_id(DialogId dialog_id) {
 
 void MessagesManager::do_repair_dialog_active_group_call_id(DialogId dialog_id) {
   Dialog *d = get_dialog(dialog_id);
-  CHECK(d != nullptr);
+  if (d == nullptr) {
+    return;
+  }
   if (!d->has_active_group_call || d->active_group_call_id.is_valid()) {
     return;
   }
@@ -8357,7 +8367,9 @@ void MessagesManager::on_get_peer_settings(DialogId dialog_id,
 }
 
 void MessagesManager::fix_dialog_action_bar(Dialog *d) {
-  CHECK(d != nullptr);
+  if (d == nullptr) {
+    return;
+  }
   if (!d->know_action_bar) {
     return;
   }
@@ -27817,7 +27829,9 @@ void MessagesManager::send_update_message_edited(DialogId dialog_id, const Messa
 }
 
 void MessagesManager::send_update_message_interaction_info(DialogId dialog_id, const Message *m) const {
-  CHECK(m != nullptr);
+  if (m == nullptr) {
+    return;
+  }
   if (td_->auth_manager_->is_bot()) {
     return;
   }
