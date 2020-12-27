@@ -112,15 +112,6 @@ if (NOT CMAKE_CROSSCOMPILING)
           DEPENDS scheme/mtproto_api.tl scheme/telegram_api.tl scheme/secret_api.tl scheme/td_api.tl
           )
   add_dependencies(build_tl_parser configure_tl_parser)
-
-  if (WIN32 OR CYGWIN)
-    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
-    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
-    SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
-    SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
-  endif()
   set(TL_PARSER_BIN ./tl-parser/build/tl-parser)
 
   add_custom_target(generate_mtproto_api_tlo
