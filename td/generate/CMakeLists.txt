@@ -113,10 +113,7 @@ if (NOT CMAKE_CROSSCOMPILING)
           )
   add_dependencies(build_tl_parser configure_tl_parser)
 
-  if (WIN32 OR CYGWIN)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/build")
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/tl-parser/build")
-  endif()
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
   set(TL_PARSER_BIN ./tl-parser/build/tl-parser)
 
   add_custom_target(generate_mtproto_api_tlo
