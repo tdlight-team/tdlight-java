@@ -5916,6 +5916,7 @@ void MessagesManager::memory_cleanup() {
   full_message_id_to_file_source_id_.clear();
   full_message_id_to_file_source_id_.rehash(0);
 }
+
 void MessagesManager::memory_stats(vector<string> &output) {
   output.push_back("\"being_sent_messages_\":"); output.push_back(std::to_string(this->being_sent_messages_.size()));
   output.push_back(",");

@@ -365,6 +365,10 @@ void FileReferenceManager::reload_photo(PhotoSizeSource source, Promise<Unit> pr
   }
 }
 
+void FileReferenceManager::memory_cleanup() {
+
+}
+
 void FileReferenceManager::memory_cleanup(NodeId node_id) {
   auto find_node = nodes_.find(node_id);
   if (find_node != nodes_.end()) {
@@ -373,6 +377,12 @@ void FileReferenceManager::memory_cleanup(NodeId node_id) {
     node.file_source_ids.reset_position();
     nodes_.erase(node_id);
   }
+}
+
+void FileReferenceManager::memory_stats(vector<string> &output) {
+  output.push_back("\"nodes_\":"); output.push_back(std::to_string(nodes_.size()));
+  output.push_back(",");
+  output.push_back("\"file_sources_\":"); output.push_back(std::to_string(file_sources_.size()));
 }
 
 }  // namespace td

@@ -7315,6 +7315,9 @@ void Td::on_request(uint64 id, td_api::setOption &request) {
       if (set_boolean_option("disable_notifications")) {
         return;
       }
+      if (set_boolean_option("disable_group_calls")) {
+        return;
+      }
       if (set_integer_option("delete_file_reference_after_seconds")) {
         return;
       }

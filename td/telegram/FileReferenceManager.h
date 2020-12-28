@@ -74,6 +74,10 @@ class FileReferenceManager : public Actor {
 
   void memory_cleanup(NodeId node_id);
 
+  void memory_cleanup();
+
+  void memory_stats(vector<string> &output);
+
  private:
   struct Destination {
     bool empty() const {

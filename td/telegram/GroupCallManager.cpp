@@ -8,6 +8,8 @@
 
 #include "td/telegram/AccessRights.h"
 #include "td/telegram/AuthManager.h"
+#include "td/telegram/ConfigManager.h"
+#include "td/telegram/ConfigShared.h"
 #include "td/telegram/ContactsManager.h"
 #include "td/telegram/DialogParticipant.h"
 #include "td/telegram/Global.h"
@@ -456,6 +458,34 @@ void GroupCallManager::tear_down() {
   parent_.reset();
 }
 
+void GroupCallManager::memory_cleanup() {
+  this->group_call_participants_.clear();
+  this->group_call_participants_.rehash(0);
+  this->group_call_recent_speakers_.clear();
+  this->group_call_recent_speakers_.rehash(0);
+  this->group_calls_.clear();
+  this->group_calls_.rehash(0);
+
+  //todo: check if we can clear call ids vector
+  // this->input_group_call_ids_.clear();
+
+  this->pending_join_requests_.clear();
+  this->pending_join_requests_.rehash(0);
+
+}
+
+void GroupCallManager::memory_stats(vector<string> &output) {
+  output.push_back("\"group_call_participants_\":"); output.push_back(std::to_string(group_call_participants_.size()));
+  output.push_back(",");
+  output.push_back("\"group_call_recent_speakers_\":"); output.push_back(std::to_string(group_call_recent_speakers_.size()));
+  output.push_back(",");
+  output.push_back("\"group_calls_\":"); output.push_back(std::to_string(group_calls_.size()));
+  output.push_back(",");
+  output.push_back("\"input_group_call_ids_\":"); output.push_back(std::to_string(input_group_call_ids_.size()));
+  output.push_back(",");
+  output.push_back("\"pending_join_requests_\":"); output.push_back(std::to_string(pending_join_requests_.size()));
+}
+
 void GroupCallManager::on_pending_send_speaking_action_timeout_callback(void *group_call_manager_ptr,
                                                                         int64 group_call_id_int) {
   if (G()->close_flag()) {
@@ -536,7 +566,7 @@ void GroupCallManager::on_sync_participants_timeout(GroupCallId group_call_id) {
 }
 
 GroupCallId GroupCallManager::get_group_call_id(InputGroupCallId input_group_call_id, DialogId dialog_id) {
-  if (td_->auth_manager_->is_bot() || !input_group_call_id.is_valid()) {
+  if (G()->shared_config().get_option_boolean("disable_group_calls") || td_->auth_manager_->is_bot() || !input_group_call_id.is_valid()) {
     return GroupCallId();
   }
   return add_group_call(input_group_call_id, dialog_id)->group_call_id;
@@ -1825,7 +1855,7 @@ void GroupCallManager::discard_group_call(GroupCallId group_call_id, Promise<Uni
 }
 
 void GroupCallManager::on_update_group_call(tl_object_ptr<telegram_api::GroupCall> group_call_ptr, DialogId dialog_id) {
-  if (td_->auth_manager_->is_bot()) {
+  if (G()->shared_config().get_option_boolean("disable_group_calls") || td_->auth_manager_->is_bot()) {
     LOG(ERROR) << "Receive " << to_string(group_call_ptr);
     return;
   }
@@ -2258,17 +2288,26 @@ tl_object_ptr<td_api::updateGroupCallParticipant> GroupCallManager::get_update_g
 
 void GroupCallManager::send_update_group_call(const GroupCall *group_call, const char *source) {
   LOG(INFO) << "Send update about " << group_call->group_call_id << " from " << source;
+  if (G()->shared_config().get_option_boolean("disable_group_calls")) {
+    return;
+  }
   send_closure(G()->td(), &Td::send_update,
                get_update_group_call_object(group_call, get_recent_speaker_user_ids(group_call, true)));
 }
 
 void GroupCallManager::send_update_group_call_participant(GroupCallId group_call_id,
                                                           const GroupCallParticipant &participant) {
+  if (G()->shared_config().get_option_boolean("disable_group_calls")) {
+    return;
+  }
   send_closure(G()->td(), &Td::send_update, get_update_group_call_participant_object(group_call_id, participant));
 }
 
 void GroupCallManager::send_update_group_call_participant(InputGroupCallId input_group_call_id,
                                                           const GroupCallParticipant &participant) {
+  if (G()->shared_config().get_option_boolean("disable_group_calls")) {
+    return;
+  }
   auto group_call = get_group_call(input_group_call_id);
   CHECK(group_call != nullptr && group_call->is_inited);
   send_update_group_call_participant(group_call->group_call_id, participant);

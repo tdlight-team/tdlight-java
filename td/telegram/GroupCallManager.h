@@ -37,6 +37,10 @@ class GroupCallManager : public Actor {
   GroupCallManager &operator=(GroupCallManager &&) = delete;
   ~GroupCallManager() override;
 
+  void memory_cleanup();
+
+  void memory_stats(vector<string> &output);
+
   GroupCallId get_group_call_id(InputGroupCallId input_group_call_id, DialogId dialog_id);
 
   void create_voice_chat(DialogId dialog_id, Promise<GroupCallId> &&promise);
