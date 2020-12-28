@@ -66,8 +66,6 @@ class GroupCallManager : public Actor {
   void toggle_group_call_participant_is_muted(GroupCallId group_call_id, UserId user_id, bool is_muted,
                                               Promise<Unit> &&promise);
 
-  void check_group_call_is_joined(GroupCallId group_call_id, Promise<Unit> &&promise);
-
   void load_group_call_participants(GroupCallId group_call_id, int32 limit, Promise<Unit> &&promise);
 
   void leave_group_call(GroupCallId group_call_id, Promise<Unit> &&promise);
@@ -96,8 +94,13 @@ class GroupCallManager : public Actor {
   struct PendingJoinRequest;
 
   static constexpr int32 RECENT_SPEAKER_TIMEOUT = 5 * 60;
+  static constexpr int32 CHECK_GROUP_CALL_IS_JOINED_TIMEOUT = 10;
 
   void tear_down() override;
+
+  static void on_check_group_call_is_joined_timeout_callback(void *group_call_manager_ptr, int64 group_call_id_int);
+
+  void on_check_group_call_is_joined_timeout(GroupCallId group_call_id);
 
   static void on_pending_send_speaking_action_timeout_callback(void *group_call_manager_ptr, int64 group_call_id_int);
 
@@ -128,6 +131,8 @@ class GroupCallManager : public Actor {
 
   void finish_get_group_call(InputGroupCallId input_group_call_id,
                              Result<tl_object_ptr<telegram_api::phone_groupCall>> &&result);
+
+  void finish_check_group_call_is_joined(InputGroupCallId input_group_call_id, int32 source, Result<Unit> &&result);
 
   bool need_group_call_participants(InputGroupCallId input_group_call_id) const;
 
@@ -185,13 +190,14 @@ class GroupCallManager : public Actor {
 
   void update_group_call_dialog(const GroupCall *group_call, const char *source);
 
-  vector<int32> get_recent_speaker_user_ids(const GroupCall *group_call, bool for_update);
+  vector<td_api::object_ptr<td_api::groupCallRecentSpeaker>> get_recent_speakers(const GroupCall *group_call,
+                                                                                 bool for_update);
 
-  tl_object_ptr<td_api::updateGroupCall> get_update_group_call_object(const GroupCall *group_call,
-                                                                      vector<int32> recent_speaker_user_ids) const;
+  tl_object_ptr<td_api::updateGroupCall> get_update_group_call_object(
+      const GroupCall *group_call, vector<td_api::object_ptr<td_api::groupCallRecentSpeaker>> recent_speakers) const;
 
-  tl_object_ptr<td_api::groupCall> get_group_call_object(const GroupCall *group_call,
-                                                         vector<int32> recent_speaker_user_ids) const;
+  tl_object_ptr<td_api::groupCall> get_group_call_object(
+      const GroupCall *group_call, vector<td_api::object_ptr<td_api::groupCallRecentSpeaker>> recent_speakers) const;
 
   tl_object_ptr<td_api::updateGroupCallParticipant> get_update_group_call_participant_object(
       GroupCallId group_call_id, const GroupCallParticipant &participant);
@@ -223,6 +229,7 @@ class GroupCallManager : public Actor {
   std::unordered_map<InputGroupCallId, unique_ptr<PendingJoinRequest>, InputGroupCallIdHash> pending_join_requests_;
   uint64 join_group_request_generation_ = 0;
 
+  MultiTimeout check_group_call_is_joined_timeout_{"CheckGroupCallIsJoinedTimeout"};
   MultiTimeout pending_send_speaking_action_timeout_{"PendingSendSpeakingActionTimeout"};
   MultiTimeout recent_speaker_update_timeout_{"RecentSpeakerUpdateTimeout"};
   MultiTimeout sync_participants_timeout_{"SyncParticipantsTimeout"};

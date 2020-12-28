@@ -656,22 +656,24 @@ class UnpinAllMessagesQuery : public Td::ResultHandler {
 
     if (affected_history->pts_count_ > 0) {
       affected_history->pts_count_ = 0;  // force receiving real updates from the server
+      auto promise = affected_history->offset_ > 0 ? Promise<Unit>() : std::move(promise_);
       if (dialog_id_.get_type() == DialogType::Channel) {
         td->messages_manager_->add_pending_channel_update(dialog_id_, make_tl_object<dummyUpdate>(),
                                                           affected_history->pts_, affected_history->pts_count_,
-                                                          "unpin all messages");
+                                                          std::move(promise), "unpin all messages");
       } else {
         td->messages_manager_->add_pending_update(make_tl_object<dummyUpdate>(), affected_history->pts_,
-                                                  affected_history->pts_count_, false, "unpin all messages");
+                                                  affected_history->pts_count_, false, std::move(promise),
+                                                  "unpin all messages");
       }
+    } else if (affected_history->offset_ <= 0) {
+      promise_.set_value(Unit());
     }
 
     if (affected_history->offset_ > 0) {
       send_request();
       return;
     }
-
-    promise_.set_value(Unit());
   }
 
   void on_error(uint64 id, Status status) override {
@@ -1566,7 +1568,8 @@ class ReadMessagesContentsQuery : public Td::ResultHandler {
 
     if (affected_messages->pts_count_ > 0) {
       td->messages_manager_->add_pending_update(make_tl_object<dummyUpdate>(), affected_messages->pts_,
-                                                affected_messages->pts_count_, false, "read messages content query");
+                                                affected_messages->pts_count_, false, Promise<Unit>(),
+                                                "read messages content query");
     }
 
     promise_.set_value(Unit());
@@ -1783,7 +1786,8 @@ class ReadHistoryQuery : public Td::ResultHandler {
 
     if (affected_messages->pts_count_ > 0) {
       td->messages_manager_->add_pending_update(make_tl_object<dummyUpdate>(), affected_messages->pts_,
-                                                affected_messages->pts_count_, false, "read history query");
+                                                affected_messages->pts_count_, false, Promise<Unit>(),
+                                                "read history query");
     }
 
     promise_.set_value(Unit());
@@ -2252,7 +2256,8 @@ class DeleteHistoryQuery : public Td::ResultHandler {
 
     if (affected_history->pts_count_ > 0) {
       td->messages_manager_->add_pending_update(make_tl_object<dummyUpdate>(), affected_history->pts_,
-                                                affected_history->pts_count_, false, "delete history query");
+                                                affected_history->pts_count_, false, Promise<Unit>(),
+                                                "delete history query");
     }
 
     if (affected_history->offset_ > 0) {
@@ -2391,17 +2396,17 @@ class DeleteUserHistoryQuery : public Td::ResultHandler {
     CHECK(affected_history->get_id() == telegram_api::messages_affectedHistory::ID);
 
     if (affected_history->pts_count_ > 0) {
-      td->messages_manager_->add_pending_channel_update(DialogId(channel_id_), make_tl_object<dummyUpdate>(),
-                                                        affected_history->pts_, affected_history->pts_count_,
-                                                        "delete user history query");
+      td->messages_manager_->add_pending_channel_update(
+          DialogId(channel_id_), make_tl_object<dummyUpdate>(), affected_history->pts_, affected_history->pts_count_,
+          affected_history->offset_ > 0 ? Promise<Unit>() : std::move(promise_), "delete user history query");
+    } else if (affected_history->offset_ <= 0) {
+      promise_.set_value(Unit());
     }
 
     if (affected_history->offset_ > 0) {
       send_request();
       return;
     }
-
-    promise_.set_value(Unit());
   }
 
   void on_error(uint64 id, Status status) override {
@@ -2451,7 +2456,8 @@ class ReadAllMentionsQuery : public Td::ResultHandler {
         td->updates_manager_->get_difference("Wrong messages_readMentions result");
       } else {
         td->messages_manager_->add_pending_update(make_tl_object<dummyUpdate>(), affected_history->pts_,
-                                                  affected_history->pts_count_, false, "read all mentions query");
+                                                  affected_history->pts_count_, false, Promise<Unit>(),
+                                                  "read all mentions query");
       }
     }
 
@@ -2581,13 +2587,13 @@ class SendMessageActor : public NetActorOnce {
     if (dialog_id_.get_type() == DialogType::Channel) {
       td->messages_manager_->add_pending_channel_update(
           dialog_id_, make_tl_object<updateSentMessage>(random_id_, message_id, sent_message->date_),
-          sent_message->pts_, sent_message->pts_count_, "send message actor");
+          sent_message->pts_, sent_message->pts_count_, Promise<Unit>(), "send message actor");
       return;
     }
 
     td->messages_manager_->add_pending_update(
         make_tl_object<updateSentMessage>(random_id_, message_id, sent_message->date_), sent_message->pts_,
-        sent_message->pts_count_, false, "send message actor");
+        sent_message->pts_count_, false, Promise<Unit>(), "send message actor");
   }
 
   void on_error(uint64 id, Status status) override {
@@ -3038,11 +3044,20 @@ class SendScheduledMessageActor : public NetActorOnce {
 };
 
 class EditMessageActor : public NetActorOnce {
-  Promise<Unit> promise_;
+  Promise<int32> promise_;
   DialogId dialog_id_;
 
  public:
-  explicit EditMessageActor(Promise<Unit> &&promise) : promise_(std::move(promise)) {
+  explicit EditMessageActor(Promise<Unit> &&promise) {
+    promise_ = PromiseCreator::lambda([promise = std::move(promise)](Result<int32> result) mutable {
+      if (result.is_error()) {
+        promise.set_error(result.move_as_error());
+      } else {
+        promise.set_value(Unit());
+      }
+    });
+  }
+  explicit EditMessageActor(Promise<int32> &&promise) : promise_(std::move(promise)) {
   }
 
   void send(int32 flags, DialogId dialog_id, MessageId message_id, const string &text,
@@ -3101,13 +3116,16 @@ class EditMessageActor : public NetActorOnce {
 
     auto ptr = result_ptr.move_as_ok();
     LOG(INFO) << "Receive result for EditMessageActor: " << to_string(ptr);
-    td->updates_manager_->on_get_updates(std::move(ptr), std::move(promise_));
+    auto pts = td->updates_manager_->get_update_edit_message_pts(ptr.get());
+    auto promise = PromiseCreator::lambda(
+        [promise = std::move(promise_), pts](Result<Unit> result) mutable { promise.set_value(std::move(pts)); });
+    td->updates_manager_->on_get_updates(std::move(ptr), std::move(promise));
   }
 
   void on_error(uint64 id, Status status) override {
     LOG(INFO) << "Receive error for EditMessageQuery: " << status;
     if (!td->auth_manager_->is_bot() && status.message() == "MESSAGE_NOT_MODIFIED") {
-      return promise_.set_value(Unit());
+      return promise_.set_value(0);
     }
     td->messages_manager_->on_get_dialog_error(dialog_id_, status, "EditMessageActor");
     promise_.set_error(std::move(status));
@@ -3596,7 +3614,8 @@ class DeleteMessagesQuery : public Td::ResultHandler {
 
     if (affected_messages->pts_count_ > 0) {
       td->messages_manager_->add_pending_update(make_tl_object<dummyUpdate>(), affected_messages->pts_,
-                                                affected_messages->pts_count_, false, "delete messages query");
+                                                affected_messages->pts_count_, false, Promise<Unit>(),
+                                                "delete messages query");
     }
     if (--query_count_ == 0) {
       promise_.set_value(Unit());
@@ -3661,7 +3680,7 @@ class DeleteChannelMessagesQuery : public Td::ResultHandler {
     if (affected_messages->pts_count_ > 0) {
       td->messages_manager_->add_pending_channel_update(DialogId(channel_id_), make_tl_object<dummyUpdate>(),
                                                         affected_messages->pts_, affected_messages->pts_count_,
-                                                        "DeleteChannelMessagesQuery");
+                                                        Promise<Unit>(), "DeleteChannelMessagesQuery");
     }
     if (--query_count_ == 0) {
       promise_.set_value(Unit());
@@ -6246,7 +6265,7 @@ void MessagesManager::skip_old_pending_update(tl_object_ptr<telegram_api::Update
 }
 
 void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&update, int32 new_pts, int32 pts_count,
-                                         bool force_apply, const char *source) {
+                                         bool force_apply, Promise<Unit> &&promise, const char *source) {
   // do not try to run getDifference from this function
   CHECK(update != nullptr);
   CHECK(source != nullptr);
@@ -6255,7 +6274,7 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
   if (pts_count < 0 || new_pts <= pts_count) {
     LOG(ERROR) << "Receive update with wrong pts = " << new_pts << " or pts_count = " << pts_count << " from " << source
                << ": " << oneline(to_string(update));
-    return;
+    return promise.set_value(Unit());
   }
 
   // TODO need to save all updates that can change result of running queries not associated with pts (for example
@@ -6272,7 +6291,7 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
       auto update_new_message = static_cast<const telegram_api::updateNewMessage *>(update.get());
       DialogId dialog_id = get_message_dialog_id(update_new_message->message_);
       if (!check_update_dialog_id(update, dialog_id)) {
-        return;
+        return promise.set_value(Unit());
       }
       break;
     }
@@ -6280,7 +6299,7 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
       auto update_read_history_inbox = static_cast<const telegram_api::updateReadHistoryInbox *>(update.get());
       auto dialog_id = DialogId(update_read_history_inbox->peer_);
       if (!check_update_dialog_id(update, dialog_id)) {
-        return;
+        return promise.set_value(Unit());
       }
       break;
     }
@@ -6288,7 +6307,7 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
       auto update_read_history_outbox = static_cast<const telegram_api::updateReadHistoryOutbox *>(update.get());
       auto dialog_id = DialogId(update_read_history_outbox->peer_);
       if (!check_update_dialog_id(update, dialog_id)) {
-        return;
+        return promise.set_value(Unit());
       }
       break;
     }
@@ -6296,7 +6315,7 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
       auto update_edit_message = static_cast<const telegram_api::updateEditMessage *>(update.get());
       DialogId dialog_id = get_message_dialog_id(update_edit_message->message_);
       if (!check_update_dialog_id(update, dialog_id)) {
-        return;
+        return promise.set_value(Unit());
       }
       break;
     }
@@ -6304,7 +6323,7 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
       auto update_pinned_messages = static_cast<const telegram_api::updatePinnedMessages *>(update.get());
       auto dialog_id = DialogId(update_pinned_messages->peer_);
       if (!check_update_dialog_id(update, dialog_id)) {
-        return;
+        return promise.set_value(Unit());
       }
       break;
     }
@@ -6314,17 +6333,18 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
   }
 
   if (force_apply) {
-    CHECK(pending_updates_.empty());
+    CHECK(pending_pts_updates_.empty());
     CHECK(accumulated_pts_ == -1);
     if (pts_count != 0) {
       LOG(ERROR) << "Receive forced update with pts_count = " << pts_count << " from " << source;
     }
 
     process_update(std::move(update));
-    return;
+    return promise.set_value(Unit());
   }
   if (DROP_UPDATES) {
-    return set_get_difference_timeout(1.0);
+    set_get_difference_timeout(1.0);
+    return promise.set_value(Unit());
   }
 
   int32 old_pts = td_->updates_manager_->get_pts();
@@ -6350,15 +6370,13 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
 
   if (new_pts <= old_pts) {
     skip_old_pending_update(std::move(update), new_pts, old_pts, pts_count, source);
-    return;
+    return promise.set_value(Unit());
   }
 
-  if (td_->updates_manager_->running_get_difference()) {
+  if (td_->updates_manager_->running_get_difference() || !postponed_pts_updates_.empty()) {
     LOG(INFO) << "Save pending update got while running getDifference from " << source;
     CHECK(update->get_id() == dummyUpdate::ID || update->get_id() == updateSentMessage::ID);
-    if (pts_count > 0) {
-      postponed_pts_updates_.emplace(new_pts, PendingPtsUpdate(std::move(update), new_pts, pts_count));
-    }
+    postpone_pts_update(std::move(update), new_pts, pts_count, std::move(promise));
     return;
   }
 
@@ -6366,6 +6384,7 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
     LOG(WARNING) << "Have old_pts (= " << old_pts << ") + pts_count (= " << pts_count << ") > new_pts (= " << new_pts
                  << "). Logged in " << G()->shared_config().get_option_integer("authorization_date") << ". Update from "
                  << source << " = " << oneline(to_string(update));
+    postpone_pts_update(std::move(update), new_pts, pts_count, std::move(promise));
     set_get_difference_timeout(0.001);
     return;
   }
@@ -6381,13 +6400,14 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
                  << ", pts_count = " << pts_count << ". Logged in "
                  << G()->shared_config().get_option_integer("authorization_date") << ". Update from " << source << " = "
                  << oneline(to_string(update));
+    postpone_pts_update(std::move(update), new_pts, pts_count, std::move(promise));
     set_get_difference_timeout(0.001);
     return;
   }
 
   LOG_IF(INFO, pts_count == 0 && update->get_id() != dummyUpdate::ID) << "Skip useless update " << to_string(update);
 
-  if (pending_updates_.empty() && old_pts + accumulated_pts_count_ == accumulated_pts_ &&
+  if (pending_pts_updates_.empty() && old_pts + accumulated_pts_count_ == accumulated_pts_ &&
       !pts_gap_timeout_.has_timeout()) {
     if (pts_count > 0) {
       process_update(std::move(update));
@@ -6397,12 +6417,11 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
       accumulated_pts_count_ = 0;
       accumulated_pts_ = -1;
     }
+    promise.set_value(Unit());
     return;
   }
 
-  if (pts_count > 0) {
-    pending_updates_.emplace(new_pts, PendingPtsUpdate(std::move(update), new_pts, pts_count));
-  }
+  pending_pts_updates_.emplace(new_pts, PendingPtsUpdate(std::move(update), new_pts, pts_count, std::move(promise)));
 
   if (old_pts + accumulated_pts_count_ < accumulated_pts_) {
     set_get_difference_timeout(UpdatesManager::MAX_UNFILLED_GAP_TIME);
@@ -6410,7 +6429,7 @@ void MessagesManager::add_pending_update(tl_object_ptr<telegram_api::Update> &&u
   }
 
   CHECK(old_pts + accumulated_pts_count_ == accumulated_pts_);
-  if (!pending_updates_.empty()) {
+  if (!pending_pts_updates_.empty()) {
     process_pending_updates();
   }
 }
@@ -6511,82 +6530,6 @@ void MessagesManager::on_update_service_notification(tl_object_ptr<telegram_api:
   if (is_auth_notification) {
     save_auth_notification_ids();
   }
-}
-
-void MessagesManager::on_update_new_channel_message(tl_object_ptr<telegram_api::updateNewChannelMessage> &&update) {
-  int new_pts = update->pts_;
-  int pts_count = update->pts_count_;
-  DialogId dialog_id = get_message_dialog_id(update->message_);
-  switch (dialog_id.get_type()) {
-    case DialogType::None:
-      return;
-    case DialogType::User:
-    case DialogType::Chat:
-    case DialogType::SecretChat:
-      LOG(ERROR) << "Receive updateNewChannelMessage in wrong " << dialog_id;
-      return;
-    case DialogType::Channel: {
-      auto channel_id = dialog_id.get_channel_id();
-      if (!td_->contacts_manager_->have_channel(channel_id)) {
-        // if min channel was received
-        if (td_->contacts_manager_->have_min_channel(channel_id)) {
-          td_->updates_manager_->schedule_get_difference("on_update_new_channel_message");
-          return;
-        }
-      }
-      // Ok
-      break;
-    }
-    default:
-      UNREACHABLE();
-      return;
-  }
-
-  if (pts_count < 0 || new_pts <= pts_count) {
-    LOG(ERROR) << "Receive new channel message with wrong pts = " << new_pts << " or pts_count = " << pts_count << ": "
-               << oneline(to_string(update));
-    return;
-  }
-
-  add_pending_channel_update(dialog_id, std::move(update), new_pts, pts_count, "on_update_new_channel_message");
-}
-
-void MessagesManager::on_update_edit_channel_message(tl_object_ptr<telegram_api::updateEditChannelMessage> &&update) {
-  int new_pts = update->pts_;
-  int pts_count = update->pts_count_;
-  DialogId dialog_id = get_message_dialog_id(update->message_);
-  switch (dialog_id.get_type()) {
-    case DialogType::None:
-      return;
-    case DialogType::User:
-    case DialogType::Chat:
-    case DialogType::SecretChat:
-      LOG(ERROR) << "Receive updateEditChannelMessage in wrong " << dialog_id;
-      return;
-    case DialogType::Channel: {
-      auto channel_id = dialog_id.get_channel_id();
-      if (!td_->contacts_manager_->have_channel(channel_id)) {
-        // if min channel was received
-        if (td_->contacts_manager_->have_min_channel(channel_id)) {
-          td_->updates_manager_->schedule_get_difference("on_update_edit_channel_message");
-          return;
-        }
-      }
-      // Ok
-      break;
-    }
-    default:
-      UNREACHABLE();
-      return;
-  }
-
-  if (pts_count < 0 || new_pts <= pts_count) {
-    LOG(ERROR) << "Receive edited channel message with wrong pts = " << new_pts << " or pts_count = " << pts_count
-               << ": " << oneline(to_string(update));
-    return;
-  }
-
-  add_pending_channel_update(dialog_id, std::move(update), new_pts, pts_count, "on_update_edit_channel_message");
 }
 
 void MessagesManager::on_update_read_channel_inbox(tl_object_ptr<telegram_api::updateReadChannelInbox> &&update) {
@@ -6819,7 +6762,10 @@ bool MessagesManager::is_active_message_reply_info(DialogId dialog_id, const Mes
 
 bool MessagesManager::is_visible_message_reply_info(DialogId dialog_id, const Message *m) const {
   CHECK(m != nullptr);
-  if (!m->message_id.is_valid() || !m->message_id.is_server()) {
+  if (!m->message_id.is_valid()) {
+    return false;
+  }
+  if (!m->message_id.is_server() && !m->message_id.is_yet_unsent()) {
     return false;
   }
   if (is_broadcast_channel(dialog_id) && (m->had_reply_markup || m->reply_markup != nullptr)) {
@@ -7248,28 +7194,41 @@ void MessagesManager::cancel_user_dialog_action(DialogId dialog_id, const Messag
 }
 
 void MessagesManager::add_pending_channel_update(DialogId dialog_id, tl_object_ptr<telegram_api::Update> &&update,
-                                                 int32 new_pts, int32 pts_count, const char *source,
-                                                 bool is_postponed_update) {
+                                                 int32 new_pts, int32 pts_count, Promise<Unit> &&promise,
+                                                 const char *source, bool is_postponed_update) {
   LOG(INFO) << "Receive from " << source << " pending " << to_string(update);
   CHECK(update != nullptr);
-  CHECK(dialog_id.get_type() == DialogType::Channel);
+  if (dialog_id.get_type() != DialogType::Channel) {
+    LOG(ERROR) << "Receive channel update in invalid " << dialog_id << " from " << source << ": "
+               << oneline(to_string(update));
+    promise.set_value(Unit());
+    return;
+  }
   if (pts_count < 0 || new_pts <= pts_count) {
     LOG(ERROR) << "Receive channel update from " << source << " with wrong pts = " << new_pts
                << " or pts_count = " << pts_count << ": " << oneline(to_string(update));
+    promise.set_value(Unit());
+    return;
+  }
+
+  auto channel_id = dialog_id.get_channel_id();
+  if (!td_->contacts_manager_->have_channel(channel_id) && td_->contacts_manager_->have_min_channel(channel_id)) {
+    td_->updates_manager_->schedule_get_difference("on_update_new_channel_message");
+    promise.set_value(Unit());
     return;
   }
 
   // TODO need to save all updates that can change result of running queries not associated with pts (for example
-  // getHistory) and apply them to result of this queries
+  // getHistory) and apply them to result of these queries
 
   Dialog *d = get_dialog_force(dialog_id);
   if (d == nullptr) {
     auto pts = load_channel_pts(dialog_id);
     if (pts > 0) {
-      auto channel_id = dialog_id.get_channel_id();
       if (!td_->contacts_manager_->have_channel(channel_id)) {
         // do not create dialog if there is no info about the channel
         LOG(INFO) << "There is no info about " << channel_id << ", so ignore " << oneline(to_string(update));
+        promise.set_value(Unit());
         return;
       }
 
@@ -7286,6 +7245,7 @@ void MessagesManager::add_pending_channel_update(DialogId dialog_id, tl_object_p
     // if there is no dialog, it can be created by the update
     LOG(INFO) << "Receive pending update from " << source << " about unknown " << dialog_id;
     if (running_get_channel_difference(dialog_id)) {
+      promise.set_value(Unit());
       return;
     }
   } else {
@@ -7310,6 +7270,7 @@ void MessagesManager::add_pending_channel_update(DialogId dialog_id, tl_object_p
           // apply sent channel message
           on_get_message(std::move(update_new_channel_message->message_), true, true, false, true, true,
                          "updateNewChannelMessage with an awaited message");
+          promise.set_value(Unit());
           return;
         }
       }
@@ -7319,6 +7280,7 @@ void MessagesManager::add_pending_channel_update(DialogId dialog_id, tl_object_p
           // apply sent channel message
           on_send_message_success(update_sent_message->random_id_, update_sent_message->message_id_,
                                   update_sent_message->date_, FileId(), "process old updateSentChannelMessage");
+          promise.set_value(Unit());
           return;
         }
       }
@@ -7326,14 +7288,14 @@ void MessagesManager::add_pending_channel_update(DialogId dialog_id, tl_object_p
       LOG_IF(WARNING, new_pts == old_pts && pts_count == 0)
           << "Receive from " << source << " useless channel update " << oneline(to_string(update));
       LOG(INFO) << "Skip already applied channel update";
+      promise.set_value(Unit());
       return;
     }
 
     if (running_get_channel_difference(dialog_id)) {
-      if (pts_count > 0) {
-        d->postponed_channel_updates.emplace(new_pts, PendingPtsUpdate(std::move(update), new_pts, pts_count));
-      }
       LOG(INFO) << "Postpone channel update, because getChannelDifference is run";
+      d->postponed_channel_updates.emplace(new_pts,
+                                           PendingPtsUpdate(std::move(update), new_pts, pts_count, std::move(promise)));
       return;
     }
 
@@ -7341,9 +7303,8 @@ void MessagesManager::add_pending_channel_update(DialogId dialog_id, tl_object_p
       LOG(INFO) << "Found a gap in the " << dialog_id << " with pts = " << old_pts << ". new_pts = " << new_pts
                 << ", pts_count = " << pts_count << " in update from " << source;
 
-      if (pts_count > 0) {
-        d->postponed_channel_updates.emplace(new_pts, PendingPtsUpdate(std::move(update), new_pts, pts_count));
-      }
+      d->postponed_channel_updates.emplace(new_pts,
+                                           PendingPtsUpdate(std::move(update), new_pts, pts_count, std::move(promise)));
 
       get_channel_difference(dialog_id, old_pts, true, "add_pending_channel_update pts mismatch");
       return;
@@ -7362,12 +7323,14 @@ void MessagesManager::add_pending_channel_update(DialogId dialog_id, tl_object_p
     d = get_dialog(dialog_id);
     if (d == nullptr) {
       LOG(INFO) << "Update didn't created " << dialog_id;
+      promise.set_value(Unit());
       return;
     }
   }
 
   CHECK(new_pts > d->pts);
   set_channel_pts(d, new_pts, source);
+  promise.set_value(Unit());
 }
 
 bool MessagesManager::is_old_channel_update(DialogId dialog_id, int32 new_pts) {
@@ -7391,11 +7354,12 @@ void MessagesManager::process_update(tl_object_ptr<telegram_api::Update> &&updat
     case dummyUpdate::ID:
       LOG(INFO) << "Process dummyUpdate";
       break;
-    case telegram_api::updateNewMessage::ID:
+    case telegram_api::updateNewMessage::ID: {
+      auto update_new_message = move_tl_object_as<telegram_api::updateNewMessage>(update);
       LOG(INFO) << "Process updateNewMessage";
-      on_get_message(std::move(move_tl_object_as<telegram_api::updateNewMessage>(update)->message_), true, false, false,
-                     true, true, "updateNewMessage");
+      on_get_message(std::move(update_new_message->message_), true, false, false, true, true, "updateNewMessage");
       break;
+    }
     case updateSentMessage::ID: {
       auto send_message_success_update = move_tl_object_as<updateSentMessage>(update);
       LOG(INFO) << "Process updateSentMessage " << send_message_success_update->random_id_;
@@ -7412,11 +7376,11 @@ void MessagesManager::process_update(tl_object_ptr<telegram_api::Update> &&updat
       break;
     }
     case telegram_api::updateEditMessage::ID: {
-      auto full_message_id =
-          on_get_message(std::move(move_tl_object_as<telegram_api::updateEditMessage>(update)->message_), false, false,
-                         false, false, false, "updateEditMessage");
+      auto update_edit_message = move_tl_object_as<telegram_api::updateEditMessage>(update);
+      auto full_message_id = on_get_message(std::move(update_edit_message->message_), false, false, false, false, false,
+                                            "updateEditMessage");
       LOG(INFO) << "Process updateEditMessage";
-      on_message_edited(full_message_id);
+      on_message_edited(full_message_id, update_edit_message->pts_);
       break;
     }
     case telegram_api::updateDeleteMessages::ID: {
@@ -7477,11 +7441,13 @@ void MessagesManager::process_channel_update(tl_object_ptr<telegram_api::Update>
                               send_message_success_update->date_, FileId(), "process updateSentChannelMessage");
       break;
     }
-    case telegram_api::updateNewChannelMessage::ID:
+    case telegram_api::updateNewChannelMessage::ID: {
+      auto update_new_channel_message = move_tl_object_as<telegram_api::updateNewChannelMessage>(update);
       LOG(INFO) << "Process updateNewChannelMessage";
-      on_get_message(std::move(move_tl_object_as<telegram_api::updateNewChannelMessage>(update)->message_), true, true,
-                     false, true, true, "updateNewChannelMessage");
+      on_get_message(std::move(update_new_channel_message->message_), true, true, false, true, true,
+                     "updateNewChannelMessage");
       break;
+    }
     case telegram_api::updateDeleteChannelMessages::ID: {
       auto delete_channel_messages_update = move_tl_object_as<telegram_api::updateDeleteChannelMessages>(update);
       LOG(INFO) << "Process updateDeleteChannelMessages";
@@ -7501,11 +7467,11 @@ void MessagesManager::process_channel_update(tl_object_ptr<telegram_api::Update>
       break;
     }
     case telegram_api::updateEditChannelMessage::ID: {
+      auto update_edit_channel_message = move_tl_object_as<telegram_api::updateEditChannelMessage>(update);
       LOG(INFO) << "Process updateEditChannelMessage";
-      auto full_message_id =
-          on_get_message(std::move(move_tl_object_as<telegram_api::updateEditChannelMessage>(update)->message_), false,
-                         true, false, false, false, "updateEditChannelMessage");
-      on_message_edited(full_message_id);
+      auto full_message_id = on_get_message(std::move(update_edit_channel_message->message_), false, true, false, false,
+                                            false, "updateEditChannelMessage");
+      on_message_edited(full_message_id, update_edit_channel_message->pts_);
       break;
     }
     case telegram_api::updatePinnedChannelMessages::ID: {
@@ -7531,15 +7497,16 @@ void MessagesManager::process_channel_update(tl_object_ptr<telegram_api::Update>
   }
 }
 
-void MessagesManager::on_message_edited(FullMessageId full_message_id) {
+void MessagesManager::on_message_edited(FullMessageId full_message_id, int32 pts) {
   if (full_message_id == FullMessageId()) {
     return;
   }
 
   auto dialog_id = full_message_id.get_dialog_id();
   Dialog *d = get_dialog(dialog_id);
-  const Message *m = get_message(d, full_message_id.get_message_id());
+  Message *m = get_message(d, full_message_id.get_message_id());
   CHECK(m != nullptr);
+  m->last_edit_pts = pts;
   if (td_->auth_manager_->is_bot()) {
     d->last_edited_message_id = m->message_id;
     send_update_message_edited(dialog_id, m);
@@ -7548,8 +7515,9 @@ void MessagesManager::on_message_edited(FullMessageId full_message_id) {
 }
 
 void MessagesManager::process_pending_updates() {
-  for (auto &update : pending_updates_) {
+  for (auto &update : pending_pts_updates_) {
     process_update(std::move(update.second.update));
+    update.second.promise.set_value(Unit());
   }
 
   td_->updates_manager_->set_pts(accumulated_pts_, "process pending updates")
@@ -7561,7 +7529,12 @@ void MessagesManager::drop_pending_updates() {
   accumulated_pts_count_ = 0;
   accumulated_pts_ = -1;
   pts_gap_timeout_.cancel_timeout();
-  pending_updates_.clear();
+  pending_pts_updates_.clear();
+}
+
+void MessagesManager::postpone_pts_update(tl_object_ptr<telegram_api::Update> &&update, int32 pts, int32 pts_count,
+                                          Promise<Unit> &&promise) {
+  postponed_pts_updates_.emplace(pts, PendingPtsUpdate(std::move(update), pts, pts_count, std::move(promise)));
 }
 
 string MessagesManager::get_notification_settings_scope_database_key(NotificationSettingsScope scope) {
@@ -8902,8 +8875,8 @@ void MessagesManager::before_get_difference() {
   // scheduled messages are not returned in getDifference, so we must always reget them after it
   scheduled_messages_sync_generation_++;
 
-  postponed_pts_updates_.insert(std::make_move_iterator(pending_updates_.begin()),
-                                std::make_move_iterator(pending_updates_.end()));
+  postponed_pts_updates_.insert(std::make_move_iterator(pending_pts_updates_.begin()),
+                                std::make_move_iterator(pending_pts_updates_.end()));
 
   drop_pending_updates();
 }
@@ -8919,9 +8892,10 @@ void MessagesManager::after_get_difference() {
       if (new_pts <= old_pts) {
         skip_old_pending_update(std::move(update.second.update), new_pts, old_pts, update.second.pts_count,
                                 "after get difference");
+        update.second.promise.set_value(Unit());
       } else {
         add_pending_update(std::move(update.second.update), update.second.pts, update.second.pts_count, false,
-                           "after get difference");
+                           std::move(update.second.promise), "after get difference");
       }
       CHECK(!td_->updates_manager_->running_get_difference());
     }
@@ -8994,13 +8968,13 @@ void MessagesManager::after_get_difference() {
           LOG(ERROR) << "Unknown dialog " << dialog_id;
           break;
         }
-        if (dialog_id.get_type() == DialogType::Channel || pending_updates_.empty() || message_id.is_scheduled() ||
+        if (dialog_id.get_type() == DialogType::Channel || pending_pts_updates_.empty() || message_id.is_scheduled() ||
             message_id <= d->last_new_message_id) {
           LOG(ERROR) << "Receive updateMessageId from " << it.second << " to " << full_message_id
                      << " but not receive corresponding message, last_new_message_id = " << d->last_new_message_id;
         }
         if (dialog_id.get_type() != DialogType::Channel &&
-            (pending_updates_.empty() || message_id.is_scheduled() || message_id <= d->last_new_message_id)) {
+            (pending_pts_updates_.empty() || message_id.is_scheduled() || message_id <= d->last_new_message_id)) {
           dump_debug_message_op(get_dialog(dialog_id));
         }
         if (message_id.is_scheduled() || message_id <= d->last_new_message_id) {
@@ -9322,12 +9296,10 @@ void MessagesManager::on_get_history(DialogId dialog_id, MessageId from_message_
       set_dialog_last_new_message_id(
           d, last_added_message_id.is_valid() ? last_added_message_id : last_received_message_id, "on_get_history");
     }
-    if (last_added_message_id.is_valid()) {
-      if (last_added_message_id > d->last_message_id) {
-        CHECK(d->last_new_message_id.is_valid());
-        set_dialog_last_message_id(d, last_added_message_id, "on_get_history");
-        send_update_chat_last_message(d, "on_get_history");
-      }
+    if (last_added_message_id.is_valid() && last_added_message_id > d->last_message_id) {
+      CHECK(d->last_new_message_id.is_valid());
+      set_dialog_last_message_id(d, last_added_message_id, "on_get_history");
+      send_update_chat_last_message(d, "on_get_history");
     }
   }
 
@@ -13402,14 +13374,6 @@ FullMessageId MessagesManager::on_get_message(MessageInfo &&message_info, bool f
     return FullMessageId();
   }
 
-  if (is_sent_message) {
-    try_add_active_live_location(dialog_id, m);
-
-    // add_message_to_dialog will not update counts, because need_update == false
-    update_message_count_by_index(d, +1, m);
-    update_reply_count_by_message(d, +1, m);
-  }
-
   auto pcc_it = pending_created_dialogs_.find(dialog_id);
   if (from_update && pcc_it != pending_created_dialogs_.end()) {
     pcc_it->second.set_value(Unit());
@@ -13419,6 +13383,18 @@ FullMessageId MessagesManager::on_get_message(MessageInfo &&message_info, bool f
 
   if (need_update) {
     send_update_new_message(d, m);
+  }
+
+  if (is_sent_message) {
+    try_add_active_live_location(dialog_id, m);
+
+    // add_message_to_dialog will not update counts, because need_update == false
+    update_message_count_by_index(d, +1, m);
+  }
+
+  if (is_sent_message || need_update) {
+    update_reply_count_by_message(d, +1, m);
+    update_forward_count(dialog_id, m);
   }
 
   if (dialog_id.get_type() == DialogType::Channel && !have_input_peer(dialog_id, AccessRights::Read)) {
@@ -16521,6 +16497,9 @@ Result<FullMessageId> MessagesManager::get_top_thread_full_message_id(DialogId d
     if (!is_visible_message_reply_info(dialog_id, m)) {
       return Status::Error(400, "Message has no comments");
     }
+    if (m->message_id.is_yet_unsent()) {
+      return Status::Error(400, "Message is not sent yet");
+    }
     return FullMessageId{DialogId(m->reply_info.channel_id), m->linked_top_thread_message_id};
   } else {
     if (!m->top_thread_message_id.is_valid()) {
@@ -17004,7 +16983,7 @@ Result<std::pair<string, bool>> MessagesManager::get_message_link(FullMessageId 
     return Status::Error(400, "Message not found");
   }
   if (m->message_id.is_yet_unsent()) {
-    return Status::Error(400, "Message is yet unsent");
+    return Status::Error(400, "Message is not sent yet");
   }
   if (m->message_id.is_scheduled()) {
     return Status::Error(400, "Message is scheduled");
@@ -17103,7 +17082,7 @@ string MessagesManager::get_message_embedding_code(FullMessageId full_message_id
     return {};
   }
   if (m->message_id.is_yet_unsent()) {
-    promise.set_error(Status::Error(400, "Message is yet unsent"));
+    promise.set_error(Status::Error(400, "Message is not sent yet"));
     return {};
   }
   if (m->message_id.is_scheduled()) {
@@ -23583,7 +23562,7 @@ void MessagesManager::on_message_media_uploaded(DialogId dialog_id, const Messag
     auto promise = PromiseCreator::lambda(
         [actor_id = actor_id(this), dialog_id, message_id, file_id, thumbnail_file_id, schedule_date,
          generation = m->edit_generation, was_uploaded, was_thumbnail_uploaded,
-         file_reference = FileManager::extract_file_reference(input_media)](Result<Unit> result) mutable {
+         file_reference = FileManager::extract_file_reference(input_media)](Result<int32> result) mutable {
           send_closure(actor_id, &MessagesManager::on_message_media_edited, dialog_id, message_id, file_id,
                        thumbnail_file_id, was_uploaded, was_thumbnail_uploaded, std::move(file_reference),
                        schedule_date, generation, std::move(result));
@@ -24750,7 +24729,9 @@ void MessagesManager::cancel_edit_message_media(DialogId dialog_id, Message *m, 
 void MessagesManager::on_message_media_edited(DialogId dialog_id, MessageId message_id, FileId file_id,
                                               FileId thumbnail_file_id, bool was_uploaded, bool was_thumbnail_uploaded,
                                               string file_reference, int32 schedule_date, uint64 generation,
-                                              Result<Unit> &&result) {
+                                              Result<int32> &&result) {
+  // must not run getDifference
+
   CHECK(message_id.is_any_server());
   auto m = get_message({dialog_id, message_id});
   if (m == nullptr || m->edit_generation != generation) {
@@ -24761,15 +24742,20 @@ void MessagesManager::on_message_media_edited(DialogId dialog_id, MessageId mess
   CHECK(m->edited_content != nullptr);
   if (result.is_ok()) {
     // message content has already been replaced from updateEdit{Channel,}Message
-    // TODO check that it really was replaced
     // need only merge files from edited_content with their uploaded counterparts
     // updateMessageContent was already sent and needs to be sent again,
     // only if 'i' and 't' sizes from edited_content was added to the photo
+    auto pts = result.ok();
+    LOG(INFO) << "Successfully edited " << message_id << " in " << dialog_id << " with pts = " << pts
+              << " and last edit pts = " << m->last_edit_pts;
     std::swap(m->content, m->edited_content);
     bool need_send_update_message_content = m->edited_content->get_type() == MessageContentType::Photo &&
                                             m->content->get_type() == MessageContentType::Photo;
-    update_message_content(dialog_id, m, std::move(m->edited_content), need_send_update_message_content, true, true);
+    bool need_merge_files = pts != 0 && pts == m->last_edit_pts;
+    update_message_content(dialog_id, m, std::move(m->edited_content), need_send_update_message_content,
+                           need_merge_files, true);
   } else {
+    LOG(INFO) << "Failed to edit " << message_id << " in " << dialog_id << ": " << result.error();
     if (was_uploaded) {
       if (was_thumbnail_uploaded) {
         CHECK(thumbnail_file_id.is_valid());
@@ -28374,6 +28360,8 @@ FullMessageId MessagesManager::on_send_message_success(int64 random_id, MessageI
     send_update_chat_last_message(d, "on_send_message_success");
   }
   try_add_active_live_location(dialog_id, m);
+  update_reply_count_by_message(d, +1, m);
+  update_forward_count(dialog_id, m);
   being_readded_message_id_ = FullMessageId();
   return {dialog_id, new_message_id};
 }
@@ -29134,6 +29122,10 @@ void MessagesManager::on_update_dialog_last_pinned_message_id(DialogId dialog_id
       d->is_last_pinned_message_id_inited = true;
       on_dialog_updated(dialog_id, "on_update_dialog_last_pinned_message_id");
     }
+    Message *m = get_message_force(d, pinned_message_id, "on_update_dialog_last_pinned_message_id");
+    if (m != nullptr && update_message_is_pinned(d, m, true, "on_update_dialog_last_pinned_message_id")) {
+      on_message_changed(d, m, true, "on_update_dialog_last_pinned_message_id");
+    }
     return;
   }
 
@@ -29142,6 +29134,11 @@ void MessagesManager::on_update_dialog_last_pinned_message_id(DialogId dialog_id
 
 void MessagesManager::set_dialog_last_pinned_message_id(Dialog *d, MessageId pinned_message_id) {
   CHECK(d != nullptr);
+  Message *m = get_message_force(d, pinned_message_id, "set_dialog_last_pinned_message_id");
+  if (m != nullptr && update_message_is_pinned(d, m, true, "set_dialog_last_pinned_message_id")) {
+    on_message_changed(d, m, true, "set_dialog_last_pinned_message_id");
+  }
+
   if (d->last_pinned_message_id == pinned_message_id) {
     return;
   }
@@ -32145,7 +32142,6 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
   }
   if (*need_update) {
     update_message_count_by_index(d, +1, message.get());
-    update_reply_count_by_message(d, +1, message.get());
   }
   if (auto_attach && message_id > d->last_message_id && message_id >= d->last_new_message_id) {
     set_dialog_last_message_id(d, message_id, "add_message_to_dialog");
@@ -32329,12 +32325,6 @@ MessagesManager::Message *MessagesManager::add_message_to_dialog(Dialog *d, uniq
         set_dialog_reply_markup(d, MessageId());
       }
     }
-  }
-  if (!td_->auth_manager_->is_bot() && from_update && m->forward_info != nullptr &&
-      m->forward_info->sender_dialog_id.is_valid() && m->forward_info->message_id.is_valid() &&
-      (!is_discussion_message(dialog_id, m) || m->forward_info->sender_dialog_id != m->forward_info->from_dialog_id ||
-       m->forward_info->message_id != m->forward_info->from_message_id)) {
-    update_forward_count(m->forward_info->sender_dialog_id, m->forward_info->message_id, m->date);
   }
 
   return result_message;
@@ -33287,6 +33277,7 @@ bool MessagesManager::update_message_content(DialogId dialog_id, Message *old_me
                                  "update_message_content");
     }
     old_content = std::move(new_content);
+    old_message->last_edit_pts = 0;
     update_message_content_file_id_remote(old_content.get(), old_file_id);
   } else {
     update_message_content_file_id_remote(old_content.get(), get_message_content_any_file_id(new_content.get()));
@@ -35490,31 +35481,42 @@ void MessagesManager::after_get_channel_difference(DialogId dialog_id, bool succ
   auto d = get_dialog(dialog_id);
   if (d != nullptr) {
     bool have_access = have_input_peer(dialog_id, AccessRights::Read);
-    if (!have_access) {
-      d->postponed_channel_updates.clear();
-    } else if (!d->postponed_channel_updates.empty()) {
+    if (!d->postponed_channel_updates.empty()) {
       LOG(INFO) << "Begin to apply postponed channel updates";
       while (!d->postponed_channel_updates.empty()) {
         auto it = d->postponed_channel_updates.begin();
         auto update = std::move(it->second.update);
         auto update_pts = it->second.pts;
         auto update_pts_count = it->second.pts_count;
+        auto promise = std::move(it->second.promise);
         d->postponed_channel_updates.erase(it);
+
         auto old_size = d->postponed_channel_updates.size();
         auto update_id = update->get_id();
-        add_pending_channel_update(dialog_id, std::move(update), update_pts, update_pts_count,
-                                   "apply postponed channel updates", true);
+        if (have_access) {
+          add_pending_channel_update(dialog_id, std::move(update), update_pts, update_pts_count, std::move(promise),
+                                     "apply postponed channel updates", true);
+        } else {
+          promise.set_value(Unit());
+        }
         if (d->postponed_channel_updates.size() != old_size || running_get_channel_difference(dialog_id)) {
           if (success && update_pts < d->pts + 10000 && update_pts_count == 1) {
             // if getChannelDifference was successful and update pts is near channel pts,
             // we hope that the update eventually can be applied
             LOG(INFO) << "Can't apply postponed channel updates";
           } else {
-            // otherwise we protecting from getChannelDifference repeating calls by dropping pending updates
+            // otherwise protect from getChannelDifference repeating calls by dropping postponed updates
             LOG(WARNING) << "Failed to apply postponed updates of type " << update_id << " in " << dialog_id
                          << " with pts " << d->pts << ", update pts is " << update_pts << ", update pts count is "
                          << update_pts_count;
+            vector<Promise<Unit>> update_promises;
+            for (auto &postponed_update : d->postponed_channel_updates) {
+              update_promises.push_back(std::move(postponed_update.second.promise));
+            }
             d->postponed_channel_updates.clear();
+            for (auto &update_promise : update_promises) {
+              update_promise.set_value(Unit());
+            }
           }
           break;
         }
@@ -35676,6 +35678,15 @@ void MessagesManager::update_top_dialogs(DialogId dialog_id, const Message *m) {
   }
   if (category != TopDialogCategory::Size) {
     on_dialog_used(category, dialog_id, m->date);
+  }
+}
+
+void MessagesManager::update_forward_count(DialogId dialog_id, const Message *m) {
+  if (!td_->auth_manager_->is_bot() && m->forward_info != nullptr && m->forward_info->sender_dialog_id.is_valid() &&
+      m->forward_info->message_id.is_valid() &&
+      (!is_discussion_message(dialog_id, m) || m->forward_info->sender_dialog_id != m->forward_info->from_dialog_id ||
+       m->forward_info->message_id != m->forward_info->from_message_id)) {
+    update_forward_count(m->forward_info->sender_dialog_id, m->forward_info->message_id, m->date);
   }
 }
 

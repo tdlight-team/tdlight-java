@@ -347,10 +347,6 @@ class MessagesManager : public Actor {
   void on_update_service_notification(tl_object_ptr<telegram_api::updateServiceNotification> &&update,
                                       bool skip_new_entities, Promise<Unit> &&promise);
 
-  void on_update_new_channel_message(tl_object_ptr<telegram_api::updateNewChannelMessage> &&update);
-
-  void on_update_edit_channel_message(tl_object_ptr<telegram_api::updateEditChannelMessage> &&update);
-
   void on_update_read_channel_inbox(tl_object_ptr<telegram_api::updateReadChannelInbox> &&update);
 
   void on_update_read_channel_outbox(tl_object_ptr<telegram_api::updateReadChannelOutbox> &&update);
@@ -797,10 +793,11 @@ class MessagesManager : public Actor {
                                                       bool skip_not_found);
 
   void add_pending_update(tl_object_ptr<telegram_api::Update> &&update, int32 new_pts, int32 pts_count,
-                          bool force_apply, const char *source);
+                          bool force_apply, Promise<Unit> &&promise, const char *source);
 
   void add_pending_channel_update(DialogId dialog_id, tl_object_ptr<telegram_api::Update> &&update, int32 new_pts,
-                                  int32 pts_count, const char *source, bool is_postponed_update = false);
+                                  int32 pts_count, Promise<Unit> &&promise, const char *source,
+                                  bool is_postponed_update = false);
 
   bool is_old_channel_update(DialogId dialog_id, int32 new_pts);
 
@@ -977,9 +974,10 @@ class MessagesManager : public Actor {
     tl_object_ptr<telegram_api::Update> update;
     int32 pts;
     int32 pts_count;
+    Promise<Unit> promise;
 
-    PendingPtsUpdate(tl_object_ptr<telegram_api::Update> &&update, int32 pts, int32 pts_count)
-        : update(std::move(update)), pts(pts), pts_count(pts_count) {
+    PendingPtsUpdate(tl_object_ptr<telegram_api::Update> &&update, int32 pts, int32 pts_count, Promise<Unit> &&promise)
+        : update(std::move(update)), pts(pts), pts_count(pts_count), promise(std::move(promise)) {
     }
   };
 
@@ -1143,6 +1141,8 @@ class MessagesManager : public Actor {
     unique_ptr<ReplyMarkup> edited_reply_markup;
     uint64 edit_generation = 0;
     Promise<Unit> edit_promise;
+
+    int32 last_edit_pts = 0;
 
     unique_ptr<Message> left;
     unique_ptr<Message> right;
@@ -1815,7 +1815,7 @@ class MessagesManager : public Actor {
 
   void on_message_media_edited(DialogId dialog_id, MessageId message_id, FileId file_id, FileId thumbnail_file_id,
                                bool was_uploaded, bool was_thumbnail_uploaded, string file_reference,
-                               int32 scheduled_date, uint64 generation, Result<Unit> &&result);
+                               int32 scheduled_date, uint64 generation, Result<int32> &&result);
 
   MessageId get_persistent_message_id(const Dialog *d, MessageId message_id) const;
 
@@ -1834,7 +1834,7 @@ class MessagesManager : public Actor {
 
   void process_channel_update(tl_object_ptr<telegram_api::Update> &&update);
 
-  void on_message_edited(FullMessageId full_message_id);
+  void on_message_edited(FullMessageId full_message_id, int32 pts);
 
   void delete_messages_from_updates(const vector<MessageId> &message_ids);
 
@@ -2800,6 +2800,9 @@ class MessagesManager : public Actor {
 
   void drop_pending_updates();
 
+  void postpone_pts_update(tl_object_ptr<telegram_api::Update> &&update, int32 pts, int32 pts_count,
+                           Promise<Unit> &&promise);
+
   static string get_channel_pts_key(DialogId dialog_id);
 
   int32 load_channel_pts(DialogId dialog_id) const;
@@ -2916,6 +2919,8 @@ class MessagesManager : public Actor {
   void update_used_hashtags(DialogId dialog_id, const Message *m);
 
   void update_top_dialogs(DialogId dialog_id, const Message *m);
+
+  void update_forward_count(DialogId dialog_id, const Message *m);
 
   void update_forward_count(DialogId dialog_id, MessageId message_id, int32 update_date);
 
@@ -3111,7 +3116,7 @@ class MessagesManager : public Actor {
   bool running_get_difference_ = false;  // true after before_get_difference and false after after_get_difference
 
   std::unordered_map<DialogId, unique_ptr<Dialog>, DialogIdHash> dialogs_;
-  std::multimap<int32, PendingPtsUpdate> pending_updates_;
+  std::multimap<int32, PendingPtsUpdate> pending_pts_updates_;
   std::multimap<int32, PendingPtsUpdate> postponed_pts_updates_;
 
   std::unordered_set<DialogId, DialogIdHash>
