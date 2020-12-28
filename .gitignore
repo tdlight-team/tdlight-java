@@ -8,3 +8,4 @@ db_backup
 docs/
 .idea/
 vcpkg/
+*.tlo
