@@ -26,6 +26,26 @@
       <artifactId>tdlight-java</artifactId>
       <version>RELEASE</version>
     </dependency>
+    <dependency>
+      <groupId>it.tdlight</groupId>
+      <artifactId>tdlight-natives-linux-amd64</artifactId>
+      <version>RELEASE</version>
+    </dependency>
+    <dependency>
+      <groupId>it.tdlight</groupId>
+      <artifactId>tdlight-natives-linux-aarch64</artifactId>
+      <version>RELEASE</version>
+    </dependency>
+    <dependency>
+      <groupId>it.tdlight</groupId>
+      <artifactId>tdlight-natives-windows-amd64</artifactId>
+      <version>RELEASE</version>
+    </dependency>
+    <dependency>
+      <groupId>it.tdlight</groupId>
+      <artifactId>tdlight-natives-osx-amd64</artifactId>
+      <version>RELEASE</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

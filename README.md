@@ -44,21 +44,42 @@ Repository:
 ```
 Dependency:
 ```xml
-<dependency>
-<groupId>it.tdlight</groupId>
-<artifactId>tdlight-java</artifactId>
-<version>REPLACE_WITH_LATEST_VERSION</version>
-</dependency>
+<dependencies>
+  <dependency>
+    <groupId>it.tdlight</groupId>
+    <artifactId>tdlight-java</artifactId>
+    <version>REPLACE_WITH_LATEST_VERSION</version>
+  </dependency>
+  <dependency>
+    <groupId>it.tdlight</groupId>
+    <artifactId>tdlight-natives-linux-amd64</artifactId>
+    <version>REPLACE_WITH_LATEST_NATIVES_VERSION</version>
+  </dependency>
+  <!-- include other native versions that you want, for example for macos, windows, and other architectures here -->
+</dependencies>
 ```
 #### Gradle
 ```groovy
 repositories {
-     maven { url "https://mvn.mchv.eu/repository/mchv/" }
+    maven { url "https://mvn.mchv.eu/repository/mchv/" }
 }
 dependencies {
-     implementation 'it.tdlight:tdlight-java:REPLACE_WITH_LATEST_VERSION'
+    implementation 'it.tdlight:tdlight-java:REPLACE_WITH_LATEST_VERSION'
+    implementation 'it.tdlight:tdlight-natives-linux-amd64:REPLACE_WITH_LATEST_NATIVES_VERSION'
+    // include other native versions that you want, for example for macos, windows, and other architectures here
 }
 ```
+#### Natives inclusion
+To use TDLight java for a specific platform, you need to include the related native dependencies:
+- `tdlight-natives-linux-amd64`
+- `tdlight-natives-linux-aarch64`
+- `tdlight-natives-linux-x86`
+- `tdlight-natives-linux-armv6`
+- `tdlight-natives-linux-armv7`
+- `tdlight-natives-linux-ppc64le`
+- `tdlight-natives-windows-amd64`
+- `tdlight-natives-osx-amd64`
+
 ### For TDLight Java with official TDLib
 #### Maven
 Repository:
@@ -73,21 +94,41 @@ Repository:
 ```
 Dependency:
 ```xml
-<dependency>
-<groupId>it.tdlight</groupId>
-<artifactId>tdlib-java</artifactId>
-<version>REPLACE_WITH_LATEST_VERSION</version>
-</dependency>
+<dependencies>
+  <dependency>
+    <groupId>it.tdlight</groupId>
+    <artifactId>tdlib-java</artifactId>
+    <version>REPLACE_WITH_LATEST_VERSION</version>
+  </dependency>
+  <dependency>
+    <groupId>it.tdlight</groupId>
+    <artifactId>tdlib-natives-linux-amd64</artifactId>
+    <version>REPLACE_WITH_LATEST_NATIVES_VERSION</version>
+  </dependency>
+  <!-- include other native versions that you want, for example for macos, windows, and other architectures here -->
+</dependencies>
 ```
 #### Gradle
 ```groovy
 repositories {
-     maven { url "https://mvn.mchv.eu/repository/mchv/" }
+    maven { url "https://mvn.mchv.eu/repository/mchv/" }
 }
 dependencies {
-     implementation 'it.tdlight:tdlib-java:REPLACE_WITH_LATEST_VERSION'
+    implementation 'it.tdlight:tdlib-java:REPLACE_WITH_LATEST_VERSION'
+    implementation 'it.tdlight:tdlib-natives-linux-amd64:REPLACE_WITH_LATEST_NATIVES_VERSION'
+    // include other native versions that you want, for example for macos, windows, and other architectures here
 }
 ```
+#### Natives inclusion
+To use TDLight java for a specific platform, you need to include the related native dependencies:
+- `tdlib-natives-linux-amd64`
+- `tdlib-natives-linux-aarch64`
+- `tdlib-natives-linux-x86`
+- `tdlib-natives-linux-armv6`
+- `tdlib-natives-linux-armv7`
+- `tdlib-natives-linux-ppc64le`
+- `tdlib-natives-windows-amd64`
+- `tdlib-natives-osx-amd64`
 
 ## Usage
 Simple initialization of a native TDLib client

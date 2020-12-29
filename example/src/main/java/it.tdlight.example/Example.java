@@ -337,7 +337,7 @@ public final class Example {
 		}
 	}
 
-	private static class OrderedChat implements Comparable<OrderedChat> {
+	public static class OrderedChat implements Comparable<OrderedChat> {
 		final long chatId;
 		final TdApi.ChatPosition position;
 
