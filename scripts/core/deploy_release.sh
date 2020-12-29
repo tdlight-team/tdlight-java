@@ -13,9 +13,9 @@ if [ -z "${IMPLEMENTATION_NAME}" ]; then
 	exit 1
 fi
 
-cd ../../generated
+cd ../../${IMPLEMENTATION_NAME}
 
-mvn -B -Drevision=${REVISION} clean deploy --file ${IMPLEMENTATION_NAME}/pom.xml
+mvn -B -Drevision=${REVISION} clean deploy --file pom.xml
 
 echo "Done."
 exit 0
