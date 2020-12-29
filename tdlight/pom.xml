@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.tdlight</groupId>
 	<artifactId>tdlight-java</artifactId>
-	<version>3.170.${revision}</version>
+	<version>3.171.${revision}</version>
 	<name>TDLight Java Wrapper</name>
 	<packaging>jar</packaging>
 	<properties>
