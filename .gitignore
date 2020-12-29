@@ -73,3 +73,4 @@ src/main/jni/bin/
 /src/main/java/it/tdlight/jni/TdApi.java
 tdlib/.flattened-pom.xml
 tdlight/.flattened-pom.xml
+example/target/
