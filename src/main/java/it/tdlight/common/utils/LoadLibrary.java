@@ -112,9 +112,37 @@ public class LoadLibrary {
 							// not found
 						}
 						break;
+					case x86:
+						try {
+							classForResource = Class.forName(LibraryVersion.LINUX_X86_CLASS);
+						} catch (ClassNotFoundException e) {
+							// not found
+						}
+						break;
 					case aarch64:
 						try {
 							classForResource = Class.forName(LibraryVersion.LINUX_AARCH64_CLASS);
+						} catch (ClassNotFoundException e) {
+							// not found
+						}
+						break;
+					case armv7:
+						try {
+							classForResource = Class.forName(LibraryVersion.LINUX_ARMV7_CLASS);
+						} catch (ClassNotFoundException e) {
+							// not found
+						}
+						break;
+					case armv6:
+						try {
+							classForResource = Class.forName(LibraryVersion.LINUX_ARMV6_CLASS);
+						} catch (ClassNotFoundException e) {
+							// not found
+						}
+						break;
+					case ppc64le:
+						try {
+							classForResource = Class.forName(LibraryVersion.LINUX_PPC64LE_CLASS);
 						} catch (ClassNotFoundException e) {
 							// not found
 						}
@@ -131,12 +159,16 @@ public class LoadLibrary {
 				}
 				break;
 			case win:
-				if (arch == Arch.amd64) {
-					try {
-						classForResource = Class.forName(LibraryVersion.WINDOWS_AMD64_CLASS);
-					} catch (ClassNotFoundException e) {
-						// not found
-					}
+				switch (arch) {
+					case amd64:
+						try {
+							classForResource = Class.forName(LibraryVersion.WINDOWS_AMD64_CLASS);
+						} catch (ClassNotFoundException e) {
+							// not found
+						}
+						break;
+					case x86:
+						break;
 				}
 				break;
 		}
@@ -165,12 +197,18 @@ public class LoadLibrary {
 				return Arch.amd64;
 			case "i386":
 			case "x86":
-				return Arch.i386;
+				return Arch.x86;
+			case "armv6":
+				return Arch.armv6;
 			case "arm":
-				return Arch.armhf;
+			case "aarch32":
+			case "armv7":
+			case "armv7l":
+				return Arch.armv7;
 			case "arm64":
 			case "aarch64":
 				return Arch.aarch64;
+			case "powerpc":
 			case "ppc64":
 				if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) // Java always returns ppc64 for all 64-bit powerpc but
 					return Arch.ppc64le;                                       // powerpc64le (our target) is very different, it uses this condition to accurately identify the architecture

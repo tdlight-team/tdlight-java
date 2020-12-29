@@ -1,7 +1,4 @@
 jdk:
    - openjdk11
 before_install:
-   - cd common-utils
-   - mvn clean install -DskipTests
-   - cd ..
-
+   - cd tdlight

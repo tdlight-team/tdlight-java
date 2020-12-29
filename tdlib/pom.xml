@@ -8,7 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-		<natives-version>3.1.54</natives-version>
+		<natives-version>3.2.3</natives-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -42,23 +42,56 @@
 	<dependencies>
 		<dependency>
 			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-api</artifactId>
+			<version>${natives-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlib-natives-linux-x86</artifactId>
+			<version>${natives-version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-linux-amd64</artifactId>
 			<version>${natives-version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-linux-aarch64</artifactId>
 			<version>${natives-version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlib-natives-linux-ppc64le</artifactId>
+			<version>${natives-version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlib-natives-linux-armv6</artifactId>
+			<version>${natives-version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlib-natives-linux-armv7</artifactId>
+			<version>${natives-version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-windows-amd64</artifactId>
 			<version>${natives-version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-osx-amd64</artifactId>
 			<version>${natives-version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>it.cavallium</groupId>

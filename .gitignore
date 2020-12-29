@@ -55,13 +55,15 @@ gradle-app.setting
 
 docs/
 tdlib.iml
+tdlight.iml
+tdlight-java.iml
+example/example-java.iml
 
 src/main/jni/jnibuild/
 src/main/jni/jtdlib/jnibuild/
 src/main/jni/jtdlib/build/
 
 src/main/jni/bin/
-tdlight-java.iml
 
 /tdapi-build
 /bin-td

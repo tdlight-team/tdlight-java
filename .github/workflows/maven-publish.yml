@@ -1,0 +1,49 @@
+# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
+# For more information see: https://github.com/actions/setup-java#apache-maven-with-a-settings-path
+
+name: Maven Package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-20.04, arch: "linux/amd64", implementation: "tdlight" }
+          - { os: ubuntu-20.04, arch: "linux/amd64", implementation: "tdlib" }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: Setup variables
+        shell: bash
+        run: |
+          # ====== Variables
+          export REVISION=${{ github.run_number }}
+          export IMPLEMENTATION_NAME=${{ matrix.implementation }}
+
+          echo "REVISION=$REVISION" >> $GITHUB_ENV
+          echo "IMPLEMENTATION_NAME=$IMPLEMENTATION_NAME" >> $GITHUB_ENV
+      - name: Set up JDK 15
+        if: github.ref == 'refs/heads/master'
+        uses: actions/setup-java@v1
+        with:
+          java-version: 15
+          server-id: mchv-release-distribution
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+      - name: Deploy to Maven (Release)
+        if: github.ref == 'refs/heads/master'
+        shell: bash
+        run: |
+          echo "REVISION: $REVISION"
+          echo "IMPLEMENTATION_NAME: $IMPLEMENTATION_NAME"
+
+          source ./scripts/continuous-integration/github-workflows/deploy-release.sh
+        env:
+          MAVEN_USERNAME: ${{ secrets.MCHV_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MCHV_TOKEN }}
