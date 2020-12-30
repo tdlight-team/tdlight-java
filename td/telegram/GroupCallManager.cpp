@@ -510,7 +510,9 @@ void GroupCallManager::on_check_group_call_is_joined_timeout(GroupCallId group_c
   auto input_group_call_id = get_input_group_call_id(group_call_id).move_as_ok();
 
   auto *group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if(!(group_call != nullptr && group_call->is_inited)) {
+    return;
+  }
   if (!group_call->is_joined || check_group_call_is_joined_timeout_.has_timeout(group_call_id.get())) {
     return;
   }
@@ -549,7 +551,9 @@ void GroupCallManager::on_send_speaking_action_timeout(GroupCallId group_call_id
   auto input_group_call_id = get_input_group_call_id(group_call_id).move_as_ok();
 
   auto *group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited && group_call->dialog_id.is_valid());
+  if(!(group_call != nullptr && group_call->is_inited && group_call->dialog_id.is_valid())) {
+    return;
+  }
   if (!group_call->is_joined || !group_call->is_speaking) {
     return;
   }
@@ -769,7 +773,9 @@ void GroupCallManager::get_group_call(GroupCallId group_call_id,
 void GroupCallManager::on_update_group_call_rights(InputGroupCallId input_group_call_id) {
   auto group_call = get_group_call(input_group_call_id);
   if (need_group_call_participants(input_group_call_id)) {
-    CHECK(group_call != nullptr && group_call->is_inited);
+    if(!(group_call != nullptr && group_call->is_inited)) {
+      return;
+    }
     try_load_group_call_administrators(input_group_call_id, group_call->dialog_id);
 
     auto participants_it = group_call_participants_.find(input_group_call_id);
@@ -843,7 +849,9 @@ void GroupCallManager::finish_get_group_call(InputGroupCallId input_group_call_i
   }
 
   auto group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if(!(group_call != nullptr && group_call->is_inited)) {
+    return;
+  }
   for (auto &promise : promises) {
     if (promise) {
       promise.set_value(get_group_call_object(group_call, get_recent_speakers(group_call, false)));
@@ -856,7 +864,9 @@ void GroupCallManager::finish_check_group_call_is_joined(InputGroupCallId input_
   LOG(INFO) << "Finish check group call is_joined for " << input_group_call_id;
 
   auto *group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if(!(group_call != nullptr && group_call->is_inited)) {
+    return;
+  }
   if (!group_call->is_joined || check_group_call_is_joined_timeout_.has_timeout(group_call->group_call_id.get()) ||
       group_call->source != source) {
     return;
@@ -895,7 +905,9 @@ void GroupCallManager::on_get_group_call_participants(
   bool is_sync = is_load && offset.empty();
   if (is_sync) {
     auto group_call = get_group_call(input_group_call_id);
-    CHECK(group_call != nullptr && group_call->is_inited);
+    if(!(group_call != nullptr && group_call->is_inited)) {
+      return;
+    }
     is_sync = group_call->syncing_participants;
     if (is_sync) {
       group_call->syncing_participants = false;
@@ -931,7 +943,9 @@ void GroupCallManager::on_get_group_call_participants(
     if (is_empty || is_sync) {
       bool need_update = false;
       auto group_call = get_group_call(input_group_call_id);
-      CHECK(group_call != nullptr && group_call->is_inited);
+      if(!(group_call != nullptr && group_call->is_inited)) {
+        return;
+      }
       if (is_empty && !group_call->loaded_all_participants) {
         group_call->loaded_all_participants = true;
         need_update = true;
@@ -1072,7 +1086,9 @@ bool GroupCallManager::process_pending_group_call_participant_updates(InputGroup
     return false;
   }
   auto group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if(!(group_call != nullptr && group_call->is_inited)) {
+    return false;
+  }
   if (group_call->version == -1 || !group_call->is_active) {
     return false;
   }
@@ -1173,7 +1189,9 @@ void GroupCallManager::sync_group_call_participants(InputGroupCallId input_group
   }
 
   auto group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if (!(group_call != nullptr && group_call->is_inited)) {
+    return;
+  }
 
   sync_participants_timeout_.cancel_timeout(group_call->group_call_id.get());
 
@@ -1197,8 +1215,12 @@ void GroupCallManager::on_sync_group_call_participants_failed(InputGroupCallId i
   }
 
   auto group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
-  CHECK(group_call->syncing_participants);
+  if (!(group_call != nullptr && group_call->is_inited)) {
+    return;
+  }
+  if (!(group_call->syncing_participants)) {
+    return;
+  }
   group_call->syncing_participants = false;
 
   sync_participants_timeout_.add_timeout_in(group_call->group_call_id.get(), 1.0);
@@ -1333,7 +1355,9 @@ int GroupCallManager::process_group_call_participant(InputGroupCallId input_grou
 
   if (participant.user_id == td_->contacts_manager_->get_my_id()) {
     auto *group_call = get_group_call(input_group_call_id);
-    CHECK(group_call != nullptr && group_call->is_inited);
+    if (!(group_call != nullptr && group_call->is_inited)) {
+      return 0;
+    }
     if (group_call->is_joined && group_call->is_active && participant.source == group_call->source &&
         participant.is_muted && group_call->can_self_unmute != participant.can_self_unmute) {
       group_call->can_self_unmute = participant.can_self_unmute;
@@ -1829,7 +1853,9 @@ void GroupCallManager::load_group_call_participants(GroupCallId group_call_id, i
     return promise.set_error(Status::Error(400, "Can't load group call participants"));
   }
   auto *group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if (!(group_call != nullptr && group_call->is_inited)) {
+    return promise.set_error(Status::Error(400, "Internal error"));
+  }
   if (group_call->loaded_all_participants) {
     return promise.set_value(Unit());
   }
@@ -1867,7 +1893,9 @@ void GroupCallManager::leave_group_call(GroupCallId group_call_id, Promise<Unit>
 
 void GroupCallManager::on_group_call_left(InputGroupCallId input_group_call_id, int32 source, bool need_rejoin) {
   auto *group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if (!(group_call != nullptr && group_call->is_inited)) {
+    return;
+  }
   if (group_call->is_joined && group_call->source == source) {
     on_group_call_left_impl(group_call, need_rejoin);
     send_update_group_call(group_call, "on_group_call_left");
@@ -1875,7 +1903,9 @@ void GroupCallManager::on_group_call_left(InputGroupCallId input_group_call_id, 
 }
 
 void GroupCallManager::on_group_call_left_impl(GroupCall *group_call, bool need_rejoin) {
-  CHECK(group_call != nullptr && group_call->is_inited && group_call->is_joined);
+  if (!(group_call != nullptr && group_call->is_inited && group_call->is_joined)) {
+    return;
+  }
   group_call->is_joined = false;
   group_call->need_rejoin = need_rejoin && !group_call->is_being_left;
   group_call->is_being_left = false;
@@ -1926,7 +1956,9 @@ void GroupCallManager::try_clear_group_call_participants(InputGroupCallId input_
   group_call_participants_.erase(participants_it);
 
   auto group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if (!(group_call != nullptr && group_call->is_inited)) {
+    return;
+  }
   LOG(INFO) << "Clear participants in " << input_group_call_id << " from " << group_call->dialog_id;
   if (group_call->loaded_all_participants) {
     group_call->loaded_all_participants = false;
@@ -2078,7 +2110,9 @@ void GroupCallManager::on_receive_group_call_version(InputGroupCallId input_grou
   }
 
   auto *group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if (!(group_call != nullptr && group_call->is_inited)) {
+    return;
+  }
   if (group_call->version == -1) {
     return;
   }
@@ -2263,7 +2297,9 @@ void GroupCallManager::update_group_call_dialog(const GroupCall *group_call, con
 
 vector<td_api::object_ptr<td_api::groupCallRecentSpeaker>> GroupCallManager::get_recent_speakers(
     const GroupCall *group_call, bool for_update) {
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if(!(group_call != nullptr && group_call->is_inited)) {
+    return Auto();
+  }
 
   auto recent_speakers_it = group_call_recent_speakers_.find(group_call->group_call_id);
   if (recent_speakers_it == group_call_recent_speakers_.end()) {
@@ -2360,7 +2396,9 @@ void GroupCallManager::send_update_group_call_participant(InputGroupCallId input
     return;
   }
   auto group_call = get_group_call(input_group_call_id);
-  CHECK(group_call != nullptr && group_call->is_inited);
+  if(!(group_call != nullptr && group_call->is_inited)) {
+    return;
+  }
   send_update_group_call_participant(group_call->group_call_id, participant);
 }
 
