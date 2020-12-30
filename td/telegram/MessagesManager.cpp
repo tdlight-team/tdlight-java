@@ -498,16 +498,18 @@ class GetChannelMessagesQuery : public Td::ResultHandler {
 
     auto info = td->messages_manager_->on_get_messages(result_ptr.move_as_ok(), "GetChannelMessagesQuery");
     LOG_IF(ERROR, !info.is_channel_messages) << "Receive ordinary messages in GetChannelMessagesQuery";
-    vector<MessageId> empty_message_ids;
-    for (auto &message : info.messages) {
-      if (message->get_id() == telegram_api::messageEmpty::ID) {
-        auto message_id = MessagesManager::get_message_id(message, false);
-        if (message_id.is_valid()) {
-          empty_message_ids.push_back(message_id);
+    if (!td->auth_manager_->is_bot()) {  // bots can receive messageEmpty because of their privacy mode
+      vector<MessageId> empty_message_ids;
+      for (auto &message : info.messages) {
+        if (message->get_id() == telegram_api::messageEmpty::ID) {
+          auto message_id = MessagesManager::get_message_id(message, false);
+          if (message_id.is_valid()) {
+            empty_message_ids.push_back(message_id);
+          }
         }
       }
+      td->messages_manager_->on_get_empty_messages(DialogId(channel_id_), std::move(empty_message_ids));
     }
-    td->messages_manager_->on_get_empty_messages(DialogId(channel_id_), std::move(empty_message_ids));
     td->messages_manager_->get_channel_difference_if_needed(
         DialogId(channel_id_), std::move(info),
         PromiseCreator::lambda(
@@ -7199,8 +7201,10 @@ void MessagesManager::add_pending_channel_update(DialogId dialog_id, tl_object_p
   LOG(INFO) << "Receive from " << source << " pending " << to_string(update);
   CHECK(update != nullptr);
   if (dialog_id.get_type() != DialogType::Channel) {
-    LOG(ERROR) << "Receive channel update in invalid " << dialog_id << " from " << source << ": "
-               << oneline(to_string(update));
+    if (dialog_id != DialogId() || !td_->auth_manager_->is_bot()) {
+      LOG(ERROR) << "Receive channel update in invalid " << dialog_id << " from " << source << ": "
+                 << oneline(to_string(update));
+    }
     promise.set_value(Unit());
     return;
   }
@@ -32668,6 +32672,7 @@ void MessagesManager::delete_message_from_database(Dialog *d, MessageId message_
     if (message_id.is_scheduled() && message_id.is_scheduled_server()) {
       d->deleted_scheduled_server_message_ids.insert(message_id.get_scheduled_server_message_id());
     } else {
+      // don't store failed to send message identifiers for bots to reduce memory usage
       if (m == nullptr || !td_->auth_manager_->is_bot() || !m->is_failed_to_send) {
         d->deleted_message_ids.insert(message_id);
       }
