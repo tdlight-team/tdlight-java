@@ -9122,7 +9122,9 @@ void ContactsManager::update_channel_full(ChannelFull *channel_full, ChannelId c
   CHECK(channel_full != nullptr);
   unavailable_channel_fulls_.erase(channel_id);  // don't needed anymore
 
-  CHECK(channel_full->participant_count >= channel_full->administrator_count);
+  if (!(channel_full->participant_count >= channel_full->administrator_count)) {
+    return;
+  }
 
   if (channel_full->is_slow_mode_next_send_date_changed) {
     auto now = G()->server_time();
