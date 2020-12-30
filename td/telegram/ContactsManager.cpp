@@ -9119,7 +9119,9 @@ void ContactsManager::update_chat_full(ChatFull *chat_full, ChatId chat_id, bool
 }
 
 void ContactsManager::update_channel_full(ChannelFull *channel_full, ChannelId channel_id, bool from_database) {
-  CHECK(channel_full != nullptr);
+  if (channel_full == nullptr) {
+    return;
+  }
   unavailable_channel_fulls_.erase(channel_id);  // don't needed anymore
 
   if (!(channel_full->participant_count >= channel_full->administrator_count)) {
@@ -9153,7 +9155,9 @@ void ContactsManager::update_channel_full(ChannelFull *channel_full, ChannelId c
 
     {
       Channel *c = get_channel(channel_id);
-      CHECK(c == nullptr || c->is_update_supergroup_sent);
+      if (!(c == nullptr || c->is_update_supergroup_sent)) {
+        return;
+      }
     }
     send_closure(
         G()->td(), &Td::send_update,
