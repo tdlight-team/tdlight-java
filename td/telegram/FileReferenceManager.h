@@ -143,7 +143,10 @@ class FileReferenceManager : public Actor {
       Variant<FileSourceMessage, FileSourceUserPhoto, FileSourceChatPhoto, FileSourceChannelPhoto, FileSourceWallpapers,
               FileSourceWebPage, FileSourceSavedAnimations, FileSourceRecentStickers, FileSourceFavoriteStickers,
               FileSourceBackground, FileSourceChatFull, FileSourceChannelFull>;
-  vector<FileSource> file_sources_;
+
+  std::unordered_map<u_long, FileSource> file_sources_;
+
+  u_long unique_file_source_id = 0;
 
   int64 query_generation_{0};
 

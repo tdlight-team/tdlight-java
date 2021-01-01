@@ -29,8 +29,9 @@ namespace td {
 template <class StorerT>
 void FileReferenceManager::store_file_source(FileSourceId file_source_id, StorerT &storer) const {
   auto index = static_cast<size_t>(file_source_id.get()) - 1;
-  CHECK(index < file_sources_.size());
-  auto &source = file_sources_[index];
+  auto source_tuple = file_sources_.find(index);
+  auto source = source_tuple->second;
+
   td::store(source.get_offset(), storer);
   source.visit(overloaded([&](const FileSourceMessage &source) { td::store(source.full_message_id, storer); },
                           [&](const FileSourceUserPhoto &source) {

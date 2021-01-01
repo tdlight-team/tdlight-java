@@ -63,7 +63,7 @@ FileSourceId FileReferenceManager::get_current_file_source_id() const {
 
 template <class T>
 FileSourceId FileReferenceManager::add_file_source_id(T source, Slice source_str) {
-  file_sources_.emplace_back(std::move(source));
+  file_sources_[unique_file_source_id++] = (std::move(source));
   VLOG(file_references) << "Create file source " << file_sources_.size() << " for " << source_str;
   return get_current_file_source_id();
 }
@@ -144,7 +144,6 @@ vector<FullMessageId> FileReferenceManager::get_some_message_file_sources(NodeId
   vector<FullMessageId> result;
   for (auto file_source_id : file_source_ids) {
     auto index = static_cast<size_t>(file_source_id.get()) - 1;
-    CHECK(index < file_sources_.size());
     const auto &file_source = file_sources_[index];
     if (file_source.get_offset() == 0) {
       result.push_back(file_source.get<FileSourceMessage>().full_message_id);
@@ -249,7 +248,6 @@ void FileReferenceManager::send_query(Destination dest, FileSourceId file_source
                  std::move(result), std::move(new_promise));
   });
   auto index = static_cast<size_t>(file_source_id.get()) - 1;
-  CHECK(index < file_sources_.size());
   file_sources_[index].visit(overloaded(
       [&](const FileSourceMessage &source) {
         send_closure_later(G()->messages_manager(), &MessagesManager::get_message_from_server, source.full_message_id,
@@ -366,7 +364,33 @@ void FileReferenceManager::reload_photo(PhotoSizeSource source, Promise<Unit> pr
 }
 
 void FileReferenceManager::memory_cleanup() {
+  auto file_source_it = file_sources_.begin();
 
+  while (file_source_it != file_sources_.end()) {
+    auto source_id = file_source_it->first;
+    auto file_nodes_it = nodes_.begin();
+    auto remove = true;
+
+    while (file_nodes_it != nodes_.end() && remove) {
+      auto elements = get_some_file_sources(file_nodes_it->first);
+      auto elements_it = elements.begin();
+
+      while (elements_it != elements.end()) {
+        if (source_id == (u_long) elements_it->get()) {
+          remove = false;
+          break;
+        }
+
+        elements_it++;
+      }
+    }
+
+    if (remove) {
+      file_source_it = file_sources_.erase(file_source_it);
+    } else {
+      file_source_it++;
+    }
+  }
 }
 
 void FileReferenceManager::memory_cleanup(NodeId node_id) {
