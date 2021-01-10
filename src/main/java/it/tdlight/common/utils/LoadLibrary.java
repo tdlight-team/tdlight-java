@@ -32,7 +32,9 @@ import it.tdlight.jni.ObjectsUtils;
  */
 public class LoadLibrary {
 	private static ConcurrentHashMap<String, Boolean> libraryLoaded = new ConcurrentHashMap<>();
-	private static Path librariesPath = Paths.get("."+ LibraryVersion.IMPLEMENTATION_NAME + "-libs-cache");
+	private static Path librariesPath = Paths.get("." + LibraryVersion.IMPLEMENTATION_NAME
+					+ "-" + LibraryVersion.NATIVES_VERSION.replace('.', '-')
+					+ "-libs-cache");
 	private static final String libsVersion = LibraryVersion.VERSION;
 
 	static {
