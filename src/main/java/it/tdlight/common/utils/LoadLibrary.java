@@ -31,11 +31,10 @@ import it.tdlight.jni.ObjectsUtils;
  * The class to load the libraries needed to run Tdlib
  */
 public class LoadLibrary {
-	private static ConcurrentHashMap<String, Boolean> libraryLoaded = new ConcurrentHashMap<>();
-	private static Path librariesPath = Paths.get("." + LibraryVersion.IMPLEMENTATION_NAME
-					+ "-" + LibraryVersion.NATIVES_VERSION.replace('.', '-')
-					+ "-libs-cache");
-	private static final String libsVersion = LibraryVersion.VERSION;
+	private static final ConcurrentHashMap<String, Boolean> libraryLoaded = new ConcurrentHashMap<>();
+	private static final Path librariesPath = Paths.get(".cache");
+	private static final String libsVersion = LibraryVersion.IMPLEMENTATION_NAME
+			+ "-" + LibraryVersion.VERSION + "-" + LibraryVersion.NATIVES_VERSION;
 
 	static {
 		if (Files.notExists(librariesPath)) {
