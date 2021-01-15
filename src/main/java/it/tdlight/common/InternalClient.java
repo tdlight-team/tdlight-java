@@ -1,5 +1,6 @@
 package it.tdlight.common;
 
+import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.Object;
@@ -132,7 +133,9 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 
 	@Override
 	public void send(Function query, ResultHandler resultHandler, ExceptionHandler exceptionHandler) {
-		ensureOpen();
+		if (isClosedAndMaybeThrow(query)) {
+			resultHandler.onResult(new TdApi.Ok());
+		}
 		long queryId = clientManager.getNextQueryId();
 		if (resultHandler != null) {
 			handlers.put(queryId, new Handler(resultHandler, exceptionHandler));
@@ -142,13 +145,26 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 
 	@Override
 	public Object execute(Function query) {
-		ensureOpen();
+		if (isClosedAndMaybeThrow(query)) {
+			return new TdApi.Ok();
+		}
 		return NativeClientAccess.execute(query);
 	}
 
-	private void ensureOpen() {
-		if (isClosed.get()) {
-			throw new IllegalStateException("The client is closed!");
+	/**
+	 *
+	 * @param function function used to check if the check will be enforced or not. Can be null
+	 * @return true if closed
+	 */
+	private boolean isClosedAndMaybeThrow(Function function) {
+		boolean closed = isClosed.get();
+		if (closed) {
+			if (function != null && function.getConstructor() == TdApi.Close.CONSTRUCTOR) {
+				return true;
+			} else {
+				throw new IllegalStateException("The client is closed!");
+			}
 		}
+		return false;
 	}
 }
