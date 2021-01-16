@@ -6,6 +6,7 @@
 //
 package it.tdlight.example;
 
+import it.tdlight.common.ExceptionHandler;
 import it.tdlight.common.Init;
 import it.tdlight.common.ResultHandler;
 import it.tdlight.common.TelegramClient;
@@ -158,7 +159,7 @@ public final class Example {
 			case TdApi.AuthorizationStateClosed.CONSTRUCTOR:
 				print("Closed");
 				if (!needQuit) {
-					client = ClientManager.create(new UpdateHandler(), null, null); // recreate client after previous has closed
+					client = ClientManager.create(new UpdateHandler(), new ErrorHandler(), new ErrorHandler()); // recreate client after previous has closed
 				} else {
 					canQuit = true;
 				}
@@ -305,7 +306,7 @@ public final class Example {
 
 		// create client
 		Init.start();
-		client = ClientManager.create(new UpdateHandler(), null, null);
+		client = ClientManager.create(new UpdateHandler(), new ErrorHandler(), new ErrorHandler());
 
 		client.execute(new TdApi.SetLogVerbosityLevel(0));
 		// disable TDLib log
@@ -585,6 +586,14 @@ public final class Example {
 				default:
 					// print("Unsupported update:" + newLine + object);
 			}
+		}
+	}
+
+	private static class ErrorHandler implements ExceptionHandler {
+
+		@Override
+		public void onException(Throwable e) {
+			e.printStackTrace();
 		}
 	}
 

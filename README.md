@@ -138,8 +138,6 @@ package it.tdlight.example;
 import it.tdlight.common.TelegramClient;
 import it.tdlight.tdlight.ClientManager;
 import it.tdlight.common.Init;
-import it.tdlight.common.Log;
-import it.tdlight.common.TDLibException;
 
 import it.tdlight.jni.TdApi;
 
@@ -155,6 +153,9 @@ public class Example {
 
         // Documentation of tdlib methods can be found here:
         // https://tdlight-team.github.io/tdlight-docs
+      
+        // An example on how to use tdlight java can be found here:
+        // https://github.com/tdlight-team/tdlight-java/blob/master/example/src/main/java/it.tdlight.example/Example.java
 
         // A similar example on how to use tdlib can be found here:
         // https://github.com/tdlib/td/blob/master/example/java/org/drinkless/tdlib/example/Example.java
@@ -166,23 +167,13 @@ public class Example {
     }
 
     private static void onUpdateError(Throwable exception) {
-        if (exception instanceof TDLibException) {
-        	String errorMessage = ((TDLibException) exception).getErrorMessage();
-            System.out.println("Received an error from updates: " + errorMessage);
-        } else {
-            System.out.println("Received an error from updates:");
-            exception.printStackTrace();
-        }
+        System.out.println("Received an error from updates:");
+        exception.printStackTrace();
     }
 
     private static void onError(Throwable exception) {
-        if (exception instanceof TDLibException) {
-        	String errorMessage = ((TDLibException) exception).getErrorMessage();
-            System.out.println("Received an error: " + errorMessage);
-        } else {
-            System.out.println("Received an error:");
-            exception.printStackTrace();
-        }
+        System.out.println("Received an error:");
+        exception.printStackTrace();
     }
 }
 ```
