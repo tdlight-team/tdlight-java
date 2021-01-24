@@ -1,6 +1,5 @@
 package it.tdlight.common;
 
-import it.tdlight.jni.TdApi.Object;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,6 +34,9 @@ public class InternalClientManager implements AutoCloseable {
 			handler.handleEvents(isClosed, clientEventIds, clientEvents);
 		} else {
 			System.err.println("Unknown client id " + clientId + ", " + clientEvents.length + " events have been dropped!");
+			for (Object clientEvent : clientEvents) {
+				System.err.println(clientEvent);
+			}
 		}
 
 		if (isClosed) {
