@@ -118,7 +118,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 		this.updateHandler = null;
 		this.updatesHandler = new MultiHandler(updatesHandler, updateExceptionHandler);
 		this.defaultExceptionHandler = defaultExceptionHandler;
-		createAndRegisterClient(clientId);
+		createAndRegisterClient();
 	}
 
 	@Override
@@ -128,13 +128,14 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 		this.updateHandler = new Handler(updateHandler, updateExceptionHandler);
 		this.updatesHandler = null;
 		this.defaultExceptionHandler = defaultExceptionHandler;
-		createAndRegisterClient(clientId);
+		createAndRegisterClient();
 	}
 
-	private void createAndRegisterClient(int clientId) {
+	private void createAndRegisterClient() {
 		synchronized (nextClientIdLock) {
 			int nextClientId = InternalClient.nextClientId++;
-			clientManager.registerClient(clientId, this);
+			System.out.println("Registering client " + nextClientId);
+			clientManager.registerClient(nextClientId, this);
 			this.clientId = NativeClientAccess.create();
 			if (this.clientId != nextClientId) {
 				throw new RuntimeException("FATAL ERROR 00 -- REPORT AT https://github.com/tdlight-team/tdlight-java/issues");
