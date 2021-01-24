@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class InternalClient implements ClientEventsHandler, TelegramClient {
 
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
+	private static final java.lang.Object nextClientIdLock = new java.lang.Object();
+	private static int nextClientId = 1;
 
 	private int clientId;
 	private final InternalClientManager clientManager;
@@ -116,11 +118,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 		this.updateHandler = null;
 		this.updatesHandler = new MultiHandler(updatesHandler, updateExceptionHandler);
 		this.defaultExceptionHandler = defaultExceptionHandler;
-
-		clientManager.registerClient(clientId, this);
-
-		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
-		this.send(new TdApi.GetAuthorizationState(), (result) -> {}, ex -> {});
+		createAndRegisterClient(clientId);
 	}
 
 	@Override
@@ -130,9 +128,18 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 		this.updateHandler = new Handler(updateHandler, updateExceptionHandler);
 		this.updatesHandler = null;
 		this.defaultExceptionHandler = defaultExceptionHandler;
+		createAndRegisterClient(clientId);
+	}
 
-		this.clientId = NativeClientAccess.create();
-		clientManager.registerClient(clientId, this);
+	private void createAndRegisterClient(int clientId) {
+		synchronized (nextClientIdLock) {
+			int nextClientId = InternalClient.nextClientId++;
+			clientManager.registerClient(clientId, this);
+			this.clientId = NativeClientAccess.create();
+			if (this.clientId != nextClientId) {
+				throw new RuntimeException("FATAL ERROR 00 -- REPORT AT https://github.com/tdlight-team/tdlight-java/issues");
+			}
+		}
 
 		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
 		this.send(new TdApi.GetAuthorizationState(), (result) -> {}, ex -> {});
