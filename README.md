@@ -147,7 +147,10 @@ public class Example {
         Init.start();
 
         // Create a client
-        TelegramClient client = ClientManager.create(Example::onUpdate, Example::onUpdateError, Example::onError);
+        TelegramClient client = ClientManager.create();
+
+        // Initialize the client
+        client.initialize(Example::onUpdate, Example::onUpdateError, Example::onError);
 
         // Here you can use the client.
 
