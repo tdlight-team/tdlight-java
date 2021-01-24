@@ -16,8 +16,6 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 
 	private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
-	private static final java.lang.Object nextClientIdLock = new java.lang.Object();
-	private static int nextClientId = 1;
 
 	private volatile Integer clientId = null;
 	private final InternalClientManager clientManager;
@@ -136,15 +134,10 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 	}
 
 	private void createAndRegisterClient() {
-		synchronized (nextClientIdLock) {
-			int nextClientId = InternalClient.nextClientId++;
-			logger.info("Registering client {}", nextClientId);
-			clientManager.registerClient(nextClientId, this);
-			this.clientId = NativeClientAccess.create();
-			if (this.clientId != nextClientId) {
-				throw new RuntimeException("FATAL ERROR 00 -- REPORT AT https://github.com/tdlight-team/tdlight-java/issues");
-			}
-		}
+		if (clientId != null) throw new UnsupportedOperationException("Can't initialize the same client twice!");
+		clientId = NativeClientAccess.create();
+		clientManager.registerClient(clientId, this);
+		logger.info("Registered new client {}", clientId);
 
 		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
 		this.send(new TdApi.GetAuthorizationState(), (result) -> {}, ex -> {});
