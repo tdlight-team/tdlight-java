@@ -24,7 +24,7 @@
     <dependency>
       <groupId>it.tdlight</groupId>
       <artifactId>tdlight-java</artifactId>
-      <version>[1.0.0,)</version>
+      <version>[4.0.0,)</version>
     </dependency>
     <dependency>
       <groupId>it.tdlight</groupId>
