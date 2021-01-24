@@ -8,9 +8,12 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InternalClient implements ClientEventsHandler, TelegramClient {
 
+	private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
 	private static final java.lang.Object nextClientIdLock = new java.lang.Object();
 	private static int nextClientId = 1;
@@ -87,7 +90,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 				handleException(handler.getExceptionHandler(), cause);
 			}
 		} else {
-			System.err.println("Unknown event id " + eventId + ", the event has been dropped!");
+			logger.error("Unknown event id \"{}\", the event has been dropped! {}", eventId, event);
 		}
 	}
 
@@ -134,7 +137,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 	private void createAndRegisterClient() {
 		synchronized (nextClientIdLock) {
 			int nextClientId = InternalClient.nextClientId++;
-			System.out.println("Registering client " + nextClientId);
+			logger.info("Registering client {}", nextClientId);
 			clientManager.registerClient(nextClientId, this);
 			this.clientId = NativeClientAccess.create();
 			if (this.clientId != nextClientId) {

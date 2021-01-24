@@ -1,11 +1,15 @@
 package it.tdlight.common;
 
+import it.tdlight.jni.TdApi;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InternalClientManager implements AutoCloseable {
 
+	private static final Logger logger = LoggerFactory.getLogger(InternalClientManager.class);
 	private static final AtomicReference<InternalClientManager> INSTANCE = new AtomicReference<>(null);
 
 	private final String implementationName;
@@ -27,15 +31,17 @@ public class InternalClientManager implements AutoCloseable {
 		return INSTANCE.updateAndGet(val -> val == null ? new InternalClientManager(implementationName) : val);
 	}
 
-	private void handleClientEvents(int clientId, boolean isClosed, long[] clientEventIds, Object[] clientEvents) {
+	private void handleClientEvents(int clientId, boolean isClosed, long[] clientEventIds, TdApi.Object[] clientEvents) {
 		ClientEventsHandler handler = registeredClientEventHandlers.get(clientId);
 
 		if (handler != null) {
 			handler.handleEvents(isClosed, clientEventIds, clientEvents);
 		} else {
-			System.err.println("Unknown client id " + clientId + ", " + clientEvents.length + " events have been dropped!");
-			for (Object clientEvent : clientEvents) {
-				System.err.println(clientEvent);
+			logger.error("Unknown client id \"{}\"! {} events have been dropped!", clientId, clientEvents.length);
+			for (int i = 0; i < clientEvents.length; i++) {
+				long id = clientEventIds[i];
+				TdApi.Object event = clientEvents[i];
+				logger.error("The following event, with id \"{}\", has been dropped: {}", id, event);
 			}
 		}
 
