@@ -6,6 +6,7 @@ import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.Object;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 	private static final java.lang.Object nextClientIdLock = new java.lang.Object();
 	private static int nextClientId = 1;
 
-	private int clientId;
+	private volatile Integer clientId = null;
 	private final InternalClientManager clientManager;
 	private Handler updateHandler;
 	private MultiHandler updatesHandler;
@@ -32,7 +33,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 
 	@Override
 	public int getClientId() {
-		return clientId;
+		return Objects.requireNonNull(clientId, "Can't obtain the client id before initialization");
 	}
 
 	@Override
@@ -153,6 +154,11 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 	public void send(Function query, ResultHandler resultHandler, ExceptionHandler exceptionHandler) {
 		if (isClosedAndMaybeThrow(query)) {
 			resultHandler.onResult(new TdApi.Ok());
+		}
+		if (clientId == null) {
+			ExceptionHandler handler = exceptionHandler == null ? defaultExceptionHandler : exceptionHandler;
+			handler.onException(new IllegalStateException("Can't send a request to TDLib before calling \"initialize\" function!"));
+			return;
 		}
 		long queryId = clientManager.getNextQueryId();
 		if (resultHandler != null) {
