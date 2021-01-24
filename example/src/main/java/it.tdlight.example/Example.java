@@ -159,7 +159,8 @@ public final class Example {
 			case TdApi.AuthorizationStateClosed.CONSTRUCTOR:
 				print("Closed");
 				if (!needQuit) {
-					client = ClientManager.create(new UpdateHandler(), new ErrorHandler(), new ErrorHandler()); // recreate client after previous has closed
+					client = ClientManager.create(); // recreate client after previous has closed
+					client.initialize(new UpdateHandler(), new ErrorHandler(), new ErrorHandler());
 				} else {
 					canQuit = true;
 				}
@@ -282,7 +283,7 @@ public final class Example {
 			java.util.Iterator<OrderedChat> iter = mainChatList.iterator();
 			System.out.println();
 			System.out.println("First " + limit + " chat(s) out of " + mainChatList.size() + " known chat(s):");
-			for (int i = 0; i < limit; i++) {
+			for (int i = 0; i < limit && iter.hasNext(); i++) {
 				long chatId = iter.next().chatId;
 				TdApi.Chat chat = chats.get(chatId);
 				synchronized (chat) {
@@ -306,7 +307,8 @@ public final class Example {
 
 		// create client
 		Init.start();
-		client = ClientManager.create(new UpdateHandler(), new ErrorHandler(), new ErrorHandler());
+		client = ClientManager.create();
+		client.initialize(new UpdateHandler(), new ErrorHandler(), new ErrorHandler());
 
 		client.execute(new TdApi.SetLogVerbosityLevel(0));
 		// disable TDLib log

@@ -5,6 +5,31 @@ import it.tdlight.jni.TdApi;
 public interface TelegramClient {
 
 	/**
+	 * Initialize the client synchronously.
+	 * @param updatesHandler Handler in which the updates are received
+	 * @param updateExceptionHandler Handler in which the errors from updates are received
+	 * @param defaultExceptionHandler Handler that receives exceptions triggered in a handler
+	 */
+	void initialize(UpdatesHandler updatesHandler,
+			ExceptionHandler updateExceptionHandler,
+			ExceptionHandler defaultExceptionHandler);
+
+	/**
+	 * Initialize the client synchronously.
+	 * @param updateHandler Handler in which the updates are received
+	 * @param updateExceptionHandler Handler in which the errors from updates are received
+	 * @param defaultExceptionHandler Handler that receives exceptions triggered in a handler
+	 */
+	default void initialize(ResultHandler updateHandler,
+			ExceptionHandler updateExceptionHandler,
+			ExceptionHandler defaultExceptionHandler) {
+		this.initialize((UpdatesHandler) updates -> updates.forEach(updateHandler::onResult),
+				updateExceptionHandler,
+				defaultExceptionHandler
+		);
+	}
+
+	/**
 	 * Sends a request to the TDLib.
 	 *
 	 * @param query            Object representing a query to the TDLib.

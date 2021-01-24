@@ -13,38 +13,16 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
 
-	private final int clientId;
+	private int clientId;
 	private final InternalClientManager clientManager;
-	private final Handler updateHandler;
-	private final MultiHandler updatesHandler;
-	private final ExceptionHandler defaultExceptionHandler;
+	private Handler updateHandler;
+	private MultiHandler updatesHandler;
+	private ExceptionHandler defaultExceptionHandler;
 
 	private final AtomicBoolean isClosed = new AtomicBoolean();
 
-	public InternalClient(InternalClientManager clientManager,
-		ResultHandler updateHandler,
-		ExceptionHandler updateExceptionHandler,
-		ExceptionHandler defaultExceptionHandler) {
-		this.updateHandler = new Handler(updateHandler, updateExceptionHandler);
-		this.updatesHandler = null;
-		this.defaultExceptionHandler = defaultExceptionHandler;
+	public InternalClient(InternalClientManager clientManager) {
 		this.clientManager = clientManager;
-		this.clientId = NativeClientAccess.create();
-
-		clientManager.registerClient(clientId, this);
-	}
-
-	public InternalClient(InternalClientManager clientManager,
-			UpdatesHandler updatesHandler,
-			ExceptionHandler updateExceptionHandler,
-			ExceptionHandler defaultExceptionHandler) {
-		this.updateHandler = null;
-		this.updatesHandler = new MultiHandler(updatesHandler, updateExceptionHandler);
-		this.clientManager = clientManager;
-		this.defaultExceptionHandler = defaultExceptionHandler;
-		this.clientId = NativeClientAccess.create();
-
-		clientManager.registerClient(clientId, this);
 	}
 
 	@Override
@@ -129,6 +107,35 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 				exceptionHandler.onException(cause);
 			} catch (Throwable ignored) {}
 		}
+	}
+
+	@Override
+	public void initialize(UpdatesHandler updatesHandler,
+			ExceptionHandler updateExceptionHandler,
+			ExceptionHandler defaultExceptionHandler) {
+		this.updateHandler = null;
+		this.updatesHandler = new MultiHandler(updatesHandler, updateExceptionHandler);
+		this.defaultExceptionHandler = defaultExceptionHandler;
+
+		clientManager.registerClient(clientId, this);
+
+		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
+		this.send(new TdApi.GetAuthorizationState(), (result) -> {}, ex -> {});
+	}
+
+	@Override
+	public void initialize(ResultHandler updateHandler,
+			ExceptionHandler updateExceptionHandler,
+			ExceptionHandler defaultExceptionHandler) {
+		this.updateHandler = new Handler(updateHandler, updateExceptionHandler);
+		this.updatesHandler = null;
+		this.defaultExceptionHandler = defaultExceptionHandler;
+
+		this.clientId = NativeClientAccess.create();
+		clientManager.registerClient(clientId, this);
+
+		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
+		this.send(new TdApi.GetAuthorizationState(), (result) -> {}, ex -> {});
 	}
 
 	@Override
