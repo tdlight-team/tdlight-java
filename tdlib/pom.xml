@@ -167,8 +167,7 @@
 				<version>3.8.1</version>
 				<configuration>
 					<encoding>UTF-8</encoding>
-					<source>1.8</source>
-					<target>1.8</target>
+					<release>11</release>
 					<useIncrementalCompilation>false</useIncrementalCompilation>
 					<excludes>
 						<exclude>it/tdlight/tdlight/**</exclude>

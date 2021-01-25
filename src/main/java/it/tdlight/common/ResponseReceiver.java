@@ -53,8 +53,10 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 			while(!closeRequested || !registeredClients.isEmpty()) {
 				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
 
-				if (resultsCount <= 0)
+				if (resultsCount <= 0) {
+					Thread.onSpinWait();
 					continue;
+				}
 
 				Set<Integer> closedClients = new HashSet<>();
 
