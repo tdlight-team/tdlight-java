@@ -64,6 +64,7 @@
           <encoding>UTF-8</encoding>
           <source>11</source>
           <target>11</target>
+          <useIncrementalCompilation>false</useIncrementalCompilation>
         </configuration>
       </plugin>
       <plugin>
