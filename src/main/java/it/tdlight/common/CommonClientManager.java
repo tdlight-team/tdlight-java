@@ -7,7 +7,7 @@ public abstract class CommonClientManager {
 		return InternalClientManager.get(implementationName);
 	}
 
-	protected static TelegramClient create(String implementationName) {
+	protected synchronized static TelegramClient create(String implementationName) {
 		InternalClient client = new InternalClient(getClientManager(implementationName));
 		return create(client);
 	}
