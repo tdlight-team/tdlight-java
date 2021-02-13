@@ -1,6 +1,7 @@
 package it.tdlight.tdlight;
 
 import it.tdlight.common.CommonClientManager;
+import it.tdlight.common.ReactiveTelegramClient;
 import it.tdlight.common.TelegramClient;
 
 /**
@@ -12,5 +13,9 @@ public class ClientManager extends CommonClientManager {
 
 	public static TelegramClient create() {
 		return CommonClientManager.create(implementationName);
+	}
+
+	public static ReactiveTelegramClient createReactive() {
+		return CommonClientManager.createReactive(implementationName);
 	}
 }

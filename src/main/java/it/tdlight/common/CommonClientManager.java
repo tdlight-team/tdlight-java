@@ -12,7 +12,16 @@ public abstract class CommonClientManager {
 		return create(client);
 	}
 
+	protected synchronized static ReactiveTelegramClient createReactive(String implementationName) {
+		InternalReactiveClient reactiveClient = new InternalReactiveClient(getClientManager(implementationName));
+		return createReactive(reactiveClient);
+	}
+
 	private static TelegramClient create(InternalClient internalClient) {
 		return internalClient;
+	}
+
+	private static ReactiveTelegramClient createReactive(InternalReactiveClient internalReactiveClient) {
+		return internalReactiveClient;
 	}
 }

@@ -1,0 +1,26 @@
+package it.tdlight.common;
+
+import it.tdlight.jni.TdApi;
+import org.reactivestreams.Publisher;
+
+@SuppressWarnings("ReactiveStreamsPublisherImplementation")
+public interface ReactiveTelegramClient extends Publisher<ReactiveItem> {
+
+	/**
+	 * Sends a request to the TDLib.
+	 *
+	 * @param query            Object representing a query to the TDLib.
+	 * @throws NullPointerException if query is null.
+	 * @return a publisher that will emit exactly one item, or an error
+	 */
+	Publisher<TdApi.Object> send(TdApi.Function query);
+
+	/**
+	 * Synchronously executes a TDLib request. Only a few marked accordingly requests can be executed synchronously.
+	 *
+	 * @param query Object representing a query to the TDLib.
+	 * @return request result or {@link TdApi.Error}.
+	 * @throws NullPointerException if query is null.
+	 */
+	TdApi.Object execute(TdApi.Function query);
+}

@@ -50,7 +50,7 @@ public class InternalClientManager implements AutoCloseable {
 		}
 	}
 
-	public void registerClient(int clientId, InternalClient internalClient) {
+	public void registerClient(int clientId, ClientEventsHandler internalClient) {
 		responseReceiver.registerClient(clientId);
 		boolean replaced = registeredClientEventHandlers.put(clientId, internalClient) != null;
 		if (replaced) {
