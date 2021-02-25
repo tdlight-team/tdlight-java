@@ -7,6 +7,11 @@ import org.reactivestreams.Publisher;
 public interface ReactiveTelegramClient extends Publisher<ReactiveItem> {
 
 	/**
+	 * Creates and registers the client
+	 */
+	void createAndRegisterClient();
+
+	/**
 	 * Sends a request to the TDLib.
 	 *
 	 * @param query            Object representing a query to the TDLib.

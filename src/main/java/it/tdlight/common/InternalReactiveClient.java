@@ -7,11 +7,11 @@ import it.tdlight.jni.TdApi.Object;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,6 +138,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 					}
 				}
 
+				@SuppressWarnings("ReactiveStreamsSubscriberImplementation")
 				@Override
 				public void cancel() {
 					if (!isClosed.get()) {
@@ -167,14 +168,14 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 			};
 			this.subscriber = subscriber;
 
-			createAndRegisterClient();
 			subscriber.onSubscribe(subscription);
 		} else {
 			throw new IllegalStateException("Already subscribed");
 		}
 	}
 
-	private void createAndRegisterClient() {
+	@SuppressWarnings("ReactiveStreamsSubscriberImplementation")
+	public void createAndRegisterClient() {
 		if (clientId != null) throw new UnsupportedOperationException("Can't initialize the same client twice!");
 		clientId = NativeClientAccess.create();
 		clientManager.registerClient(clientId, this);
@@ -221,7 +222,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 								subscriber.onComplete();
 							} else if (clientId == null) {
 								subscriber.onError(
-										new IllegalStateException("Can't send a request to TDLib before calling \"initialize\" function!")
+										new IllegalStateException("Can't send a request to TDLib before calling \"createAndRegisterClient\" function!")
 								);
 							} else {
 								long queryId = clientManager.getNextQueryId();
