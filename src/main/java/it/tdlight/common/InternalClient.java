@@ -76,6 +76,7 @@ public class InternalClient implements ClientEventsHandler, TelegramClient {
 			handleResponse(eventId, new Error(500, "Instance closed"), handler);
 		});
 		handlers.clear();
+		logger.info("Client closed {}", clientId);
 	}
 
 	/**

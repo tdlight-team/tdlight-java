@@ -134,6 +134,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 					if (isClosed.get()) {
 						if (alreadyCompleted.compareAndSet(false, true)) {
 							subscriber.onComplete();
+							logger.info("Client closed {}", clientId);
 						}
 					}
 				}

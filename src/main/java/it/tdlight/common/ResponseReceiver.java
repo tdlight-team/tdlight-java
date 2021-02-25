@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -32,7 +32,7 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 	private final TdApi.Object[] events = new TdApi.Object[MAX_EVENTS];
 
 	private final CountDownLatch closeWait = new CountDownLatch(1);
-	private final Set<Integer> registeredClients = new ConcurrentSkipListSet<>();
+	private final Set<Integer> registeredClients = new ConcurrentHashMap<Integer, java.lang.Object>().keySet(new java.lang.Object());
 	private volatile boolean closeRequested = false;
 
 
