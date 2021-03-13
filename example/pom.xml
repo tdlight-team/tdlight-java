@@ -33,11 +33,6 @@
     </dependency>
     <dependency>
       <groupId>it.tdlight</groupId>
-      <artifactId>tdlight-natives-linux-aarch64</artifactId>
-      <version>[1.0.0,)</version>
-    </dependency>
-    <dependency>
-      <groupId>it.tdlight</groupId>
       <artifactId>tdlight-natives-windows-amd64</artifactId>
       <version>[1.0.0,)</version>
     </dependency>
