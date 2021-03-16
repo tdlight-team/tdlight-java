@@ -63,13 +63,6 @@
 			<version>${natives-version}</version>
 			<optional>true</optional>
 		</dependency>
-    <!--
-		<dependency>
-			<groupId>it.tdlight</groupId>
-			<artifactId>tdlight-natives-linux-ppc64le</artifactId>
-			<version>${natives-version}</version>
-			<optional>true</optional>
-		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-linux-armv6</artifactId>
@@ -94,7 +87,6 @@
 			<version>${natives-version}</version>
 			<optional>true</optional>
 		</dependency>
-		-->
 		<dependency>
 			<groupId>it.cavallium</groupId>
 			<artifactId>concurrent-locks</artifactId>

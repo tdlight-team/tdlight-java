@@ -63,13 +63,6 @@
 			<version>${natives-version}</version>
 			<optional>true</optional>
 		</dependency>
-    <!--
-		<dependency>
-			<groupId>it.tdlight</groupId>
-			<artifactId>tdlib-natives-linux-ppc64le</artifactId>
-			<version>${natives-version}</version>
-			<optional>true</optional>
-		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-linux-armv6</artifactId>
@@ -82,7 +75,6 @@
 			<version>${natives-version}</version>
 			<optional>true</optional>
 		</dependency>
-		-->
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-windows-amd64</artifactId>
