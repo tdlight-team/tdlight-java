@@ -8,7 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-		<natives-version>3.2.64</natives-version>
+		<natives-version>3.3.14</natives-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -51,7 +51,6 @@
 			<version>${natives-version}</version>
 			<optional>true</optional>
 		</dependency>
-    <!--
     <dependency>
       <groupId>it.tdlight</groupId>
       <artifactId>tdlib-natives-linux-x86</artifactId>
@@ -64,6 +63,7 @@
 			<version>${natives-version}</version>
 			<optional>true</optional>
 		</dependency>
+    <!--
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-linux-ppc64le</artifactId>
