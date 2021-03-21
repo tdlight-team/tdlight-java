@@ -45,6 +45,7 @@
 			<artifactId>tdlight-api</artifactId>
 			<version>${natives-version}</version>
 		</dependency>
+    <!--
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-linux-amd64</artifactId>
@@ -87,6 +88,7 @@
 			<version>${natives-version}</version>
 			<optional>true</optional>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>it.cavallium</groupId>
 			<artifactId>concurrent-locks</artifactId>
