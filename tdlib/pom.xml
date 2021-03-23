@@ -8,7 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-		<natives-version>3.3.15</natives-version>
+		<natives-version>3.3.16</natives-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -45,7 +45,6 @@
 			<artifactId>tdlight-api</artifactId>
 			<version>${natives-version}</version>
 		</dependency>
-    <!--
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-linux-amd64</artifactId>
@@ -88,7 +87,6 @@
 			<version>${natives-version}</version>
 			<optional>true</optional>
 		</dependency>
-		-->
 		<dependency>
 			<groupId>it.cavallium</groupId>
 			<artifactId>concurrent-locks</artifactId>
