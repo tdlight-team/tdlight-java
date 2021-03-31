@@ -56,7 +56,9 @@ public class InternalClientManager implements AutoCloseable {
 		}
 
 		if (isClosed) {
+			logger.trace("Removing Client {} from event handlers", clientId);
 			registeredClientEventHandlers.remove(clientId);
+			logger.trace("Removed Client {} from event handlers", clientId);
 		}
 	}
 
