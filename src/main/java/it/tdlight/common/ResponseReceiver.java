@@ -50,11 +50,17 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 	public void run() {
 		int[] sortIndex;
 		try {
-			while(!closeRequested || !registeredClients.isEmpty()) {
+			boolean useSpinWait = "amd64".equalsIgnoreCase(System.getProperty("os.arch"));
+			while (!closeRequested || !registeredClients.isEmpty()) {
 				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
 
 				if (resultsCount <= 0) {
-					Thread.onSpinWait();
+					if (useSpinWait) {
+						Thread.onSpinWait();
+					} else {
+						//noinspection BusyWait
+						Thread.sleep(20);
+					}
 					continue;
 				}
 
@@ -150,6 +156,8 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 					this.registeredClients.addAll(closedClients);
 				}
 			}
+		} catch (InterruptedException ex) {
+			throw new IllegalStateException(ex);
 		} finally {
 			this.closeWait.countDown();
 		}
