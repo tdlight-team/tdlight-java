@@ -4,6 +4,7 @@ module tdlight.java {
 	requires it.unimi.dsi.fastutil;
 	requires org.slf4j;
 	exports it.tdlight.tdlight;
+	exports it.tdlight.tdnative;
 	exports it.tdlight.tdlib;
 	exports it.tdlight.common;
 	exports it.tdlight.common.utils;
