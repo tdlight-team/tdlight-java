@@ -1,7 +1,6 @@
 package it.tdlight.tdnative;
 
-import it.tdlight.jni.TdApi.SetLogStream;
-import it.tdlight.jni.TdApi.SetLogVerbosityLevel;
+import it.tdlight.jni.TdApi;
 import java.util.function.Consumer;
 
 /**
@@ -17,7 +16,7 @@ public class NativeLog {
      * Sets file path for writing TDLib internal log. By default TDLib writes logs to the System.err.
      * Use this method to write the log to a file instead.
      *
-     * @deprecated As of TDLib 1.4.0 in favor of {@link SetLogStream}, to be removed in the future.
+     * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogStream}, to be removed in the future.
      * @param filePath Path to a file for writing TDLib internal log. Use an empty path to
      *                 switch back to logging to the System.err.
      * @return whether opening the log file succeeded.
@@ -28,7 +27,7 @@ public class NativeLog {
     /**
      * Changes the maximum size of TDLib log file.
      *
-     * @deprecated As of TDLib 1.4.0 in favor of {@link SetLogStream}, to be removed in the future.
+     * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogStream}, to be removed in the future.
      * @param maxFileSize The maximum size of the file to where the internal TDLib log is written
      *                    before the file will be auto-rotated. Must be positive. Defaults to 10 MB.
      */
@@ -38,7 +37,7 @@ public class NativeLog {
     /**
      * Changes TDLib log verbosity.
      *
-     * @deprecated As of TDLib 1.4.0 in favor of {@link SetLogVerbosityLevel}, to be removed in the future.
+     * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogVerbosityLevel}, to be removed in the future.
      * @param verbosityLevel New value of log verbosity level. Must be non-negative.
      *                       Value 0 corresponds to fatal errors,
      *                       value 1 corresponds to java.util.logging.Level.SEVERE,
