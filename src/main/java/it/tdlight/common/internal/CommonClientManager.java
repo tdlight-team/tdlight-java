@@ -1,4 +1,7 @@
-package it.tdlight.common;
+package it.tdlight.common.internal;
+
+import it.tdlight.common.ReactiveTelegramClient;
+import it.tdlight.common.TelegramClient;
 
 public abstract class CommonClientManager {
 

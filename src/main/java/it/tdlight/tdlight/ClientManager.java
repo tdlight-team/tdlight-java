@@ -1,6 +1,6 @@
 package it.tdlight.tdlight;
 
-import it.tdlight.common.CommonClientManager;
+import it.tdlight.common.internal.CommonClientManager;
 import it.tdlight.common.ReactiveTelegramClient;
 import it.tdlight.common.TelegramClient;
 

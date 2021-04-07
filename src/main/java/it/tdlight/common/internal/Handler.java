@@ -1,4 +1,7 @@
-package it.tdlight.common;
+package it.tdlight.common.internal;
+
+import it.tdlight.common.ExceptionHandler;
+import it.tdlight.common.ResultHandler;
 
 public class Handler {
 	private final ResultHandler resultHandler;

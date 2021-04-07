@@ -25,7 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.reflect.InvocationTargetException;
-import it.tdlight.jni.ObjectsUtils;
+import it.tdlight.tdnative.ObjectsUtils;
 
 /**
  * The class to load the libraries needed to run Tdlib

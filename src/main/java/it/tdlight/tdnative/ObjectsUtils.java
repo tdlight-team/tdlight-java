@@ -1,4 +1,4 @@
-package it.tdlight.jni;
+package it.tdlight.tdnative;
 
 public class ObjectsUtils {
 	/**

@@ -1,5 +1,9 @@
-package it.tdlight.common;
+package it.tdlight.common.internal;
 
+import it.tdlight.common.ClientEventsHandler;
+import it.tdlight.common.ExceptionHandler;
+import it.tdlight.common.ReactiveItem;
+import it.tdlight.common.ReactiveTelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;

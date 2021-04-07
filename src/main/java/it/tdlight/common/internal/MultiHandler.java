@@ -1,4 +1,7 @@
-package it.tdlight.common;
+package it.tdlight.common.internal;
+
+import it.tdlight.common.ExceptionHandler;
+import it.tdlight.common.UpdatesHandler;
 
 public class MultiHandler {
 	private final UpdatesHandler updatesHandler;

@@ -169,7 +169,7 @@
 					<release>11</release>
 					<useIncrementalCompilation>false</useIncrementalCompilation>
 					<excludes>
-						<exclude>it/tdlight/tdlight/**</exclude>
+            <exclude>it/tdlight/tdlight/ClientManager.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>

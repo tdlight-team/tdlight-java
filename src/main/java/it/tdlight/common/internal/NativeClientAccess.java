@@ -1,6 +1,6 @@
-package it.tdlight.common;
+package it.tdlight.common.internal;
 
-import it.tdlight.jni.NativeClient;
+import it.tdlight.tdnative.NativeClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Function;
 

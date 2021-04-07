@@ -1,5 +1,7 @@
-package it.tdlight.common;
+package it.tdlight.common.internal;
 
+import it.tdlight.common.ClientEventsHandler;
+import it.tdlight.common.Init;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
 import java.util.ArrayList;

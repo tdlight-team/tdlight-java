@@ -1,5 +1,6 @@
-package it.tdlight.common;
+package it.tdlight.common.internal;
 
+import it.tdlight.common.EventsHandler;
 import it.tdlight.common.utils.IntSwapper;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;

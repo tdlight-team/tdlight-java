@@ -1,6 +1,6 @@
 package it.tdlight.common;
 
-import it.tdlight.jni.NativeLog;
+import it.tdlight.tdnative.NativeLog;
 import it.tdlight.jni.TdApi;
 import java.util.function.Consumer;
 
