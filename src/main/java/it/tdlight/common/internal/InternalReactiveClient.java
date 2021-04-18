@@ -76,7 +76,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 				handleClose();
 			}
 		}
-	}
+ 	}
 
 	private void handleClose() {
 		handlers.forEach((eventId, handler) -> {
@@ -231,10 +231,11 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 			var subscription = new Subscription() {
 
 				private final AtomicBoolean alreadyRequested = new AtomicBoolean(false);
+				private volatile boolean cancelled = false;
 
 				@Override
 				public void request(long n) {
-					if (alreadyRequested.compareAndSet(false, true)) {
+					if (n > 0 && alreadyRequested.compareAndSet(false, true)) {
 						if (isClosedAndMaybeThrow(query)) {
 							logger.trace("Client {} is already closed, sending \"Ok\" to: {}", clientId, query);
 							subscriber.onNext(new TdApi.Ok());
@@ -247,9 +248,17 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 						} else {
 							long queryId = clientManager.getNextQueryId();
 							handlers.put(queryId, new Handler(result -> {
-								subscriber.onNext(result);
-								subscriber.onComplete();
-							}, subscriber::onError));
+								if (!cancelled) {
+									subscriber.onNext(result);
+								}
+								if (!cancelled) {
+									subscriber.onComplete();
+								}
+							}, t -> {
+								if (!cancelled) {
+									subscriber.onError(t);
+								}
+							}));
 							logger.trace("Client {} is requesting with query id {}: {}", clientId, queryId, query);
 							NativeClientAccess.send(clientId, queryId, query);
 							logger.trace("Client {} requested with query id {}: {}", clientId, queryId, query);
@@ -261,6 +270,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 
 				@Override
 				public void cancel() {
+					cancelled = true;
 				}
 			};
 			subscriber.onSubscribe(subscription);

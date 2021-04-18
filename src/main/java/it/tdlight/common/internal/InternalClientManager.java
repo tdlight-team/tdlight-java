@@ -43,7 +43,7 @@ public class InternalClientManager implements AutoCloseable {
 		ClientEventsHandler handler = registeredClientEventHandlers.get(clientId);
 
 		if (handler != null) {
-			handler.handleEvents(isClosed, clientEventIds, clientEvents);
+ 			handler.handleEvents(isClosed, clientEventIds, clientEvents);
 		} else {
 			java.util.List<Entry<Long, TdApi.Object>> droppedEvents = getEffectivelyDroppedEvents(clientEventIds, clientEvents);
 
