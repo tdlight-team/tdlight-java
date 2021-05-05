@@ -9,7 +9,7 @@ A barebone java wrapper for TDLib (and TDLight)
 This wrapper gives you direct access to TDLib API in Java.
 
 ## Requirements
-Java versions: Java 11, 12, 13, 14, 15, 16
+Java versions: Java 8, 9, 10, 11, 12, 13, 14, 15, 16
 
 Operating system: Linux, Windows, MacOS
 

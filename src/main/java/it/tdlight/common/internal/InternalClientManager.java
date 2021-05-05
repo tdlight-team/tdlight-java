@@ -74,7 +74,7 @@ public class InternalClientManager implements AutoCloseable {
 			TdApi.Object event = clientEvents[i];
 			boolean mustPrintError = true;
 			if (event instanceof TdApi.Error) {
-				var errorEvent = (TdApi.Error) event;
+				TdApi.Error errorEvent = (TdApi.Error) event;
 				if (Objects.equals("Request aborted", errorEvent.message)) {
 					mustPrintError = false;
 				}

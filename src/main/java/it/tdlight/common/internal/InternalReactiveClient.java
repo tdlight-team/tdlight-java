@@ -41,7 +41,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 		this.clientManager = clientManager;
 		this.updateHandler = new Handler(
 				updateItem -> {
-					var item = ReactiveItem.ofUpdate(updateItem);
+					ReactiveItem item = ReactiveItem.ofUpdate(updateItem);
 					if (subscriber != null && requested.getAndUpdate(n -> n == 0 ? 0 : (n - 1)) > 0) {
 						subscriber.onNext(item);
 					} else {
@@ -49,7 +49,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 					}
 				},
 				updateEx -> {
-					var item = ReactiveItem.ofUpdateException(updateEx);
+					ReactiveItem item = ReactiveItem.ofUpdateException(updateEx);
 					if (subscriber != null && requested.getAndUpdate(n -> n == 0 ? 0 : (n - 1)) > 0) {
 						subscriber.onNext(item);
 					} else {
@@ -128,7 +128,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 	public void subscribe(Subscriber<? super ReactiveItem> subscriber) {
 		AtomicBoolean alreadyCompleted = new AtomicBoolean();
 		if (updatesAlreadySubscribed.compareAndSet(false, true)) {
-			var subscription = new Subscription() {
+			Subscription subscription = new Subscription() {
 
 				@Override
 				public void request(long n) {
@@ -228,7 +228,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 	@Override
 	public Publisher<TdApi.Object> send(Function query) {
 		return subscriber -> {
-			var subscription = new Subscription() {
+			Subscription subscription = new Subscription() {
 
 				private final AtomicBoolean alreadyRequested = new AtomicBoolean(false);
 				private volatile boolean cancelled = false;

@@ -8,7 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-		<natives-version>3.3.28</natives-version>
+		<natives-version>3.3.37</natives-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -161,17 +161,76 @@
 					</execution>
 				</executions>
 			</plugin>
+      <!-- ensure the project is compiling with JDK 9+ -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M3</version>
+        <executions>
+          <execution>
+            <id>enforce-jdk9</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[1.9,)</version>
+                  <message>JDK 9+ is required for compilation</message>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- compile sources -->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
 					<encoding>UTF-8</encoding>
-					<release>11</release>
+					<release>8</release>
 					<useIncrementalCompilation>false</useIncrementalCompilation>
 					<excludes>
 						<exclude>it/tdlight/tdlib/ClientManager.java</exclude>
 					</excludes>
 				</configuration>
+        <executions>
+          <!-- disable default phase due to fixed id and position in lifecycle -->
+          <execution>
+            <id>default-compile</id>
+            <phase>none</phase>
+            <!-- specify source/target for IDE integration -->
+            <configuration>
+              <release>9</release>
+            </configuration>
+          </execution>
+          <!-- compile sources with Java 9 to generate and validate module-info.java -->
+          <execution>
+            <id>java-9-module-compile</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <release>9</release>
+            </configuration>
+          </execution>
+          <!-- recompile sources as Java 8 to overwrite Java 9 class files, except module-info.java -->
+          <execution>
+            <id>java-8-compile</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <!-- specify JDK 9+ release flag to ensure no classes/methods later than Java 8 are used accidentally -->
+              <release>8</release>
+              <!-- exclude module-info.java from the compilation, as it is unsupported by Java 8 -->
+              <excludes>
+                <exclude>module-info.java</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

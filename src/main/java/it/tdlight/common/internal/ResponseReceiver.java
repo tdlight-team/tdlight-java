@@ -2,6 +2,7 @@ package it.tdlight.common.internal;
 
 import it.tdlight.common.EventsHandler;
 import it.tdlight.common.utils.IntSwapper;
+import it.tdlight.common.utils.SpinWaitSupport;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
 import java.util.ArrayList;
@@ -51,17 +52,11 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 	public void run() {
 		int[] sortIndex;
 		try {
-			boolean useSpinWait = "amd64".equalsIgnoreCase(System.getProperty("os.arch"));
 			while (!closeRequested || !registeredClients.isEmpty()) {
 				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
 
 				if (resultsCount <= 0) {
-					if (useSpinWait) {
-						Thread.onSpinWait();
-					} else {
-						//noinspection BusyWait
-						Thread.sleep(20);
-					}
+					SpinWaitSupport.onSpinWait();
 					continue;
 				}
 
@@ -157,8 +152,6 @@ public class ResponseReceiver extends Thread implements AutoCloseable {
 					this.registeredClients.addAll(closedClients);
 				}
 			}
-		} catch (InterruptedException ex) {
-			throw new IllegalStateException(ex);
 		} finally {
 			this.closeWait.countDown();
 		}
