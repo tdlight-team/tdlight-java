@@ -1,8 +1,9 @@
 TDLight Java
 ====================
 
-[![Build Status](https://travis-ci.com/tdlight-team/tdlight-java-natives.svg?branch=master)](https://travis-ci.com/tdlight-team/tdlight-java-natives)
-[![Release tag](https://img.shields.io/github/v/release/tdlight-team/tdlight-java.svg?include_prereleases)](https://github.com/tdlight-team/tdlight-java/releases)
+[![Build Status](https://img.shields.io/github/workflow/status/tdlight-team/tdlight-java/Maven%20Package?style=flat-square)](https://travis-ci.com/tdlight-team/tdlight-java-natives)
+[![Release tag](https://img.shields.io/github/v/release/tdlight-team/tdlight-java.svg?include_prereleases&style=flat-square)](https://github.com/tdlight-team/tdlight-java/releases)
+[![Java profiler](https://local.cavallium.it/mirrors/jprofiler-logo/jprofiler-logo-badge.svg)](https://www.ej-technologies.com/products/jprofiler/overview.html)
 
 A barebone java wrapper for TDLib (and TDLight)
 
