@@ -8,7 +8,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-		<natives-version>3.3.42</natives-version>
+    <natives-version>3.3.49</natives-version>
+    <api-version>3.3.47</api-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -43,7 +44,7 @@
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-api</artifactId>
-			<version>${natives-version}</version>
+			<version>${api-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
