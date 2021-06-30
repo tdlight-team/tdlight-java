@@ -8,8 +8,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-		<natives-version>3.3.49</natives-version>
-    <api-version>3.3.47</api-version>
+		<natives-version>3.3.51</natives-version>
+		<api-version>3.3.49</api-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -52,12 +52,12 @@
 			<version>${natives-version}</version>
 			<optional>true</optional>
 		</dependency>
-    <dependency>
-      <groupId>it.tdlight</groupId>
-      <artifactId>tdlib-natives-linux-x86</artifactId>
-      <version>${natives-version}</version>
-      <optional>true</optional>
-    </dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlib-natives-linux-x86</artifactId>
+			<version>${natives-version}</version>
+			<optional>true</optional>
+		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-natives-linux-aarch64</artifactId>
@@ -103,11 +103,11 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.30</version>
 		</dependency>
-    <dependency>
-      <groupId>org.reactivestreams</groupId>
-      <artifactId>reactive-streams</artifactId>
-      <version>1.0.3</version>
-    </dependency>
+		<dependency>
+			<groupId>org.reactivestreams</groupId>
+			<artifactId>reactive-streams</artifactId>
+			<version>1.0.3</version>
+		</dependency>
 	</dependencies>
 	<profiles>
 		<profile>
@@ -162,29 +162,29 @@
 					</execution>
 				</executions>
 			</plugin>
-      <!-- ensure the project is compiling with JDK 9+ -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M3</version>
-        <executions>
-          <execution>
-            <id>enforce-jdk9</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>[1.9,)</version>
-                  <message>JDK 9+ is required for compilation</message>
-                </requireJavaVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- compile sources -->
+			<!-- ensure the project is compiling with JDK 9+ -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.0.0-M3</version>
+				<executions>
+					<execution>
+						<id>enforce-jdk9</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireJavaVersion>
+									<version>[1.9,)</version>
+									<message>JDK 9+ is required for compilation</message>
+								</requireJavaVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- compile sources -->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
@@ -193,45 +193,45 @@
 					<release>8</release>
 					<useIncrementalCompilation>false</useIncrementalCompilation>
 					<excludes>
-            <exclude>it/tdlight/tdlight/ClientManager.java</exclude>
+						<exclude>it/tdlight/tdlight/ClientManager.java</exclude>
 					</excludes>
 				</configuration>
-        <executions>
-          <!-- disable default phase due to fixed id and position in lifecycle -->
-          <execution>
-            <id>default-compile</id>
-            <phase>none</phase>
-            <!-- specify source/target for IDE integration -->
-            <configuration>
-              <release>9</release>
-            </configuration>
-          </execution>
-          <!-- compile sources with Java 9 to generate and validate module-info.java -->
-          <execution>
-            <id>java-9-module-compile</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <configuration>
-              <release>9</release>
-            </configuration>
-          </execution>
-          <!-- recompile sources as Java 8 to overwrite Java 9 class files, except module-info.java -->
-          <execution>
-            <id>java-8-compile</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <configuration>
-              <!-- specify JDK 9+ release flag to ensure no classes/methods later than Java 8 are used accidentally -->
-              <release>8</release>
-              <!-- exclude module-info.java from the compilation, as it is unsupported by Java 8 -->
-              <excludes>
-                <exclude>module-info.java</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-        </executions>
+				<executions>
+					<!-- disable default phase due to fixed id and position in lifecycle -->
+					<execution>
+						<id>default-compile</id>
+						<phase>none</phase>
+						<!-- specify source/target for IDE integration -->
+						<configuration>
+							<release>9</release>
+						</configuration>
+					</execution>
+					<!-- compile sources with Java 9 to generate and validate module-info.java -->
+					<execution>
+						<id>java-9-module-compile</id>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<release>9</release>
+						</configuration>
+					</execution>
+					<!-- recompile sources as Java 8 to overwrite Java 9 class files, except module-info.java -->
+					<execution>
+						<id>java-8-compile</id>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<!-- specify JDK 9+ release flag to ensure no classes/methods later than Java 8 are used accidentally -->
+							<release>8</release>
+							<!-- exclude module-info.java from the compilation, as it is unsupported by Java 8 -->
+							<excludes>
+								<exclude>module-info.java</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
