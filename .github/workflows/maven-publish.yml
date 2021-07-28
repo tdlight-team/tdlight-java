@@ -22,6 +22,7 @@ jobs:
           echo ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
           echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
           echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+          echo ::set-output name=SOURCE_TAG_VERSION::${GITHUB_REF#refs/tags/v}
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
@@ -29,7 +30,7 @@ jobs:
         shell: bash
         run: |
           # ====== Variables
-          export REVISION=${{ steps.branch_name.outputs.SOURCE_TAG }}
+          export REVISION=${{ steps.branch_name.outputs.SOURCE_TAG_VERSION }}
           export IMPLEMENTATION_NAME=${{ matrix.implementation }}
 
           echo "REVISION=$REVISION" >> $GITHUB_ENV
