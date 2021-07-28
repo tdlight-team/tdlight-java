@@ -2,14 +2,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.tdlight</groupId>
 	<artifactId>tdlib-java</artifactId>
-	<version>4.171.${revision}</version>
+	<version>1.7.6.${revision}</version>
 	<name>TDLib Java Wrapper</name>
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>0-SNAPSHOT</revision>
-    <natives-version>3.3.57</natives-version>
-    <api-version>3.3.55</api-version>
+    <api-version>3.3.56</api-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -45,42 +44,6 @@
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-api</artifactId>
 			<version>${api-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>it.tdlight</groupId>
-			<artifactId>tdlib-natives-linux-amd64</artifactId>
-			<version>${natives-version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>it.tdlight</groupId>
-			<artifactId>tdlib-natives-linux-x86</artifactId>
-			<version>${natives-version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>it.tdlight</groupId>
-			<artifactId>tdlib-natives-linux-aarch64</artifactId>
-			<version>${natives-version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>it.tdlight</groupId>
-			<artifactId>tdlib-natives-linux-armv7</artifactId>
-			<version>${natives-version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>it.tdlight</groupId>
-			<artifactId>tdlib-natives-windows-amd64</artifactId>
-			<version>${natives-version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>it.tdlight</groupId>
-			<artifactId>tdlib-natives-osx-amd64</artifactId>
-			<version>${natives-version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>it.cavallium</groupId>
