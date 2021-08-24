@@ -193,6 +193,7 @@
 							<release>8</release>
 							<!-- exclude module-info.java from the compilation, as it is unsupported by Java 8 -->
 							<excludes>
+                <exclude>it/tdlight/tdlight/ClientManager.java</exclude>
 								<exclude>module-info.java</exclude>
 							</excludes>
 						</configuration>
