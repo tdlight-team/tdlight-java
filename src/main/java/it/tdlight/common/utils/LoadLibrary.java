@@ -71,11 +71,11 @@ public class LoadLibrary {
 		Arch arch = getCpuArch();
 		Os os = getOs();
 
-		if (arch == Arch.unknown) {
+		if (arch == Arch.UNKNOWN) {
 			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException("Arch: \"" + System.getProperty("os.arch") + "\" is unknown"));
 		}
 
-		if (os == Os.unknown) {
+		if (os == Os.UNKNOWN) {
 			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException("Os: \"" + System.getProperty("os.name") + "\" is unknown"));
 		}
 
@@ -104,44 +104,44 @@ public class LoadLibrary {
 		Path tempFile = Paths.get(tempPath.toString(), libname + getExt(os));
 		Class<?> classForResource = null;
 		switch (os) {
-			case linux:
+			case LINUX:
 				switch (arch) {
-					case amd64:
+					case AMD64:
 						try {
 							classForResource = Class.forName(LibraryVersion.LINUX_AMD64_CLASS);
 						} catch (ClassNotFoundException e) {
 							// not found
 						}
 						break;
-					case x86:
+					case I386:
 						try {
 							classForResource = Class.forName(LibraryVersion.LINUX_X86_CLASS);
 						} catch (ClassNotFoundException e) {
 							// not found
 						}
 						break;
-					case aarch64:
+					case AARCH64:
 						try {
 							classForResource = Class.forName(LibraryVersion.LINUX_AARCH64_CLASS);
 						} catch (ClassNotFoundException e) {
 							// not found
 						}
 						break;
-					case armv7:
+					case ARMHF:
 						try {
-							classForResource = Class.forName(LibraryVersion.LINUX_ARMV7_CLASS);
+							classForResource = Class.forName(LibraryVersion.LINUX_ARMHF_CLASS);
 						} catch (ClassNotFoundException e) {
 							// not found
 						}
 						break;
-					case armv6:
+					case S390X:
 						try {
-							classForResource = Class.forName(LibraryVersion.LINUX_ARMV6_CLASS);
+							classForResource = Class.forName(LibraryVersion.LINUX_S390X_CLASS);
 						} catch (ClassNotFoundException e) {
 							// not found
 						}
 						break;
-					case ppc64le:
+					case PPC64LE:
 						try {
 							classForResource = Class.forName(LibraryVersion.LINUX_PPC64LE_CLASS);
 						} catch (ClassNotFoundException e) {
@@ -150,8 +150,8 @@ public class LoadLibrary {
 						break;
 				}
 				break;
-			case osx:
-				if (arch == Arch.amd64) {
+			case OSX:
+				if (arch == Arch.AMD64) {
 					try {
 						classForResource = Class.forName(LibraryVersion.OSX_AMD64_CLASS);
 					} catch (ClassNotFoundException e) {
@@ -159,16 +159,16 @@ public class LoadLibrary {
 					}
 				}
 				break;
-			case win:
+			case WINDOWS:
 				switch (arch) {
-					case amd64:
+					case AMD64:
 						try {
 							classForResource = Class.forName(LibraryVersion.WINDOWS_AMD64_CLASS);
 						} catch (ClassNotFoundException e) {
 							// not found
 						}
 						break;
-					case x86:
+					case I386:
 						break;
 				}
 				break;
@@ -195,52 +195,63 @@ public class LoadLibrary {
 		switch (architecture) {
 			case "amd64":
 			case "x86_64":
-				return Arch.amd64;
+				return Arch.AMD64;
 			case "i386":
 			case "x86":
-				return Arch.x86;
+			case "386":
+			case "i686":
+			case "686":
+				return Arch.I386;
 			case "armv6":
-				return Arch.armv6;
 			case "arm":
+			case "armhf":
 			case "aarch32":
 			case "armv7":
 			case "armv7l":
-				return Arch.armv7;
+				return Arch.ARMHF;
 			case "arm64":
 			case "aarch64":
-				return Arch.aarch64;
+			case "armv8":
+			case "armv8l":
+				return Arch.AARCH64;
 			case "powerpc":
+			case "powerpc64":
+			case "powerpc64le":
+			case "powerpc64el":
+			case "ppc":
 			case "ppc64":
+			case "ppc64le":
+			case "ppc64el":
 				if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) // Java always returns ppc64 for all 64-bit powerpc but
-					return Arch.ppc64le;                                       // powerpc64le (our target) is very different, it uses this condition to accurately identify the architecture
+					return Arch.PPC64LE;                                       // powerpc64le (our target) is very different, it uses this condition to accurately identify the architecture
 				else
-					return Arch.unknown;
+					return Arch.UNKNOWN;
 			default:
-				return Arch.unknown;
+				return Arch.UNKNOWN;
 		}
 	}
 
 	public static Os getOs() {
 		String os = System.getProperty("os.name").toLowerCase().trim();
 		if (os.contains("linux"))
-			return Os.linux;
+			return Os.LINUX;
 		if (os.contains("windows"))
-			return Os.win;
+			return Os.WINDOWS;
 		if (os.contains("mac"))
-			return Os.osx;
+			return Os.OSX;
 		if (os.contains("darwin"))
-			return Os.osx;
-		return Os.unknown;
+			return Os.OSX;
+		return Os.UNKNOWN;
 	}
 
 	private static String getExt(Os os) {
 		switch (os) {
-			case win:
+			case WINDOWS:
 				return ".dll";
-			case osx:
+			case OSX:
 				return ".dylib";
-			case linux:
-			case unknown:
+			case LINUX:
+			case UNKNOWN:
 			default:
 				return ".so";
 		}

@@ -8,8 +8,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>1.0.0-SNAPSHOT</revision>
-    <api-version>3.3.72</api-version>
-    <natives-version>3.3.74</natives-version>
+		<api-version>3.3.125</api-version>
+		<natives-version>3.3.127</natives-version>
 	</properties>
 	<repositories>
 		<repository>
@@ -66,15 +66,15 @@
 			<version>1.0.3</version>
 		</dependency>
 	</dependencies>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>it.unimi.dsi</groupId>
-        <artifactId>fastutil</artifactId>
-        <version>8.5.2</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>it.unimi.dsi</groupId>
+				<artifactId>fastutil</artifactId>
+				<version>8.5.2</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<profiles>
 		<profile>
 			<id>releaseDir</id>
@@ -156,7 +156,8 @@
 				<version>3.8.1</version>
 				<configuration>
 					<encoding>UTF-8</encoding>
-					<release>8</release>
+					<source>8</source>
+					<target>8</target>
 					<useIncrementalCompilation>false</useIncrementalCompilation>
 					<excludes>
 						<exclude>it/tdlight/tdlib/ClientManager.java</exclude>
@@ -190,10 +191,11 @@
 						</goals>
 						<configuration>
 							<!-- specify JDK 9+ release flag to ensure no classes/methods later than Java 8 are used accidentally -->
-							<release>8</release>
+							<source>8</source>
+							<target>8</target>
 							<!-- exclude module-info.java from the compilation, as it is unsupported by Java 8 -->
 							<excludes>
-                <exclude>it/tdlight/tdlib/ClientManager.java</exclude>
+								<exclude>it/tdlight/tdlib/ClientManager.java</exclude>
 								<exclude>module-info.java</exclude>
 							</excludes>
 						</configuration>

@@ -37,7 +37,7 @@ public class Init {
         if (!started) {
             Os os = LoadLibrary.getOs();
 
-            if (os == Os.win) {
+            if (os == Os.WINDOWS) {
                 // Since 3.0.0, libraries for windows are statically compiled into tdjni.dll
             }
 

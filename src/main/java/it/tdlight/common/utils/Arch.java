@@ -21,5 +21,11 @@ package it.tdlight.common.utils;
  * Enumeration with all architectures recognized by this library.
  */
 public enum Arch {
-	amd64, x86, armv6, armv7, aarch64, ppc64le, unknown
+	UNKNOWN,
+	AMD64,
+	I386,
+	ARMHF,
+	AARCH64,
+	PPC64LE,
+	S390X
 }
