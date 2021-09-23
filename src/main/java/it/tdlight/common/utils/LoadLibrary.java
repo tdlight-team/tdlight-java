@@ -185,7 +185,7 @@ public class LoadLibrary {
 		if (Files.notExists(tempFile)) {
 			Files.copy(libInputStream, tempFile);
 		}
-		if (libInputStream != null) libInputStream.close();
+		libInputStream.close();
 		System.load(tempFile.toFile().getAbsolutePath());
 	}
 
