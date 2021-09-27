@@ -32,6 +32,12 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR) {
 			AuthenticationData authenticationData = authenticable.getAuthenticationData();
+
+			// Ask login parameters
+			if (authenticationData instanceof ConsoleInteractiveAuthenticationData) {
+				((ConsoleInteractiveAuthenticationData) authenticationData).askData();
+			}
+
 			if (authenticationData.isBot()) {
 				String botToken = authenticationData.getBotToken();
 				TdApi.CheckAuthenticationBotToken response = new TdApi.CheckAuthenticationBotToken(botToken);
