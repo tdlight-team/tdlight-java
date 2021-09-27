@@ -8,16 +8,10 @@ import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 final class AuthorizationStateWaitOtherDeviceConfirmationHandler
 		implements GenericUpdateHandler<UpdateAuthorizationState> {
 
-	private final TelegramClient client;
 	private final ClientInteraction clientInteraction;
-	private final ExceptionHandler exceptionHandler;
 
-	public AuthorizationStateWaitOtherDeviceConfirmationHandler(TelegramClient client,
-			ClientInteraction clientInteraction,
-			ExceptionHandler exceptionHandler) {
-		this.client = client;
+	public AuthorizationStateWaitOtherDeviceConfirmationHandler(ClientInteraction clientInteraction) {
 		this.clientInteraction = clientInteraction;
-		this.exceptionHandler = exceptionHandler;
 	}
 
 	@Override

@@ -16,8 +16,6 @@ package it.tdlight.client;
 
 final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AuthorizationStateWaitAuthenticationDataHandler.class);
-
 	private final TelegramClient client;
 	private final Authenticable authenticable;
 	private final ExceptionHandler exceptionHandler;
@@ -41,10 +39,7 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 					if (ok.getConstructor() == Error.CONSTRUCTOR) {
 						throw new TelegramError((Error) ok);
 					}
-				}, ex -> {
-					logger.error("Failed to set TDLight phone number or bot token!", ex);
-					exceptionHandler.onException(ex);
-				});
+				}, exceptionHandler);
 			} else {
 				PhoneNumberAuthenticationSettings phoneSettings = new PhoneNumberAuthenticationSettings(false, false, false);
 
@@ -54,10 +49,7 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 					if (ok.getConstructor() == Error.CONSTRUCTOR) {
 						throw new TelegramError((Error) ok);
 					}
-				}, ex -> {
-					logger.error("Failed to set TDLight phone number!", ex);
-					exceptionHandler.onException(ex);
-				});
+				}, exceptionHandler);
 			}
 		}
 	}

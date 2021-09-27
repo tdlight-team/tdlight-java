@@ -10,24 +10,16 @@ import it.tdlight.common.internal.CommonClientManager;
 import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.common.utils.LibraryVersion;
 import it.tdlight.jni.TdApi;
-import it.tdlight.jni.TdApi.Chat;
 import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
-import it.tdlight.jni.TdApi.Message;
-import it.tdlight.jni.TdApi.MessageText;
-import it.tdlight.jni.TdApi.UpdateNewMessage;
 import it.tdlight.jni.TdApi.User;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,8 +75,7 @@ public final class SimpleTelegramClient implements Authenticable {
 				new AuthorizationStateWaitPasswordHandler(client, new SimpleTelegramClientInteraction(),
 						this::handleDefaultException));
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitOtherDeviceConfirmationHandler(client, new SimpleTelegramClientInteraction(),
-						this::handleDefaultException));
+				new AuthorizationStateWaitOtherDeviceConfirmationHandler(new SimpleTelegramClientInteraction()));
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				new AuthorizationStateWaitCodeHandler(client, new SimpleTelegramClientInteraction(),
 						this::handleDefaultException));

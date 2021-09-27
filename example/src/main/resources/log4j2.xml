@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://logging.apache.org/log4j/2.0/config
   https://raw.githubusercontent.com/apache/logging-log4j2/log4j-2.14.1/log4j-core/src/main/resources/Log4j-config.xsd"
-  status="ALL">
+  status="INFO">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout
@@ -13,7 +13,7 @@
 
   </Appenders>
   <Loggers>
-    <Root level="ALL">
+    <Root level="INFO">
       <AppenderRef ref="Console"/>
     </Root>
   </Loggers>

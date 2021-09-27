@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 final class AuthorizationStateWaitEncryptionKeyHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AuthorizationStateWaitEncryptionKeyHandler.class);
-
 	private final TelegramClient client;
 	private final ExceptionHandler exceptionHandler;
 
@@ -31,10 +29,7 @@ final class AuthorizationStateWaitEncryptionKeyHandler implements GenericUpdateH
 				if (ok.getConstructor() == Error.CONSTRUCTOR) {
 					throw new TelegramError((Error) ok);
 				}
-			}, ex -> {
-				logger.error("Failed to manage TDLight database encryption key!", ex);
-				exceptionHandler.onException(ex);
-			});
+			}, exceptionHandler);
 		}
 	}
 }

@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 
 final class AuthorizationStateWaitRegistrationHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AuthorizationStateWaitRegistrationHandler.class);
-
 	private final TelegramClient client;
 	private final ClientInteraction clientInteraction;
 	private final ExceptionHandler exceptionHandler;
@@ -55,10 +53,7 @@ final class AuthorizationStateWaitRegistrationHandler implements GenericUpdateHa
 				if (ok.getConstructor() == Error.CONSTRUCTOR) {
 					throw new TelegramError((Error) ok);
 				}
-			}, ex -> {
-				logger.error("Failed to register user", ex);
-				exceptionHandler.onException(ex);
-			});
+			}, exceptionHandler);
 		}
 	}
 }

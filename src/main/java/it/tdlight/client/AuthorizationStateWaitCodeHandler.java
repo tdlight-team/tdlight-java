@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 final class AuthorizationStateWaitCodeHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AuthorizationStateWaitCodeHandler.class);
-
 	private final TelegramClient client;
 	private final ClientInteraction clientInteraction;
 	private final ExceptionHandler exceptionHandler;
@@ -44,10 +42,7 @@ final class AuthorizationStateWaitCodeHandler implements GenericUpdateHandler<Up
 				if (ok.getConstructor() == Error.CONSTRUCTOR) {
 					throw new TelegramError((Error) ok);
 				}
-			}, ex -> {
-				logger.error("Failed to check authentication code", ex);
-				exceptionHandler.onException(ex);
-			});
+			}, exceptionHandler);
 		}
 	}
 }

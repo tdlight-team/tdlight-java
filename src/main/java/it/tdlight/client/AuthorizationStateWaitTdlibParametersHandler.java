@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 
 final class AuthorizationStateWaitTdlibParametersHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AuthorizationStateWaitEncryptionKeyHandler.class);
-
 	private final TelegramClient client;
 	private final TDLibSettings settings;
 	private final ExceptionHandler exceptionHandler;
@@ -49,10 +47,7 @@ final class AuthorizationStateWaitTdlibParametersHandler implements GenericUpdat
 				if (ok.getConstructor() == Error.CONSTRUCTOR) {
 					throw new TelegramError((Error) ok);
 				}
-			}, ex -> {
-				logger.error("Failed to set TDLight parameters!", ex);
-				exceptionHandler.onException(ex);
-			});
+			}, exceptionHandler);
 		}
 	}
 }
