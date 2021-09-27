@@ -21,6 +21,11 @@ final class AuthenticationDataImpl implements AuthenticationData {
 	}
 
 	@Override
+	public boolean isQrCode() {
+		return false;
+	}
+
+	@Override
 	public boolean isBot() {
 		return botToken != null;
 	}

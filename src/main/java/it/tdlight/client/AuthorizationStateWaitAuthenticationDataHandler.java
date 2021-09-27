@@ -40,6 +40,13 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 						throw new TelegramError((Error) ok);
 					}
 				}, exceptionHandler);
+			} else if (authenticationData.isQrCode()) {
+				TdApi.RequestQrCodeAuthentication response = new TdApi.RequestQrCodeAuthentication();
+				client.send(response, ok -> {
+					if (ok.getConstructor() == Error.CONSTRUCTOR) {
+						throw new TelegramError((Error) ok);
+					}
+				}, exceptionHandler);
 			} else {
 				PhoneNumberAuthenticationSettings phoneSettings = new PhoneNumberAuthenticationSettings(false, false, false);
 

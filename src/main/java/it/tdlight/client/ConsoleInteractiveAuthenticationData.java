@@ -9,6 +9,7 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 	private static final Object LOCK = new Object();
 
 	private boolean initialized = false;
+	private boolean isQr;
 	private boolean isBot;
 	private String botToken;
 	private long phoneNumber;
@@ -26,6 +27,12 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 	}
 
 	@Override
+	public boolean isQrCode() {
+		initializeIfNeeded();
+		return isQr;
+	}
+
+	@Override
 	public boolean isBot() {
 		initializeIfNeeded();
 		return isBot;
@@ -34,7 +41,7 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 	@Override
 	public long getUserPhoneNumber() {
 		initializeIfNeeded();
-		if (isBot) {
+		if (isBot || isQr) {
 			throw new UnsupportedOperationException("This is not a user");
 		}
 		return phoneNumber;
@@ -43,7 +50,7 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 	@Override
 	public String getBotToken() {
 		initializeIfNeeded();
-		if (!isBot) {
+		if (!isBot || isQr) {
 			throw new UnsupportedOperationException("This is not a bot");
 		}
 		return botToken;
@@ -58,22 +65,24 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 			String choice;
 
 			// Choose login type
-			Boolean useBotToken;
+			String mode;
 			do {
 				choice = ScannerUtils
-						.askParameter("login", "Do you want to login using a bot [token] or a [phone] number? [token/phone]")
+						.askParameter("login", "Do you want to login using a bot [token], a [phone] number, or a [qr] code? [token/phone/qr]")
 						.trim()
 						.toLowerCase(Locale.ROOT);
 				if ("phone".equals(choice)) {
-					useBotToken = false;
+					mode = "PHONE";
 				} else if ("token".equals(choice)) {
-					useBotToken = true;
+					mode = "TOKEN";
+				} else if ("qr".equals(choice)) {
+					mode = "QR";
 				} else {
-					useBotToken = null;
+					mode = null;
 				}
-			} while (useBotToken == null);
+			} while (mode == null);
 
-			if (useBotToken) {
+			if ("TOKEN".equals(mode)) {
 				String token;
 				do {
 					token = ScannerUtils.askParameter("login", "Please type the bot token");
@@ -82,7 +91,8 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 				this.isBot = true;
 				this.phoneNumber = -1;
 				this.botToken = token;
-			} else {
+				this.isQr = false;
+			} else if ("PHONE".equals(mode)) {
 				String phoneNumber;
 				do {
 					phoneNumber = ScannerUtils.askParameter("login", "Please type your phone number");
@@ -97,6 +107,13 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 				this.isBot = false;
 				this.phoneNumber = phoneNumberLong;
 				this.botToken = null;
+				this.isQr = false;
+			} else {
+
+				this.isBot = false;
+				this.phoneNumber = -1;
+				this.botToken = null;
+				this.isQr = true;
 			}
 
 			initialized = true;

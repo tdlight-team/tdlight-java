@@ -23,6 +23,8 @@ final class ScannerClientInteraction implements ClientInteraction {
 		}
 		if (!useRealWho) {
 			who = "login";
+		} else if (authenticationData.isQrCode()) {
+			who = "QR login";
 		} else if (authenticationData.isBot()) {
 			who = authenticationData.getBotToken().split(":", 2)[0];
 		} else {
