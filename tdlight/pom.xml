@@ -185,7 +185,7 @@
               <release>9</release>
             </configuration>
           </execution>
-          <!-- compile sources with Java 111 -->
+          <!-- compile sources with Java 11 -->
           <execution>
             <id>java-11-module-compile</id>
             <goals>
