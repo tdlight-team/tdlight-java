@@ -6,6 +6,7 @@ import it.tdlight.jni.TdApi.AuthorizationStateWaitCode;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitPassword;
 import it.tdlight.jni.TdApi.CheckAuthenticationCode;
 import it.tdlight.jni.TdApi.CheckAuthenticationPassword;
+import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import org.slf4j.Logger;
@@ -38,7 +39,11 @@ final class AuthorizationStateWaitPasswordHandler implements GenericUpdateHandle
 			);
 			String password = clientInteraction.onParameterRequest(InputParameter.ASK_PASSWORD, parameterInfo);
 			Function response = new CheckAuthenticationPassword(password);
-			client.send(response, ok -> {}, ex -> {
+			client.send(response, ok -> {
+				if (ok.getConstructor() == Error.CONSTRUCTOR) {
+					throw new TelegramError((Error) ok);
+				}
+			}, ex -> {
 				logger.error("Failed to check authentication password", ex);
 				exceptionHandler.onException(ex);
 			});

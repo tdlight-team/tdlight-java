@@ -3,6 +3,7 @@ package it.tdlight.client;
 import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Chat;
+import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.MessageText;
 import it.tdlight.jni.TdApi.UpdateNewMessage;
@@ -71,7 +72,12 @@ final class CommandsHandler implements GenericUpdateHandler<UpdateNewMessage> {
 
 							for (CommandHandler handler : handlers) {
 								client.send(new TdApi.GetChat(message.chatId),
-										response -> handler.onCommand((Chat) response, message.sender, arguments),
+										response -> {
+											if (response.getConstructor() == Error.CONSTRUCTOR) {
+												throw new TelegramError((Error) response);
+											}
+											handler.onCommand((Chat) response, message.sender, arguments);
+										},
 										error -> logger.warn("Error when handling the command {}", commandName, error)
 								);
 							}

@@ -16,9 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 public final class InternalClient implements ClientEventsHandler, TelegramClient {
 
+	private static final Marker TG_MARKER = MarkerFactory.getMarker("TG");
 	private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
 
@@ -77,11 +80,12 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	private void handleClose() {
+		logger.trace(TG_MARKER, "Received close");
 		handlers.forEach((eventId, handler) -> {
 			handleResponse(eventId, new Error(500, "Instance closed"), handler);
 		});
 		handlers.clear();
-		logger.info("Client closed {}", clientId);
+		logger.info(TG_MARKER, "Client closed {}", clientId);
 	}
 
 	/**
@@ -95,7 +99,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 				handleException(handler.getExceptionHandler(), cause);
 			}
 		} else {
-			logger.error("Unknown event id \"{}\", the event has been dropped! {}", eventId, event);
+			logger.error(TG_MARKER, "Unknown event id \"{}\", the event has been dropped! {}", eventId, event);
 		}
 	}
 
@@ -103,6 +107,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	 * Handles a response or an update
 	 */
 	private void handleEvent(long eventId, Object event) {
+		logger.trace(TG_MARKER, "Received response {}: {}", eventId, event);
 		if (updatesHandler != null || updateHandler == null) throw new IllegalStateException();
 		Handler handler = eventId == 0 ? updateHandler : handlers.remove(eventId);
 		handleResponse(eventId, event, handler);
@@ -143,7 +148,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 		if (clientId != null) throw new UnsupportedOperationException("Can't initialize the same client twice!");
 		clientId = NativeClientAccess.create();
 		clientManager.registerClient(clientId, this);
-		logger.info("Registered new client {}", clientId);
+		logger.info(TG_MARKER, "Registered new client {}", clientId);
 
 		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
 		this.send(new TdApi.GetAuthorizationState(), (result) -> {}, ex -> {});
@@ -151,6 +156,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 
 	@Override
 	public void send(Function query, ResultHandler resultHandler, ExceptionHandler exceptionHandler) {
+		logger.trace(TG_MARKER, "Trying to send {}", query);
 		if (isClosedAndMaybeThrow(query)) {
 			resultHandler.onResult(new TdApi.Ok());
 		}
@@ -168,6 +174,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 
 	@Override
 	public Object execute(Function query) {
+		logger.trace(TG_MARKER, "Trying to execute {}", query);
 		if (isClosedAndMaybeThrow(query)) {
 			return new TdApi.Ok();
 		}

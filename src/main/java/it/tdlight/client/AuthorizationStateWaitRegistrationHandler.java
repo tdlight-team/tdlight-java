@@ -4,6 +4,7 @@ import it.tdlight.common.ExceptionHandler;
 import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitRegistration;
+import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.RegisterUser;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import org.slf4j.Logger;
@@ -50,7 +51,11 @@ final class AuthorizationStateWaitRegistrationHandler implements GenericUpdateHa
 				return;
 			}
 			RegisterUser response = new RegisterUser(firstName, lastName);
-			client.send(response, ok -> {}, ex -> {
+			client.send(response, ok -> {
+				if (ok.getConstructor() == Error.CONSTRUCTOR) {
+					throw new TelegramError((Error) ok);
+				}
+			}, ex -> {
 				logger.error("Failed to register user", ex);
 				exceptionHandler.onException(ex);
 			});

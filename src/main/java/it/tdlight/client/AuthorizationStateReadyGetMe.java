@@ -3,6 +3,7 @@ package it.tdlight.client;
 import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationStateReady;
+import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.GetMe;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import it.tdlight.jni.TdApi.User;
@@ -25,7 +26,12 @@ final class AuthorizationStateReadyGetMe implements GenericUpdateHandler<UpdateA
 	@Override
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == AuthorizationStateReady.CONSTRUCTOR) {
-			client.send(new GetMe(), me -> this.me.set((User) me), error -> logger.warn("Failed to execute TdApi.GetMe()"));
+			client.send(new GetMe(), me -> {
+				if (me.getConstructor() == Error.CONSTRUCTOR) {
+					throw new TelegramError((Error) me);
+				}
+				this.me.set((User) me);
+			}, error -> logger.warn("Failed to execute TdApi.GetMe()"));
 		}
 	}
 }

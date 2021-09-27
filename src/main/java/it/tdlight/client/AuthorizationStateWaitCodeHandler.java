@@ -6,6 +6,7 @@ import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitCode;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitOtherDeviceConfirmation;
 import it.tdlight.jni.TdApi.CheckAuthenticationCode;
+import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import org.slf4j.Logger;
@@ -39,7 +40,11 @@ final class AuthorizationStateWaitCodeHandler implements GenericUpdateHandler<Up
 			);
 			String code = clientInteraction.onParameterRequest(InputParameter.ASK_CODE, parameterInfo);
 			Function response = new CheckAuthenticationCode(code);
-			client.send(response, ok -> {}, ex -> {
+			client.send(response, ok -> {
+				if (ok.getConstructor() == Error.CONSTRUCTOR) {
+					throw new TelegramError((Error) ok);
+				}
+			}, ex -> {
 				logger.error("Failed to check authentication code", ex);
 				exceptionHandler.onException(ex);
 			});

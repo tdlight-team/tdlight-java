@@ -3,6 +3,7 @@ package it.tdlight.client;
 import it.tdlight.common.ExceptionHandler;
 import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitTdlibParameters;
+import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.SetTdlibParameters;
 import it.tdlight.jni.TdApi.TdlibParameters;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
@@ -44,7 +45,11 @@ final class AuthorizationStateWaitTdlibParametersHandler implements GenericUpdat
 			params.applicationVersion = settings.getApplicationVersion();
 			params.enableStorageOptimizer = settings.isStorageOptimizerEnabled();
 			params.ignoreFileNames = settings.isIgnoreFileNames();
-			client.send(new SetTdlibParameters(params), ok -> {}, ex -> {
+			client.send(new SetTdlibParameters(params), ok -> {
+				if (ok.getConstructor() == Error.CONSTRUCTOR) {
+					throw new TelegramError((Error) ok);
+				}
+			}, ex -> {
 				logger.error("Failed to set TDLight parameters!", ex);
 				exceptionHandler.onException(ex);
 			});

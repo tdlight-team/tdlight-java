@@ -11,6 +11,7 @@ import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.common.utils.LibraryVersion;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Chat;
+import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.MessageText;
@@ -217,14 +218,22 @@ public final class SimpleTelegramClient implements Authenticable {
 	 * Send the close signal but don't wait
 	 */
 	public void sendClose() {
-		client.send(new TdApi.Close(), ok -> {});
+		client.send(new TdApi.Close(), ok -> {
+			if (ok.getConstructor() == Error.CONSTRUCTOR) {
+				throw new TelegramError((Error) ok);
+			}
+		});
 	}
 
 	/**
 	 * Send the close signal and wait for exit
 	 */
 	public void closeAndWait() throws InterruptedException {
-		client.send(new TdApi.Close(), ok -> {});
+		client.send(new TdApi.Close(), ok -> {
+			if (ok.getConstructor() == Error.CONSTRUCTOR) {
+				throw new TelegramError((Error) ok);
+			}
+		});
 		this.waitForExit();
 	}
 

@@ -5,6 +5,7 @@ import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitEncryptionKey;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitTdlibParameters;
 import it.tdlight.jni.TdApi.CheckDatabaseEncryptionKey;
+import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.SetTdlibParameters;
 import it.tdlight.jni.TdApi.TdlibParameters;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
@@ -26,7 +27,11 @@ final class AuthorizationStateWaitEncryptionKeyHandler implements GenericUpdateH
 	@Override
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == AuthorizationStateWaitEncryptionKey.CONSTRUCTOR) {
-			client.send(new CheckDatabaseEncryptionKey(), ok -> {}, ex -> {
+			client.send(new CheckDatabaseEncryptionKey(), ok -> {
+				if (ok.getConstructor() == Error.CONSTRUCTOR) {
+					throw new TelegramError((Error) ok);
+				}
+			}, ex -> {
 				logger.error("Failed to manage TDLight database encryption key!", ex);
 				exceptionHandler.onException(ex);
 			});

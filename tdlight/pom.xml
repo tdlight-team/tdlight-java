@@ -7,7 +7,7 @@
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>1.0.0-SNAPSHOT</revision>
+		<revision>1.0.0.0-SNAPSHOT</revision>
     <api-version>3.3.147</api-version>
     <natives-version>3.3.149</natives-version>
 	</properties>

@@ -67,7 +67,7 @@ public final class Example {
 		SimpleTelegramClient client = new SimpleTelegramClient(settings);
 
 		// Configure the authentication info
-		AuthenticationData authenticationData = AuthenticationData.bot("1458657665:AAFotSQj1pHcRrH1C0DmDX6VpwSanJgb2-g");
+		AuthenticationData authenticationData = AuthenticationData.bot("124:1999");
 
 		// Add an example update handler that prints when the bot is started
 		client.addUpdateHandler(UpdateAuthorizationState.class, update -> printStatus(update.authorizationState));

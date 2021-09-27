@@ -5,7 +5,9 @@ package it.tdlight.client;
 		import it.tdlight.common.utils.ScannerUtils;
 		import it.tdlight.jni.TdApi;
 		import it.tdlight.jni.TdApi.AuthorizationStateWaitEncryptionKey;
+		import it.tdlight.jni.TdApi.AuthorizationStateWaitPhoneNumber;
 		import it.tdlight.jni.TdApi.CheckDatabaseEncryptionKey;
+		import it.tdlight.jni.TdApi.Error;
 		import it.tdlight.jni.TdApi.PhoneNumberAuthenticationSettings;
 		import it.tdlight.jni.TdApi.SetAuthenticationPhoneNumber;
 		import it.tdlight.jni.TdApi.UpdateAuthorizationState;
@@ -35,7 +37,11 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 			if (authenticationData.isBot()) {
 				String botToken = authenticationData.getBotToken();
 				TdApi.CheckAuthenticationBotToken response = new TdApi.CheckAuthenticationBotToken(botToken);
-				client.send(response, ok -> {}, ex -> {
+				client.send(response, ok -> {
+					if (ok.getConstructor() == Error.CONSTRUCTOR) {
+						throw new TelegramError((Error) ok);
+					}
+				}, ex -> {
 					logger.error("Failed to set TDLight phone number or bot token!", ex);
 					exceptionHandler.onException(ex);
 				});
@@ -44,7 +50,11 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 
 				String phoneNumber = String.valueOf(authenticationData.getUserPhoneNumber());
 				SetAuthenticationPhoneNumber response = new SetAuthenticationPhoneNumber(phoneNumber, phoneSettings);
-				client.send(response, ok -> {}, ex -> {
+				client.send(response, ok -> {
+					if (ok.getConstructor() == Error.CONSTRUCTOR) {
+						throw new TelegramError((Error) ok);
+					}
+				}, ex -> {
 					logger.error("Failed to set TDLight phone number!", ex);
 					exceptionHandler.onException(ex);
 				});
