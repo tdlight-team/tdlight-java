@@ -15,7 +15,15 @@ final class ScannerClientInteraction implements ClientInteraction {
 	public String onParameterRequest(InputParameter parameter, ParameterInfo parameterInfo) {
 		AuthenticationData authenticationData = authenticable.getAuthenticationData();
 		String who;
-		if (authenticationData.isBot()) {
+		boolean useRealWho;
+		if (authenticationData instanceof ConsoleInteractiveAuthenticationData) {
+			useRealWho = ((ConsoleInteractiveAuthenticationData) authenticationData).isInitialized();
+		} else {
+			useRealWho = true;
+		}
+		if (!useRealWho) {
+			who = "login";
+		} else if (authenticationData.isBot()) {
 			who = authenticationData.getBotToken().split(":", 2)[0];
 		} else {
 			who = "+" + authenticationData.getUserPhoneNumber();

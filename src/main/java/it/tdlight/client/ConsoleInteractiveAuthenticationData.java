@@ -21,6 +21,10 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 		initializeIfNeeded();
 	}
 
+	public boolean isInitialized() {
+		return initialized;
+	}
+
 	@Override
 	public boolean isBot() {
 		initializeIfNeeded();
