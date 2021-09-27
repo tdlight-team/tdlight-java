@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
-public class ResponseReceiver extends Thread implements AutoCloseable {
+public final class ResponseReceiver extends Thread implements AutoCloseable {
 
 	private static final boolean USE_OPTIMIZED_DISPATCHER = Boolean.parseBoolean(System.getProperty(
 			"tdlight.dispatcher.use_optimized_dispatcher",

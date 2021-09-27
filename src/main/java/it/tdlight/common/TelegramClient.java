@@ -6,8 +6,9 @@ public interface TelegramClient {
 
 	/**
 	 * Initialize the client synchronously.
-	 * @param updatesHandler Handler in which the updates are received
-	 * @param updateExceptionHandler Handler in which the errors from updates are received
+	 *
+	 * @param updatesHandler          Handler in which the updates are received
+	 * @param updateExceptionHandler  Handler in which the errors from updates are received
 	 * @param defaultExceptionHandler Handler that receives exceptions triggered in a handler
 	 */
 	void initialize(UpdatesHandler updatesHandler,
@@ -16,8 +17,9 @@ public interface TelegramClient {
 
 	/**
 	 * Initialize the client synchronously.
-	 * @param updateHandler Handler in which the updates are received
-	 * @param updateExceptionHandler Handler in which the errors from updates are received
+	 *
+	 * @param updateHandler           Handler in which the updates are received
+	 * @param updateExceptionHandler  Handler in which the errors from updates are received
 	 * @param defaultExceptionHandler Handler that receives exceptions triggered in a handler
 	 */
 	default void initialize(ResultHandler updateHandler,
@@ -33,12 +35,10 @@ public interface TelegramClient {
 	 * Sends a request to the TDLib.
 	 *
 	 * @param query            Object representing a query to the TDLib.
-	 * @param resultHandler    Result handler with onResult method which will be called with result
-	 *                         of the query or with TdApi.Error as parameter. If it is null, nothing
-	 *                         will be called.
-	 * @param exceptionHandler Exception handler with onException method which will be called on
-	 *                         exception thrown from resultHandler. If it is null, then
-	 *                         defaultExceptionHandler will be called.
+	 * @param resultHandler    Result handler with onResult method which will be called with result of the query or with
+	 *                         TdApi.Error as parameter. If it is null, nothing will be called.
+	 * @param exceptionHandler Exception handler with onException method which will be called on exception thrown from
+	 *                         resultHandler. If it is null, then defaultExceptionHandler will be called.
 	 * @throws NullPointerException if query is null.
 	 */
 	void send(TdApi.Function query, ResultHandler resultHandler, ExceptionHandler exceptionHandler);
@@ -47,9 +47,8 @@ public interface TelegramClient {
 	 * Sends a request to the TDLib with an empty ExceptionHandler.
 	 *
 	 * @param query         Object representing a query to the TDLib.
-	 * @param resultHandler Result handler with onResult method which will be called with result
-	 *                      of the query or with TdApi.Error as parameter. If it is null, then
-	 *                      defaultExceptionHandler will be called.
+	 * @param resultHandler Result handler with onResult method which will be called with result of the query or with
+	 *                      TdApi.Error as parameter. If it is null, then defaultExceptionHandler will be called.
 	 * @throws NullPointerException if query is null.
 	 */
 	default void send(TdApi.Function query, ResultHandler resultHandler) {

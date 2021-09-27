@@ -11,7 +11,8 @@ public interface UpdatesHandler {
 	/**
 	 * Callback called on incoming update from TDLib.
 	 *
-	 * @param object Updates of type {@link it.tdlight.jni.TdApi.Update} about new events, or {@link it.tdlight.jni.TdApi.Error}.
+	 * @param object Updates of type {@link it.tdlight.jni.TdApi.Update} about new events, or {@link
+	 *               it.tdlight.jni.TdApi.Error}.
 	 */
 	void onUpdates(List<Object> object);
 }

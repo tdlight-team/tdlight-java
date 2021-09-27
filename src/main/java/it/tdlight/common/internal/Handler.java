@@ -3,7 +3,7 @@ package it.tdlight.common.internal;
 import it.tdlight.common.ExceptionHandler;
 import it.tdlight.common.ResultHandler;
 
-public class Handler {
+public final class Handler {
 	private final ResultHandler resultHandler;
 	private final ExceptionHandler exceptionHandler;
 

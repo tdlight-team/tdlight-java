@@ -23,18 +23,19 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.reflect.InvocationTargetException;
-import it.tdlight.tdnative.ObjectsUtils;
 
 /**
  * The class to load the libraries needed to run Tdlib
  */
-public class LoadLibrary {
+public final class LoadLibrary {
+
 	private static final ConcurrentHashMap<String, Boolean> libraryLoaded = new ConcurrentHashMap<>();
 	private static final Path librariesPath = Paths.get(".cache");
-	private static final String libsVersion = LibraryVersion.IMPLEMENTATION_NAME
-			+ "-" + LibraryVersion.VERSION + "-" + LibraryVersion.NATIVES_VERSION;
+	private static final String libsVersion =
+			LibraryVersion.IMPLEMENTATION_NAME + "-" + LibraryVersion.VERSION + "-" + LibraryVersion.NATIVES_VERSION;
 
 	static {
 		if (Files.notExists(librariesPath)) {
@@ -72,11 +73,13 @@ public class LoadLibrary {
 		Os os = getOs();
 
 		if (arch == Arch.UNKNOWN) {
-			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException("Arch: \"" + System.getProperty("os.arch") + "\" is unknown"));
+			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException(
+					"Arch: \"" + System.getProperty("os.arch") + "\" is unknown"));
 		}
 
 		if (os == Os.UNKNOWN) {
-			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException("Os: \"" + System.getProperty("os.name") + "\" is unknown"));
+			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException(
+					"Os: \"" + System.getProperty("os.name") + "\" is unknown"));
 		}
 
 		try {
@@ -178,7 +181,9 @@ public class LoadLibrary {
 		}
 		InputStream libInputStream;
 		try {
-			libInputStream = ObjectsUtils.requireNonNull((InputStream) classForResource.getDeclaredMethod("getLibraryAsStream").invoke(InputStream.class));
+			libInputStream = Objects.requireNonNull((InputStream) classForResource
+					.getDeclaredMethod("getLibraryAsStream")
+					.invoke(InputStream.class));
 		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NullPointerException e) {
 			throw new IOException("Native libraries for platform " + os + "-" + arch + " not found!", e);
 		}
@@ -222,10 +227,14 @@ public class LoadLibrary {
 			case "ppc64":
 			case "ppc64le":
 			case "ppc64el":
-				if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) // Java always returns ppc64 for all 64-bit powerpc but
+				if (ByteOrder
+						.nativeOrder()
+						.equals(ByteOrder.LITTLE_ENDIAN)) // Java always returns ppc64 for all 64-bit powerpc but
+				{
 					return Arch.PPC64LE;                                       // powerpc64le (our target) is very different, it uses this condition to accurately identify the architecture
-				else
+				} else {
 					return Arch.UNKNOWN;
+				}
 			default:
 				return Arch.UNKNOWN;
 		}
@@ -233,14 +242,18 @@ public class LoadLibrary {
 
 	public static Os getOs() {
 		String os = System.getProperty("os.name").toLowerCase().trim();
-		if (os.contains("linux"))
+		if (os.contains("linux")) {
 			return Os.LINUX;
-		if (os.contains("windows"))
+		}
+		if (os.contains("windows")) {
 			return Os.WINDOWS;
-		if (os.contains("mac"))
+		}
+		if (os.contains("mac")) {
 			return Os.OSX;
-		if (os.contains("darwin"))
+		}
+		if (os.contains("darwin")) {
 			return Os.OSX;
+		}
 		return Os.UNKNOWN;
 	}
 

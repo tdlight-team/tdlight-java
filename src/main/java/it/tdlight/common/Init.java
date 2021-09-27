@@ -24,26 +24,26 @@ import it.tdlight.common.utils.Os;
 /**
  * Init class to successfully initialize Tdlib
  */
-public class Init {
+public final class Init {
 
-    private static boolean started = false;
+	private static boolean started = false;
 
-    /**
-     * Initialize Tdlib
-     *
-     * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
-     */
-    public synchronized static void start() throws CantLoadLibrary {
-        if (!started) {
-            Os os = LoadLibrary.getOs();
+	/**
+	 * Initialize Tdlib
+	 *
+	 * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
+	 */
+	public synchronized static void start() throws CantLoadLibrary {
+		if (!started) {
+			Os os = LoadLibrary.getOs();
 
-            if (os == Os.WINDOWS) {
-                // Since 3.0.0, libraries for windows are statically compiled into tdjni.dll
-            }
+			if (os == Os.WINDOWS) {
+				// Since 3.0.0, libraries for windows are statically compiled into tdjni.dll
+			}
 
-            LoadLibrary.load("tdjni");
-            ConstructorDetector.init();
-            started = true;
-        }
-    }
+			LoadLibrary.load("tdjni");
+			ConstructorDetector.init();
+			started = true;
+		}
+	}
 }

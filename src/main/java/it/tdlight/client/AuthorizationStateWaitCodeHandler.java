@@ -1,0 +1,48 @@
+package it.tdlight.client;
+
+import it.tdlight.common.ExceptionHandler;
+import it.tdlight.common.TelegramClient;
+import it.tdlight.jni.TdApi;
+import it.tdlight.jni.TdApi.AuthorizationStateWaitCode;
+import it.tdlight.jni.TdApi.AuthorizationStateWaitOtherDeviceConfirmation;
+import it.tdlight.jni.TdApi.CheckAuthenticationCode;
+import it.tdlight.jni.TdApi.Function;
+import it.tdlight.jni.TdApi.UpdateAuthorizationState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+final class AuthorizationStateWaitCodeHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
+
+	private static final Logger logger = LoggerFactory.getLogger(AuthorizationStateWaitCodeHandler.class);
+
+	private final TelegramClient client;
+	private final ClientInteraction clientInteraction;
+	private final ExceptionHandler exceptionHandler;
+
+	public AuthorizationStateWaitCodeHandler(TelegramClient client,
+			ClientInteraction clientInteraction,
+			ExceptionHandler exceptionHandler) {
+		this.client = client;
+		this.clientInteraction = clientInteraction;
+		this.exceptionHandler = exceptionHandler;
+	}
+
+	@Override
+	public void onUpdate(UpdateAuthorizationState update) {
+		if (update.authorizationState.getConstructor() == AuthorizationStateWaitCode.CONSTRUCTOR) {
+			AuthorizationStateWaitCode authorizationState =
+					(AuthorizationStateWaitCode) update.authorizationState;
+			ParameterInfo parameterInfo = new ParameterInfoCode(authorizationState.codeInfo.phoneNumber,
+					authorizationState.codeInfo.nextType,
+					authorizationState.codeInfo.timeout,
+					authorizationState.codeInfo.type
+			);
+			String code = clientInteraction.onParameterRequest(InputParameter.ASK_CODE, parameterInfo);
+			Function response = new CheckAuthenticationCode(code);
+			client.send(response, ok -> {}, ex -> {
+				logger.error("Failed to check authentication code", ex);
+				exceptionHandler.onException(ex);
+			});
+		}
+	}
+}

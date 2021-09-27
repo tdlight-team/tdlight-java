@@ -7,7 +7,6 @@ import it.tdlight.common.ReactiveTelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
-import it.tdlight.jni.TdApi.Object;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -20,9 +19,8 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class InternalReactiveClient implements ClientEventsHandler, ReactiveTelegramClient {
+public final class InternalReactiveClient implements ClientEventsHandler, ReactiveTelegramClient {
 
-	private static boolean ENABLE_BACKPRESSURE_QUEUE = false;
 	private static final Logger logger = LoggerFactory.getLogger(InternalReactiveClient.class);
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
 	private final ConcurrentLinkedQueue<ReactiveItem> backpressureQueue = new ConcurrentLinkedQueue<>();
@@ -66,7 +64,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 	}
 
 	@Override
-	public void handleEvents(boolean isClosed, long[] eventIds, Object[] events) {
+	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events) {
 		for (int i = 0; i < eventIds.length; i++) {
 			handleEvent(eventIds[i], events[i]);
 		}
@@ -88,7 +86,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 	/**
 	 * Handles only a response (not an update!)
 	 */
-	private void handleResponse(long eventId, Object event, Handler handler) {
+	private void handleResponse(long eventId, TdApi.Object event, Handler handler) {
 		if (handler != null) {
 			try {
 				if (eventId == 0) {
@@ -108,7 +106,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 	/**
 	 * Handles a response or an update
 	 */
-	private void handleEvent(long eventId, Object event) {
+	private void handleEvent(long eventId, TdApi.Object event) {
 		Handler handler = eventId == 0 ? updateHandler : handlers.remove(eventId);
 		handleResponse(eventId, event, handler);
 	}
@@ -152,14 +150,14 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 				@Override
 				public void cancel() {
 					if (!isClosed.get()) {
-						send(new TdApi.Close()).subscribe(new Subscriber<>() {
+						send(new TdApi.Close()).subscribe(new Subscriber<TdApi.Object>() {
 							@Override
 							public void onSubscribe(Subscription subscription) {
 								subscription.request(1);
 							}
 
 							@Override
-							public void onNext(Object item) {
+							public void onNext(TdApi.Object o) {
 
 							}
 
@@ -195,14 +193,14 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 		CountDownLatch registeredClient = new CountDownLatch(1);
 
 		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
-		this.send(new TdApi.GetAuthorizationState()).subscribe(new Subscriber<>() {
+		this.send(new TdApi.GetAuthorizationState()).subscribe(new Subscriber<TdApi.Object>() {
 			@Override
 			public void onSubscribe(Subscription subscription) {
 				subscription.request(1);
 			}
 
 			@Override
-			public void onNext(Object item) {
+			public void onNext(TdApi.Object item) {
 				registeredClient.countDown();
 			}
 
@@ -278,7 +276,7 @@ public class InternalReactiveClient implements ClientEventsHandler, ReactiveTele
 	}
 
 	@Override
-	public Object execute(Function query) {
+	public TdApi.Object execute(Function query) {
 		if (isClosedAndMaybeThrow(query)) {
 			return new TdApi.Ok();
 		}

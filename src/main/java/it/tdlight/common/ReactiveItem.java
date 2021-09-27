@@ -3,7 +3,7 @@ package it.tdlight.common;
 import it.tdlight.jni.TdApi;
 import java.util.Objects;
 
-public class ReactiveItem {
+public final class ReactiveItem {
 
 	private final TdApi.Object item;
 	private final Throwable ex;

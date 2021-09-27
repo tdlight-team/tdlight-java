@@ -21,8 +21,5 @@ package it.tdlight.common.utils;
  * Enumeration with all operating systems recognized by this library.
  */
 public enum Os {
-	LINUX,
-	WINDOWS,
-	OSX,
-	UNKNOWN
+	LINUX, WINDOWS, OSX, UNKNOWN
 }

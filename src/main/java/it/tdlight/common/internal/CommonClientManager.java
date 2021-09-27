@@ -6,16 +6,16 @@ import it.tdlight.common.TelegramClient;
 public abstract class CommonClientManager {
 
 	private static InternalClientManager getClientManager(String implementationName) {
-		// ClientManager is singleton:
+		// ClientManager is singleton
 		return InternalClientManager.get(implementationName);
 	}
 
-	protected synchronized static TelegramClient create(String implementationName) {
+	public synchronized static TelegramClient create(String implementationName) {
 		InternalClient client = new InternalClient(getClientManager(implementationName));
 		return create(client);
 	}
 
-	protected synchronized static ReactiveTelegramClient createReactive(String implementationName) {
+	public synchronized static ReactiveTelegramClient createReactive(String implementationName) {
 		InternalReactiveClient reactiveClient = new InternalReactiveClient(getClientManager(implementationName));
 		return createReactive(reactiveClient);
 	}

@@ -1,8 +1,7 @@
 package it.tdlight.common;
 
 /**
- * Interface for handler of exceptions thrown while invoking ResultHandler.
- * By default, all such exceptions are ignored.
+ * Interface for handler of exceptions thrown while invoking ResultHandler. By default, all such exceptions are ignored.
  * All exceptions thrown from ExceptionHandler are ignored.
  */
 public interface ExceptionHandler {

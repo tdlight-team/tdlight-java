@@ -20,11 +20,11 @@ package it.tdlight.common.utils;
 /**
  * An exception that is thrown when the LoadLibrary class fails to load the library.
  */
-public class CantLoadLibrary extends Exception {
+public final class CantLoadLibrary extends Exception {
     /**
      * Creates a new CantLoadLibrary exception.
      */
     CantLoadLibrary() {
-        super("FATAL: Init failled when load tdlib library, execution can't continue");
+        super("FATAL: Init failed when loading TDLib native libraries, execution can't continue");
     }
 }

@@ -2,7 +2,7 @@ package it.tdlight.common.utils;
 
 import it.unimi.dsi.fastutil.Swapper;
 
-public class IntSwapper implements Swapper {
+public final class IntSwapper implements Swapper {
 
 	private final int[] array;
 	int tmp;

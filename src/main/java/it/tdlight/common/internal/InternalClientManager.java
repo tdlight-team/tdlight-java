@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class InternalClientManager implements AutoCloseable {
+public final class InternalClientManager implements AutoCloseable {
 
 	private static final Logger logger = LoggerFactory.getLogger(InternalClientManager.class);
 	private static final AtomicReference<InternalClientManager> INSTANCE = new AtomicReference<>(null);
@@ -45,14 +45,14 @@ public class InternalClientManager implements AutoCloseable {
 		if (handler != null) {
  			handler.handleEvents(isClosed, clientEventIds, clientEvents);
 		} else {
-			java.util.List<Entry<Long, TdApi.Object>> droppedEvents = getEffectivelyDroppedEvents(clientEventIds, clientEvents);
+			java.util.List<DroppedEvent> droppedEvents = getEffectivelyDroppedEvents(clientEventIds, clientEvents);
 
 			if (!droppedEvents.isEmpty()) {
 				logger.error("Unknown client id \"{}\"! {} events have been dropped!", clientId, droppedEvents.size());
-				for (Entry<Long, Object> droppedEvent : droppedEvents) {
+				for (DroppedEvent droppedEvent : droppedEvents) {
 					logger.error("The following event, with id \"{}\", has been dropped: {}",
-							droppedEvent.getKey(),
-							droppedEvent.getValue());
+							droppedEvent.id,
+							droppedEvent.event);
 				}
 			}
 		}
@@ -67,8 +67,8 @@ public class InternalClientManager implements AutoCloseable {
 	/**
 	 * Get only events that have been dropped, ignoring synthetic errors related to the closure of a client
 	 */
-	private List<Entry<Long, TdApi.Object>> getEffectivelyDroppedEvents(long[] clientEventIds, TdApi.Object[] clientEvents) {
-		java.util.List<Entry<Long, TdApi.Object>> droppedEvents = new ArrayList<>(clientEvents.length);
+	private List<DroppedEvent> getEffectivelyDroppedEvents(long[] clientEventIds, TdApi.Object[] clientEvents) {
+		java.util.List<DroppedEvent> droppedEvents = new ArrayList<>(clientEvents.length);
 		for (int i = 0; i < clientEvents.length; i++) {
 			long id = clientEventIds[i];
 			TdApi.Object event = clientEvents[i];
@@ -80,7 +80,7 @@ public class InternalClientManager implements AutoCloseable {
 				}
 			}
 			if (mustPrintError) {
-				droppedEvents.add(Map.entry(id, event));
+				droppedEvents.add(new DroppedEvent(id, event));
 			}
 		}
 		return droppedEvents;
@@ -105,5 +105,15 @@ public class InternalClientManager implements AutoCloseable {
 	@Override
 	public void close() throws InterruptedException {
 		responseReceiver.close();
+	}
+
+	private static final class DroppedEvent {
+		private final long id;
+		private final TdApi.Object event;
+
+		private DroppedEvent(long id, Object event) {
+			this.id = id;
+			this.event = event;
+		}
 	}
 }

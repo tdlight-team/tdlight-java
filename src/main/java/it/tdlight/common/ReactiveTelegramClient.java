@@ -14,9 +14,9 @@ public interface ReactiveTelegramClient extends Publisher<ReactiveItem> {
 	/**
 	 * Sends a request to the TDLib.
 	 *
-	 * @param query            Object representing a query to the TDLib.
-	 * @throws NullPointerException if query is null.
+	 * @param query Object representing a query to the TDLib.
 	 * @return a publisher that will emit exactly one item, or an error
+	 * @throws NullPointerException if query is null.
 	 */
 	Publisher<TdApi.Object> send(TdApi.Function query);
 

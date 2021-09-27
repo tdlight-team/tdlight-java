@@ -4,7 +4,7 @@ import it.tdlight.tdnative.NativeClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Function;
 
-class NativeClientAccess extends NativeClient {
+final class NativeClientAccess extends NativeClient {
 
 	public static int create() {
 		return NativeClientAccess.createNativeClient();

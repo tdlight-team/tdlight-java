@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class InternalClient implements ClientEventsHandler, TelegramClient {
+public final class InternalClient implements ClientEventsHandler, TelegramClient {
 
 	private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();

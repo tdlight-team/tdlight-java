@@ -19,73 +19,81 @@ package it.tdlight.common;
 
 import it.tdlight.jni.TdApi;
 import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Identify the class by using the Constructor.
  */
-public class ConstructorDetector {
+@SuppressWarnings("rawtypes")
+public final class ConstructorDetector {
 
-    static {
-        // Call this to load static methods and prevent errors during startup!
-        try {
-            Init.start();
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
-    }
-
-    private static ConcurrentHashMap<Integer, Class> constructorHashMap;
-
-    /**
-     * Initialize the ConstructorDetector, it is called from the Init class.
-     */
-    public static void init() {
-        if (constructorHashMap != null) {
-            return;
-        }
-
-        Class[] classes = TdApi.class.getDeclaredClasses();
-        setConstructorHashMap(classes);
-    }
-
-    /**
-     * Identify the class.
-     * @param CONSTRUCTOR CONSTRUCTOR of the Tdlib API.
-     * @return The class related to CONSTRUCTOR.
-     */
-    public static Class getClass(int CONSTRUCTOR) {
-        return constructorHashMap.getOrDefault(CONSTRUCTOR, null);
-    }
-
-    private static void setConstructorHashMap(Class[] tdApiClasses) {
-        constructorHashMap = new ConcurrentHashMap<>();
-
-        for (Class apiClass : tdApiClasses) {
-            Field CONSTRUCTORField;
-            int CONSTRUCTOR;
-
-            try {
-               CONSTRUCTORField = apiClass.getDeclaredField("CONSTRUCTOR");
-            } catch (NoSuchFieldException e) {
-                continue;
-            }
-
-            try {
-                CONSTRUCTOR = CONSTRUCTORField.getInt(null);
-            } catch (IllegalAccessException e) {
-                continue;
-            }
-
-            constructorHashMap.put(CONSTRUCTOR, apiClass);
-        }
-    }
-
-	public static ConcurrentHashMap<Integer, Class> getTDConstructorsUnsafe() {
-    	return constructorHashMap;
+	static {
+		// Call this to load static methods and prevent errors during startup!
+		try {
+			Init.start();
+		} catch (Throwable throwable) {
+			throwable.printStackTrace();
+		}
 	}
 
-	public static void registerExternalClass(int constructor, Class<?> clazz) {
-    	constructorHashMap.put(constructor, clazz);
+	private static ConcurrentHashMap<Integer, Class> constructorHashMap;
+	private static ConcurrentHashMap<Class, Integer> constructorHashMapInverse;
+
+	/**
+	 * Initialize the ConstructorDetector, it is called from the Init class.
+	 */
+	public static void init() {
+		if (constructorHashMap != null) {
+			return;
+		}
+
+		Class[] classes = TdApi.class.getDeclaredClasses();
+		setConstructorHashMap(classes);
+	}
+
+	/**
+	 * Identify the class.
+	 *
+	 * @param CONSTRUCTOR CONSTRUCTOR of the Tdlib API.
+	 * @return The class related to CONSTRUCTOR.
+	 */
+	public static Class getClass(int CONSTRUCTOR) {
+		return constructorHashMap.getOrDefault(CONSTRUCTOR, null);
+	}
+
+	/**
+	 * Identify the class.
+	 *
+	 * @param clazz class of the TDLib API.
+	 * @return The CONSTRUCTOR.
+	 */
+	public static int getConstructor(Class<? extends TdApi.Object> clazz) {
+		return Objects.requireNonNull(constructorHashMapInverse.get(clazz));
+	}
+
+	private static void setConstructorHashMap(Class[] tdApiClasses) {
+		constructorHashMap = new ConcurrentHashMap<>();
+		constructorHashMapInverse = new ConcurrentHashMap<>();
+
+		for (Class apiClass : tdApiClasses) {
+			Field CONSTRUCTORField;
+			int CONSTRUCTOR;
+
+			try {
+				CONSTRUCTORField = apiClass.getDeclaredField("CONSTRUCTOR");
+			} catch (NoSuchFieldException e) {
+				continue;
+			}
+
+			try {
+				CONSTRUCTOR = CONSTRUCTORField.getInt(null);
+			} catch (IllegalAccessException e) {
+				continue;
+			}
+
+			constructorHashMap.put(CONSTRUCTOR, apiClass);
+			constructorHashMapInverse.put(apiClass, CONSTRUCTOR);
+		}
 	}
 }
