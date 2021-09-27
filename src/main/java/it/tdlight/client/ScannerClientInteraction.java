@@ -62,8 +62,11 @@ final class ScannerClientInteraction implements ClientInteraction {
 				System.out.println(passwordMessage);
 				break;
 			case NOTIFY_LINK:
-				System.out.println("Please confirm this login link on another device: "
-						+ ((ParameterInfoNotifyLink) parameterInfo).getLink());
+				String link = ((ParameterInfoNotifyLink) parameterInfo).getLink();
+				System.out.println("Please confirm this login link on another device: " + link);
+				System.out.println();
+				System.out.println(QrCodeTerminal.getQr(link));
+				System.out.println();
 				return "";
 			case TERMS_OF_SERVICE:
 				TermsOfService tos = ((ParameterInfoTermsOfService) parameterInfo).getTermsOfService();
