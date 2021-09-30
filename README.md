@@ -22,6 +22,8 @@ CPU architectures:
 
 Required libraries for linux: OpenSSL and zlib
 
+Required libraries for OSX: brew, openssl
+
 ## How to use the library
 ### Installing with Maven
 ```xml
