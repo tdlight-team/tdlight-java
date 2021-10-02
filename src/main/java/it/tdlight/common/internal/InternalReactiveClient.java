@@ -154,7 +154,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 					if (isClosed.get()) {
 						if (alreadyCompleted.compareAndSet(false, true)) {
 							subscriber.onComplete();
-							logger.info("Client closed {}", clientId);
+							logger.info(TG_MARKER, "Client closed {}", clientId);
 						}
 					}
 				}
@@ -198,9 +198,9 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	@SuppressWarnings("ReactiveStreamsSubscriberImplementation")
 	public void createAndRegisterClient() {
 		if (clientId != null) throw new UnsupportedOperationException("Can't initialize the same client twice!");
-		logger.debug("Creating new client");
+		logger.debug(TG_MARKER, "Creating new client");
 		clientId = NativeClientAccess.create();
-		logger.debug("Registering new client {}", clientId);
+		logger.debug(TG_MARKER, "Registering new client {}", clientId);
 		clientManager.registerClient(clientId, this);
 
 		CountDownLatch registeredClient = new CountDownLatch(1);
@@ -233,7 +233,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 		} catch (InterruptedException e) {
 			throw new IllegalStateException(e);
 		}
-		logger.debug("Registered new client {}", clientId);
+		logger.debug(TG_MARKER, "Registered new client {}", clientId);
 	}
 
 	@Override
@@ -248,11 +248,11 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 				public void request(long n) {
 					if (n > 0 && alreadyRequested.compareAndSet(false, true)) {
 						if (isClosedAndMaybeThrow(query)) {
-							logger.trace("Client {} is already closed, sending \"Ok\" to: {}", clientId, query);
+							logger.trace(TG_MARKER, "Client {} is already closed, sending \"Ok\" to: {}", clientId, query);
 							subscriber.onNext(new TdApi.Ok());
 							subscriber.onComplete();
 						} else if (clientId == null) {
-							logger.trace("Can't send a request to TDLib before calling \"createAndRegisterClient\" function!");
+							logger.trace(TG_MARKER, "Can't send a request to TDLib before calling \"createAndRegisterClient\" function!");
 							subscriber.onError(
 									new IllegalStateException("Can't send a request to TDLib before calling \"createAndRegisterClient\" function!")
 							);
@@ -285,12 +285,12 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 									subscriber.onError(t);
 								}
 							}));
-							logger.trace("Client {} is requesting with query id {}: {}", clientId, queryId, query);
+							logger.trace(TG_MARKER, "Client {} is requesting with query id {}: {}", clientId, queryId, query);
 							NativeClientAccess.send(clientId, queryId, query);
-							logger.trace("Client {} requested with query id {}: {}", clientId, queryId, query);
+							logger.trace(TG_MARKER, "Client {} requested with query id {}: {}", clientId, queryId, query);
 						}
 					} else {
-						logger.debug("Client {} tried to request again the same request, ignored: {}", clientId, query);
+						logger.debug(TG_MARKER, "Client {} tried to request again the same request, ignored: {}", clientId, query);
 					}
 				}
 
