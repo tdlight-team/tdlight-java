@@ -7,10 +7,15 @@ import it.tdlight.common.ReactiveTelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Publisher;
@@ -22,7 +27,8 @@ import org.slf4j.LoggerFactory;
 public final class InternalReactiveClient implements ClientEventsHandler, ReactiveTelegramClient {
 
 	private static final Logger logger = LoggerFactory.getLogger(InternalReactiveClient.class);
-	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
+	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<>();
+	private final ScheduledExecutorService timers = Executors.newSingleThreadScheduledExecutor();
 	private final ConcurrentLinkedQueue<ReactiveItem> backpressureQueue = new ConcurrentLinkedQueue<>();
 	private final ExceptionHandler defaultExceptionHandler;
 	private final Handler updateHandler;
@@ -77,9 +83,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
  	}
 
 	private void handleClose() {
-		handlers.forEach((eventId, handler) -> {
-			handleResponse(eventId, new Error(500, "Instance closed"), handler);
-		});
+		handlers.forEach((eventId, handler) -> handleResponse(eventId, new Error(500, "Instance closed"), handler));
 		handlers.clear();
 	}
 
@@ -150,7 +154,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 				@Override
 				public void cancel() {
 					if (!isClosed.get()) {
-						send(new TdApi.Close()).subscribe(new Subscriber<TdApi.Object>() {
+						send(new TdApi.Close(), Duration.ofDays(1)).subscribe(new Subscriber<TdApi.Object>() {
 							@Override
 							public void onSubscribe(Subscription subscription) {
 								subscription.request(1);
@@ -193,7 +197,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 		CountDownLatch registeredClient = new CountDownLatch(1);
 
 		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
-		this.send(new TdApi.GetAuthorizationState()).subscribe(new Subscriber<TdApi.Object>() {
+		this.send(new TdApi.GetAuthorizationState(), Duration.ofDays(1)).subscribe(new Subscriber<TdApi.Object>() {
 			@Override
 			public void onSubscribe(Subscription subscription) {
 				subscription.request(1);
@@ -224,7 +228,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	}
 
 	@Override
-	public Publisher<TdApi.Object> send(Function query) {
+	public Publisher<TdApi.Object> send(Function query, Duration responseTimeout) {
 		return subscriber -> {
 			Subscription subscription = new Subscription() {
 
@@ -245,15 +249,30 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 							);
 						} else {
 							long queryId = clientManager.getNextQueryId();
+
+							// Handle timeout
+							ScheduledFuture<?> timeoutFuture = timers.schedule(() -> {
+								if (handlers.remove(queryId) != null) {
+									if (!cancelled) {
+										subscriber.onNext(new Error(408, "Request Timeout"));
+									}
+									if (!cancelled) {
+										subscriber.onComplete();
+									}
+								}
+							}, responseTimeout.toMillis(), TimeUnit.MILLISECONDS);
+
 							handlers.put(queryId, new Handler(result -> {
-								if (!cancelled) {
+								boolean timeoutCancelled = timeoutFuture.cancel(false);
+								if (!cancelled && timeoutCancelled) {
 									subscriber.onNext(result);
 								}
-								if (!cancelled) {
+								if (!cancelled && timeoutCancelled) {
 									subscriber.onComplete();
 								}
 							}, t -> {
-								if (!cancelled) {
+								boolean timeoutCancelled = timeoutFuture.cancel(false);
+								if (!cancelled && timeoutCancelled) {
 									subscriber.onError(t);
 								}
 							}));
