@@ -23,9 +23,12 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 public final class InternalReactiveClient implements ClientEventsHandler, ReactiveTelegramClient {
 
+	private static final Marker TG_MARKER = MarkerFactory.getMarker("TG");
 	private static final Logger logger = LoggerFactory.getLogger(InternalReactiveClient.class);
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<>();
 	private final ScheduledExecutorService timers = Executors.newSingleThreadScheduledExecutor();
@@ -94,16 +97,22 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 		if (handler != null) {
 			try {
 				if (eventId == 0) {
-					logger.trace("Client {} received an event: {}", clientId, event);
+					logger.trace(TG_MARKER, "Client {} received an event: {}", clientId, event);
 				} else {
-					logger.trace("Client {} received a response for query id {}: {}", clientId, eventId, event);
+					logger.trace(TG_MARKER, "Client {} received a response for query id {}: {}", clientId, eventId, event);
 				}
 				handler.getResultHandler().onResult(event);
 			} catch (Throwable cause) {
 				handleException(handler.getExceptionHandler(), cause);
 			}
 		} else {
-			logger.error("Unknown event id \"{}\", the event has been dropped! {}", eventId, event);
+			if (event.getConstructor() == Error.CONSTRUCTOR) {
+				TdApi.Error error = (TdApi.Error) event;
+				if (error.code == 500 && "Request aborted".equals(error.message)) {
+					return;
+				}
+			}
+			logger.error(TG_MARKER, "Unknown event id \"{}\", the event has been dropped! {}", eventId, event);
 		}
 	}
 
