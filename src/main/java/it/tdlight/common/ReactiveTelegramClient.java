@@ -5,7 +5,7 @@ import java.time.Duration;
 import org.reactivestreams.Publisher;
 
 @SuppressWarnings("ReactiveStreamsPublisherImplementation")
-public interface ReactiveTelegramClient extends Publisher<ReactiveItem> {
+public interface ReactiveTelegramClient {
 
 	/**
 	 * Creates and registers the client
@@ -30,4 +30,16 @@ public interface ReactiveTelegramClient extends Publisher<ReactiveItem> {
 	 * @throws NullPointerException if query is null.
 	 */
 	TdApi.Object execute(TdApi.Function query);
+
+	void setListener(SignalListener listener);
+
+	/**
+	 * Send close signal but don't remove the listener
+	 */
+	void cancel();
+
+	/**
+	 * Remove the listener
+	 */
+	void dispose();
 }
