@@ -8,8 +8,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>1.0.0.0-SNAPSHOT</revision>
-    <api-version>3.3.152</api-version>
-    <natives-version>3.3.154</natives-version>
+    <api-version>3.3.154</api-version>
+    <natives-version>3.3.156</natives-version>
 	</properties>
 	<repositories>
 		<repository>
