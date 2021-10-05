@@ -6,10 +6,9 @@ import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
@@ -20,8 +19,11 @@ public final class InternalClientManager implements AutoCloseable {
 	private static final Logger logger = LoggerFactory.getLogger(InternalClientManager.class);
 	private static final AtomicReference<InternalClientManager> INSTANCE = new AtomicReference<>(null);
 
+	private final AtomicBoolean startCalled = new AtomicBoolean();
+	private final AtomicBoolean closeCalled = new AtomicBoolean();
+
 	private final String implementationName;
-	private final ResponseReceiver responseReceiver = new ResponseReceiver(this::handleClientEvents);
+	private final ResponseReceiver responseReceiver;
 	private final ConcurrentHashMap<Integer, ClientEventsHandler> registeredClientEventHandlers = new ConcurrentHashMap<>();
 	private final AtomicLong currentQueryId = new AtomicLong();
 
@@ -33,10 +35,42 @@ public final class InternalClientManager implements AutoCloseable {
 			System.exit(1);
 		}
 		this.implementationName = implementationName;
+		responseReceiver = new ResponseReceiver(this::handleClientEvents);
+	}
+
+	/**
+	 *
+	 * @return true if started as a result of this call
+	 */
+	public boolean startIfNeeded() {
+		if (closeCalled.get()) {
+			return false;
+		}
+		if (startCalled.compareAndSet(false, true)) {
+			responseReceiver.start();
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public static InternalClientManager get(String implementationName) {
-		return INSTANCE.updateAndGet(val -> val == null ? new InternalClientManager(implementationName) : val);
+		InternalClientManager clientManager = INSTANCE.updateAndGet(val -> {
+			if (val == null) {
+				return new InternalClientManager(implementationName);
+			}
+			return val;
+		});
+		if (clientManager.startIfNeeded()) {
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+				try {
+					clientManager.onJVMShutdown();
+				} catch (InterruptedException ex) {
+					logger.error("Failed to close", ex);
+				}
+			}));
+		}
+		return clientManager;
 	}
 
 	private void handleClientEvents(int clientId, boolean isClosed, long[] clientEventIds, TdApi.Object[] clientEvents) {
@@ -104,7 +138,17 @@ public final class InternalClientManager implements AutoCloseable {
 
 	@Override
 	public void close() throws InterruptedException {
-		responseReceiver.close();
+		if (startCalled.get()) {
+			if (closeCalled.compareAndSet(false, true)) {
+				responseReceiver.close();
+			}
+		} else {
+			throw new IllegalStateException("Start not called");
+		}
+	}
+
+	private void onJVMShutdown() throws InterruptedException {
+		responseReceiver.onJVMShutdown();
 	}
 
 	private static final class DroppedEvent {

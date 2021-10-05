@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public final class ResponseReceiver extends Thread implements AutoCloseable {
@@ -28,6 +29,10 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 		}
 	}
 
+	private final AtomicBoolean startCalled = new AtomicBoolean();
+	private final AtomicBoolean closeCalled = new AtomicBoolean();
+	private final AtomicBoolean jvmShutdown = new AtomicBoolean();
+
 	private final EventsHandler eventsHandler;
 	private final int[] clientIds = new int[MAX_EVENTS];
 	private final long[] eventIds = new long[MAX_EVENTS];
@@ -35,16 +40,24 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 
 	private final CountDownLatch closeWait = new CountDownLatch(1);
 	private final Set<Integer> registeredClients = new ConcurrentHashMap<Integer, java.lang.Object>().keySet(new java.lang.Object());
-	private volatile boolean closeRequested = false;
 
 
 	public ResponseReceiver(EventsHandler eventsHandler) {
 		super("TDLib thread");
 		this.eventsHandler = eventsHandler;
-
 		this.setDaemon(true);
+	}
 
-		this.start();
+	@Override
+	public synchronized void start() {
+		if (closeCalled.get()) {
+			throw new IllegalStateException("Closed");
+		}
+		if (startCalled.compareAndSet(false, true)) {
+			super.start();
+		} else {
+			throw new IllegalStateException("Start already called");
+		}
 	}
 
 	@SuppressWarnings({"UnnecessaryLocalVariable"})
@@ -52,7 +65,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	public void run() {
 		int[] sortIndex;
 		try {
-			while (!closeRequested || !registeredClients.isEmpty()) {
+			while ((!Thread.interrupted() && !closeCalled.get() && !jvmShutdown.get()) || !registeredClients.isEmpty()) {
 				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
 
 				if (resultsCount <= 0) {
@@ -172,7 +185,20 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 
 	@Override
 	public void close() throws InterruptedException {
-		this.closeRequested = true;
-		this.closeWait.await();
+		if (startCalled.get()) {
+			if (closeCalled.compareAndSet(false, true)) {
+				this.closeWait.await();
+			}
+		} else {
+			throw new IllegalStateException("Start not called");
+		}
+	}
+
+	public void onJVMShutdown() throws InterruptedException {
+		if (startCalled.get()) {
+			if (this.jvmShutdown.compareAndSet(false, true)) {
+				this.closeWait.await();
+			}
+		}
 	}
 }
