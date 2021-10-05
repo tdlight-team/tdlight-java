@@ -65,7 +65,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	public void run() {
 		int[] sortIndex;
 		try {
-			while ((!Thread.interrupted() && !closeCalled.get() && !jvmShutdown.get()) || !registeredClients.isEmpty()) {
+			while (!Thread.interrupted() && ((!closeCalled.get() && !jvmShutdown.get()) || !registeredClients.isEmpty())) {
 				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
 
 				if (resultsCount <= 0) {
