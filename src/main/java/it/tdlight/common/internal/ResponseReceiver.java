@@ -65,7 +65,9 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	public void run() {
 		int[] sortIndex;
 		try {
-			while (!Thread.interrupted() && ((!closeCalled.get() && !jvmShutdown.get()) || !registeredClients.isEmpty())) {
+			boolean interrupted;
+			while (!(interrupted = Thread.interrupted())
+					&& ((!closeCalled.get() && !jvmShutdown.get()) || !registeredClients.isEmpty())) {
 				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
 
 				if (resultsCount <= 0) {
@@ -163,6 +165,16 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 
 				if (!closedClients.isEmpty()) {
 					this.registeredClients.addAll(closedClients);
+				}
+			}
+
+			if (interrupted) {
+				if (!jvmShutdown.get()) {
+					for (Integer clientId : this.registeredClients) {
+						long[] clientEventIds = new long[0];
+						TdApi.Object[] clientEvents = new TdApi.Object[0];
+						eventsHandler.handleClientEvents(clientId, true, clientEventIds, clientEvents);
+					}
 				}
 			}
 		} finally {
