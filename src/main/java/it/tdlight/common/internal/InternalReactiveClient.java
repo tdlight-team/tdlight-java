@@ -38,6 +38,8 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	private final ExceptionHandler defaultExceptionHandler;
 	private final Handler updateHandler;
 
+	private final Thread shutdownHook = new Thread(this::onJVMShutdown);
+
 	private volatile Integer clientId = null;
 	private final InternalClientManager clientManager;
 
@@ -48,6 +50,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 		this.clientManager = clientManager;
 		this.updateHandler = new Handler(this::onUpdateFromHandler, this::onUpdateException);
 		this.defaultExceptionHandler = this::onDefaultException;
+		Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
 
 	@Override
@@ -72,6 +75,12 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	 * This method will be called exactly once
 	 */
 	private void handleClose() {
+		logger.trace(TG_MARKER, "Received close");
+		try {
+			Runtime.getRuntime().removeShutdownHook(shutdownHook);
+		} catch (IllegalStateException ignored) {
+			logger.trace(TG_MARKER, "Can't remove shutdown hook because the JVM is already shutting down");
+		}
 		TdApi.Error instanceClosedError = new Error(500, "Instance closed");
 		handlers.forEach((eventId, handler) -> this.handleResponse(eventId, instanceClosedError, handler));
 		handlers.clear();
@@ -90,6 +99,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 		if (signalListener != null) {
 			signalListener.onSignal(Signal.ofClosed());
 		}
+		logger.info(TG_MARKER, "Client closed {}", clientId);
 	}
 
 	/**
@@ -296,6 +306,15 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 			logger.trace(TG_MARKER, "Client {} is requesting with query id {}: {}", clientId, queryId, query);
 			NativeClientAccess.send(clientId, queryId, query);
 			logger.trace(TG_MARKER, "Client {} requested with query id {}: {}", clientId, queryId, query);
+		}
+	}
+
+	private void onJVMShutdown() {
+		try {
+			logger.info(TG_MARKER, "Client {} is shutting down because the JVM is shutting down", clientId);
+			sendCloseAndIgnoreResponse();
+		} catch (Throwable ex) {
+			logger.debug("Failed to send shutdown request to session {}", clientId);
 		}
 	}
 

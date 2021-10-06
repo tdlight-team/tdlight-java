@@ -23,7 +23,10 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 
 	private static final Marker TG_MARKER = MarkerFactory.getMarker("TG");
 	private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
+
 	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
+
+	private final Thread shutdownHook = new Thread(this::onJVMShutdown);
 
 	private volatile Integer clientId = null;
 	private final InternalClientManager clientManager;
@@ -35,6 +38,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 
 	public InternalClient(InternalClientManager clientManager) {
 		this.clientManager = clientManager;
+		Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
 
 	@Override
@@ -81,6 +85,11 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 
 	private void handleClose() {
 		logger.trace(TG_MARKER, "Received close");
+		try {
+			Runtime.getRuntime().removeShutdownHook(shutdownHook);
+		} catch (IllegalStateException ignored) {
+			logger.trace(TG_MARKER, "Can't remove shutdown hook because the JVM is already shutting down");
+		}
 		handlers.forEach((eventId, handler) -> {
 			handleResponse(eventId, new Error(500, "Instance closed"), handler);
 		});
@@ -179,6 +188,15 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 			return new TdApi.Ok();
 		}
 		return NativeClientAccess.execute(query);
+	}
+
+	private void onJVMShutdown() {
+		try {
+			logger.info(TG_MARKER, "Client {} is shutting down because the JVM is shutting down", clientId);
+			this.send(new TdApi.Close(), result -> {}, ex -> {});
+		} catch (Throwable ex) {
+			logger.debug("Failed to send shutdown request to session {}", clientId);
+		}
 	}
 
 	/**
