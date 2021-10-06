@@ -164,7 +164,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 				Arrays.fill(events, null);
 
 				if (!closedClients.isEmpty()) {
-					this.registeredClients.addAll(closedClients);
+					this.registeredClients.removeAll(closedClients);
 				}
 			}
 
