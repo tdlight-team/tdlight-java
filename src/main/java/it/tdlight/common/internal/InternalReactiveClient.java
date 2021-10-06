@@ -310,11 +310,13 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	}
 
 	private void onJVMShutdown() {
-		try {
-			logger.info(TG_MARKER, "Client {} is shutting down because the JVM is shutting down", clientId);
-			sendCloseAndIgnoreResponse();
-		} catch (Throwable ex) {
-			logger.debug("Failed to send shutdown request to session {}", clientId);
+		if ("true".equalsIgnoreCase(System.getProperty("it.tdlight.enableShutdownHooks", "true"))) {
+			try {
+				logger.info(TG_MARKER, "Client {} is shutting down because the JVM is shutting down", clientId);
+				sendCloseAndIgnoreResponse();
+			} catch (Throwable ex) {
+				logger.debug("Failed to send shutdown request to session {}", clientId);
+			}
 		}
 	}
 

@@ -191,11 +191,13 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	private void onJVMShutdown() {
-		try {
-			logger.info(TG_MARKER, "Client {} is shutting down because the JVM is shutting down", clientId);
-			this.send(new TdApi.Close(), result -> {}, ex -> {});
-		} catch (Throwable ex) {
-			logger.debug("Failed to send shutdown request to session {}", clientId);
+		if ("true".equalsIgnoreCase(System.getProperty("it.tdlight.enableShutdownHooks", "true"))) {
+			try {
+				logger.info(TG_MARKER, "Client {} is shutting down because the JVM is shutting down", clientId);
+				this.send(new TdApi.Close(), result -> {}, ex -> {});
+			} catch (Throwable ex) {
+				logger.debug("Failed to send shutdown request to session {}", clientId);
+			}
 		}
 	}
 

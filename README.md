@@ -107,8 +107,10 @@ To use TDLight Java you need to include one or more native dependencies:
 - `tdlight-natives-osx-amd64`
 
 ## Usage
-
 An example on how to use TDLight Java can be found here: [Example.java](https://github.com/tdlight-team/tdlight-java/blob/master/example/src/main/java/it.tdlight.example/Example.java)
+
+### Advanced usage
+If you want to disable the automatic runtime shutdown hook, you should set the property `it.tdlight.enableShutdownHooks` to `false`
 
 ### TDLight methods documentation
 [TdApi JavaDoc](https://tdlight-team.github.io/tdlight-docs)
