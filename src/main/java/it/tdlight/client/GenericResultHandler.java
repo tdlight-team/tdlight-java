@@ -1,6 +1,8 @@
 package it.tdlight.client;
 
 import it.tdlight.jni.TdApi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Interface for incoming responses from TDLib.
@@ -12,12 +14,4 @@ public interface GenericResultHandler<T extends TdApi.Object> {
 	 * Callback called when TDLib responds.
 	 */
 	void onResult(Result<T> result);
-
-	default void onResult(TdApi.Object result) {
-		onResult(Result.of(result));
-	}
-
-	default void onErrorResult(Throwable exception) {
-		onResult(Result.ofError(exception));
-	}
 }

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("unused")
 public final class SimpleTelegramClient implements Authenticable {
 
-	private static final Logger logger = LoggerFactory.getLogger(SimpleTelegramClient.class);
+	public static final Logger LOG = LoggerFactory.getLogger(SimpleTelegramClient.class);
 
 	static {
 		try {
@@ -39,7 +39,7 @@ public final class SimpleTelegramClient implements Authenticable {
 			//noinspection deprecation
 			Log.setVerbosityLevel(1);
 		} catch (Throwable ex) {
-			logger.warn("Can't set verbosity level", ex);
+			LOG.warn("Can't set verbosity level", ex);
 		}
 	}
 
@@ -92,7 +92,7 @@ public final class SimpleTelegramClient implements Authenticable {
 			handled = true;
 		}
 		if (!handled) {
-			logger.warn("An update was not handled, please use addUpdateHandler(handler) before starting the client!");
+			LOG.warn("An update was not handled, please use addUpdateHandler(handler) before starting the client!");
 		}
 	}
 
@@ -103,7 +103,7 @@ public final class SimpleTelegramClient implements Authenticable {
 			handled = true;
 		}
 		if (!handled) {
-			logger.warn("Error received from Telegram!", ex);
+			LOG.warn("Error received from Telegram!", ex);
 		}
 	}
 
@@ -114,8 +114,12 @@ public final class SimpleTelegramClient implements Authenticable {
 			handled = true;
 		}
 		if (!handled) {
-			logger.warn("Unhandled exception!", ex);
+			LOG.warn("Unhandled exception!", ex);
 		}
+	}
+
+	private void handleResultHandlingException(Throwable ex) {
+		LOG.error("Failed to handle the request result", ex);
 	}
 
 	@Override
@@ -148,7 +152,7 @@ public final class SimpleTelegramClient implements Authenticable {
 			if (update instanceof TdApi.Update) {
 				handler.onUpdate((TdApi.Update) update);
 			} else {
-				logger.warn("Unknown update type: {}", update);
+				LOG.warn("Unknown update type: {}", update);
 			}
 		});
 	}
@@ -205,7 +209,7 @@ public final class SimpleTelegramClient implements Authenticable {
 	 * Send a function and get the result
 	 */
 	public <T extends TdApi.Object> void send(TdApi.Function function, GenericResultHandler<T> resultHandler) {
-		client.send(function, resultHandler::onResult, resultHandler::onErrorResult);
+		client.send(function, result -> resultHandler.onResult(Result.of(result)), this::handleResultHandlingException);
 	}
 
 	/**
