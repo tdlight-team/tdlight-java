@@ -85,7 +85,7 @@ public final class Example {
 			}
 
 			// Get the chat title
-			client.send(new TdApi.GetChat(update.message.chatId), (Result<Chat> chatIdResult) -> {
+			client.send(new TdApi.GetChat(update.message.chatId), chatIdResult -> {
 				// Get the chat response
 				Chat chat = chatIdResult.get();
 				// Get the chat name
