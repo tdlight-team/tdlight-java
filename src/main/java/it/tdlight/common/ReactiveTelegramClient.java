@@ -4,7 +4,6 @@ import it.tdlight.jni.TdApi;
 import java.time.Duration;
 import org.reactivestreams.Publisher;
 
-@SuppressWarnings("ReactiveStreamsPublisherImplementation")
 public interface ReactiveTelegramClient {
 
 	/**
@@ -20,7 +19,7 @@ public interface ReactiveTelegramClient {
 	 * @return a publisher that will emit exactly one item, or an error
 	 * @throws NullPointerException if query is null.
 	 */
-	Publisher<TdApi.Object> send(TdApi.Function query, Duration timeout);
+	<R extends TdApi.Object> Publisher<TdApi.Object> send(TdApi.Function<R> query, Duration timeout);
 
 	/**
 	 * Synchronously executes a TDLib request. Only a few marked accordingly requests can be executed synchronously.
@@ -29,7 +28,7 @@ public interface ReactiveTelegramClient {
 	 * @return request result or {@link TdApi.Error}.
 	 * @throws NullPointerException if query is null.
 	 */
-	TdApi.Object execute(TdApi.Function query);
+	<R extends TdApi.Object> TdApi.Object execute(TdApi.Function<R> query);
 
 	void setListener(SignalListener listener);
 

@@ -22,7 +22,7 @@ public interface TelegramClient {
 	 * @param updateExceptionHandler  Handler in which the errors from updates are received
 	 * @param defaultExceptionHandler Handler that receives exceptions triggered in a handler
 	 */
-	default void initialize(ResultHandler updateHandler,
+	default void initialize(ResultHandler<TdApi.Update> updateHandler,
 			ExceptionHandler updateExceptionHandler,
 			ExceptionHandler defaultExceptionHandler) {
 		this.initialize((UpdatesHandler) updates -> updates.forEach(updateHandler::onResult),
@@ -41,7 +41,8 @@ public interface TelegramClient {
 	 *                         resultHandler. If it is null, then defaultExceptionHandler will be called.
 	 * @throws NullPointerException if query is null.
 	 */
-	void send(TdApi.Function query, ResultHandler resultHandler, ExceptionHandler exceptionHandler);
+	<R extends TdApi.Object> void send(TdApi.Function<R> query, ResultHandler<R> resultHandler,
+			ExceptionHandler exceptionHandler);
 
 	/**
 	 * Sends a request to the TDLib with an empty ExceptionHandler.
@@ -51,7 +52,7 @@ public interface TelegramClient {
 	 *                      TdApi.Error as parameter. If it is null, then defaultExceptionHandler will be called.
 	 * @throws NullPointerException if query is null.
 	 */
-	default void send(TdApi.Function query, ResultHandler resultHandler) {
+	default <R extends TdApi.Object> void send(TdApi.Function<R> query, ResultHandler<R> resultHandler) {
 		send(query, resultHandler, null);
 	}
 
@@ -62,5 +63,5 @@ public interface TelegramClient {
 	 * @return request result or {@link TdApi.Error}.
 	 * @throws NullPointerException if query is null.
 	 */
-	TdApi.Object execute(TdApi.Function query);
+	<R extends TdApi.Object> TdApi.Object execute(TdApi.Function<R> query);
 }

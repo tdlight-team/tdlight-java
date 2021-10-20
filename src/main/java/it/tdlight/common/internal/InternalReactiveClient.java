@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,13 +31,13 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 
 	private static final Marker TG_MARKER = MarkerFactory.getMarker("TG");
 	private static final Logger logger = LoggerFactory.getLogger(InternalReactiveClient.class);
-	private static final Handler EMPTY_HANDLER = new Handler(r -> {}, ex -> {});
+	private static final Handler<?> EMPTY_HANDLER = new Handler<>(r -> {}, ex -> {});
 
-	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Long, Handler<?>> handlers = new ConcurrentHashMap<>();
 	private final Set<Long> timedOutHandlers = new ConcurrentHashMap<Long, Object>().keySet(new Object());
 	private final ScheduledExecutorService timers = Executors.newSingleThreadScheduledExecutor();
 	private final ExceptionHandler defaultExceptionHandler;
-	private final Handler updateHandler;
+	private final Handler<TdApi.Update> updateHandler;
 
 	private final Thread shutdownHook = new Thread(this::onJVMShutdown);
 
@@ -48,7 +49,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 
 	public InternalReactiveClient(InternalClientManager clientManager) {
 		this.clientManager = clientManager;
-		this.updateHandler = new Handler(this::onUpdateFromHandler, this::onUpdateException);
+		this.updateHandler = new Handler<>(this::onUpdateFromHandler, this::onUpdateException);
 		this.defaultExceptionHandler = this::onDefaultException;
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
@@ -105,7 +106,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	/**
 	 * Handles only a response (not an update!)
 	 */
-	private void handleResponse(long eventId, TdApi.Object event, Handler handler) {
+	private void handleResponse(long eventId, TdApi.Object event, Handler<?> handler) {
 		if (handler != null) {
 			try {
 				if (eventId == 0) {
@@ -137,7 +138,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	 * Handles a response or an update
 	 */
 	private void handleEvent(long eventId, TdApi.Object event) {
-		Handler handler = eventId == 0 ? updateHandler : handlers.remove(eventId);
+		Handler<?> handler = eventId == 0 ? updateHandler : handlers.remove(eventId);
 		handleResponse(eventId, event, handler);
 	}
 
@@ -151,7 +152,6 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 		}
 	}
 
-	@SuppressWarnings({"ReactiveStreamsSubscriberImplementation", "Convert2Diamond"})
 	public void createAndRegisterClient() {
 		if (clientId != null) {
 			throw new UnsupportedOperationException("Can't initialize the same client twice!");
@@ -164,7 +164,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	}
 
 	@Override
-	public Publisher<TdApi.Object> send(Function query, Duration responseTimeout) {
+	public <R extends TdApi.Object> Publisher<TdApi.Object> send(Function<R> query, Duration responseTimeout) {
 		return subscriber -> {
 			Subscription subscription = new Subscription() {
 
@@ -202,7 +202,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 								}
 							}, responseTimeout.toMillis(), TimeUnit.MILLISECONDS);
 
-							handlers.put(queryId, new Handler(result -> {
+							handlers.put(queryId, new Handler<>(result -> {
 								logger.trace(TG_MARKER,
 										"Client {} is replying the query id {}: request: {} result: {}",
 										clientId,
@@ -243,7 +243,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	}
 
 	@Override
-	public TdApi.Object execute(Function query) {
+	public <R extends TdApi.Object> TdApi.Object execute(Function<R> query) {
 		if (isClosedAndMaybeThrow(query)) {
 			return new TdApi.Ok();
 		}
@@ -324,7 +324,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	 * @param function function used to check if the check will be enforced or not. Can be null
 	 * @return true if closed
 	 */
-	private boolean isClosedAndMaybeThrow(Function function) {
+	private boolean isClosedAndMaybeThrow(Function<?> function) {
 		boolean closed = alreadyReceivedClosed.get();
 		if (closed) {
 			if (function != null && function.getConstructor() == TdApi.Close.CONSTRUCTOR) {

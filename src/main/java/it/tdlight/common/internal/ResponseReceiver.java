@@ -185,9 +185,10 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	@SuppressWarnings("SameParameterValue")
 	private int[] generateSortIndex(int from, int to, int[] data) {
 		int[] sortedIndices = Arrays.copyOfRange(originalSortingSource, from, to);
-		it.unimi.dsi.fastutil.Arrays.mergeSort(from, to, (o1, o2) -> {
-			return Integer.compare(data[sortedIndices[o1]], data[sortedIndices[o2]]);
-		}, new IntSwapper(sortedIndices));
+		it.unimi.dsi.fastutil.Arrays.mergeSort(from, to,
+				(o1, o2) -> Integer.compare(data[sortedIndices[o1]], data[sortedIndices[o2]]),
+				new IntSwapper(sortedIndices)
+		);
 		return sortedIndices;
 	}
 

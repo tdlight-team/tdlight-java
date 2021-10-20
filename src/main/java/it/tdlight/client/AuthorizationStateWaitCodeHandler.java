@@ -37,7 +37,7 @@ final class AuthorizationStateWaitCodeHandler implements GenericUpdateHandler<Up
 					authorizationState.codeInfo.type
 			);
 			String code = clientInteraction.onParameterRequest(InputParameter.ASK_CODE, parameterInfo);
-			Function response = new CheckAuthenticationCode(code);
+			CheckAuthenticationCode response = new CheckAuthenticationCode(code);
 			client.send(response, ok -> {
 				if (ok.getConstructor() == Error.CONSTRUCTOR) {
 					throw new TelegramError((Error) ok);

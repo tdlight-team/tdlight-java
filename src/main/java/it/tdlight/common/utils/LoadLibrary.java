@@ -73,18 +73,16 @@ public final class LoadLibrary {
 		Os os = getOs();
 
 		if (arch == Arch.UNKNOWN) {
-			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException(
-					"Arch: \"" + System.getProperty("os.arch") + "\" is unknown"));
+			throw new CantLoadLibrary("Arch: \"" + System.getProperty("os.arch") + "\" is unknown");
 		}
 
 		if (os == Os.UNKNOWN) {
-			throw (CantLoadLibrary) new CantLoadLibrary().initCause(new IllegalStateException(
-					"Os: \"" + System.getProperty("os.name") + "\" is unknown"));
+			throw new CantLoadLibrary("Os: \"" + System.getProperty("os.name") + "\" is unknown");
 		}
 
 		try {
 			loadJarLibrary(libname, arch, os);
-		} catch (IOException | CantLoadLibrary | UnsatisfiedLinkError e) {
+		} catch (CantLoadLibrary | UnsatisfiedLinkError e) {
 			if (loadSysLibrary(libname)) {
 				return;
 			}
@@ -102,8 +100,13 @@ public final class LoadLibrary {
 		return true;
 	}
 
-	private static void loadJarLibrary(String libname, Arch arch, Os os) throws IOException, CantLoadLibrary {
-		Path tempPath = Files.createDirectories(librariesPath.resolve("version-" + libsVersion).resolve(libname));
+	private static void loadJarLibrary(String libname, Arch arch, Os os) throws CantLoadLibrary {
+		Path tempPath;
+		try {
+			tempPath = Files.createDirectories(librariesPath.resolve("version-" + libsVersion).resolve(libname));
+		} catch (IOException e) {
+			throw new CantLoadLibrary("Can't create temporary files", e);
+		}
 		Path tempFile = Paths.get(tempPath.toString(), libname + getExt(os));
 		Class<?> classForResource = null;
 		switch (os) {
@@ -177,7 +180,7 @@ public final class LoadLibrary {
 				break;
 		}
 		if (classForResource == null) {
-			throw new IOException("Native libraries for platform " + os + "-" + arch + " not found!");
+			throw new CantLoadLibrary("Native libraries for platform " + os + "-" + arch + " not found!");
 		}
 		InputStream libInputStream;
 		try {
@@ -185,12 +188,20 @@ public final class LoadLibrary {
 					.getDeclaredMethod("getLibraryAsStream")
 					.invoke(InputStream.class));
 		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NullPointerException e) {
-			throw new IOException("Native libraries for platform " + os + "-" + arch + " not found!", e);
+			throw new CantLoadLibrary("Native libraries for platform " + os + "-" + arch + " not found!", e);
 		}
 		if (Files.notExists(tempFile)) {
-			Files.copy(libInputStream, tempFile);
+			try {
+				Files.copy(libInputStream, tempFile);
+			} catch (IOException e) {
+				throw new CantLoadLibrary("Can't copy native libraries into temporary files", e);
+			}
 		}
-		libInputStream.close();
+		try {
+			libInputStream.close();
+		} catch (IOException e) {
+			throw new CantLoadLibrary("Can't load the native libraries", e);
+		}
 		System.load(tempFile.toFile().getAbsolutePath());
 	}
 
@@ -268,20 +279,5 @@ public final class LoadLibrary {
 			default:
 				return ".so";
 		}
-	}
-
-	private static String createPath(String... path) {
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("/");
-
-		for (int i = 0; i < path.length; i++) {
-			stringBuilder.append(path[i]);
-
-			if (i < path.length - 1) {
-				stringBuilder.append("/");
-			}
-		}
-
-		return stringBuilder.toString();
 	}
 }

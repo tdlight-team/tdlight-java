@@ -10,11 +10,11 @@ final class NativeClientAccess extends NativeClient {
 		return NativeClientAccess.createNativeClient();
 	}
 
-	public static TdApi.Object execute(Function function) {
+	public static <R extends TdApi.Object> TdApi.Object execute(Function<R> function) {
 		return NativeClientAccess.nativeClientExecute(function);
 	}
 
-	public static void send(int nativeClientId, long eventId, TdApi.Function function) {
+	public static <R extends TdApi.Object> void send(int nativeClientId, long eventId, TdApi.Function<R> function) {
 		NativeClientAccess.nativeClientSend(nativeClientId, eventId, function);
 	}
 

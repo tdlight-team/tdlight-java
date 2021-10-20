@@ -8,7 +8,6 @@ import it.tdlight.common.UpdatesHandler;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
-import it.tdlight.jni.TdApi.Object;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.Objects;
@@ -24,13 +23,13 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	private static final Marker TG_MARKER = MarkerFactory.getMarker("TG");
 	private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
 
-	private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
+	private final ConcurrentHashMap<Long, Handler<?>> handlers = new ConcurrentHashMap<>();
 
 	private final Thread shutdownHook = new Thread(this::onJVMShutdown);
 
 	private volatile Integer clientId = null;
 	private final InternalClientManager clientManager;
-	private Handler updateHandler;
+	private Handler<TdApi.Update> updateHandler;
 	private MultiHandler updatesHandler;
 	private ExceptionHandler defaultExceptionHandler;
 
@@ -47,10 +46,10 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	@Override
-	public void handleEvents(boolean isClosed, long[] eventIds, Object[] events) {
+	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events) {
 		if (updatesHandler != null) {
 			LongArrayList idsToFilter = new LongArrayList(eventIds);
-			ObjectArrayList<Object> eventsToFilter = new ObjectArrayList<>(events);
+			ObjectArrayList<TdApi.Object> eventsToFilter = new ObjectArrayList<>(events);
 
 			for (int i = eventIds.length - 1; i >= 0; i--) {
 				if (eventIds[i] != 0) {
@@ -58,9 +57,9 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 					eventsToFilter.remove(i);
 
 					long eventId = eventIds[i];
-					Object event = events[i];
+					TdApi.Object event = events[i];
 
-					Handler handler = handlers.remove(eventId);
+					Handler<?> handler = handlers.remove(eventId);
 					handleResponse(eventId, event, handler);
 				}
 			}
@@ -90,9 +89,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 		} catch (IllegalStateException ignored) {
 			logger.trace(TG_MARKER, "Can't remove shutdown hook because the JVM is already shutting down");
 		}
-		handlers.forEach((eventId, handler) -> {
-			handleResponse(eventId, new Error(500, "Instance closed"), handler);
-		});
+		handlers.forEach((eventId, handler) -> handleResponse(eventId, new Error(500, "Instance closed"), handler));
 		handlers.clear();
 		logger.info(TG_MARKER, "Client closed {}", clientId);
 	}
@@ -100,7 +97,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	/**
 	 * Handles only a response (not an update!)
 	 */
-	private void handleResponse(long eventId, Object event, Handler handler) {
+	private void handleResponse(long eventId, TdApi.Object event, Handler<?> handler) {
 		if (handler != null) {
 			try {
 				handler.getResultHandler().onResult(event);
@@ -115,10 +112,10 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	/**
 	 * Handles a response or an update
 	 */
-	private void handleEvent(long eventId, Object event) {
+	private void handleEvent(long eventId, TdApi.Object event) {
 		logger.trace(TG_MARKER, "Received response {}: {}", eventId, event);
 		if (updatesHandler != null || updateHandler == null) throw new IllegalStateException();
-		Handler handler = eventId == 0 ? updateHandler : handlers.remove(eventId);
+		Handler<?> handler = eventId == 0 ? updateHandler : handlers.remove(eventId);
 		handleResponse(eventId, event, handler);
 	}
 
@@ -144,10 +141,10 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	@Override
-	public void initialize(ResultHandler updateHandler,
+	public void initialize(ResultHandler<TdApi.Update> updateHandler,
 			ExceptionHandler updateExceptionHandler,
 			ExceptionHandler defaultExceptionHandler) {
-		this.updateHandler = new Handler(updateHandler, updateExceptionHandler);
+		this.updateHandler = new Handler<>(updateHandler, updateExceptionHandler);
 		this.updatesHandler = null;
 		this.defaultExceptionHandler = defaultExceptionHandler;
 		createAndRegisterClient();
@@ -164,25 +161,27 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	@Override
-	public void send(Function query, ResultHandler resultHandler, ExceptionHandler exceptionHandler) {
+	public <R extends TdApi.Object> void send(Function<R> query, ResultHandler<R> resultHandler,
+			ExceptionHandler exceptionHandler) {
 		logger.trace(TG_MARKER, "Trying to send {}", query);
 		if (isClosedAndMaybeThrow(query)) {
 			resultHandler.onResult(new TdApi.Ok());
 		}
 		if (clientId == null) {
 			ExceptionHandler handler = exceptionHandler == null ? defaultExceptionHandler : exceptionHandler;
-			handler.onException(new IllegalStateException("Can't send a request to TDLib before calling \"initialize\" function!"));
+			handler.onException(new IllegalStateException(
+					"Can't send a request to TDLib before calling \"initialize\" function!"));
 			return;
 		}
 		long queryId = clientManager.getNextQueryId();
 		if (resultHandler != null) {
-			handlers.put(queryId, new Handler(resultHandler, exceptionHandler));
+			handlers.put(queryId, new Handler<>(resultHandler, exceptionHandler));
 		}
 		NativeClientAccess.send(clientId, queryId, query);
 	}
 
 	@Override
-	public Object execute(Function query) {
+	public <R extends TdApi.Object> TdApi.Object execute(Function<R> query) {
 		logger.trace(TG_MARKER, "Trying to execute {}", query);
 		if (isClosedAndMaybeThrow(query)) {
 			return new TdApi.Ok();
@@ -206,7 +205,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	 * @param function function used to check if the check will be enforced or not. Can be null
 	 * @return true if closed
 	 */
-	private boolean isClosedAndMaybeThrow(Function function) {
+	private boolean isClosedAndMaybeThrow(Function<?> function) {
 		boolean closed = isClosed.get();
 		if (closed) {
 			if (function != null && function.getConstructor() == TdApi.Close.CONSTRUCTOR) {

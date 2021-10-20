@@ -71,14 +71,19 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 						.askParameter("login", "Do you want to login using a bot [token], a [phone] number, or a [qr] code? [token/phone/qr]")
 						.trim()
 						.toLowerCase(Locale.ROOT);
-				if ("phone".equals(choice)) {
-					mode = "PHONE";
-				} else if ("token".equals(choice)) {
-					mode = "TOKEN";
-				} else if ("qr".equals(choice)) {
-					mode = "QR";
-				} else {
-					mode = null;
+				switch (choice) {
+					case "phone":
+						mode = "PHONE";
+						break;
+					case "token":
+						mode = "TOKEN";
+						break;
+					case "qr":
+						mode = "QR";
+						break;
+					default:
+						mode = null;
+						break;
 				}
 			} while (mode == null);
 

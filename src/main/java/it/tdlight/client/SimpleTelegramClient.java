@@ -49,7 +49,8 @@ public final class SimpleTelegramClient implements Authenticable {
 	private AuthenticationData authenticationData;
 
 	private final Map<String, Set<CommandHandler>> commandHandlers = new ConcurrentHashMap<>();
-	private final Set<ResultHandler> updateHandlers = new ConcurrentHashMap<ResultHandler, Object>()
+	private final Set<ResultHandler<TdApi.Update>> updateHandlers
+			= new ConcurrentHashMap<ResultHandler<TdApi.Update>, Object>()
 			.keySet(new Object());
 	private final Set<ExceptionHandler> updateExceptionHandlers = new ConcurrentHashMap<ExceptionHandler, Object>()
 			.keySet(new Object());
@@ -87,7 +88,7 @@ public final class SimpleTelegramClient implements Authenticable {
 
 	private void handleUpdate(TdApi.Object update) {
 		boolean handled = false;
-		for (ResultHandler updateHandler : updateHandlers) {
+		for (ResultHandler<TdApi.Update> updateHandler : updateHandlers) {
 			updateHandler.onResult(update);
 			handled = true;
 		}
@@ -208,7 +209,7 @@ public final class SimpleTelegramClient implements Authenticable {
 	/**
 	 * Send a function and get the result
 	 */
-	public <T extends TdApi.Object> void send(TdApi.Function function, GenericResultHandler<T> resultHandler) {
+	public <R extends TdApi.Object> void send(TdApi.Function<R> function, GenericResultHandler<R> resultHandler) {
 		client.send(function, result -> resultHandler.onResult(Result.of(result)), this::handleResultHandlingException);
 	}
 
@@ -217,7 +218,7 @@ public final class SimpleTelegramClient implements Authenticable {
 	 * <strong>Please note that only some functions can be executed using this method.</strong>
 	 * If you want to execute a function please use {@link #send(Function, GenericResultHandler)}!
 	 */
-	public <T extends TdApi.Object> Result<T> execute(TdApi.Function function) {
+	public <R extends TdApi.Object> Result<R> execute(TdApi.Function<R> function) {
 		return Result.of(client.execute(function));
 	}
 

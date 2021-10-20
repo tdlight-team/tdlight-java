@@ -36,7 +36,7 @@ final class AuthorizationStateWaitPasswordHandler implements GenericUpdateHandle
 					authorizationState.recoveryEmailAddressPattern
 			);
 			String password = clientInteraction.onParameterRequest(InputParameter.ASK_PASSWORD, parameterInfo);
-			Function response = new CheckAuthenticationPassword(password);
+			CheckAuthenticationPassword response = new CheckAuthenticationPassword(password);
 			client.send(response, ok -> {
 				if (ok.getConstructor() == Error.CONSTRUCTOR) {
 					throw new TelegramError((Error) ok);
