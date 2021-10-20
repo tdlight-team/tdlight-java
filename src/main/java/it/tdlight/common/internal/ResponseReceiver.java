@@ -210,7 +210,9 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	public void onJVMShutdown() throws InterruptedException {
 		if (startCalled.get()) {
 			if (this.jvmShutdown.compareAndSet(false, true)) {
-				this.closeWait.await();
+				if (Boolean.parseBoolean(System.getProperty("it.tdlight.pauseShutdownUntilAllClosed", "true"))) {
+					this.closeWait.await();
+				}
 			}
 		}
 	}
