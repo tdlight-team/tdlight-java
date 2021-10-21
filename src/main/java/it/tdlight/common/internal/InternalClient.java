@@ -157,8 +157,8 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 		clientManager.registerClient(clientId, this);
 		logger.info(TG_MARKER, "Registered new client {}", clientId);
 
-		// Send a dummy request because @levlam is too lazy to fix race conditions in a better way
-		this.send(new TdApi.GetAuthorizationState(), (result) -> {}, ex -> {});
+		// Send a dummy request to start TDLib
+		this.send(new TdApi.GetOption("version"), (result) -> {}, ex -> {});
 	}
 
 	@Override
