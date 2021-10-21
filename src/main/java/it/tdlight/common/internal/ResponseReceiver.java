@@ -21,7 +21,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 			"tdlight.dispatcher.use_optimized_dispatcher",
 			"true"
 	));
-	private static final int MAX_EVENTS = 1000;
+	private static final int MAX_EVENTS = 100;
 	private static final int[] originalSortingSource = new int[MAX_EVENTS];
 	static {
 		for (int i = 0; i < originalSortingSource.length; i++) {
@@ -37,9 +37,15 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	private final int[] clientIds = new int[MAX_EVENTS];
 	private final long[] eventIds = new long[MAX_EVENTS];
 	private final TdApi.Object[] events = new TdApi.Object[MAX_EVENTS];
+	private int eventsLastUsedLength = 0;
+
+	private final long[] clientEventIds = new long[MAX_EVENTS];
+	private final TdApi.Object[] clientEvents = new TdApi.Object[MAX_EVENTS];
+	private int clientEventsLastUsedLength = 0;
 
 	private final CountDownLatch closeWait = new CountDownLatch(1);
-	private final Set<Integer> registeredClients = new ConcurrentHashMap<Integer, java.lang.Object>().keySet(new java.lang.Object());
+	private final Set<Integer> registeredClients
+			= new ConcurrentHashMap<Integer, java.lang.Object>().keySet(new java.lang.Object());
 
 
 	public ResponseReceiver(EventsHandler eventsHandler) {
@@ -89,22 +95,24 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 						if (i == resultsCount || (i != 0 && clientIds[sortIndex[i]] != lastClientId)) {
 							if (lastClientIdEventsCount > 0) {
 								int clientId = lastClientId;
-								long[] clientEventIds = new long[lastClientIdEventsCount];
-								TdApi.Object[] clientEvents = new TdApi.Object[lastClientIdEventsCount];
 								for (int j = 0; j < lastClientIdEventsCount; j++) {
 									clientEventIds[j] = eventIds[sortIndex[i - lastClientIdEventsCount + j]];
 									clientEvents[j] = events[sortIndex[i - lastClientIdEventsCount + j]];
 
-									if (clientEventIds[j] == 0 && clientEvents[j] instanceof TdApi.UpdateAuthorizationState) {
-										TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) clientEvents[j]).authorizationState;
-										if (authorizationState instanceof TdApi.AuthorizationStateClosed) {
+									if (clientEventIds[j] == 0
+											&& clientEvents[j].getConstructor() == TdApi.UpdateAuthorizationState.CONSTRUCTOR) {
+										TdApi.AuthorizationState authorizationState
+												= ((TdApi.UpdateAuthorizationState) clientEvents[j]).authorizationState;
+										if (authorizationState.getConstructor() == TdApi.AuthorizationStateClosed.CONSTRUCTOR) {
 											lastClientClosed = true;
 											closedClients.add(clientId);
 										}
 									}
 								}
+								cleanClientEventsArray(lastClientIdEventsCount);
 
-								eventsHandler.handleClientEvents(clientId, lastClientClosed, clientEventIds, clientEvents);
+								eventsHandler.handleClientEvents(clientId, lastClientClosed, clientEventIds, clientEvents,
+										0, lastClientIdEventsCount);
 							}
 
 							if (i < resultsCount) {
@@ -138,30 +146,31 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 					}
 					Set<Integer> clientIds = eventsList.stream().map(e -> e.clientId).collect(Collectors.toSet());
 					for (int clientId : clientIds) {
-						List<Event> clientEventsList = eventsList.stream().filter(e -> e.clientId == clientId).collect(Collectors.toList());
-						long[] clientEventIds = new long[clientEventsList.size()];
-						Object[] clientEvents = new Object[clientEventsList.size()];
+						List<Event> clientEventsList = eventsList.stream()
+								.filter(e -> e.clientId == clientId)
+								.collect(Collectors.toList());
 						boolean closed = false;
 						for (int i = 0; i < clientEventsList.size(); i++) {
 							Event e = clientEventsList.get(i);
 							clientEventIds[i] = e.eventId;
 							clientEvents[i] = e.event;
 
-							if (e.eventId == 0 && e.event instanceof TdApi.UpdateAuthorizationState) {
-								TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) e.event).authorizationState;
-								if (authorizationState instanceof TdApi.AuthorizationStateClosed) {
+							if (e.eventId == 0 && e.event.getConstructor() == TdApi.UpdateAuthorizationState.CONSTRUCTOR) {
+								TdApi.AuthorizationState authorizationState
+										= ((TdApi.UpdateAuthorizationState) e.event).authorizationState;
+								if (authorizationState.getConstructor() == TdApi.AuthorizationStateClosed.CONSTRUCTOR) {
 									closed = true;
 									closedClients.add(clientId);
 								}
 							}
 						}
-						eventsHandler.handleClientEvents(clientId, closed, clientEventIds, clientEvents);
+						cleanClientEventsArray(clientEventsList.size());
+						eventsHandler.handleClientEvents(clientId, closed, clientEventIds, clientEvents,
+								0, clientEventsList.size());
 					}
 				}
 
-				Arrays.fill(clientIds, 0);
-				Arrays.fill(eventIds, 0);
-				Arrays.fill(events, null);
+				cleanEventsArray(resultsCount);
 
 				if (!closedClients.isEmpty()) {
 					this.registeredClients.removeAll(closedClients);
@@ -171,15 +180,27 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 			if (interrupted) {
 				if (!jvmShutdown.get()) {
 					for (Integer clientId : this.registeredClients) {
-						long[] clientEventIds = new long[0];
-						TdApi.Object[] clientEvents = new TdApi.Object[0];
-						eventsHandler.handleClientEvents(clientId, true, clientEventIds, clientEvents);
+						eventsHandler.handleClientEvents(clientId, true, clientEventIds, clientEvents, 0, 0);
 					}
 				}
 			}
 		} finally {
 			this.closeWait.countDown();
 		}
+	}
+
+	private void cleanEventsArray(int eventsCount) {
+		if (eventsLastUsedLength > eventsCount) {
+			Arrays.fill(events, eventsCount, eventsLastUsedLength, null);
+		}
+		eventsLastUsedLength = eventsCount;
+	}
+
+	private void cleanClientEventsArray(int clientEventsCount) {
+		if (clientEventsLastUsedLength > clientEventsCount) {
+			Arrays.fill(clientEvents, clientEventsCount, clientEventsLastUsedLength, null);
+		}
+		clientEventsLastUsedLength = clientEventsCount;
 	}
 
 	@SuppressWarnings("SameParameterValue")

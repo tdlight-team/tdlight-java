@@ -46,12 +46,13 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	@Override
-	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events) {
+	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events,
+			int arrayOffset, int arrayLength) {
 		if (updatesHandler != null) {
 			LongArrayList idsToFilter = new LongArrayList(eventIds);
 			ObjectArrayList<TdApi.Object> eventsToFilter = new ObjectArrayList<>(events);
 
-			for (int i = eventIds.length - 1; i >= 0; i--) {
+			for (int i = (arrayOffset + arrayLength) - 1; i >= arrayOffset; i--) {
 				if (eventIds[i] != 0) {
 					idsToFilter.removeLong(i);
 					eventsToFilter.remove(i);

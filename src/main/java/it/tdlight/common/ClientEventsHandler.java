@@ -6,5 +6,5 @@ public interface ClientEventsHandler {
 
 	int getClientId();
 
-	void handleEvents(boolean isClosed, long[] eventIds, Object[] events);
+	void handleEvents(boolean isClosed, long[] eventIds, Object[] events, int arrayOffset, int arrayLength);
 }

@@ -60,8 +60,9 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	}
 
 	@Override
-	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events) {
-		for (int i = 0; i < eventIds.length; i++) {
+	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events,
+			int arrayOffset, int arrayLength) {
+		for (int i = arrayOffset; i < arrayOffset + arrayLength; i++) {
 			handleEvent(eventIds[i], events[i]);
 		}
 
