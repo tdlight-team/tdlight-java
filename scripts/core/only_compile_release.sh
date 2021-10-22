@@ -8,9 +8,9 @@ if [ -z "${IMPLEMENTATION_NAME}" ]; then
 	exit 1
 fi
 
-cd ../../${IMPLEMENTATION_NAME}
+cd "../../"
 
-mvn -B clean package --file pom.xml
+mvn -B -P "${IMPLEMENTATION_NAME}" clean package
 
 echo "Done."
 exit 0

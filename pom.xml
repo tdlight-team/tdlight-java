@@ -4,13 +4,79 @@
 	<groupId>it.tdlight</groupId>
 	<artifactId>tdlight-java-parent</artifactId>
 	<version>${revision}</version>
-	<name>TDLib Java Wrapper</name>
 	<packaging>pom</packaging>
+	<name>TDLib Java Parent</name>
 	<properties>
 		<revision>1.0.0.0-SNAPSHOT</revision>
-		<apiRevisionNumber>168</apiRevisionNumber>
+		<nativesRevisionNumber>169</nativesRevisionNumber>
 		<nativesRevisionSuffix/>
-		<apiRevisionNumber>166</apiRevisionNumber>
+		<apiRevisionNumber>167</apiRevisionNumber>
 		<apiRevisionSuffix/>
 	</properties>
+	<repositories>
+		<repository>
+			<id>mchv-release</id>
+			<name>MCHV Release Apache Maven Packages</name>
+			<url>https://mvn.mchv.eu/repository/mchv</url>
+		</repository>
+		<repository>
+			<id>mchv-snapshot</id>
+			<name>MCHV Snapshot Apache Maven Packages</name>
+			<url>https://mvn.mchv.eu/repository/mchv-snapshot</url>
+		</repository>
+	</repositories>
+	<distributionManagement>
+		<repository>
+			<id>mchv-release-distribution</id>
+			<name>MCHV Release Apache Maven Packages Distribution</name>
+			<url>https://mvn.mchv.eu/repository/mchv</url>
+		</repository>
+		<snapshotRepository>
+			<id>mchv-snapshot-distribution</id>
+			<name>MCHV Snapshot Apache Maven Packages Distribution</name>
+			<url>https://mvn.mchv.eu/repository/mchv-snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<scm>
+		<connection>scm:git:https://git.ignuranza.net/tdlight-team/tdlight-java.git</connection>
+		<developerConnection>scm:git:https://git.ignuranza.net/tdlight-team/tdlight-java.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<modules/>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>8</source>
+					<target>8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>tdlib</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<modules>
+				<module>tdlib</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>tdlight</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<modules>
+				<module>tdlight</module>
+			</modules>
+		</profile>
+	</profiles>
 </project>
