@@ -1,98 +1,99 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>it.tdlight</groupId>
-  <artifactId>example-java</artifactId>
-  <version>1.0.0.0-SNAPSHOT</version>
-  <name>TDLight Java Example</name>
-  <packaging>jar</packaging>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  <repositories>
-    <repository>
-      <id>mchv-release</id>
-      <name>MCHV Release Apache Maven Packages</name>
-      <url>https://mvn.mchv.eu/repository/mchv</url>
-    </repository>
-    <repository>
-      <id>mchv-snapshot</id>
-      <name>MCHV Snapshot Apache Maven Packages</name>
-      <url>https://mvn.mchv.eu/repository/mchv-snapshot</url>
-    </repository>
-  </repositories>
-  <dependencies>
-    <!-- TDLight -->
-    <dependency>
-      <groupId>it.tdlight</groupId>
-      <artifactId>tdlight-java</artifactId>
-      <version>2.7.8.23</version>
-    </dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>it.tdlight</groupId>
+	<artifactId>example-java</artifactId>
+	<version>1.0.0.0-SNAPSHOT</version>
+	<name>TDLight Java Example</name>
+	<packaging>jar</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<repositories>
+		<repository>
+			<id>mchv-release</id>
+			<name>MCHV Release Apache Maven Packages</name>
+			<url>https://mvn.mchv.eu/repository/mchv</url>
+		</repository>
+		<repository>
+			<id>mchv-snapshot</id>
+			<name>MCHV Snapshot Apache Maven Packages</name>
+			<url>https://mvn.mchv.eu/repository/mchv-snapshot</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<!-- TDLight -->
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-java</artifactId>
+			<version>2.7.8.23</version>
+		</dependency>
 
-    <!-- TDLight natives -->
-    <dependency>
-      <groupId>it.tdlight</groupId>
-      <artifactId>tdlight-natives-linux-amd64</artifactId>
-      <version>3.3.164</version>
-    </dependency>
-    <dependency>
-      <groupId>it.tdlight</groupId>
-      <artifactId>tdlight-natives-windows-amd64</artifactId>
-      <version>3.3.164</version>
-    </dependency>
-    <dependency>
-      <groupId>it.tdlight</groupId>
-      <artifactId>tdlight-natives-osx-amd64</artifactId>
-      <version>3.3.164</version>
-    </dependency>
+		<!-- TDLight natives -->
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-natives-linux-amd64</artifactId>
+			<version>3.3.164</version>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-natives-windows-amd64</artifactId>
+			<version>3.3.164</version>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-natives-osx-amd64</artifactId>
+			<version>3.3.164</version>
+		</dependency>
 
-    <!-- log4j logging -->
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <version>2.14.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
-      <version>2.14.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.lmax</groupId>
-      <artifactId>disruptor</artifactId>
-      <version>3.4.4</version>
-    </dependency>
-  </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>3.1.0</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>3.0.2</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
-        <configuration>
-          <encoding>UTF-8</encoding>
-          <source>8</source>
-          <target>8</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-install-plugin</artifactId>
-        <version>3.0.0-M1</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>2.8.2</version>
-      </plugin>
-    </plugins>
-  </build>
+		<!-- log4j logging -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.14.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>2.14.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.lmax</groupId>
+			<artifactId>disruptor</artifactId>
+			<version>3.4.4</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.1.0</version>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<source>8</source>
+					<target>8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+			</plugin>
+			<plugin>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.0.0-M1</version>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.2</version>
+			</plugin>
+		</plugins>
+	</build>
 </project>

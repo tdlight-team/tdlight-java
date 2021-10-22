@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.tdlight</groupId>
 	<artifactId>tdlib-java</artifactId>
@@ -8,10 +9,10 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>1.0.0.0-SNAPSHOT</revision>
-    <nativesRevisionNumber>0</nativesRevisionNumber>
-    <nativesRevisionSuffix>-SNAPSHOT</nativesRevisionSuffix>
-    <apiRevisionNumber>0</apiRevisionNumber>
-    <apiRevisionSuffix>-SNAPSHOT</apiRevisionSuffix>
+		<nativesRevisionNumber>0</nativesRevisionNumber>
+		<nativesRevisionSuffix>-SNAPSHOT</nativesRevisionSuffix>
+		<apiRevisionNumber>0</apiRevisionNumber>
+		<apiRevisionSuffix>-SNAPSHOT</apiRevisionSuffix>
 	</properties>
 	<repositories>
 		<repository>
@@ -46,7 +47,7 @@
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlib-api</artifactId>
-      <version>4.0.${apiRevisionNumber}${apiRevisionSuffix}</version>
+			<version>4.0.${apiRevisionNumber}${apiRevisionSuffix}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.cavallium</groupId>
@@ -67,14 +68,14 @@
 			<artifactId>reactive-streams</artifactId>
 			<version>1.0.3</version>
 		</dependency>
-    <dependency>
-      <groupId>net.harawata</groupId>
-      <artifactId>appdirs</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.zxing</groupId>
-      <artifactId>core</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>net.harawata</groupId>
+			<artifactId>appdirs</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -83,18 +84,18 @@
 				<artifactId>fastutil</artifactId>
 				<version>8.5.6</version>
 			</dependency>
-      <dependency>
-        <groupId>net.harawata</groupId>
-        <artifactId>appdirs</artifactId>
-        <version>1.2.1</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.zxing</groupId>
-        <artifactId>core</artifactId>
-        <version>3.4.1</version>
-      </dependency>
+			<dependency>
+				<groupId>net.harawata</groupId>
+				<artifactId>appdirs</artifactId>
+				<version>1.2.1</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.zxing</groupId>
+				<artifactId>core</artifactId>
+				<version>3.4.1</version>
+			</dependency>
 		</dependencies>
-  </dependencyManagement>
+	</dependencyManagement>
 	<profiles>
 		<profile>
 			<id>releaseDir</id>
@@ -138,11 +139,11 @@
 				<configuration>
 					<source>17</source>
 					<additionalOptions>-html5</additionalOptions>
-          <level>public</level>
-          <verbose>false</verbose>
-          <quiet>true</quiet>
-          <additionalOptions>-Xdoclint:none</additionalOptions>
-          <additionalJOption>-Xdoclint:none</additionalJOption>
+					<level>public</level>
+					<verbose>false</verbose>
+					<quiet>true</quiet>
+					<additionalOptions>-Xdoclint:none</additionalOptions>
+					<additionalJOption>-Xdoclint:none</additionalJOption>
 				</configuration>
 				<executions>
 					<execution>
@@ -177,7 +178,7 @@
 			</plugin>
 			<!-- compile sources -->
 			<plugin>
-        <groupId>org.apache.maven.plugins</groupId>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
@@ -194,20 +195,20 @@
 						<!-- specify source/target for IDE integration -->
 						<configuration>
 							<release>9</release>
-            </configuration>
-          </execution>
-          <!-- compile sources with Java 11 -->
-          <execution>
-            <id>java-11-module-compile</id>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <configuration>
-              <release>11</release>
-              <compileSourceRoots>
-                <compileSourceRoot>${project.basedir}/../src/main/java11</compileSourceRoot>
-              </compileSourceRoots>
-              <multiReleaseOutput>true</multiReleaseOutput>
+						</configuration>
+					</execution>
+					<!-- compile sources with Java 11 -->
+					<execution>
+						<id>java-11-module-compile</id>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<release>11</release>
+							<compileSourceRoots>
+								<compileSourceRoot>${project.basedir}/../src/main/java11</compileSourceRoot>
+							</compileSourceRoots>
+							<multiReleaseOutput>true</multiReleaseOutput>
 						</configuration>
 					</execution>
 					<!-- compile sources with Java 9 to generate and validate module-info.java -->
@@ -228,7 +229,7 @@
 						</goals>
 						<configuration>
 							<!-- specify JDK 9+ release flag to ensure no classes/methods later than Java 8 are used accidentally -->
-              <release>8</release>
+							<release>8</release>
 							<!-- exclude module-info.java from the compilation, as it is unsupported by Java 8 -->
 							<excludes>
 								<exclude>it/tdlight/tdlight/ClientManager.java</exclude>
@@ -266,13 +267,13 @@
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.2.0</version>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <Multi-Release>true</Multi-Release>
-            </manifestEntries>
-          </archive>
-        </configuration>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Multi-Release>true</Multi-Release>
+						</manifestEntries>
+					</archive>
+				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-install-plugin</artifactId>
@@ -298,24 +299,24 @@
 					</execution>
 				</executions>
 			</plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>properties-maven-plugin</artifactId>
-        <version>1.0.0</version>
-        <executions>
-          <execution>
-            <phase>initialize</phase>
-            <goals>
-              <goal>read-project-properties</goal>
-            </goals>
-            <configuration>
-              <files>
-                <file>${basedir}/../nativesBuildNumber.properties</file>
-              </files>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0.0</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>read-project-properties</goal>
+						</goals>
+						<configuration>
+							<files>
+								<file>${basedir}/../nativesBuildNumber.properties</file>
+							</files>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>
