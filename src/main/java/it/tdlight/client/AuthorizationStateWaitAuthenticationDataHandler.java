@@ -1,18 +1,12 @@
 package it.tdlight.client;
 
-		import it.tdlight.common.ExceptionHandler;
-		import it.tdlight.common.TelegramClient;
-		import it.tdlight.common.utils.ScannerUtils;
-		import it.tdlight.jni.TdApi;
-		import it.tdlight.jni.TdApi.AuthorizationStateWaitEncryptionKey;
-		import it.tdlight.jni.TdApi.AuthorizationStateWaitPhoneNumber;
-		import it.tdlight.jni.TdApi.CheckDatabaseEncryptionKey;
-		import it.tdlight.jni.TdApi.Error;
-		import it.tdlight.jni.TdApi.PhoneNumberAuthenticationSettings;
-		import it.tdlight.jni.TdApi.SetAuthenticationPhoneNumber;
-		import it.tdlight.jni.TdApi.UpdateAuthorizationState;
-		import org.slf4j.Logger;
-		import org.slf4j.LoggerFactory;
+import it.tdlight.common.ExceptionHandler;
+import it.tdlight.common.TelegramClient;
+import it.tdlight.jni.TdApi;
+import it.tdlight.jni.TdApi.AuthorizationStateWaitPhoneNumber;
+import it.tdlight.jni.TdApi.PhoneNumberAuthenticationSettings;
+import it.tdlight.jni.TdApi.SetAuthenticationPhoneNumber;
+import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 
 final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
 

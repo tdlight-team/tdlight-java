@@ -26,34 +26,39 @@ import java.util.StringJoiner;
  */
 @SuppressWarnings("unused")
 public final class Response {
-    private final long id;
-    private final TdApi.Object object;
 
-    /**
-     * Creates a response with eventId and object, do not create answers explicitly! you must receive the reply through a client.
-     * @param id TDLib request identifier, which corresponds to the response or 0 for incoming updates from TDLib.
-     * @param object TDLib API object representing a response to a TDLib request or an incoming update.
-     */
-    public Response(long id, TdApi.Object object) {
-        this.id = id;
-        this.object = object;
-    }
+	private final long id;
+	private final TdApi.Object object;
 
-    /**
-     * Get TDLib request identifier.
-     * @return TDLib request identifier, which corresponds to the response or 0 for incoming updates from TDLib.
-     */
-    public long getId() {
-        return this.id;
-    }
+	/**
+	 * Creates a response with eventId and object, do not create answers explicitly! you must receive the reply through a
+	 * client.
+	 *
+	 * @param id     TDLib request identifier, which corresponds to the response or 0 for incoming updates from TDLib.
+	 * @param object TDLib API object representing a response to a TDLib request or an incoming update.
+	 */
+	public Response(long id, TdApi.Object object) {
+		this.id = id;
+		this.object = object;
+	}
 
-    /**
-     * Get TDLib API object.
-     * @return TDLib API object representing a response to a TDLib request or an incoming update.
-     */
-    public TdApi.Object getObject() {
-        return this.object;
-    }
+	/**
+	 * Get TDLib request identifier.
+	 *
+	 * @return TDLib request identifier, which corresponds to the response or 0 for incoming updates from TDLib.
+	 */
+	public long getId() {
+		return this.id;
+	}
+
+	/**
+	 * Get TDLib API object.
+	 *
+	 * @return TDLib API object representing a response to a TDLib request or an incoming update.
+	 */
+	public TdApi.Object getObject() {
+		return this.object;
+	}
 
 	@Override
 	public boolean equals(Object o) {

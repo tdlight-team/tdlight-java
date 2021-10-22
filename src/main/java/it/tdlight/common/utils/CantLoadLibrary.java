@@ -17,28 +17,27 @@
 
 package it.tdlight.common.utils;
 
-import java.io.IOException;
-
 /**
  * An exception that is thrown when the LoadLibrary class fails to load the library.
  */
 public final class CantLoadLibrary extends Exception {
-    /**
-     * Creates a new CantLoadLibrary exception.
-     */
-    CantLoadLibrary() {
-        super("Init failed when loading TDLib native libraries, execution can't continue");
-    }
+
+	/**
+	 * Creates a new CantLoadLibrary exception.
+	 */
+	CantLoadLibrary() {
+		super("Init failed when loading TDLib native libraries, execution can't continue");
+	}
 
 	public CantLoadLibrary(String message) {
-			super(message);
+		super(message);
 	}
 
 	public CantLoadLibrary(String message, Exception cause) {
-			super(message, cause);
+		super(message, cause);
 	}
 
 	public CantLoadLibrary(Exception cause) {
-			super(cause);
+		super(cause);
 	}
 }

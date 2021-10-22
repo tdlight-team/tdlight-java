@@ -10,7 +10,6 @@ import it.tdlight.common.internal.CommonClientManager;
 import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.common.utils.LibraryVersion;
 import it.tdlight.jni.TdApi;
-import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.User;
 import java.io.IOException;
@@ -49,13 +48,12 @@ public final class SimpleTelegramClient implements Authenticable {
 	private AuthenticationData authenticationData;
 
 	private final Map<String, Set<CommandHandler>> commandHandlers = new ConcurrentHashMap<>();
-	private final Set<ResultHandler<TdApi.Update>> updateHandlers
-			= new ConcurrentHashMap<ResultHandler<TdApi.Update>, Object>()
-			.keySet(new Object());
-	private final Set<ExceptionHandler> updateExceptionHandlers = new ConcurrentHashMap<ExceptionHandler, Object>()
-			.keySet(new Object());
-	private final Set<ExceptionHandler> defaultExceptionHandlers = new ConcurrentHashMap<ExceptionHandler, Object>()
-			.keySet(new Object());
+	private final Set<ResultHandler<TdApi.Update>> updateHandlers = new ConcurrentHashMap<ResultHandler<TdApi.Update>, Object>().keySet(
+			new Object());
+	private final Set<ExceptionHandler> updateExceptionHandlers = new ConcurrentHashMap<ExceptionHandler, Object>().keySet(
+			new Object());
+	private final Set<ExceptionHandler> defaultExceptionHandlers = new ConcurrentHashMap<ExceptionHandler, Object>().keySet(
+			new Object());
 
 	private final CountDownLatch closed = new CountDownLatch(1);
 
@@ -63,23 +61,35 @@ public final class SimpleTelegramClient implements Authenticable {
 		this.client = CommonClientManager.create(LibraryVersion.IMPLEMENTATION_NAME);
 		this.settings = settings;
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitTdlibParametersHandler(client, settings, this::handleDefaultException));
+				new AuthorizationStateWaitTdlibParametersHandler(client, settings, this::handleDefaultException)
+		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitEncryptionKeyHandler(client, this::handleDefaultException));
+				new AuthorizationStateWaitEncryptionKeyHandler(client, this::handleDefaultException)
+		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitAuthenticationDataHandler(client, this,
-						this::handleDefaultException));
+				new AuthorizationStateWaitAuthenticationDataHandler(client, this, this::handleDefaultException)
+		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitRegistrationHandler(client, new SimpleTelegramClientInteraction(),
-						this::handleDefaultException));
+				new AuthorizationStateWaitRegistrationHandler(client,
+						new SimpleTelegramClientInteraction(),
+						this::handleDefaultException
+				)
+		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitPasswordHandler(client, new SimpleTelegramClientInteraction(),
-						this::handleDefaultException));
+				new AuthorizationStateWaitPasswordHandler(client,
+						new SimpleTelegramClientInteraction(),
+						this::handleDefaultException
+				)
+		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitOtherDeviceConfirmationHandler(new SimpleTelegramClientInteraction()));
+				new AuthorizationStateWaitOtherDeviceConfirmationHandler(new SimpleTelegramClientInteraction())
+		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitCodeHandler(client, new SimpleTelegramClientInteraction(),
-						this::handleDefaultException));
+				new AuthorizationStateWaitCodeHandler(client,
+						new SimpleTelegramClientInteraction(),
+						this::handleDefaultException
+				)
+		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitForExit(this.closed));
 		AtomicReference<User> me = new AtomicReference<>();
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateReadyGetMe(client, me));
@@ -133,8 +143,9 @@ public final class SimpleTelegramClient implements Authenticable {
 	}
 
 	public <T extends TdApi.Update> void addCommandHandler(String commandName, CommandHandler handler) {
-		Set<CommandHandler> handlers = this.commandHandlers
-				.computeIfAbsent(commandName, k -> new ConcurrentHashMap<CommandHandler, Object>().keySet(new Object()));
+		Set<CommandHandler> handlers = this.commandHandlers.computeIfAbsent(commandName,
+				k -> new ConcurrentHashMap<CommandHandler, Object>().keySet(new Object())
+		);
 		handlers.add(handler);
 	}
 

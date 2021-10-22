@@ -3,7 +3,6 @@ package it.tdlight.client;
 import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Chat;
-import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.MessageText;
 import it.tdlight.jni.TdApi.UpdateNewMessage;
@@ -36,15 +35,14 @@ final class CommandsHandler implements GenericUpdateHandler<UpdateNewMessage> {
 	public void onUpdate(UpdateNewMessage update) {
 		if (update.getConstructor() == UpdateNewMessage.CONSTRUCTOR) {
 			Message message = update.message;
-			if (message.forwardInfo == null && !message.isChannelPost
-					&& (message.authorSignature == null || message.authorSignature.isEmpty())
-					&& message.content.getConstructor() == MessageText.CONSTRUCTOR) {
+			if (message.forwardInfo == null && !message.isChannelPost && (message.authorSignature == null
+					|| message.authorSignature.isEmpty()) && message.content.getConstructor() == MessageText.CONSTRUCTOR) {
 				MessageText messageText = (MessageText) message.content;
 				String text = messageText.text.text;
 				if (text.startsWith("/")) {
 					String[] parts = text.split(" ", 2);
 					if (parts.length == 1) {
-						parts = new String[] {parts[0], ""};
+						parts = new String[]{parts[0], ""};
 					}
 					if (parts.length == 2) {
 						String currentUnsplittedCommandName = parts[0].substring(1);
@@ -71,15 +69,12 @@ final class CommandsHandler implements GenericUpdateHandler<UpdateNewMessage> {
 							Set<CommandHandler> handlers = commandHandlers.getOrDefault(currentCommandName, Collections.emptySet());
 
 							for (CommandHandler handler : handlers) {
-								client.send(new TdApi.GetChat(message.chatId),
-										response -> {
-											if (response.getConstructor() == Error.CONSTRUCTOR) {
-												throw new TelegramError((Error) response);
-											}
-											handler.onCommand((Chat) response, message.sender, arguments);
-										},
-										error -> logger.warn("Error when handling the command {}", commandName, error)
-								);
+								client.send(new TdApi.GetChat(message.chatId), response -> {
+									if (response.getConstructor() == Error.CONSTRUCTOR) {
+										throw new TelegramError((Error) response);
+									}
+									handler.onCommand((Chat) response, message.sender, arguments);
+								}, error -> logger.warn("Error when handling the command {}", commandName, error));
 							}
 						}
 					}

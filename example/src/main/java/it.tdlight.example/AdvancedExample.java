@@ -1,16 +1,16 @@
 package it.tdlight.example;
 
-import it.tdlight.common.TelegramClient;
-import it.tdlight.tdlight.ClientManager;
 import it.tdlight.common.Init;
+import it.tdlight.common.TelegramClient;
 import it.tdlight.common.utils.CantLoadLibrary;
-
 import it.tdlight.jni.TdApi;
+import it.tdlight.tdlight.ClientManager;
 
 /**
  * This is an advanced example that uses directly the native client without using the SimpleClient implementation
  */
 public class AdvancedExample {
+
 	public static void main(String[] args) throws CantLoadLibrary {
 		// Initialize TDLight native libraries
 		Init.start();

@@ -41,7 +41,8 @@ public interface TelegramClient {
 	 *                         resultHandler. If it is null, then defaultExceptionHandler will be called.
 	 * @throws NullPointerException if query is null.
 	 */
-	<R extends TdApi.Object> void send(TdApi.Function<R> query, ResultHandler<R> resultHandler,
+	<R extends TdApi.Object> void send(TdApi.Function<R> query,
+			ResultHandler<R> resultHandler,
 			ExceptionHandler exceptionHandler);
 
 	/**

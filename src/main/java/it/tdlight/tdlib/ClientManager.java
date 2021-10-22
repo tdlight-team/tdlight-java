@@ -1,8 +1,8 @@
 package it.tdlight.tdlib;
 
-import it.tdlight.common.internal.CommonClientManager;
 import it.tdlight.common.ReactiveTelegramClient;
 import it.tdlight.common.TelegramClient;
+import it.tdlight.common.internal.CommonClientManager;
 
 /**
  * Interface for interaction with TDLib.

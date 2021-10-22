@@ -6,7 +6,6 @@ import it.tdlight.common.ResultHandler;
 import it.tdlight.common.TelegramClient;
 import it.tdlight.common.UpdatesHandler;
 import it.tdlight.jni.TdApi;
-import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -46,8 +45,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	@Override
-	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events,
-			int arrayOffset, int arrayLength) {
+	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events, int arrayOffset, int arrayLength) {
 		if (updatesHandler != null) {
 			LongArrayList idsToFilter = new LongArrayList(eventIds);
 			ObjectArrayList<TdApi.Object> eventsToFilter = new ObjectArrayList<>(events);
@@ -115,7 +113,9 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	 */
 	private void handleEvent(long eventId, TdApi.Object event) {
 		logger.trace(TG_MARKER, "Received response {}: {}", eventId, event);
-		if (updatesHandler != null || updateHandler == null) throw new IllegalStateException();
+		if (updatesHandler != null || updateHandler == null) {
+			throw new IllegalStateException();
+		}
 		Handler<?> handler = eventId == 0 ? updateHandler : handlers.remove(eventId);
 		handleResponse(eventId, event, handler);
 	}
@@ -127,7 +127,8 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 		if (exceptionHandler != null) {
 			try {
 				exceptionHandler.onException(cause);
-			} catch (Throwable ignored) {}
+			} catch (Throwable ignored) {
+			}
 		}
 	}
 
@@ -152,7 +153,9 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	private void createAndRegisterClient() {
-		if (clientId != null) throw new UnsupportedOperationException("Can't initialize the same client twice!");
+		if (clientId != null) {
+			throw new UnsupportedOperationException("Can't initialize the same client twice!");
+		}
 		clientId = NativeClientAccess.create();
 		clientManager.registerClient(clientId, this);
 		logger.info(TG_MARKER, "Registered new client {}", clientId);
@@ -162,7 +165,8 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	@Override
-	public <R extends TdApi.Object> void send(Function<R> query, ResultHandler<R> resultHandler,
+	public <R extends TdApi.Object> void send(Function<R> query,
+			ResultHandler<R> resultHandler,
 			ExceptionHandler exceptionHandler) {
 		logger.trace(TG_MARKER, "Trying to send {}", query);
 		if (isClosedAndMaybeThrow(query)) {
@@ -202,7 +206,6 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	}
 
 	/**
-	 *
 	 * @param function function used to check if the check will be enforced or not. Can be null
 	 * @return true if closed
 	 */

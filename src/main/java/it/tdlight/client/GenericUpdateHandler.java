@@ -1,6 +1,5 @@
 package it.tdlight.client;
 
-import it.tdlight.jni.TdApi.Object;
 import it.tdlight.jni.TdApi.Update;
 
 /**

@@ -1,8 +1,8 @@
 package it.tdlight.common.internal;
 
-import it.tdlight.tdnative.NativeClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Function;
+import it.tdlight.tdnative.NativeClient;
 
 final class NativeClientAccess extends NativeClient {
 

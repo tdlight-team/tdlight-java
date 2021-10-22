@@ -2,15 +2,9 @@ package it.tdlight.client;
 
 import it.tdlight.common.ExceptionHandler;
 import it.tdlight.common.TelegramClient;
-import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitCode;
-import it.tdlight.jni.TdApi.AuthorizationStateWaitOtherDeviceConfirmation;
 import it.tdlight.jni.TdApi.CheckAuthenticationCode;
-import it.tdlight.jni.TdApi.Error;
-import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class AuthorizationStateWaitCodeHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
 
@@ -29,8 +23,7 @@ final class AuthorizationStateWaitCodeHandler implements GenericUpdateHandler<Up
 	@Override
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == AuthorizationStateWaitCode.CONSTRUCTOR) {
-			AuthorizationStateWaitCode authorizationState =
-					(AuthorizationStateWaitCode) update.authorizationState;
+			AuthorizationStateWaitCode authorizationState = (AuthorizationStateWaitCode) update.authorizationState;
 			ParameterInfo parameterInfo = new ParameterInfoCode(authorizationState.codeInfo.phoneNumber,
 					authorizationState.codeInfo.nextType,
 					authorizationState.codeInfo.timeout,

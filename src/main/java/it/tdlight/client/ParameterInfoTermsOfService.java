@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 public final class ParameterInfoTermsOfService implements ParameterInfo {
+
 	private final TermsOfService termsOfService;
 
 	public ParameterInfoTermsOfService(TermsOfService termsOfService) {

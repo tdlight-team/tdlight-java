@@ -4,11 +4,8 @@ import it.tdlight.common.ExceptionHandler;
 import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitRegistration;
-import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.RegisterUser;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class AuthorizationStateWaitRegistrationHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
 
@@ -27,9 +24,10 @@ final class AuthorizationStateWaitRegistrationHandler implements GenericUpdateHa
 	@Override
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == AuthorizationStateWaitRegistration.CONSTRUCTOR) {
-			TdApi.AuthorizationStateWaitRegistration authorizationState =
-					(TdApi.AuthorizationStateWaitRegistration) update.authorizationState;
-			clientInteraction.onParameterRequest(InputParameter.TERMS_OF_SERVICE, new ParameterInfoTermsOfService(authorizationState.termsOfService));
+			TdApi.AuthorizationStateWaitRegistration authorizationState = (TdApi.AuthorizationStateWaitRegistration) update.authorizationState;
+			clientInteraction.onParameterRequest(InputParameter.TERMS_OF_SERVICE,
+					new ParameterInfoTermsOfService(authorizationState.termsOfService)
+			);
 			String firstName = clientInteraction.onParameterRequest(InputParameter.ASK_FIRST_NAME, new EmptyParameterInfo());
 			String lastName = clientInteraction.onParameterRequest(InputParameter.ASK_LAST_NAME, new EmptyParameterInfo());
 			if (firstName == null || firstName.isEmpty()) {

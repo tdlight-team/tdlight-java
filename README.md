@@ -20,6 +20,7 @@
 **Operating systems**: Linux, Windows, MacOS
 
 **CPU architectures**:
+
 - i386/x86 (Linux, Windows)
 - amd64/x86_64 (Linux, Windows, OSX)
 - armhf/armv7 (Linux)
@@ -30,7 +31,9 @@
 **Required libraries for Linux: OpenSSL and zlib**
 
 ### Install OpenSSL on macOS
-You must install `openssl@1.1` using the <a href="https://brew.sh">brew package manager </a>, then link openssl to `/usr/local/opt/openssl`
+
+You must install `openssl@1.1` using the <a href="https://brew.sh">brew package manager </a>, then link openssl
+to `/usr/local/opt/openssl`
 
 If you don't know how to do this, type the following commands in your terminal:
 
@@ -40,63 +43,75 @@ ln -sf /usr/local/Cellar/openssl@1.1/1.1.1l /usr/local/opt/openssl
 ```
 
 ## 📚 How to use the library
+
 ### Setting up the library using Maven
+
 If you are using Maven, edit your `pom.xml` file as below:
+
 ```xml
+
 <project>
-    <repositories>
-        
-        <!-- Add the following repository -->
-        <repository>
-            <id>mchv</id>
-            <name>MCHV Apache Maven Packages</name>
-            <url>https://mvn.mchv.eu/repository/mchv/</url>
-        </repository>
-        
-    </repositories>
+	<repositories>
 
-    <dependencies>
+		<!-- Add the following repository -->
+		<repository>
+			<id>mchv</id>
+			<name>MCHV Apache Maven Packages</name>
+			<url>https://mvn.mchv.eu/repository/mchv/</url>
+		</repository>
 
-        <!-- Add the following dependencies -->
-        <dependency>
-            <groupId>it.tdlight</groupId>
-            <artifactId>tdlight-java</artifactId>
-            <version>VERSION</version>
-        </dependency>
-        <dependency>
-            <groupId>it.tdlight</groupId>
-            <artifactId>tdlight-natives-linux-amd64</artifactId>
-            <version>NATIVES_VERSION</version>
-        </dependency>
-        <!-- Include other native versions that you want, for example for windows, osx, ... -->
-        
-    </dependencies>
+	</repositories>
+
+	<dependencies>
+
+		<!-- Add the following dependencies -->
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-java</artifactId>
+			<version>VERSION</version>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-natives-linux-amd64</artifactId>
+			<version>NATIVES_VERSION</version>
+		</dependency>
+		<!-- Include other native versions that you want, for example for windows, osx, ... -->
+
+	</dependencies>
 </project>
 ```
-Replace `VERSION` with the latest release version, you can find it [here](https://github.com/tdlight-team/tdlight-java/releases).
 
-Replace `NATIVES_VERSION` with the latest native version.
-Make sure that you are using the correct natives version for the release that you are using.
+Replace `VERSION` with the latest release version, you can find
+it [here](https://github.com/tdlight-team/tdlight-java/releases).
+
+Replace `NATIVES_VERSION` with the latest native version. Make sure that you are using the correct natives version for
+the release that you are using.
 
 ## Setting up the library using Gradle
+
 If you are using Gradle, add the following lines into your `build.gradle` file
+
 ```groovy
 repositories {
-    maven { url "https://mvn.mchv.eu/repository/mchv/" }
+	maven { url "https://mvn.mchv.eu/repository/mchv/" }
 }
 dependencies {
-    implementation 'it.tdlight:tdlight-java:LATEST_VERSION'
-    implementation 'it.tdlight:tdlight-natives-linux-amd64:NATIVES_VERSION'
-    // Include other native versions that you want, for example for windows, osx, ...
+	implementation 'it.tdlight:tdlight-java:LATEST_VERSION'
+	implementation 'it.tdlight:tdlight-natives-linux-amd64:NATIVES_VERSION'
+	// Include other native versions that you want, for example for windows, osx, ...
 }
 ```
-Replace `VERSION` with the latest release version, you can find it [here](https://github.com/tdlight-team/tdlight-java/releases).
 
-Replace `NATIVES_VERSION` with the latest native version.
-Make sure that you are using the correct natives version for the release that you are using.
+Replace `VERSION` with the latest release version, you can find
+it [here](https://github.com/tdlight-team/tdlight-java/releases).
+
+Replace `NATIVES_VERSION` with the latest native version. Make sure that you are using the correct natives version for
+the release that you are using.
 
 ## ⚒ Native dependencies
+
 To use TDLight Java you need to include one or more native dependencies:
+
 - `tdlight-natives-linux-amd64`
 - `tdlight-natives-linux-aarch64`
 - `tdlight-natives-linux-x86`
@@ -107,26 +122,37 @@ To use TDLight Java you need to include one or more native dependencies:
 - `tdlight-natives-osx-amd64`
 
 ## Usage
-An example on how to use TDLight Java can be found here: [Example.java](https://github.com/tdlight-team/tdlight-java/blob/master/example/src/main/java/it.tdlight.example/Example.java)
+
+An example on how to use TDLight Java can be found
+here: [Example.java](https://github.com/tdlight-team/tdlight-java/blob/master/example/src/main/java/it.tdlight.example/Example.java)
 
 ### Advanced usage
-If you want to disable the automatic runtime shutdown hook, you should set the property `it.tdlight.enableShutdownHooks` to `false`
+
+If you want to disable the automatic runtime shutdown hook, you should set the property `it.tdlight.enableShutdownHooks`
+to `false`
 
 ### TDLight methods documentation
+
 [TdApi JavaDoc](https://tdlight-team.github.io/tdlight-docs)
 
 ### TDLight extended features
-TDLight has some extended features compared to TDLib, that you can see on the [TDLight official repository](https://github.com/tdlight-team/tdlight#tdlight-extra-features).
+
+TDLight has some extended features compared to TDLib, that you can see on
+the [TDLight official repository](https://github.com/tdlight-team/tdlight#tdlight-extra-features).
 
 ## About
+
 ### **License**
+
 TDLight is licensed by Andrea Cavalli <andrea@cavallium.it> under the terms of the GNU Lesser General Public License 3
 
 ### **Libraries licenses**
 
-JTDLib is licensed by Ernesto Castellotti <erny.castell@gmail.com> under the terms of the GNU Lesser General Public License 3
+JTDLib is licensed by Ernesto Castellotti <erny.castell@gmail.com> under the terms of the GNU Lesser General Public
+License 3
 
-TDLib is licensed by Aliaksei Levin <levlam@telegram.org> and Arseny Smirnov <arseny30@gmail.com> under the terms of the Boost Software License				
+TDLib is licensed by Aliaksei Levin <levlam@telegram.org> and Arseny Smirnov <arseny30@gmail.com> under the terms of the
+Boost Software License
 
 OpenSSL is licensed under the terms of Apache License v2
 

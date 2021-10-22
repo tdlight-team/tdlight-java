@@ -4,6 +4,7 @@ import java.util.Objects;
 
 @SuppressWarnings("unused")
 final class AuthenticationDataImpl implements AuthenticationData {
+
 	private final Long userPhoneNumber;
 	private final String botToken;
 

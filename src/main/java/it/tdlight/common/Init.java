@@ -19,7 +19,6 @@ package it.tdlight.common;
 
 import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.common.utils.LoadLibrary;
-import it.tdlight.common.utils.Os;
 
 /**
  * Init class to successfully initialize Tdlib

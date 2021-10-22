@@ -39,7 +39,6 @@ public final class InternalClientManager implements AutoCloseable {
 	}
 
 	/**
-	 *
 	 * @return true if started as a result of this call
 	 */
 	public boolean startIfNeeded() {
@@ -73,22 +72,30 @@ public final class InternalClientManager implements AutoCloseable {
 		return clientManager;
 	}
 
-	private void handleClientEvents(int clientId, boolean isClosed, long[] clientEventIds, TdApi.Object[] clientEvents,
-			int arrayOffset, int arrayLength) {
+	private void handleClientEvents(int clientId,
+			boolean isClosed,
+			long[] clientEventIds,
+			TdApi.Object[] clientEvents,
+			int arrayOffset,
+			int arrayLength) {
 		ClientEventsHandler handler = registeredClientEventHandlers.get(clientId);
 
 		if (handler != null) {
- 			handler.handleEvents(isClosed, clientEventIds, clientEvents, arrayOffset, arrayLength);
+			handler.handleEvents(isClosed, clientEventIds, clientEvents, arrayOffset, arrayLength);
 		} else {
-			java.util.List<DroppedEvent> droppedEvents
-					= getEffectivelyDroppedEvents(clientEventIds, clientEvents, arrayOffset, arrayLength);
+			java.util.List<DroppedEvent> droppedEvents = getEffectivelyDroppedEvents(clientEventIds,
+					clientEvents,
+					arrayOffset,
+					arrayLength
+			);
 
 			if (!droppedEvents.isEmpty()) {
 				logger.error("Unknown client id \"{}\"! {} events have been dropped!", clientId, droppedEvents.size());
 				for (DroppedEvent droppedEvent : droppedEvents) {
 					logger.error("The following event, with id \"{}\", has been dropped: {}",
 							droppedEvent.id,
-							droppedEvent.event);
+							droppedEvent.event
+					);
 				}
 			}
 		}
@@ -103,8 +110,10 @@ public final class InternalClientManager implements AutoCloseable {
 	/**
 	 * Get only events that have been dropped, ignoring synthetic errors related to the closure of a client
 	 */
-	private List<DroppedEvent> getEffectivelyDroppedEvents(long[] clientEventIds, TdApi.Object[] clientEvents,
-			int arrayOffset, int arrayLength) {
+	private List<DroppedEvent> getEffectivelyDroppedEvents(long[] clientEventIds,
+			TdApi.Object[] clientEvents,
+			int arrayOffset,
+			int arrayLength) {
 		java.util.List<DroppedEvent> droppedEvents = new ArrayList<>(arrayLength);
 		for (int i = arrayOffset; i < arrayOffset + arrayLength; i++) {
 			long id = clientEventIds[i];
@@ -155,6 +164,7 @@ public final class InternalClientManager implements AutoCloseable {
 	}
 
 	private static final class DroppedEvent {
+
 		private final long id;
 		private final TdApi.Object event;
 

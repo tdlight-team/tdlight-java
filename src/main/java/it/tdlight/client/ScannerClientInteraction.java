@@ -33,16 +33,27 @@ final class ScannerClientInteraction implements ClientInteraction {
 		String question;
 		boolean trim = false;
 		switch (parameter) {
-			case ASK_FIRST_NAME: question = "Enter first name"; trim = true; break;
-			case ASK_LAST_NAME: question = "Enter last name"; trim = true; break;
+			case ASK_FIRST_NAME:
+				question = "Enter first name";
+				trim = true;
+				break;
+			case ASK_LAST_NAME:
+				question = "Enter last name";
+				trim = true;
+				break;
 			case ASK_CODE:
 				question = "Enter authentication code";
 				ParameterInfoCode codeInfo = ((ParameterInfoCode) parameterInfo);
 				question += "\n\tPhone number: " + codeInfo.getPhoneNumber();
 				question += "\n\tTimeout: " + codeInfo.getTimeout() + " seconds";
-				question += "\n\tCode type: " + codeInfo.getType().getClass().getSimpleName().replace("AuthenticationCodeType", "");
+				question +=
+						"\n\tCode type: " + codeInfo.getType().getClass().getSimpleName().replace("AuthenticationCodeType", "");
 				if (codeInfo.getNextType() != null) {
-					question += "\n\tNext code type: " + codeInfo.getNextType().getClass().getSimpleName().replace("AuthenticationCodeType", "");
+					question += "\n\tNext code type: " + codeInfo
+							.getNextType()
+							.getClass()
+							.getSimpleName()
+							.replace("AuthenticationCodeType", "");
 				}
 				trim = true;
 				break;
@@ -82,7 +93,9 @@ final class ScannerClientInteraction implements ClientInteraction {
 					return "";
 				}
 				break;
-			default: question = parameter.toString(); break;
+			default:
+				question = parameter.toString();
+				break;
 		}
 		String result = ScannerUtils.askParameter(who, question);
 		if (trim) {

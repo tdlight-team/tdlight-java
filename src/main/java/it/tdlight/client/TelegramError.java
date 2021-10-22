@@ -3,7 +3,6 @@ package it.tdlight.client;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Error;
 import java.util.Objects;
-import java.util.StringJoiner;
 
 public final class TelegramError extends RuntimeException {
 

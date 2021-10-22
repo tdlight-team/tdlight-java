@@ -19,13 +19,13 @@ package it.tdlight.common.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * The class to load the libraries needed to run Tdlib

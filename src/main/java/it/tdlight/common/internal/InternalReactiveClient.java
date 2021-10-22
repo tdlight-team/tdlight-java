@@ -2,8 +2,8 @@ package it.tdlight.common.internal;
 
 import it.tdlight.common.ClientEventsHandler;
 import it.tdlight.common.ExceptionHandler;
-import it.tdlight.common.Signal;
 import it.tdlight.common.ReactiveTelegramClient;
+import it.tdlight.common.Signal;
 import it.tdlight.common.SignalListener;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Error;
@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +59,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	}
 
 	@Override
-	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events,
-			int arrayOffset, int arrayLength) {
+	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events, int arrayOffset, int arrayLength) {
 		for (int i = arrayOffset; i < arrayOffset + arrayLength; i++) {
 			handleEvent(eventIds[i], events[i]);
 		}
@@ -127,8 +125,11 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 				}
 			}
 			if (timedOutHandlers.remove(eventId)) {
-				logger.trace(TG_MARKER, "Received event id \"{}\", but the event has been dropped because it"
-						+ "timed out some time ago! {}", eventId, event);
+				logger.trace(TG_MARKER,
+						"Received event id \"{}\", but the event has been dropped because it" + "timed out some time ago! {}",
+						eventId,
+						event
+				);
 			} else {
 				logger.error(TG_MARKER, "Unknown event id \"{}\", the event has been dropped! {}", eventId, event);
 			}

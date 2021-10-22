@@ -1,16 +1,11 @@
 package it.tdlight.example;
 
 import it.tdlight.client.APIToken;
-import it.tdlight.client.Authenticable;
 import it.tdlight.client.AuthenticationData;
 import it.tdlight.client.CommandHandler;
-import it.tdlight.client.Result;
 import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.client.TDLibSettings;
-import it.tdlight.common.ExceptionHandler;
 import it.tdlight.common.Init;
-import it.tdlight.common.ResultHandler;
-import it.tdlight.common.TelegramClient;
 import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationState;
@@ -21,24 +16,11 @@ import it.tdlight.jni.TdApi.MessageSenderUser;
 import it.tdlight.jni.TdApi.MessageText;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import it.tdlight.jni.TdApi.UpdateNewMessage;
-import it.tdlight.tdlight.ClientManager;
-import java.io.BufferedReader;
-import java.io.IOError;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.NavigableSet;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Example class for TDLight Java
- *
- * The documentation of the TDLight functions can be found here:
- * https://tdlight-team.github.io/tdlight-docs
+ * <p>
+ * The documentation of the TDLight functions can be found here: https://tdlight-team.github.io/tdlight-docs
  */
 public final class Example {
 

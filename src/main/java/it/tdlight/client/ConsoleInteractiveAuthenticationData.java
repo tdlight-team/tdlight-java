@@ -2,7 +2,6 @@ package it.tdlight.client;
 
 import it.tdlight.common.utils.ScannerUtils;
 import java.util.Locale;
-import java.util.stream.Collector;
 
 final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 
@@ -57,10 +56,14 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 	}
 
 	private void initializeIfNeeded() {
-		if (initialized) return;
+		if (initialized) {
+			return;
+		}
 
 		synchronized (LOCK) {
-			if (initialized) return;
+			if (initialized) {
+				return;
+			}
 
 			String choice;
 
@@ -68,7 +71,9 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 			String mode;
 			do {
 				choice = ScannerUtils
-						.askParameter("login", "Do you want to login using a bot [token], a [phone] number, or a [qr] code? [token/phone/qr]")
+						.askParameter("login",
+								"Do you want to login using a bot [token], a [phone] number, or a [qr] code? [token/phone/qr]"
+						)
 						.trim()
 						.toLowerCase(Locale.ROOT);
 				switch (choice) {

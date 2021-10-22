@@ -1,6 +1,5 @@
 package it.tdlight.client;
 
-import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationStateClosed;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;

@@ -23,6 +23,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	));
 	private static final int MAX_EVENTS = 100;
 	private static final int[] originalSortingSource = new int[MAX_EVENTS];
+
 	static {
 		for (int i = 0; i < originalSortingSource.length; i++) {
 			originalSortingSource[i] = i;
@@ -44,8 +45,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	private int clientEventsLastUsedLength = 0;
 
 	private final CountDownLatch closeWait = new CountDownLatch(1);
-	private final Set<Integer> registeredClients
-			= new ConcurrentHashMap<Integer, java.lang.Object>().keySet(new java.lang.Object());
+	private final Set<Integer> registeredClients = new ConcurrentHashMap<Integer, java.lang.Object>().keySet(new java.lang.Object());
 
 
 	public ResponseReceiver(EventsHandler eventsHandler) {
@@ -72,8 +72,8 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 		int[] sortIndex;
 		try {
 			boolean interrupted;
-			while (!(interrupted = Thread.interrupted())
-					&& ((!closeCalled.get() && !jvmShutdown.get()) || !registeredClients.isEmpty())) {
+			while (!(interrupted = Thread.interrupted()) && ((!closeCalled.get() && !jvmShutdown.get())
+					|| !registeredClients.isEmpty())) {
 				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
 
 				if (resultsCount <= 0) {
@@ -101,8 +101,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 
 									if (clientEventIds[j] == 0
 											&& clientEvents[j].getConstructor() == TdApi.UpdateAuthorizationState.CONSTRUCTOR) {
-										TdApi.AuthorizationState authorizationState
-												= ((TdApi.UpdateAuthorizationState) clientEvents[j]).authorizationState;
+										TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) clientEvents[j]).authorizationState;
 										if (authorizationState.getConstructor() == TdApi.AuthorizationStateClosed.CONSTRUCTOR) {
 											lastClientClosed = true;
 											closedClients.add(clientId);
@@ -111,8 +110,13 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 								}
 								cleanClientEventsArray(lastClientIdEventsCount);
 
-								eventsHandler.handleClientEvents(clientId, lastClientClosed, clientEventIds, clientEvents,
-										0, lastClientIdEventsCount);
+								eventsHandler.handleClientEvents(clientId,
+										lastClientClosed,
+										clientEventIds,
+										clientEvents,
+										0,
+										lastClientIdEventsCount
+								);
 							}
 
 							if (i < resultsCount) {
@@ -146,7 +150,8 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 					}
 					Set<Integer> clientIds = eventsList.stream().map(e -> e.clientId).collect(Collectors.toSet());
 					for (int clientId : clientIds) {
-						List<Event> clientEventsList = eventsList.stream()
+						List<Event> clientEventsList = eventsList
+								.stream()
 								.filter(e -> e.clientId == clientId)
 								.collect(Collectors.toList());
 						boolean closed = false;
@@ -156,8 +161,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 							clientEvents[i] = e.event;
 
 							if (e.eventId == 0 && e.event.getConstructor() == TdApi.UpdateAuthorizationState.CONSTRUCTOR) {
-								TdApi.AuthorizationState authorizationState
-										= ((TdApi.UpdateAuthorizationState) e.event).authorizationState;
+								TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) e.event).authorizationState;
 								if (authorizationState.getConstructor() == TdApi.AuthorizationStateClosed.CONSTRUCTOR) {
 									closed = true;
 									closedClients.add(clientId);
@@ -165,8 +169,13 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 							}
 						}
 						cleanClientEventsArray(clientEventsList.size());
-						eventsHandler.handleClientEvents(clientId, closed, clientEventIds, clientEvents,
-								0, clientEventsList.size());
+						eventsHandler.handleClientEvents(clientId,
+								closed,
+								clientEventIds,
+								clientEvents,
+								0,
+								clientEventsList.size()
+						);
 					}
 				}
 
@@ -206,7 +215,8 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	@SuppressWarnings("SameParameterValue")
 	private int[] generateSortIndex(int from, int to, int[] data) {
 		int[] sortedIndices = Arrays.copyOfRange(originalSortingSource, from, to);
-		it.unimi.dsi.fastutil.Arrays.mergeSort(from, to,
+		it.unimi.dsi.fastutil.Arrays.mergeSort(from,
+				to,
 				(o1, o2) -> Integer.compare(data[sortedIndices[o1]], data[sortedIndices[o2]]),
 				new IntSwapper(sortedIndices)
 		);

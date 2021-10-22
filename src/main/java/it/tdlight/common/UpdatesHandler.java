@@ -1,6 +1,5 @@
 package it.tdlight.common;
 
-import it.tdlight.jni.TdApi.Object;
 import java.util.List;
 
 /**
