@@ -131,34 +131,34 @@ public final class LoadLibrary {
 			case LINUX:
 				switch (arch) {
 					case AMD64:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_AMD64_CLASS);
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_AMD64_CLASS, os, arch);
 						break;
 					case I386:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_X86_CLASS);
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_X86_CLASS, os, arch);
 						break;
 					case AARCH64:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_AARCH64_CLASS);
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_AARCH64_CLASS, os, arch);
 						break;
 					case ARMHF:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_ARMHF_CLASS);
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_ARMHF_CLASS, os, arch);
 						break;
 					case S390X:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_S390X_CLASS);
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_S390X_CLASS, os, arch);
 						break;
 					case PPC64LE:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_PPC64LE_CLASS);
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_PPC64LE_CLASS, os, arch);
 						break;
 				}
 				break;
 			case OSX:
 				if (arch == Arch.AMD64) {
-					classForResource = tryLoadLibraryVersionClass(LibraryVersion.OSX_AMD64_CLASS);
+					classForResource = tryLoadLibraryVersionClass(LibraryVersion.OSX_AMD64_CLASS, os, arch);
 				}
 				break;
 			case WINDOWS:
 				switch (arch) {
 					case AMD64:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.WINDOWS_AMD64_CLASS);
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.WINDOWS_AMD64_CLASS, os, arch);
 						break;
 					case I386:
 						break;
@@ -166,7 +166,8 @@ public final class LoadLibrary {
 				break;
 		}
 		if (classForResource == null) {
-			throw new CantLoadLibrary("Native libraries for platform " + os + "-" + arch + " not found!");
+			throw new CantLoadLibrary("Native libraries for platform " + os + "-" + arch + " not found!"
+					+ " Required version: " + getRequiredVersionName(os, arch));
 		}
 		InputStream libInputStream;
 		try {
@@ -191,7 +192,7 @@ public final class LoadLibrary {
 		System.load(tempFile.toFile().getAbsolutePath());
 	}
 
-	private static Class<?> tryLoadLibraryVersionClass(String classForResource) throws CantLoadLibrary {
+	private static Class<?> tryLoadLibraryVersionClass(String classForResource, Os os, Arch arch) throws CantLoadLibrary {
 		try {
 			return Class.forName(classForResource);
 		} catch (ClassNotFoundException e1) {
@@ -202,7 +203,8 @@ public final class LoadLibrary {
 				Class<?> foundAnotherVersion = Class.forName(removeFromVersion(classForResource));
 				throw new CantLoadLibrary("Can't load the native libraries."
 						+ " A different version of the native libraries was found."
-						+ " Please make sure that you installed the correct one.", e1);
+						+ " Please make sure that you installed the correct one."
+						+ " Required version: " + getRequiredVersionName(os, arch), e1);
 			} catch (ClassNotFoundException e2) {
 				// not found arch
 
@@ -211,7 +213,8 @@ public final class LoadLibrary {
 					Class<?> foundAnotherArch = Class.forName(removeFromArch(classForResource));
 					throw new CantLoadLibrary("Can't load the native libraries."
 							+ " A different architecture of the native libraries was found."
-							+ " Please make sure that you installed the correct one.", e1);
+							+ " Please make sure that you installed the correct one."
+							+ " Required version: " + getRequiredVersionName(os, arch), e1);
 				} catch (ClassNotFoundException e3) {
 					// not found os
 
@@ -220,7 +223,8 @@ public final class LoadLibrary {
 						Class<?> foundAnotherOs = Class.forName(removeFromOs(classForResource));
 						throw new CantLoadLibrary("Can't load the native libraries."
 								+ " A different OS of the native libraries was found."
-								+ " Please make sure that you installed the correct one.", e1);
+								+ " Please make sure that you installed the correct one."
+								+ " Required version: " + getRequiredVersionName(os, arch), e1);
 					} catch (ClassNotFoundException e4) {
 						// not found anything
 
@@ -230,6 +234,10 @@ public final class LoadLibrary {
 				}
 			}
 		}
+	}
+
+	private static String getRequiredVersionName(Os os, Arch arch) {
+		return LibraryVersion.IMPLEMENTATION_NAME + " " + os + " " + arch + " 4.0." + LibraryVersion.NATIVES_VERSION;
 	}
 
 	private static String removeFromVersion(String libraryVersionClass) {
