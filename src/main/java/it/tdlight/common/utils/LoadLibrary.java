@@ -24,7 +24,11 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -100,6 +104,20 @@ public final class LoadLibrary {
 		return true;
 	}
 
+	private static String removeLastPackageParts(String clazz, int count, String className) {
+		List<String> parts = new ArrayList<>(Arrays.asList(clazz.split("\\.")));
+		parts.remove(parts.size() - 1);
+		for (int i = 0; i < count; i++) {
+			parts.remove(parts.size() - 1);
+		}
+		StringJoiner joiner = new StringJoiner(".");
+		for (String part : parts) {
+			joiner.add(part);
+		}
+		joiner.add(className);
+		return joiner.toString();
+	}
+
 	private static void loadJarLibrary(String libname, Arch arch, Os os) throws CantLoadLibrary {
 		Path tempPath;
 		try {
@@ -113,66 +131,34 @@ public final class LoadLibrary {
 			case LINUX:
 				switch (arch) {
 					case AMD64:
-						try {
-							classForResource = Class.forName(LibraryVersion.LINUX_AMD64_CLASS);
-						} catch (ClassNotFoundException e) {
-							// not found
-						}
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_AMD64_CLASS);
 						break;
 					case I386:
-						try {
-							classForResource = Class.forName(LibraryVersion.LINUX_X86_CLASS);
-						} catch (ClassNotFoundException e) {
-							// not found
-						}
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_X86_CLASS);
 						break;
 					case AARCH64:
-						try {
-							classForResource = Class.forName(LibraryVersion.LINUX_AARCH64_CLASS);
-						} catch (ClassNotFoundException e) {
-							// not found
-						}
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_AARCH64_CLASS);
 						break;
 					case ARMHF:
-						try {
-							classForResource = Class.forName(LibraryVersion.LINUX_ARMHF_CLASS);
-						} catch (ClassNotFoundException e) {
-							// not found
-						}
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_ARMHF_CLASS);
 						break;
 					case S390X:
-						try {
-							classForResource = Class.forName(LibraryVersion.LINUX_S390X_CLASS);
-						} catch (ClassNotFoundException e) {
-							// not found
-						}
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_S390X_CLASS);
 						break;
 					case PPC64LE:
-						try {
-							classForResource = Class.forName(LibraryVersion.LINUX_PPC64LE_CLASS);
-						} catch (ClassNotFoundException e) {
-							// not found
-						}
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_PPC64LE_CLASS);
 						break;
 				}
 				break;
 			case OSX:
 				if (arch == Arch.AMD64) {
-					try {
-						classForResource = Class.forName(LibraryVersion.OSX_AMD64_CLASS);
-					} catch (ClassNotFoundException e) {
-						// not found
-					}
+					classForResource = tryLoadLibraryVersionClass(LibraryVersion.OSX_AMD64_CLASS);
 				}
 				break;
 			case WINDOWS:
 				switch (arch) {
 					case AMD64:
-						try {
-							classForResource = Class.forName(LibraryVersion.WINDOWS_AMD64_CLASS);
-						} catch (ClassNotFoundException e) {
-							// not found
-						}
+						classForResource = tryLoadLibraryVersionClass(LibraryVersion.WINDOWS_AMD64_CLASS);
 						break;
 					case I386:
 						break;
@@ -205,6 +191,58 @@ public final class LoadLibrary {
 		System.load(tempFile.toFile().getAbsolutePath());
 	}
 
+	private static Class<?> tryLoadLibraryVersionClass(String classForResource) throws CantLoadLibrary {
+		try {
+			return Class.forName(classForResource);
+		} catch (ClassNotFoundException e1) {
+			// exact library not found
+
+			//Check if a wrong version is installed
+			try {
+				Class<?> foundAnotherVersion = Class.forName(removeFromVersion(classForResource));
+				throw new CantLoadLibrary("Can't load the native libraries."
+						+ " A different version of the native libraries was found."
+						+ " Please make sure that you installed the correct one.", e1);
+			} catch (ClassNotFoundException e2) {
+				// not found arch
+
+				//Check if a wrong arch is installed
+				try {
+					Class<?> foundAnotherArch = Class.forName(removeFromArch(classForResource));
+					throw new CantLoadLibrary("Can't load the native libraries."
+							+ " A different architecture of the native libraries was found."
+							+ " Please make sure that you installed the correct one.", e1);
+				} catch (ClassNotFoundException e3) {
+					// not found os
+
+					//Check if a wrong os is installed
+					try {
+						Class<?> foundAnotherOs = Class.forName(removeFromOs(classForResource));
+						throw new CantLoadLibrary("Can't load the native libraries."
+								+ " A different OS of the native libraries was found."
+								+ " Please make sure that you installed the correct one.", e1);
+					} catch (ClassNotFoundException e4) {
+						// not found anything
+
+						// No library was found, return
+						return null;
+					}
+				}
+			}
+		}
+	}
+
+	private static String removeFromVersion(String libraryVersionClass) {
+		return removeLastPackageParts(libraryVersionClass, 1, "AnyVersion");
+	}
+
+	private static String removeFromArch(String libraryVersionClass) {
+		return removeLastPackageParts(libraryVersionClass, 2, "AnyArch");
+	}
+
+	private static String removeFromOs(String libraryVersionClass) {
+		return removeLastPackageParts(libraryVersionClass, 3, "AnyOs");
+	}
 
 	private static Arch getCpuArch() {
 		String architecture = System.getProperty("os.arch").trim();

@@ -8,9 +8,9 @@
 	<name>TDLib Java Parent</name>
 	<properties>
 		<revision>1.0.0.0-SNAPSHOT</revision>
-		<nativesRevisionNumber>169</nativesRevisionNumber>
+		<nativesRevisionNumber>173</nativesRevisionNumber>
 		<nativesRevisionSuffix/>
-		<apiRevisionNumber>167</apiRevisionNumber>
+		<apiRevisionNumber>171</apiRevisionNumber>
 		<apiRevisionSuffix/>
 	</properties>
 	<repositories>
@@ -44,20 +44,6 @@
 	</scm>
 
 	<modules/>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<source>8</source>
-					<target>8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 
 	<profiles>
 		<profile>
