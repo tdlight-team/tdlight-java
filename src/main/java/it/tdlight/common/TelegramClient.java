@@ -1,6 +1,7 @@
 package it.tdlight.common;
 
 import it.tdlight.jni.TdApi;
+import it.tdlight.jni.TdApi.Object;
 
 public interface TelegramClient {
 

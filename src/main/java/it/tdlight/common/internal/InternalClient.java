@@ -88,7 +88,8 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 		} catch (IllegalStateException ignored) {
 			logger.trace(TG_MARKER, "Can't remove shutdown hook because the JVM is already shutting down");
 		}
-		handlers.forEach((eventId, handler) -> handleResponse(eventId, new Error(500, "Instance closed"), handler));
+		handlers.forEach((eventId, handler) ->
+				handleResponse(eventId, new TdApi.Error(500, "Instance closed"), handler));
 		handlers.clear();
 		logger.info(TG_MARKER, "Client closed {}", clientId);
 	}

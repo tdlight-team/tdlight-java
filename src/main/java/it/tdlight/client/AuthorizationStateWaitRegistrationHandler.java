@@ -48,8 +48,8 @@ final class AuthorizationStateWaitRegistrationHandler implements GenericUpdateHa
 			}
 			RegisterUser response = new RegisterUser(firstName, lastName);
 			client.send(response, ok -> {
-				if (ok.getConstructor() == Error.CONSTRUCTOR) {
-					throw new TelegramError((Error) ok);
+				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+					throw new TelegramError((TdApi.Error) ok);
 				}
 			}, exceptionHandler);
 		}

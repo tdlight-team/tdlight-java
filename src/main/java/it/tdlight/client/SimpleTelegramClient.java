@@ -238,8 +238,8 @@ public final class SimpleTelegramClient implements Authenticable {
 	 */
 	public void sendClose() {
 		client.send(new TdApi.Close(), ok -> {
-			if (ok.getConstructor() == Error.CONSTRUCTOR) {
-				throw new TelegramError((Error) ok);
+			if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+				throw new TelegramError((TdApi.Error) ok);
 			}
 		});
 	}
@@ -249,8 +249,8 @@ public final class SimpleTelegramClient implements Authenticable {
 	 */
 	public void closeAndWait() throws InterruptedException {
 		client.send(new TdApi.Close(), ok -> {
-			if (ok.getConstructor() == Error.CONSTRUCTOR) {
-				throw new TelegramError((Error) ok);
+			if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+				throw new TelegramError((TdApi.Error) ok);
 			}
 		});
 		this.waitForExit();

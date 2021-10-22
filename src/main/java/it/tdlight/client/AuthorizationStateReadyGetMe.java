@@ -5,6 +5,7 @@ import it.tdlight.jni.TdApi.AuthorizationStateReady;
 import it.tdlight.jni.TdApi.GetMe;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import it.tdlight.jni.TdApi.User;
+import it.tdlight.jni.TdApi.Error;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

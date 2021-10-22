@@ -36,15 +36,15 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 				String botToken = authenticationData.getBotToken();
 				TdApi.CheckAuthenticationBotToken response = new TdApi.CheckAuthenticationBotToken(botToken);
 				client.send(response, ok -> {
-					if (ok.getConstructor() == Error.CONSTRUCTOR) {
-						throw new TelegramError((Error) ok);
+					if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+						throw new TelegramError((TdApi.Error) ok);
 					}
 				}, exceptionHandler);
 			} else if (authenticationData.isQrCode()) {
 				TdApi.RequestQrCodeAuthentication response = new TdApi.RequestQrCodeAuthentication();
 				client.send(response, ok -> {
-					if (ok.getConstructor() == Error.CONSTRUCTOR) {
-						throw new TelegramError((Error) ok);
+					if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+						throw new TelegramError((TdApi.Error) ok);
 					}
 				}, exceptionHandler);
 			} else {
@@ -53,8 +53,8 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 				String phoneNumber = String.valueOf(authenticationData.getUserPhoneNumber());
 				SetAuthenticationPhoneNumber response = new SetAuthenticationPhoneNumber(phoneNumber, phoneSettings);
 				client.send(response, ok -> {
-					if (ok.getConstructor() == Error.CONSTRUCTOR) {
-						throw new TelegramError((Error) ok);
+					if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+						throw new TelegramError((TdApi.Error) ok);
 					}
 				}, exceptionHandler);
 			}

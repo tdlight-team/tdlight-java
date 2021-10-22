@@ -1,5 +1,6 @@
 package it.tdlight.common;
 
+import it.tdlight.jni.TdApi;
 import java.util.List;
 
 /**
@@ -13,5 +14,5 @@ public interface UpdatesHandler {
 	 * @param object Updates of type {@link it.tdlight.jni.TdApi.Update} about new events, or {@link
 	 *               it.tdlight.jni.TdApi.Error}.
 	 */
-	void onUpdates(List<Object> object);
+	void onUpdates(List<TdApi.Object> object);
 }

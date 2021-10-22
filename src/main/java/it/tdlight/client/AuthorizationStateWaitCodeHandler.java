@@ -2,6 +2,7 @@ package it.tdlight.client;
 
 import it.tdlight.common.ExceptionHandler;
 import it.tdlight.common.TelegramClient;
+import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitCode;
 import it.tdlight.jni.TdApi.CheckAuthenticationCode;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
@@ -32,8 +33,8 @@ final class AuthorizationStateWaitCodeHandler implements GenericUpdateHandler<Up
 			String code = clientInteraction.onParameterRequest(InputParameter.ASK_CODE, parameterInfo);
 			CheckAuthenticationCode response = new CheckAuthenticationCode(code);
 			client.send(response, ok -> {
-				if (ok.getConstructor() == Error.CONSTRUCTOR) {
-					throw new TelegramError((Error) ok);
+				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+					throw new TelegramError((TdApi.Error) ok);
 				}
 			}, exceptionHandler);
 		}
