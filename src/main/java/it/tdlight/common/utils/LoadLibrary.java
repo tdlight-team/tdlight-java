@@ -237,7 +237,8 @@ public final class LoadLibrary {
 	}
 
 	private static String getRequiredVersionName(Os os, Arch arch) {
-		return LibraryVersion.IMPLEMENTATION_NAME + " " + os + " " + arch + " 4.0." + LibraryVersion.NATIVES_VERSION;
+		return LibraryVersion.IMPLEMENTATION_NAME + " " + os.toString().toLowerCase() + " " + arch.toString().toLowerCase()
+				+ " " + LibraryVersion.NATIVES_VERSION;
 	}
 
 	private static String removeFromVersion(String libraryVersionClass) {
