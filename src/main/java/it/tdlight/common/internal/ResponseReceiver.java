@@ -110,6 +110,8 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 								}
 								cleanClientEventsArray(lastClientIdEventsCount);
 
+								assert areBoundsValid(clientEvents, 0, lastClientIdEventsCount);
+
 								eventsHandler.handleClientEvents(clientId,
 										lastClientClosed,
 										clientEventIds,
@@ -196,6 +198,18 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 		} finally {
 			this.closeWait.countDown();
 		}
+	}
+
+	private boolean areBoundsValid(Object[] clientEvents, int start, int length) {
+		if (start > length) {
+			return false;
+		}
+		for (int i = start; i < length; i++) {
+			if (clientEvents[i] == null) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private void cleanEventsArray(int eventsCount) {
