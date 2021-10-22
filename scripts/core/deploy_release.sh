@@ -15,7 +15,7 @@ fi
 
 cd ../../${IMPLEMENTATION_NAME}
 
-mvn -B -Drevision=${REVISION} clean deploy --file pom.xml
+mvn -B -DnativesRevisionNumber="${REVISION}" -DnativesRevisionSuffix="" clean deploy --file pom.xml
 
 echo "Done."
 exit 0
