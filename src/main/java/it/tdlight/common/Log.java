@@ -1,7 +1,12 @@
 package it.tdlight.common;
 
 import it.tdlight.jni.TdApi;
+import it.tdlight.jni.TdApi.LogStreamDefault;
+import it.tdlight.jni.TdApi.LogStreamFile;
+import it.tdlight.jni.TdApi.SetLogVerbosityLevel;
 import it.tdlight.tdnative.NativeLog;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
@@ -18,6 +23,24 @@ public final class Log {
 		}
 	}
 
+	private static final AtomicReference<String> LOG_FILE_PATH = new AtomicReference<>(null);
+	private static final AtomicLong LOG_MAX_FILE_SIZE = new AtomicLong(10 * 1024 * 1024);
+
+	private static boolean updateLog() {
+		try {
+			String path = LOG_FILE_PATH.get();
+			long maxSize = LOG_MAX_FILE_SIZE.get();
+			if (path == null) {
+				NativeClientAccess.execute(new TdApi.SetLogStream(new LogStreamDefault()));
+			} else {
+				NativeClientAccess.execute(new TdApi.SetLogStream(new LogStreamFile(path, maxSize, false)));
+			}
+		} catch (Throwable ex) {
+			ex.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Sets file path for writing TDLib internal log. By default TDLib writes logs to the System.err. Use this method to
@@ -29,8 +52,9 @@ public final class Log {
 	 * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogStream}, to be removed in the future.
 	 */
 	@Deprecated
-	public static synchronized boolean setFilePath(String filePath) {
-		return NativeLog.setFilePath(filePath);
+	public static boolean setFilePath(String filePath) {
+		LOG_FILE_PATH.set(filePath);
+		return updateLog();
 	}
 
 	/**
@@ -41,8 +65,9 @@ public final class Log {
 	 * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogStream}, to be removed in the future.
 	 */
 	@Deprecated
-	public static synchronized void setMaxFileSize(long maxFileSize) {
-		NativeLog.setMaxFileSize(maxFileSize);
+	public static void setMaxFileSize(long maxFileSize) {
+		LOG_MAX_FILE_SIZE.set(maxFileSize);
+		updateLog();
 	}
 
 	/**
@@ -57,8 +82,8 @@ public final class Log {
 	 * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogVerbosityLevel}, to be removed in the future.
 	 */
 	@Deprecated
-	public static synchronized void setVerbosityLevel(int verbosityLevel) {
-		NativeLog.setVerbosityLevel(verbosityLevel);
+	public static void setVerbosityLevel(int verbosityLevel) {
+		NativeClientAccess.execute(new SetLogVerbosityLevel(verbosityLevel));
 	}
 
 	/**
@@ -68,7 +93,7 @@ public final class Log {
 	 * @param fatalErrorCallback Callback that will be called when a fatal error happens. Pass null to restore default
 	 *                           callback.
 	 */
-	public static synchronized void setFatalErrorCallback(Consumer<String> fatalErrorCallback) {
+	public static void setFatalErrorCallback(Consumer<String> fatalErrorCallback) {
 		NativeLog.setFatalErrorCallback(fatalErrorCallback);
 	}
 }

@@ -34,12 +34,6 @@ public final class SimpleTelegramClient implements Authenticable {
 		} catch (CantLoadLibrary e) {
 			throw new RuntimeException("Can't load native libraries", e);
 		}
-		try {
-			//noinspection deprecation
-			Log.setVerbosityLevel(1);
-		} catch (Throwable ex) {
-			LOG.warn("Can't set verbosity level", ex);
-		}
 	}
 
 	private final TelegramClient client;

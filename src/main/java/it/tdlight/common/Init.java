@@ -17,13 +17,20 @@
 
 package it.tdlight.common;
 
+import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.common.utils.LoadLibrary;
+import it.tdlight.jni.TdApi.SetLogVerbosityLevel;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Init class to successfully initialize Tdlib
  */
 public final class Init {
+
+	public static final Logger LOG = LoggerFactory.getLogger(Init.class);
 
 	private static boolean started = false;
 
@@ -36,6 +43,11 @@ public final class Init {
 		if (!started) {
 			LoadLibrary.load("tdjni");
 			ConstructorDetector.init();
+			try {
+				NativeClientAccess.execute(new SetLogVerbosityLevel(2));
+			} catch (Throwable ex) {
+				LOG.error("Can't set verbosity level on startup", ex);
+			}
 			started = true;
 		}
 	}
