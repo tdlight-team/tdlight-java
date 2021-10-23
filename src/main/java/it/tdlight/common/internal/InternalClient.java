@@ -69,7 +69,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 				handleException(updatesHandler.getExceptionHandler(), cause);
 			}
 		} else {
-			for (int i = 0; i < eventIds.length; i++) {
+			for (int i = arrayOffset; i < (arrayOffset + arrayLength); i++) {
 				handleEvent(eventIds[i], events[i]);
 			}
 		}
