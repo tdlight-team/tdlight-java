@@ -22,7 +22,7 @@ public interface AuthenticationData {
 		return new AuthenticationDataImpl(null, botToken);
 	}
 
-	static AuthenticationData consoleLogin() {
+	static ConsoleInteractiveAuthenticationData consoleLogin() {
 		return new ConsoleInteractiveAuthenticationData();
 	}
 }
