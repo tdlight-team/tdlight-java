@@ -3,7 +3,7 @@ package it.tdlight.client;
 import it.tdlight.common.utils.ScannerUtils;
 import java.util.Locale;
 
-final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
+public final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 
 	private static final Object LOCK = new Object();
 
@@ -13,7 +13,7 @@ final class ConsoleInteractiveAuthenticationData implements AuthenticationData {
 	private String botToken;
 	private long phoneNumber;
 
-	public ConsoleInteractiveAuthenticationData() {
+	ConsoleInteractiveAuthenticationData() {
 
 	}
 
