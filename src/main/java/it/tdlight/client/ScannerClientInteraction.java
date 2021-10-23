@@ -86,6 +86,7 @@ final class ScannerClientInteraction implements ClientInteraction {
 						System.out.println(QrCodeTerminal.getQr(link));
 						System.out.println();
 						resultCons.accept("");
+						return;
 					case TERMS_OF_SERVICE:
 						TermsOfService tos = ((ParameterInfoTermsOfService) parameterInfo).getTermsOfService();
 						question = "Terms of service:\n\t" + tos.text.text;
@@ -98,6 +99,7 @@ final class ScannerClientInteraction implements ClientInteraction {
 						} else {
 							System.out.println(question);
 							resultCons.accept("");
+							return;
 						}
 						break;
 					default:
