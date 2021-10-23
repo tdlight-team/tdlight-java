@@ -44,7 +44,7 @@ public final class Init {
 			LoadLibrary.load("tdjni");
 			ConstructorDetector.init();
 			try {
-				NativeClientAccess.execute(new SetLogVerbosityLevel(2));
+				NativeClientAccess.execute(new SetLogVerbosityLevel(1));
 			} catch (Throwable ex) {
 				LOG.error("Can't set verbosity level on startup", ex);
 			}
