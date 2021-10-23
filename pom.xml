@@ -5,12 +5,12 @@
 	<artifactId>tdlight-java-parent</artifactId>
 	<version>${revision}</version>
 	<packaging>pom</packaging>
-	<name>TDLib Java Parent</name>
+	<name>TDLight Java Parent</name>
 	<properties>
 		<revision>1.0.0.0-SNAPSHOT</revision>
-		<nativesRevisionNumber>173</nativesRevisionNumber>
+		<nativesRevisionNumber>175</nativesRevisionNumber>
 		<nativesRevisionSuffix/>
-		<apiRevisionNumber>171</apiRevisionNumber>
+		<apiRevisionNumber>173</apiRevisionNumber>
 		<apiRevisionSuffix/>
 	</properties>
 	<repositories>
