@@ -55,11 +55,6 @@ public final class ConsoleInteractiveAuthenticationData implements Authenticatio
 		return botToken;
 	}
 
-	public ConsoleInteractiveAuthenticationData askAuthData() {
-		initializeIfNeeded();
-		return this;
-	}
-
 	private void initializeIfNeeded() {
 		if (initialized) {
 			return;

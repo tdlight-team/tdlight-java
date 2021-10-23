@@ -17,7 +17,9 @@ final class AuthorizationStateWaitOtherDeviceConfirmationHandler implements
 		if (update.authorizationState.getConstructor() == AuthorizationStateWaitOtherDeviceConfirmation.CONSTRUCTOR) {
 			AuthorizationStateWaitOtherDeviceConfirmation authorizationState = (AuthorizationStateWaitOtherDeviceConfirmation) update.authorizationState;
 			ParameterInfo parameterInfo = new ParameterInfoNotifyLink(authorizationState.link);
-			clientInteraction.onParameterRequest(InputParameter.NOTIFY_LINK, parameterInfo);
+			clientInteraction.onParameterRequest(InputParameter.NOTIFY_LINK, parameterInfo, ignored -> {
+
+			});
 		}
 	}
 }

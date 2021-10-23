@@ -29,13 +29,14 @@ final class AuthorizationStateWaitPasswordHandler implements GenericUpdateHandle
 					authorizationState.hasRecoveryEmailAddress,
 					authorizationState.recoveryEmailAddressPattern
 			);
-			String password = clientInteraction.onParameterRequest(InputParameter.ASK_PASSWORD, parameterInfo);
-			CheckAuthenticationPassword response = new CheckAuthenticationPassword(password);
-			client.send(response, ok -> {
-				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
-					throw new TelegramError((TdApi.Error) ok);
-				}
-			}, exceptionHandler);
+			clientInteraction.onParameterRequest(InputParameter.ASK_PASSWORD, parameterInfo, password -> {
+				CheckAuthenticationPassword response = new CheckAuthenticationPassword(password);
+				client.send(response, ok -> {
+					if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+						throw new TelegramError((TdApi.Error) ok);
+					}
+				}, exceptionHandler);
+			});
 		}
 	}
 }

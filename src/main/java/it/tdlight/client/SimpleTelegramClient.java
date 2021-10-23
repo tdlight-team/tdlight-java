@@ -19,7 +19,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +33,7 @@ import org.slf4j.LoggerFactory;
 public final class SimpleTelegramClient implements Authenticable {
 
 	public static final Logger LOG = LoggerFactory.getLogger(SimpleTelegramClient.class);
+	public static ExecutorService blockingExecutor = Executors.newSingleThreadExecutor();
 
 	static {
 		try {
@@ -37,7 +44,7 @@ public final class SimpleTelegramClient implements Authenticable {
 	}
 
 	private final TelegramClient client;
-	private ClientInteraction clientInteraction = new ScannerClientInteraction(this);
+	private ClientInteraction clientInteraction = new ScannerClientInteraction(blockingExecutor, this);
 	private final TDLibSettings settings;
 	private AuthenticationData authenticationData;
 
@@ -65,22 +72,22 @@ public final class SimpleTelegramClient implements Authenticable {
 		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				new AuthorizationStateWaitRegistrationHandler(client,
-						new SimpleTelegramClientInteraction(),
+						new SimpleTelegramClientInteraction(blockingExecutor),
 						this::handleDefaultException
 				)
 		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				new AuthorizationStateWaitPasswordHandler(client,
-						new SimpleTelegramClientInteraction(),
+						new SimpleTelegramClientInteraction(blockingExecutor),
 						this::handleDefaultException
 				)
 		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitOtherDeviceConfirmationHandler(new SimpleTelegramClientInteraction())
+				new AuthorizationStateWaitOtherDeviceConfirmationHandler(new SimpleTelegramClientInteraction(blockingExecutor))
 		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				new AuthorizationStateWaitCodeHandler(client,
-						new SimpleTelegramClientInteraction(),
+						new SimpleTelegramClientInteraction(blockingExecutor),
 						this::handleDefaultException
 				)
 		);
@@ -128,8 +135,22 @@ public final class SimpleTelegramClient implements Authenticable {
 	}
 
 	@Override
-	public AuthenticationData getAuthenticationData() {
-		return authenticationData;
+	public void getAuthenticationData(Consumer<AuthenticationData> result) {
+		if (authenticationData instanceof ConsoleInteractiveAuthenticationData) {
+			ConsoleInteractiveAuthenticationData consoleInteractiveAuthenticationData
+					= (ConsoleInteractiveAuthenticationData) authenticationData;
+			try {
+				blockingExecutor.execute(() -> {
+						consoleInteractiveAuthenticationData.askData();
+						result.accept(consoleInteractiveAuthenticationData);
+				});
+			} catch (RejectedExecutionException | NullPointerException ex) {
+				LOG.error("Failed to execute askData. Returning an empty string", ex);
+				result.accept(consoleInteractiveAuthenticationData);
+			}
+		} else {
+			result.accept(authenticationData);
+		}
 	}
 
 	public void setClientInteraction(ClientInteraction clientInteraction) {
@@ -259,9 +280,20 @@ public final class SimpleTelegramClient implements Authenticable {
 
 	private final class SimpleTelegramClientInteraction implements ClientInteraction {
 
+		private final ExecutorService blockingExecutor;
+
+		public SimpleTelegramClientInteraction(ExecutorService blockingExecutor) {
+			this.blockingExecutor = blockingExecutor;
+		}
+
 		@Override
-		public String onParameterRequest(InputParameter parameter, ParameterInfo parameterInfo) {
-			return clientInteraction.onParameterRequest(parameter, parameterInfo);
+		public void onParameterRequest(InputParameter parameter, ParameterInfo parameterInfo, Consumer<String> result) {
+			try {
+				blockingExecutor.execute(() -> clientInteraction.onParameterRequest(parameter, parameterInfo, result));
+			} catch (RejectedExecutionException | NullPointerException ex) {
+				LOG.error("Failed to execute onParameterRequest. Returning an empty string", ex);
+				result.accept("");
+			}
 		}
 	}
 }

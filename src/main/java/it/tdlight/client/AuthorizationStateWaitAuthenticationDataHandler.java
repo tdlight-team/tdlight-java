@@ -3,7 +3,6 @@ package it.tdlight.client;
 import it.tdlight.common.ExceptionHandler;
 import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi;
-import it.tdlight.jni.TdApi.AuthorizationStateWaitPhoneNumber;
 import it.tdlight.jni.TdApi.PhoneNumberAuthenticationSettings;
 import it.tdlight.jni.TdApi.SetAuthenticationPhoneNumber;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
@@ -25,39 +24,36 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 	@Override
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR) {
-			AuthenticationData authenticationData = authenticable.getAuthenticationData();
+			authenticable.getAuthenticationData(this::onAuthData);
+		}
+	}
 
-			// Ask login parameters
-			if (authenticationData instanceof ConsoleInteractiveAuthenticationData) {
-				((ConsoleInteractiveAuthenticationData) authenticationData).askData();
-			}
+	public void onAuthData(AuthenticationData authenticationData) {
+		if (authenticationData.isBot()) {
+			String botToken = authenticationData.getBotToken();
+			TdApi.CheckAuthenticationBotToken response = new TdApi.CheckAuthenticationBotToken(botToken);
+			client.send(response, ok -> {
+				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+					throw new TelegramError((TdApi.Error) ok);
+				}
+			}, exceptionHandler);
+		} else if (authenticationData.isQrCode()) {
+			TdApi.RequestQrCodeAuthentication response = new TdApi.RequestQrCodeAuthentication();
+			client.send(response, ok -> {
+				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+					throw new TelegramError((TdApi.Error) ok);
+				}
+			}, exceptionHandler);
+		} else {
+			PhoneNumberAuthenticationSettings phoneSettings = new PhoneNumberAuthenticationSettings(false, false, false);
 
-			if (authenticationData.isBot()) {
-				String botToken = authenticationData.getBotToken();
-				TdApi.CheckAuthenticationBotToken response = new TdApi.CheckAuthenticationBotToken(botToken);
-				client.send(response, ok -> {
-					if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
-						throw new TelegramError((TdApi.Error) ok);
-					}
-				}, exceptionHandler);
-			} else if (authenticationData.isQrCode()) {
-				TdApi.RequestQrCodeAuthentication response = new TdApi.RequestQrCodeAuthentication();
-				client.send(response, ok -> {
-					if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
-						throw new TelegramError((TdApi.Error) ok);
-					}
-				}, exceptionHandler);
-			} else {
-				PhoneNumberAuthenticationSettings phoneSettings = new PhoneNumberAuthenticationSettings(false, false, false);
-
-				String phoneNumber = String.valueOf(authenticationData.getUserPhoneNumber());
-				SetAuthenticationPhoneNumber response = new SetAuthenticationPhoneNumber(phoneNumber, phoneSettings);
-				client.send(response, ok -> {
-					if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
-						throw new TelegramError((TdApi.Error) ok);
-					}
-				}, exceptionHandler);
-			}
+			String phoneNumber = String.valueOf(authenticationData.getUserPhoneNumber());
+			SetAuthenticationPhoneNumber response = new SetAuthenticationPhoneNumber(phoneNumber, phoneSettings);
+			client.send(response, ok -> {
+				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+					throw new TelegramError((TdApi.Error) ok);
+				}
+			}, exceptionHandler);
 		}
 	}
 }

@@ -1,6 +1,8 @@
 package it.tdlight.client;
 
+import java.util.function.Consumer;
+
 public interface Authenticable {
 
-	AuthenticationData getAuthenticationData();
+	void getAuthenticationData(Consumer<AuthenticationData> result);
 }

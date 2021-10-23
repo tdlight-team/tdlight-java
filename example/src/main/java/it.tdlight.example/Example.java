@@ -43,7 +43,7 @@ public final class Example {
 		client = new SimpleTelegramClient(settings);
 
 		// Configure the authentication info
-		var authenticationData = AuthenticationData.consoleLogin().askAuthData();
+		var authenticationData = AuthenticationData.consoleLogin();
 
 		// Add an example update handler that prints when the bot is started
 		client.addUpdateHandler(TdApi.UpdateAuthorizationState.class, Example::onUpdateAuthorizationState);

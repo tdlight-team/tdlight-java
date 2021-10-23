@@ -30,13 +30,14 @@ final class AuthorizationStateWaitCodeHandler implements GenericUpdateHandler<Up
 					authorizationState.codeInfo.timeout,
 					authorizationState.codeInfo.type
 			);
-			String code = clientInteraction.onParameterRequest(InputParameter.ASK_CODE, parameterInfo);
-			CheckAuthenticationCode response = new CheckAuthenticationCode(code);
-			client.send(response, ok -> {
-				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
-					throw new TelegramError((TdApi.Error) ok);
-				}
-			}, exceptionHandler);
+			clientInteraction.onParameterRequest(InputParameter.ASK_CODE, parameterInfo, code -> {
+				CheckAuthenticationCode response = new CheckAuthenticationCode(code);
+				client.send(response, ok -> {
+					if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+						throw new TelegramError((TdApi.Error) ok);
+					}
+				}, exceptionHandler);
+			});
 		}
 	}
 }

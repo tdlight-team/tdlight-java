@@ -1,6 +1,8 @@
 package it.tdlight.client;
 
+import java.util.function.Consumer;
+
 public interface ClientInteraction {
 
-	String onParameterRequest(InputParameter parameter, ParameterInfo parameterInfo);
+	void onParameterRequest(InputParameter parameter, ParameterInfo parameterInfo, Consumer<String> result);
 }

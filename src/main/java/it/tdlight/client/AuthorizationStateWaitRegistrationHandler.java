@@ -25,33 +25,35 @@ final class AuthorizationStateWaitRegistrationHandler implements GenericUpdateHa
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == AuthorizationStateWaitRegistration.CONSTRUCTOR) {
 			TdApi.AuthorizationStateWaitRegistration authorizationState = (TdApi.AuthorizationStateWaitRegistration) update.authorizationState;
-			clientInteraction.onParameterRequest(InputParameter.TERMS_OF_SERVICE,
-					new ParameterInfoTermsOfService(authorizationState.termsOfService)
-			);
-			String firstName = clientInteraction.onParameterRequest(InputParameter.ASK_FIRST_NAME, new EmptyParameterInfo());
-			String lastName = clientInteraction.onParameterRequest(InputParameter.ASK_LAST_NAME, new EmptyParameterInfo());
-			if (firstName == null || firstName.isEmpty()) {
-				exceptionHandler.onException(new IllegalArgumentException("First name must not be null or empty"));
-				return;
-			}
-			if (firstName.length() > 64) {
-				exceptionHandler.onException(new IllegalArgumentException("First name must be under 64 characters"));
-				return;
-			}
-			if (lastName == null) {
-				exceptionHandler.onException(new IllegalArgumentException("Last name must not be null"));
-				return;
-			}
-			if (lastName.length() > 64) {
-				exceptionHandler.onException(new IllegalArgumentException("Last name must be under 64 characters"));
-				return;
-			}
-			RegisterUser response = new RegisterUser(firstName, lastName);
-			client.send(response, ok -> {
-				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
-					throw new TelegramError((TdApi.Error) ok);
-				}
-			}, exceptionHandler);
+			ParameterInfoTermsOfService tos = new ParameterInfoTermsOfService(authorizationState.termsOfService);
+			clientInteraction.onParameterRequest(InputParameter.TERMS_OF_SERVICE, tos, ignored -> {
+				clientInteraction.onParameterRequest(InputParameter.ASK_FIRST_NAME, new EmptyParameterInfo(), firstName -> {
+					clientInteraction.onParameterRequest(InputParameter.ASK_LAST_NAME, new EmptyParameterInfo(), lastName -> {
+						if (firstName == null || firstName.isEmpty()) {
+							exceptionHandler.onException(new IllegalArgumentException("First name must not be null or empty"));
+							return;
+						}
+						if (firstName.length() > 64) {
+							exceptionHandler.onException(new IllegalArgumentException("First name must be under 64 characters"));
+							return;
+						}
+						if (lastName == null) {
+							exceptionHandler.onException(new IllegalArgumentException("Last name must not be null"));
+							return;
+						}
+						if (lastName.length() > 64) {
+							exceptionHandler.onException(new IllegalArgumentException("Last name must be under 64 characters"));
+							return;
+						}
+						RegisterUser response = new RegisterUser(firstName, lastName);
+						client.send(response, ok -> {
+							if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+								throw new TelegramError((TdApi.Error) ok);
+							}
+						}, exceptionHandler);
+					});
+				});
+			});
 		}
 	}
 }
