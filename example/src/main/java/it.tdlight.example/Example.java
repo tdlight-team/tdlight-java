@@ -16,6 +16,8 @@ import it.tdlight.jni.TdApi.MessageSenderUser;
 import it.tdlight.jni.TdApi.MessageText;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import it.tdlight.jni.TdApi.UpdateNewMessage;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Example class for TDLight Java
@@ -38,6 +40,11 @@ public final class Example {
 
 		// Configure the client
 		TDLibSettings settings = TDLibSettings.create(apiToken);
+
+		// Configure the session directory
+		Path sessionPath = Paths.get("example-tdlight-session");
+		settings.setDatabaseDirectoryPath(sessionPath.resolve("data"));
+		settings.setDownloadedFilesDirectoryPath(sessionPath.resolve("downloads"));
 
 		// Create a client
 		SimpleTelegramClient client = new SimpleTelegramClient(settings);
