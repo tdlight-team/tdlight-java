@@ -61,6 +61,9 @@ public final class Example {
 		client.waitForExit();
 	}
 
+	/**
+	 * Print new messages received via updateNewMessage
+	 */
 	private static void onUpdateNewMessage(TdApi.UpdateNewMessage update) {
 		// Get the message content
 		var messageContent = update.message.content;
@@ -72,7 +75,7 @@ public final class Example {
 			text = messageText.text.text;
 		} else {
 			// We handle only text messages, the other messages will be printed as their type
-			text = "(" + messageContent.getClass().getSimpleName() + ")";
+			text = String.format("(%s)", messageContent.getClass().getSimpleName());
 		}
 
 		// Get the chat title
@@ -83,7 +86,7 @@ public final class Example {
 			var chatName = chat.title;
 
 			// Print the message
-			System.out.println("Received new message from chat " + chatName + ": " + text);
+			System.out.printf("Received new message from chat %s: %s%n", chatName, text);
 		});
 	}
 
