@@ -1,10 +1,14 @@
 package it.tdlight.common.internal;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 import it.tdlight.common.EventsHandler;
 import it.tdlight.common.utils.IntSwapper;
 import it.tdlight.common.utils.SpinWaitSupport;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
+import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -13,14 +17,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 public final class ResponseReceiver extends Thread implements AutoCloseable {
 
-	private static final boolean USE_OPTIMIZED_DISPATCHER = Boolean.parseBoolean(System.getProperty(
-			"tdlight.dispatcher.use_optimized_dispatcher",
-			"true"
-	));
+	private static final String FLAG_PAUSE_SHUTDOWN_UNTIL_ALL_CLOSED = "it.tdlight.pauseShutdownUntilAllClosed";
+	private static final String FLAG_USE_OPTIMIZED_DISPATCHER = "tdlight.dispatcher.use_optimized_dispatcher";
+	private static final boolean USE_OPTIMIZED_DISPATCHER
+			= Boolean.parseBoolean(System.getProperty(FLAG_USE_OPTIMIZED_DISPATCHER, "true"));
 	private static final int MAX_EVENTS = 100;
 	private static final int[] originalSortingSource = new int[MAX_EVENTS];
 
@@ -45,7 +48,8 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	private int clientEventsLastUsedLength = 0;
 
 	private final CountDownLatch closeWait = new CountDownLatch(1);
-	private final Set<Integer> registeredClients = new ConcurrentHashMap<Integer, java.lang.Object>().keySet(new java.lang.Object());
+	private final Set<Integer> registeredClients = new ConcurrentHashMap<Integer, java.lang.Object>()
+			.keySet(new java.lang.Object());
 
 
 	public ResponseReceiver(EventsHandler eventsHandler) {
@@ -66,15 +70,18 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 		}
 	}
 
-	@SuppressWarnings({"UnnecessaryLocalVariable"})
 	@Override
 	public void run() {
 		int[] sortIndex;
 		try {
 			boolean interrupted;
-			while (!(interrupted = Thread.interrupted()) && ((!closeCalled.get() && !jvmShutdown.get())
-					|| !registeredClients.isEmpty())) {
-				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0 /*seconds*/);
+			while (
+					!(interrupted = Thread.interrupted())
+					&& !jvmShutdown.get()
+					&& (!closeCalled.get() || !registeredClients.isEmpty())
+			) {
+				// Timeout is expressed in seconds
+				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0);
 
 				if (resultsCount <= 0) {
 					SpinWaitSupport.onSpinWait();
@@ -87,21 +94,22 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 					// Generate a list of indices sorted by client id, from 0 to resultsCount
 					sortIndex = generateSortIndex(0, resultsCount, clientIds);
 
-					int lastClientId = clientIds[sortIndex[0]];
+					int clientId = clientIds[sortIndex[0]];
 					int lastClientIdEventsCount = 0;
 					boolean lastClientClosed = false;
 
 					for (int i = 0; i <= resultsCount; i++) {
-						if (i == resultsCount || (i != 0 && clientIds[sortIndex[i]] != lastClientId)) {
+						if (i == resultsCount || (i != 0 && clientIds[sortIndex[i]] != clientId)) {
 							if (lastClientIdEventsCount > 0) {
-								int clientId = lastClientId;
 								for (int j = 0; j < lastClientIdEventsCount; j++) {
-									clientEventIds[j] = eventIds[sortIndex[i - lastClientIdEventsCount + j]];
-									clientEvents[j] = events[sortIndex[i - lastClientIdEventsCount + j]];
+									long clientEventId = eventIds[sortIndex[i - lastClientIdEventsCount + j]];
+									clientEventIds[j] = clientEventId;
+									TdApi.Object clientEvent = events[sortIndex[i - lastClientIdEventsCount + j]];
+									clientEvents[j] = clientEvent;
 
-									if (clientEventIds[j] == 0
-											&& clientEvents[j].getConstructor() == TdApi.UpdateAuthorizationState.CONSTRUCTOR) {
-										TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) clientEvents[j]).authorizationState;
+									if (clientEventId == 0 && clientEvent.getConstructor() == UpdateAuthorizationState.CONSTRUCTOR) {
+										UpdateAuthorizationState update = (UpdateAuthorizationState) clientEvent;
+										TdApi.AuthorizationState authorizationState = update.authorizationState;
 										if (authorizationState.getConstructor() == TdApi.AuthorizationStateClosed.CONSTRUCTOR) {
 											lastClientClosed = true;
 											closedClients.add(clientId);
@@ -122,7 +130,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 							}
 
 							if (i < resultsCount) {
-								lastClientId = clientIds[sortIndex[i]];
+								clientId = clientIds[sortIndex[i]];
 								lastClientIdEventsCount = 0;
 								lastClientClosed = false;
 							}
@@ -150,20 +158,17 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 					for (int i = 0; i < resultsCount; i++) {
 						eventsList.add(new Event(clientIds[i], eventIds[i], events[i]));
 					}
-					Set<Integer> clientIds = eventsList.stream().map(e -> e.clientId).collect(Collectors.toSet());
+					Set<Integer> clientIds = eventsList.stream().map(e -> e.clientId).collect(toSet());
 					for (int clientId : clientIds) {
-						List<Event> clientEventsList = eventsList
-								.stream()
-								.filter(e -> e.clientId == clientId)
-								.collect(Collectors.toList());
+						List<Event> clientEventsList = eventsList.stream().filter(e -> e.clientId == clientId).collect(toList());
 						boolean closed = false;
 						for (int i = 0; i < clientEventsList.size(); i++) {
 							Event e = clientEventsList.get(i);
 							clientEventIds[i] = e.eventId;
 							clientEvents[i] = e.event;
 
-							if (e.eventId == 0 && e.event.getConstructor() == TdApi.UpdateAuthorizationState.CONSTRUCTOR) {
-								TdApi.AuthorizationState authorizationState = ((TdApi.UpdateAuthorizationState) e.event).authorizationState;
+							if (e.eventId == 0 && e.event.getConstructor() == UpdateAuthorizationState.CONSTRUCTOR) {
+								TdApi.AuthorizationState authorizationState = ((UpdateAuthorizationState) e.event).authorizationState;
 								if (authorizationState.getConstructor() == TdApi.AuthorizationStateClosed.CONSTRUCTOR) {
 									closed = true;
 									closedClients.add(clientId);
@@ -200,7 +205,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 		}
 	}
 
-	private boolean areBoundsValid(Object[] clientEvents, int start, int length) {
+	public static boolean areBoundsValid(Object[] clientEvents, int start, int length) {
 		if (start > length) {
 			return false;
 		}
@@ -255,7 +260,7 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 	public void onJVMShutdown() throws InterruptedException {
 		if (startCalled.get()) {
 			if (this.jvmShutdown.compareAndSet(false, true)) {
-				if (Boolean.parseBoolean(System.getProperty("it.tdlight.pauseShutdownUntilAllClosed", "true"))) {
+				if (Boolean.parseBoolean(System.getProperty(FLAG_PAUSE_SHUTDOWN_UNTIL_ALL_CLOSED, "true"))) {
 					this.closeWait.await();
 				}
 			}
