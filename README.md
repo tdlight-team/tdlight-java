@@ -32,14 +32,14 @@
 
 ### Install OpenSSL on macOS
 
-You must install `openssl@1.1` using the <a href="https://brew.sh">brew package manager </a>, then link openssl
+You must install `openssl@3` using the <a href="https://brew.sh">brew package manager </a>, then link openssl
 to `/usr/local/opt/openssl`
 
 If you don't know how to do this, type the following commands in your terminal:
 
 ```bash
-brew install openssl@1.1
-ln -sf /usr/local/Cellar/openssl@1.1/1.1.1l /usr/local/opt/openssl
+brew install openssl@3
+ln -sf /usr/local/Cellar/openssl@3/3.0.0 /usr/local/opt/openssl
 ```
 
 ## 📚 How to use the library
