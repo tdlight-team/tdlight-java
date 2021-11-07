@@ -8,9 +8,9 @@
 	<name>TDLight Java Parent</name>
 	<properties>
 		<revision>1.0.0.0-SNAPSHOT</revision>
-		<nativesRevisionNumber>179</nativesRevisionNumber>
+		<nativesRevisionNumber>183</nativesRevisionNumber>
 		<nativesRevisionSuffix/>
-		<apiRevisionNumber>177</apiRevisionNumber>
+		<apiRevisionNumber>181</apiRevisionNumber>
 		<apiRevisionSuffix/>
 	</properties>
 	<repositories>
