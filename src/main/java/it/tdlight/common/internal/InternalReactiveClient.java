@@ -50,7 +50,11 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 		this.clientManager = clientManager;
 		this.updateHandler = new Handler<>(this::onUpdateFromHandler, this::onUpdateException);
 		this.defaultExceptionHandler = this::onDefaultException;
-		Runtime.getRuntime().addShutdownHook(shutdownHook);
+		try {
+			Runtime.getRuntime().addShutdownHook(shutdownHook);
+		} catch (IllegalStateException ex) {
+			this.onJVMShutdown();
+		}
 	}
 
 	@Override
