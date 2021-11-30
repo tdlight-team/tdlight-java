@@ -8,8 +8,8 @@
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<tdlight.java.version>2.7.9.3</tdlight.java.version>
-		<tdlight.natives.version>4.0.185</tdlight.natives.version>
+		<tdlight.java.version>2.7.9.4</tdlight.java.version>
+		<tdlight.natives.version>4.0.186</tdlight.natives.version>
 	</properties>
 	<repositories>
 		<repository>
