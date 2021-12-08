@@ -205,18 +205,6 @@ public final class SimpleTelegramClient implements Authenticable {
 		this.authenticationData = authenticationData;
 		createDirectories();
 		client.initialize(this::handleUpdate, this::handleUpdateException, this::handleDefaultException);
-
-		// Handle unexpected shutdown
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			try {
-				// Send close function
-				this.client.send(new TdApi.Close(), ok -> {}, ex -> {});
-				// Wait until the client has been closed successfully
-				this.waitForExit();
-			} catch (Throwable ignored) {
-				// Ignore errors since we are shutting down everything
-			}
-		}));
 	}
 
 	private void createDirectories() {

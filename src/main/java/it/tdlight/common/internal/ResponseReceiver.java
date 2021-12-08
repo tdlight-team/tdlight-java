@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
-	private static final String FLAG_PAUSE_SHUTDOWN_UNTIL_ALL_CLOSED = "it.tdlight.pauseShutdownUntilAllClosed";
 	private static final String FLAG_USE_OPTIMIZED_DISPATCHER = "tdlight.dispatcher.use_optimized_dispatcher";
 	private static final boolean USE_OPTIMIZED_DISPATCHER
 			= Boolean.parseBoolean(System.getProperty(FLAG_USE_OPTIMIZED_DISPATCHER, "true"));
@@ -36,7 +35,6 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
 	private final AtomicBoolean startCalled = new AtomicBoolean();
 	private final AtomicBoolean closeCalled = new AtomicBoolean();
-	private final AtomicBoolean jvmShutdown = new AtomicBoolean();
 
 	private final EventsHandler eventsHandler;
 	private final int[] clientIds = new int[MAX_EVENTS];
@@ -56,7 +54,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 	public ResponseReceiver(EventsHandler eventsHandler) {
 		super("TDLib thread");
 		this.eventsHandler = eventsHandler;
-		this.setDaemon(true);
+		this.setDaemon(false);
 	}
 
 	/**
@@ -82,7 +80,6 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 			boolean interrupted;
 			while (
 					!(interrupted = Thread.interrupted())
-							&& !jvmShutdown.get()
 							&& (!closeCalled.get() || !registeredClients.isEmpty())
 			) {
 				// Timeout is expressed in seconds
@@ -224,11 +221,9 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 				}
 			}
 
-			if (interrupted) {
-				if (!jvmShutdown.get()) {
-					for (Integer clientId : this.registeredClients) {
-						eventsHandler.handleClientEvents(clientId, true, clientEventIds, clientEvents, 0, 0);
-					}
+			if (interrupted || closeCalled.get()) {
+				for (Integer clientId : this.registeredClients) {
+					eventsHandler.handleClientEvents(clientId, true, clientEventIds, clientEvents, 0, 0);
 				}
 			}
 		} finally {
@@ -285,16 +280,6 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 			}
 		} else {
 			throw new IllegalStateException("Start not called");
-		}
-	}
-
-	public void onJVMShutdown() throws InterruptedException {
-		if (startCalled.get()) {
-			if (this.jvmShutdown.compareAndSet(false, true)) {
-				if (Boolean.parseBoolean(System.getProperty(FLAG_PAUSE_SHUTDOWN_UNTIL_ALL_CLOSED, "true"))) {
-					this.closeWait.await();
-				}
-			}
 		}
 	}
 }

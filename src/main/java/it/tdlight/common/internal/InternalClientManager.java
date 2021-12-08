@@ -60,15 +60,7 @@ public final class InternalClientManager implements AutoCloseable {
 			}
 			return val;
 		});
-		if (clientManager.startIfNeeded()) {
-			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-				try {
-					clientManager.onJVMShutdown();
-				} catch (InterruptedException ex) {
-					logger.error("Failed to close", ex);
-				}
-			}));
-		}
+		clientManager.startIfNeeded();
 		return clientManager;
 	}
 
@@ -157,10 +149,6 @@ public final class InternalClientManager implements AutoCloseable {
 		} else {
 			throw new IllegalStateException("Start not called");
 		}
-	}
-
-	private void onJVMShutdown() throws InterruptedException {
-		responseReceiver.onJVMShutdown();
 	}
 
 	private static final class DroppedEvent {
