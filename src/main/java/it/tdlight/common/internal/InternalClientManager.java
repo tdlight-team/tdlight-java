@@ -35,7 +35,7 @@ public final class InternalClientManager implements AutoCloseable {
 			System.exit(1);
 		}
 		this.implementationName = implementationName;
-		responseReceiver = new ResponseReceiver(this::handleClientEvents);
+		responseReceiver = new NativeResponseReceiver(this::handleClientEvents);
 	}
 
 	/**

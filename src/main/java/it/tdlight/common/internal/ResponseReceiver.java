@@ -7,18 +7,19 @@ import it.tdlight.common.EventsHandler;
 import it.tdlight.common.utils.IntSwapper;
 import it.tdlight.common.utils.SpinWaitSupport;
 import it.tdlight.jni.TdApi;
-import it.tdlight.jni.TdApi.Object;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public final class ResponseReceiver extends Thread implements AutoCloseable {
+abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
 	private static final String FLAG_PAUSE_SHUTDOWN_UNTIL_ALL_CLOSED = "it.tdlight.pauseShutdownUntilAllClosed";
 	private static final String FLAG_USE_OPTIMIZED_DISPATCHER = "tdlight.dispatcher.use_optimized_dispatcher";
@@ -58,30 +59,34 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 		this.setDaemon(true);
 	}
 
+	/**
+	 * @return results count
+	 */
+	public abstract int receive(int[] clientIds, long[] eventIds, TdApi.Object[] events, double timeout);
+
 	@Override
-	public synchronized void start() {
+	public void run() {
 		if (closeCalled.get()) {
 			throw new IllegalStateException("Closed");
 		}
 		if (startCalled.compareAndSet(false, true)) {
-			super.start();
+			this.runInternal();
 		} else {
 			throw new IllegalStateException("Start already called");
 		}
 	}
 
-	@Override
-	public void run() {
+	private void runInternal() {
 		int[] sortIndex;
 		try {
 			boolean interrupted;
 			while (
 					!(interrupted = Thread.interrupted())
-					&& !jvmShutdown.get()
-					&& (!closeCalled.get() || !registeredClients.isEmpty())
+							&& !jvmShutdown.get()
+							&& (!closeCalled.get() || !registeredClients.isEmpty())
 			) {
 				// Timeout is expressed in seconds
-				int resultsCount = NativeClientAccess.receive(clientIds, eventIds, events, 2.0);
+				int resultsCount = receive(clientIds, eventIds, events, 2.0);
 
 				if (resultsCount <= 0) {
 					SpinWaitSupport.onSpinWait();
@@ -145,12 +150,38 @@ public final class ResponseReceiver extends Thread implements AutoCloseable {
 
 						public final int clientId;
 						public final long eventId;
-						public final Object event;
+						public final TdApi.Object event;
 
-						public Event(int clientId, long eventId, Object event) {
+						public Event(int clientId, long eventId, TdApi.Object event) {
 							this.clientId = clientId;
 							this.eventId = eventId;
 							this.event = event;
+						}
+
+						@Override
+						public boolean equals(Object o) {
+							if (this == o) {
+								return true;
+							}
+							if (o == null || getClass() != o.getClass()) {
+								return false;
+							}
+							Event event1 = (Event) o;
+							return clientId == event1.clientId && eventId == event1.eventId && Objects.equals(event, event1.event);
+						}
+
+						@Override
+						public int hashCode() {
+							return Objects.hash(clientId, eventId, event);
+						}
+
+						@Override
+						public String toString() {
+							return new StringJoiner(", ", Event.class.getSimpleName() + "[", "]")
+									.add("clientId=" + clientId)
+									.add("eventId=" + eventId)
+									.add("event=" + event)
+									.toString();
 						}
 					}
 

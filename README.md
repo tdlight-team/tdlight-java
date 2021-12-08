@@ -28,7 +28,10 @@
 - s390x (Linux)
 - ppc64el/ppc64le (Linux)
 
-**Required libraries for Linux: OpenSSL and zlib**
+## 📚 Required libraries
+- **Linux: OpenSSL, zlib**
+- **MacOS: OpenSSL**
+- **Windows: [Microsoft Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)**
 
 ### Install OpenSSL on macOS
 
@@ -62,18 +65,32 @@ If you are using Maven, edit your `pom.xml` file as below:
 
 	</repositories>
 
+	<dependencyManagement>
+		<dependencies>
+			
+			<!-- Add the following dependency -->
+			<dependency>
+				<groupId>it.tdlight</groupId>
+				<artifactId>tdlight-java-bom</artifactId>
+				<version>VERSION</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 
 		<!-- Add the following dependencies -->
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-java</artifactId>
-			<version>VERSION</version>
+			<!-- don't specify the version here -->
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-linux-amd64</artifactId>
-			<version>NATIVES_VERSION</version>
+			<!-- don't specify the version here -->
 		</dependency>
 		<!-- Include other native versions that you want, for example for windows, osx, ... -->
 
@@ -84,9 +101,6 @@ If you are using Maven, edit your `pom.xml` file as below:
 Replace `VERSION` with the latest release version, you can find
 it [here](https://github.com/tdlight-team/tdlight-java/releases).
 
-Replace `NATIVES_VERSION` with the latest native version. Make sure that you are using the correct natives version for
-the release that you are using.
-
 ## Setting up the library using Gradle
 
 If you are using Gradle, add the following lines into your `build.gradle` file
@@ -95,18 +109,24 @@ If you are using Gradle, add the following lines into your `build.gradle` file
 repositories {
 	maven { url "https://mvn.mchv.eu/repository/mchv/" }
 }
+dependencyManagement {
+	imports {
+		mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Edgware.SR4'
+	}
+}
 dependencies {
-	implementation 'it.tdlight:tdlight-java:LATEST_VERSION'
-	implementation 'it.tdlight:tdlight-natives-linux-amd64:NATIVES_VERSION'
+	// import the BOM
+	implementation platform('it.tdlight:tdlight-java-bom:VERSION')
+
+	// do not specify the versions on the dependencies below!
+	implementation 'it.tdlight:tdlight-java'
+	implementation 'it.tdlight:tdlight-natives-linux-amd64'
 	// Include other native versions that you want, for example for windows, osx, ...
 }
 ```
 
 Replace `VERSION` with the latest release version, you can find
 it [here](https://github.com/tdlight-team/tdlight-java/releases).
-
-Replace `NATIVES_VERSION` with the latest native version. Make sure that you are using the correct natives version for
-the release that you are using.
 
 ## ⚒ Native dependencies
 

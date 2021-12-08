@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>tdlight-java-parent</artifactId>
+	<version>${revision}</version>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>it.tdlight</groupId>
+		<version>${revision}</version>
+		<artifactId>tdlight-java-bom</artifactId>
+		<relativePath>../bom/pom.xml</relativePath>
+	</parent>
+	<properties>
+		<revision>1.0.0.0-SNAPSHOT</revision>
+	</properties>
+	<modules>
+		<!--disabled: <module>../tdlib</module>-->
+		<module>../tdlight</module>
+	</modules>
+</project>

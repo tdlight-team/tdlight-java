@@ -73,7 +73,7 @@ final class CommandsHandler implements GenericUpdateHandler<UpdateNewMessage> {
 									if (response.getConstructor() == TdApi.Error.CONSTRUCTOR) {
 										throw new TelegramError((TdApi.Error) response);
 									}
-									handler.onCommand((Chat) response, message.sender, arguments);
+									handler.onCommand((Chat) response, message.senderId, arguments);
 								}, error -> logger.warn("Error when handling the command {}", commandName, error));
 							}
 						}

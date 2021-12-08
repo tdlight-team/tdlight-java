@@ -47,24 +47,22 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	@Override
 	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events, int arrayOffset, int arrayLength) {
 		if (updatesHandler != null) {
-			LongArrayList idsToFilter = new LongArrayList(eventIds);
-			ObjectArrayList<TdApi.Object> eventsToFilter = new ObjectArrayList<>(events);
+			ObjectArrayList<TdApi.Object> updatesList = new ObjectArrayList<>(arrayLength);
 
 			for (int i = (arrayOffset + arrayLength) - 1; i >= arrayOffset; i--) {
 				if (eventIds[i] != 0) {
-					idsToFilter.removeLong(i);
-					eventsToFilter.remove(i);
-
 					long eventId = eventIds[i];
 					TdApi.Object event = events[i];
 
 					Handler<?> handler = handlers.remove(eventId);
 					handleResponse(eventId, event, handler);
+				} else {
+					updatesList.add(events[i]);
 				}
 			}
 
 			try {
-				updatesHandler.getUpdatesHandler().onUpdates(eventsToFilter);
+				updatesHandler.getUpdatesHandler().onUpdates(updatesList);
 			} catch (Throwable cause) {
 				handleException(updatesHandler.getExceptionHandler(), cause);
 			}

@@ -8,8 +8,6 @@
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<tdlight.java.version>2.7.9.5</tdlight.java.version>
-		<tdlight.natives.version>4.0.186</tdlight.natives.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -23,29 +21,36 @@
 			<url>https://mvn.mchv.eu/repository/mchv-snapshot</url>
 		</repository>
 	</repositories>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>it.tdlight</groupId>
+				<artifactId>tdlight-java-bom</artifactId>
+				<version>2.7.10.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<!-- TDLight -->
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-java</artifactId>
-			<version>${tdlight.java.version}</version>
 		</dependency>
 
 		<!-- TDLight natives -->
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-linux-amd64</artifactId>
-			<version>${tdlight.natives.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-windows-amd64</artifactId>
-			<version>${tdlight.natives.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives-osx-amd64</artifactId>
-			<version>${tdlight.natives.version}</version>
 		</dependency>
 
 		<!-- log4j logging -->

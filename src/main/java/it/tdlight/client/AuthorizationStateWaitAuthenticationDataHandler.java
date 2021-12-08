@@ -45,7 +45,7 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 				}
 			}, exceptionHandler);
 		} else {
-			PhoneNumberAuthenticationSettings phoneSettings = new PhoneNumberAuthenticationSettings(false, false, false);
+			PhoneNumberAuthenticationSettings phoneSettings = new PhoneNumberAuthenticationSettings(false, false, false, false, null);
 
 			String phoneNumber = String.valueOf(authenticationData.getUserPhoneNumber());
 			SetAuthenticationPhoneNumber response = new SetAuthenticationPhoneNumber(phoneNumber, phoneSettings);
