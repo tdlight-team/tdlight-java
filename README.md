@@ -109,11 +109,6 @@ If you are using Gradle, add the following lines into your `build.gradle` file
 repositories {
 	maven { url "https://mvn.mchv.eu/repository/mchv/" }
 }
-dependencyManagement {
-	imports {
-		mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Edgware.SR4'
-	}
-}
 dependencies {
 	// import the BOM
 	implementation platform('it.tdlight:tdlight-java-bom:VERSION')
