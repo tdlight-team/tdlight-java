@@ -254,26 +254,14 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>flatten-maven-plugin</artifactId>
-				<version>1.2.2</version>
-				<configuration>
-				</configuration>
+				<groupId>com.outbrain.swinfra</groupId>
+				<artifactId>ci-friendly-flatten-maven-plugin</artifactId>
+				<version>1.0.14</version>
 				<executions>
-					<!-- enable flattening -->
 					<execution>
-						<id>flatten</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>flatten</goal>
-						</goals>
-					</execution>
-					<!-- ensure proper cleanup -->
-					<execution>
-						<id>flatten.clean</id>
-						<phase>clean</phase>
 						<goals>
 							<goal>clean</goal>
+							<goal>flatten</goal>
 						</goals>
 					</execution>
 				</executions>
