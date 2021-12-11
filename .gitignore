@@ -74,3 +74,5 @@ src/main/jni/bin/
 tdlib/.flattened-pom.xml
 tdlight/.flattened-pom.xml
 example/target/
+
+tdlight/.ci-friendly-pom.xml
