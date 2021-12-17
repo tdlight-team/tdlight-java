@@ -75,4 +75,4 @@ tdlib/.flattened-pom.xml
 tdlight/.flattened-pom.xml
 example/target/
 
-tdlight/.ci-friendly-pom.xml
+.ci-friendly-pom.xml

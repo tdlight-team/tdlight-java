@@ -130,9 +130,9 @@ To use TDLight Java you need to include one or more native dependencies:
 - `tdlight-natives-linux-amd64`
 - `tdlight-natives-linux-aarch64`
 - `tdlight-natives-linux-x86`
-- `tdlight-natives-linux-armv6`
-- `tdlight-natives-linux-armv7`
+- `tdlight-natives-linux-armhf`
 - `tdlight-natives-linux-ppc64le`
+- `tdlight-natives-linux-s390x`
 - `tdlight-natives-windows-amd64`
 - `tdlight-natives-osx-amd64`
 

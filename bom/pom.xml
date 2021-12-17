@@ -122,12 +122,7 @@
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
-				<artifactId>tdlight-natives-linux-armv6</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlight-natives-linux-armv7</artifactId>
+				<artifactId>tdlight-natives-linux-armhf</artifactId>
 				<version>${tdlight.natives.version}</version>
 			</dependency>
 			<dependency>
@@ -138,6 +133,11 @@
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives-windows-amd64</artifactId>
+				<version>${tdlight.natives.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>it.tdlight</groupId>
+				<artifactId>tdlight-natives-windows-s390x</artifactId>
 				<version>${tdlight.natives.version}</version>
 			</dependency>
 			<dependency>
@@ -165,17 +165,17 @@
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-linux-armv6</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-linux-armv7</artifactId>
+				<artifactId>tdlib-natives-linux-armhf</artifactId>
 				<version>${tdlight.natives.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlib-natives-linux-ppc64le</artifactId>
+				<version>${tdlight.natives.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>it.tdlight</groupId>
+				<artifactId>tdlib-natives-linux-s390x</artifactId>
 				<version>${tdlight.natives.version}</version>
 			</dependency>
 			<dependency>
