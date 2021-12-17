@@ -8,8 +8,8 @@
 	<name>TDLight Java BOM</name>
 	<properties>
 		<revision>1.0.0.0-SNAPSHOT</revision>
-		<nativesRevisionNumber>203</nativesRevisionNumber>
-		<apiRevisionNumber>201</apiRevisionNumber>
+		<nativesRevisionNumber>204</nativesRevisionNumber>
+		<apiRevisionNumber>202</apiRevisionNumber>
 		<nativesRevisionSuffix/>
 		<tdlight.natives.version>4.0.${nativesRevisionNumber}${nativesRevisionSuffix}</tdlight.natives.version>
 		<apiRevisionSuffix/>
