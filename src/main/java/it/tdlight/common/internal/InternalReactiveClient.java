@@ -259,6 +259,8 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	@Override
 	public void setListener(SignalListener listener) {
 		logger.debug(TG_MARKER, "Setting handler of client {}", clientId);
+
+		// Keep in mind that this lambda could be called multiple times
 		SignalListener resultListener = this.signalListener.updateAndGet(previousListener -> {
 			if (previousListener instanceof ReplayStartupUpdatesListener) {
 				ReplayStartupUpdatesListener replayListener = (ReplayStartupUpdatesListener) previousListener;
@@ -372,7 +374,7 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 		}
 	}
 
-	private static class ReplayStartupUpdatesListener implements SignalListener {
+	private class ReplayStartupUpdatesListener implements SignalListener {
 
 		private final ConcurrentLinkedQueue<Signal> queue = new ConcurrentLinkedQueue<>();
 		private final AtomicReference<SignalListener> listener = new AtomicReference<>(null);
@@ -384,11 +386,16 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 				drainQueue(listener);
 				assert queue.isEmpty();
 				listener.onSignal(signal);
+				// Replace itself with the child signal listener, to reduce overhead permanently
+				InternalReactiveClient.this.signalListener.set(listener);
 			} else {
 				queue.add(signal);
 			}
 		}
 
+		/**
+		 * This method could be called multiple times
+		 */
 		public void setNewListener(SignalListener listener) {
 			this.listener.set(listener);
 		}
