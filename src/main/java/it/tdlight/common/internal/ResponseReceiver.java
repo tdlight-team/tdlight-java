@@ -278,8 +278,6 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 			if (closeCalled.compareAndSet(false, true)) {
 				this.closeWait.await();
 			}
-		} else {
-			throw new IllegalStateException("Start not called");
 		}
 	}
 }
