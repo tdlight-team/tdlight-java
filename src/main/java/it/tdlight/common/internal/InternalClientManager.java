@@ -146,8 +146,6 @@ public final class InternalClientManager implements AutoCloseable {
 			if (closeCalled.compareAndSet(false, true)) {
 				responseReceiver.close();
 			}
-		} else {
-			throw new IllegalStateException("Start not called");
 		}
 	}
 
