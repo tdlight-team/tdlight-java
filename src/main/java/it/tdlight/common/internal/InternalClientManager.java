@@ -28,12 +28,6 @@ public final class InternalClientManager implements AutoCloseable {
 	private final AtomicLong currentQueryId = new AtomicLong();
 
 	private InternalClientManager(String implementationName) {
-		try {
-			Init.start();
-		} catch (Throwable ex) {
-			ex.printStackTrace();
-			System.exit(1);
-		}
 		this.implementationName = implementationName;
 		responseReceiver = new NativeResponseReceiver(this::handleClientEvents);
 	}
@@ -46,6 +40,12 @@ public final class InternalClientManager implements AutoCloseable {
 			return false;
 		}
 		if (startCalled.compareAndSet(false, true)) {
+			try {
+				Init.start();
+			} catch (Throwable ex) {
+				ex.printStackTrace();
+				System.exit(1);
+			}
 			responseReceiver.start();
 			return true;
 		} else {
@@ -54,14 +54,12 @@ public final class InternalClientManager implements AutoCloseable {
 	}
 
 	public static InternalClientManager get(String implementationName) {
-		InternalClientManager clientManager = INSTANCE.updateAndGet(val -> {
+		return INSTANCE.updateAndGet(val -> {
 			if (val == null) {
 				return new InternalClientManager(implementationName);
 			}
 			return val;
 		});
-		clientManager.startIfNeeded();
-		return clientManager;
 	}
 
 	private void handleClientEvents(int clientId,
@@ -125,6 +123,7 @@ public final class InternalClientManager implements AutoCloseable {
 	}
 
 	public void registerClient(int clientId, ClientEventsHandler internalClient) {
+		this.startIfNeeded();
 		boolean replaced = registeredClientEventHandlers.put(clientId, internalClient) != null;
 		if (replaced) {
 			throw new IllegalStateException("Client " + clientId + " already registered");

@@ -277,6 +277,9 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 		if (startCalled.get()) {
 			if (closeCalled.compareAndSet(false, true)) {
 				this.closeWait.await();
+				if (registeredClients.isEmpty()) {
+					this.interrupt();
+				}
 			}
 		}
 	}

@@ -28,7 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("rawtypes")
 public final class ConstructorDetector {
 
-	static {
+	private static ConcurrentHashMap<Integer, Class> constructorHashMap;
+	private static ConcurrentHashMap<Class, Integer> constructorHashMapInverse;
+
+	private static void tryInit() {
 		// Call this to load static methods and prevent errors during startup!
 		try {
 			Init.start();
@@ -37,13 +40,10 @@ public final class ConstructorDetector {
 		}
 	}
 
-	private static ConcurrentHashMap<Integer, Class> constructorHashMap;
-	private static ConcurrentHashMap<Class, Integer> constructorHashMapInverse;
-
 	/**
 	 * Initialize the ConstructorDetector, it is called from the Init class.
 	 */
-	public static void init() {
+	static void init() {
 		if (constructorHashMap != null) {
 			return;
 		}
@@ -59,6 +59,7 @@ public final class ConstructorDetector {
 	 * @return The class related to CONSTRUCTOR.
 	 */
 	public static Class getClass(int CONSTRUCTOR) {
+		tryInit();
 		return constructorHashMap.getOrDefault(CONSTRUCTOR, null);
 	}
 
@@ -69,6 +70,7 @@ public final class ConstructorDetector {
 	 * @return The CONSTRUCTOR.
 	 */
 	public static int getConstructor(Class<? extends TdApi.Object> clazz) {
+		tryInit();
 		return Objects.requireNonNull(constructorHashMapInverse.get(clazz));
 	}
 

@@ -32,23 +32,27 @@ public final class Init {
 
 	public static final Logger LOG = LoggerFactory.getLogger(Init.class);
 
-	private static boolean started = false;
+	private static volatile boolean started = false;
 
 	/**
 	 * Initialize Tdlib
 	 *
 	 * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
 	 */
-	public synchronized static void start() throws CantLoadLibrary {
+	public static void start() throws CantLoadLibrary {
 		if (!started) {
-			LoadLibrary.load("tdjni");
-			ConstructorDetector.init();
-			try {
-				NativeClientAccess.execute(new SetLogVerbosityLevel(1));
-			} catch (Throwable ex) {
-				LOG.error("Can't set verbosity level on startup", ex);
+			synchronized (Init.class) {
+				if (!started) {
+					LoadLibrary.load("tdjni");
+					ConstructorDetector.init();
+					try {
+						NativeClientAccess.execute(new SetLogVerbosityLevel(1));
+					} catch (Throwable ex) {
+						LOG.error("Can't set verbosity level on startup", ex);
+					}
+					started = true;
+				}
 			}
-			started = true;
 		}
 	}
 }
