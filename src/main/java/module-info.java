@@ -10,4 +10,5 @@ module tdlight.java {
 	exports it.tdlight.common;
 	exports it.tdlight.common.utils;
 	exports it.tdlight.common.internal;
+	exports it.tdlight.client;
 }
