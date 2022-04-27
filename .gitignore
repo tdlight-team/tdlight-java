@@ -76,3 +76,13 @@ tdlight/.flattened-pom.xml
 example/target/
 
 .ci-friendly-pom.xml
+
+bom/.settings/
+bom/.project
+bom/.classpath
+parent/.settings/
+parent/.project
+parent/.classpath
+/.settings/
+/.project
+/.classpath
