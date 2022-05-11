@@ -86,3 +86,5 @@ parent/.classpath
 /.settings/
 /.project
 /.classpath
+
+.flattened-pom.xml

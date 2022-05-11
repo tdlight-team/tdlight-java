@@ -2,7 +2,6 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>tdlight-java</artifactId>
-	<version>${revision}</version>
 	<name>TDLight Java Wrapper</name>
 	<packaging>jar</packaging>
 	<parent>
@@ -254,14 +253,26 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>com.outbrain.swinfra</groupId>
-				<artifactId>ci-friendly-flatten-maven-plugin</artifactId>
-				<version>1.0.14</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<version>1.1.0</version>
+				<configuration>
+					<updatePomFile>true</updatePomFile>
+					<flattenMode>oss</flattenMode>
+				</configuration>
 				<executions>
 					<execution>
+						<id>flatten</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<phase>clean</phase>
 						<goals>
 							<goal>clean</goal>
-							<goal>flatten</goal>
 						</goals>
 					</execution>
 				</executions>
