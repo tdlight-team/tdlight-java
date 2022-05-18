@@ -123,8 +123,8 @@
 		</profile>
 	</profiles>
 	<build>
-		<sourceDirectory>${project.basedir}/../src/main/java</sourceDirectory>
-		<testSourceDirectory>${project.basedir}/../src/test/java</testSourceDirectory>
+		<sourceDirectory>../src/main/java</sourceDirectory>
+		<testSourceDirectory>../src/test/java</testSourceDirectory>
 		<plugins>
 			<plugin>
 				<artifactId>maven-clean-plugin</artifactId>
@@ -219,7 +219,7 @@
 						<configuration>
 							<release>11</release>
 							<compileSourceRoots>
-								<compileSourceRoot>${project.basedir}/../src/main/java11</compileSourceRoot>
+								<compileSourceRoot>../src/main/java11</compileSourceRoot>
 							</compileSourceRoots>
 							<multiReleaseOutput>true</multiReleaseOutput>
 						</configuration>
