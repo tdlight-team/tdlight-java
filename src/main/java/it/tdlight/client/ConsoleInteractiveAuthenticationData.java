@@ -108,7 +108,7 @@ public final class ConsoleInteractiveAuthenticationData implements Authenticatio
 					phoneNumber = ScannerUtils.askParameter("login", "Please type your phone number");
 				} while (phoneNumber.length() < 3);
 
-				long phoneNumberLong = Long.parseLong(phoneNumber.replaceAll("[\\D]", ""));
+				long phoneNumberLong = Long.parseLong(phoneNumber.replaceAll("\\D", ""));
 
 				this.isBot = false;
 				this.phoneNumber = phoneNumberLong;
