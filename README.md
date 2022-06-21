@@ -139,7 +139,7 @@ To use TDLight Java you need to include one or more native dependencies:
 ## Usage
 
 An example on how to use TDLight Java can be found
-here: [Example.java](https://github.com/tdlight-team/tdlight-java/blob/master/example/src/main/java/it/tdlight/example/Example.java/)
+here: [Example.java](https://github.com/tdlight-team/tdlight-java/blob/master/example/src/main/java/it/tdlight/example/Example.java)
 
 ### Advanced usage
 
