@@ -16,7 +16,7 @@ public final class ScannerUtils {
 		synchronized (LOCK) {
 			Console console = System.console();
 			if (console != null) {
-				return console.readLine("[%s] %s", displayName, question);
+				return console.readLine("[%s] %s: ", displayName, question);
 			} else {
 				if (scanner == null) {
 					scanner = new InputStreamReader(System.in);
