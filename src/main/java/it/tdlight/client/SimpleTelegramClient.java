@@ -10,6 +10,8 @@ import it.tdlight.common.internal.CommonClientManager;
 import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.common.utils.LibraryVersion;
 import it.tdlight.jni.TdApi;
+import it.tdlight.jni.TdApi.ChatListArchive;
+import it.tdlight.jni.TdApi.ChatListMain;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.User;
 import java.io.IOException;
@@ -56,6 +58,10 @@ public final class SimpleTelegramClient implements Authenticable {
 	private final Set<ExceptionHandler> defaultExceptionHandlers = new ConcurrentHashMap<ExceptionHandler, Object>().keySet(
 			new Object());
 
+	private final AuthorizationStateReadyGetMe meGetter;
+	private final AuthorizationStateReadyLoadChats mainChatsLoader;
+	private final AuthorizationStateReadyLoadChats archivedChatsLoader;
+
 	private final CountDownLatch closed = new CountDownLatch(1);
 
 	public SimpleTelegramClient(TDLibSettings settings) {
@@ -92,9 +98,11 @@ public final class SimpleTelegramClient implements Authenticable {
 				)
 		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitForExit(this.closed));
-		AtomicReference<User> me = new AtomicReference<>();
-		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateReadyGetMe(client, me));
-		this.addUpdateHandler(TdApi.UpdateNewMessage.class, new CommandsHandler(client, this.commandHandlers, me));
+		this.mainChatsLoader = new AuthorizationStateReadyLoadChats(client, new ChatListMain());
+		this.archivedChatsLoader = new AuthorizationStateReadyLoadChats(client, new ChatListArchive());
+		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
+				this.meGetter = new AuthorizationStateReadyGetMe(client, mainChatsLoader, archivedChatsLoader));
+		this.addUpdateHandler(TdApi.UpdateNewMessage.class, new CommandsHandler(client, this.commandHandlers, this::getMe));
 	}
 
 	private void handleUpdate(TdApi.Object update) {
@@ -283,5 +291,17 @@ public final class SimpleTelegramClient implements Authenticable {
 				result.accept("");
 			}
 		}
+	}
+
+	public User getMe() {
+		return meGetter.getMe();
+	}
+
+	public boolean isMainChatsListLoaded() {
+		return mainChatsLoader.isLoaded();
+	}
+
+	public boolean isArchivedChatsListLoaded() {
+		return archivedChatsLoader.isLoaded();
 	}
 }

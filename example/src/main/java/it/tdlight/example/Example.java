@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 /**
  * Example class for TDLight Java
  * <p>
- * The documentation of the TDLight functions can be found here: https://tdlight-team.github.io/tdlight-docs
+ * <a href="https://tdlight-team.github.io/tdlight-docs">The documentation of the TDLight functions can be found here</a>
  */
 public final class Example {
 

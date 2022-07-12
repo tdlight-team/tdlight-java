@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +22,11 @@ final class CommandsHandler implements GenericUpdateHandler<UpdateNewMessage> {
 
 	private final TelegramClient client;
 	private final Map<String, Set<CommandHandler>> commandHandlers;
-	private final AtomicReference<User> me;
+	private final Supplier<User> me;
 
 	public CommandsHandler(TelegramClient client,
 			Map<String, Set<CommandHandler>> commandHandlers,
-			AtomicReference<User> me) {
+			Supplier<User> me) {
 		this.client = client;
 		this.commandHandlers = commandHandlers;
 		this.me = me;
