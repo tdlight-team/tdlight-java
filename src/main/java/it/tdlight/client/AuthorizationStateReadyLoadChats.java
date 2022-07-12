@@ -34,7 +34,7 @@ final class AuthorizationStateReadyLoadChats implements GenericUpdateHandler<Upd
 		if (update.authorizationState.getConstructor() == AuthorizationStateReady.CONSTRUCTOR) {
 			client.send(new LoadChats(chatList, 2000), ok -> {
 				if (ok.getConstructor() == Error.CONSTRUCTOR) {
-					var error = (Error) ok;
+					Error error = (Error) ok;
 					if (error.code != 404) {
 						throw new TelegramError((Error) ok);
 					}
