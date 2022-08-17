@@ -6,15 +6,17 @@
 	<version>${revision}</version>
 	<packaging>pom</packaging>
 	<name>TDLight Java BOM</name>
-	<properties>
-		<revision>1.0.0.0-SNAPSHOT</revision>
-		<nativesRevisionNumber>268</nativesRevisionNumber>
-		<apiRevisionNumber>266</apiRevisionNumber>
-		<nativesRevisionSuffix/>
-		<tdlight.natives.version>4.0.${nativesRevisionNumber}${nativesRevisionSuffix}</tdlight.natives.version>
-		<apiRevisionSuffix/>
-		<tdlight.api.version>4.0.${apiRevisionNumber}${apiRevisionSuffix}</tdlight.api.version>
-	</properties>
+    <properties>
+        <revision>1.0.0.0-SNAPSHOT</revision>
+        <nativesRevisionNumber>268</nativesRevisionNumber>
+        <apiRevisionNumber>266</apiRevisionNumber>
+        <nativesRevisionSuffix/>
+        <tdlight.natives.version>4.0.${nativesRevisionNumber}${nativesRevisionSuffix}</tdlight.natives.version>
+        <apiRevisionSuffix/>
+        <tdlight.api.version>4.0.${apiRevisionNumber}${apiRevisionSuffix}</tdlight.api.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
 	<repositories>
 		<repository>
 			<id>mchv-release</id>
