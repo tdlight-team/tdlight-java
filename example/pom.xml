@@ -20,6 +20,14 @@
 			<name>MCHV Snapshot Apache Maven Packages</name>
 			<url>https://mvn.mchv.eu/repository/mchv-snapshot</url>
 		</repository>
+		<repository>
+			<id>apache.snapshots</id>
+			<name>Apache Snapshot Repository</name>
+			<url>https://repository.apache.org/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
 	</repositories>
 	<dependencyManagement>
 		<dependencies>
@@ -61,8 +69,18 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>2.18.0</version>
+			<artifactId>log4j-slf4j2-impl</artifactId>
+			<version>2.18.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hamcrest</groupId>
+					<artifactId>hamcrest-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.lmax</groupId>
