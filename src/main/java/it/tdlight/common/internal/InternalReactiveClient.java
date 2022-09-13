@@ -262,11 +262,11 @@ public final class InternalReactiveClient implements ClientEventsHandler, Reacti
 	public void setListener(SignalListener listener) {
 		logger.debug(TG_MARKER, "Setting handler of client {}", clientId);
 
-		var prevSignalListener = this.signalListener;
+		SignalListener prevSignalListener = this.signalListener;
 		if (!(prevSignalListener instanceof ReplayStartupUpdatesListener)) {
 			throw new IllegalStateException("Already subscribed");
 		}
-		var replayStartupUpdatesListener = (ReplayStartupUpdatesListener) prevSignalListener;
+		ReplayStartupUpdatesListener replayStartupUpdatesListener = (ReplayStartupUpdatesListener) prevSignalListener;
 		// Set the new listener into the startup listener, then drain its startup queue
 		replayStartupUpdatesListener.setNewListener(listener);
 		replayStartupUpdatesListener.drain();
