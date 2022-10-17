@@ -9,4 +9,8 @@ final class NativeClientAccess extends NativeClient {
 	public static <R extends TdApi.Object> TdApi.Object execute(Function<R> function) {
 		return nativeClientExecute(function);
 	}
+
+	public static void setLogMessageHandler(int maxVerbosityLevel, LogMessageHandler logMessageHandler) {
+		nativeClientSetLogMessageHandler(maxVerbosityLevel, logMessageHandler);
+	}
 }

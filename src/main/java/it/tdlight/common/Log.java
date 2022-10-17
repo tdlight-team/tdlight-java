@@ -4,7 +4,9 @@ import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.LogStreamDefault;
 import it.tdlight.jni.TdApi.LogStreamFile;
 import it.tdlight.jni.TdApi.SetLogVerbosityLevel;
-import it.tdlight.tdnative.NativeLog;
+import it.tdlight.tdnative.NativeClient;
+import it.tdlight.tdnative.NativeClient.LogMessageHandler;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -84,16 +86,19 @@ public final class Log {
 	@Deprecated
 	public static void setVerbosityLevel(int verbosityLevel) {
 		NativeClientAccess.execute(new SetLogVerbosityLevel(verbosityLevel));
+		updateLog();
 	}
 
 	/**
-	 * Sets the callback that will be called when a fatal error happens. None of the TDLib methods can be called from the
-	 * callback. The TDLib will crash as soon as callback returns. By default the callback set to print in stderr.
 	 *
-	 * @param fatalErrorCallback Callback that will be called when a fatal error happens. Pass null to restore default
-	 *                           callback.
+	 * Sets the log message handler
+	 *
+	 * @param maxVerbosityLevel Log verbosity level with which the message was added from -1 up to 1024.
+	 *                       If 0, then TDLib will crash as soon as the callback returns.
+	 *                       None of the TDLib methods can be called from the callback.
+	 * @param logMessageHandler handler
 	 */
-	public static void setFatalErrorCallback(Consumer<String> fatalErrorCallback) {
-		NativeLog.setFatalErrorCallback(fatalErrorCallback);
+	public static void setLogMessageHandler(int maxVerbosityLevel, LogMessageHandler logMessageHandler) {
+		NativeClientAccess.setLogMessageHandler(maxVerbosityLevel, logMessageHandler);
 	}
 }

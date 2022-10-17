@@ -21,4 +21,8 @@ final class NativeClientAccess extends NativeClient {
 	public static int receive(int[] clientIds, long[] eventIds, TdApi.Object[] events, double timeout) {
 		return NativeClientAccess.nativeClientReceive(clientIds, eventIds, events, timeout);
 	}
+
+	public static void setLogMessageHandler(int maxVerbosityLevel, LogMessageHandler logMessageHandler) {
+		NativeClientAccess.nativeClientSetLogMessageHandler(maxVerbosityLevel, logMessageHandler);
+	}
 }

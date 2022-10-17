@@ -14,6 +14,8 @@ import it.tdlight.jni.TdApi.ChatListArchive;
 import it.tdlight.jni.TdApi.ChatListMain;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.User;
+import it.tdlight.tdnative.NativeClient;
+import it.tdlight.tdnative.NativeClient.LogMessageHandler;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
