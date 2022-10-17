@@ -13,6 +13,7 @@
 
 	</Appenders>
 	<Loggers>
+		<Logger name="it.tdlight.TDLight" level="ERROR" additivity="false" />
 		<Root level="INFO">
 			<AppenderRef ref="Console"/>
 		</Root>

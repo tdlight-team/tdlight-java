@@ -6,6 +6,7 @@ import it.tdlight.client.CommandHandler;
 import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.client.TDLibSettings;
 import it.tdlight.common.Init;
+import it.tdlight.common.Log;
 import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
 import java.nio.file.Paths;

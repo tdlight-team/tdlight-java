@@ -50,8 +50,8 @@ public final class Init {
 					LoadLibrary.load("tdjni");
 					ConstructorDetector.init();
 					try {
-						NativeClientAccess.execute(new SetLogVerbosityLevel(2));
-						Log.setLogMessageHandler(2, (verbosityLevel, message) -> {
+						NativeClientAccess.execute(new SetLogVerbosityLevel(3));
+						Log.setLogMessageHandler(3, (verbosityLevel, message) -> {
 							switch (verbosityLevel) {
 								case -1:
 								case 0:
