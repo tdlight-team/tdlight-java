@@ -5,7 +5,6 @@ import it.tdlight.common.TelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationStateWaitTdlibParameters;
 import it.tdlight.jni.TdApi.SetTdlibParameters;
-import it.tdlight.jni.TdApi.TdlibParameters;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 
 final class AuthorizationStateWaitTdlibParametersHandler implements GenericUpdateHandler<UpdateAuthorizationState> {
@@ -25,7 +24,7 @@ final class AuthorizationStateWaitTdlibParametersHandler implements GenericUpdat
 	@Override
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == AuthorizationStateWaitTdlibParameters.CONSTRUCTOR) {
-			TdlibParameters params = new TdlibParameters();
+			TdApi.SetTdlibParameters params = new TdApi.SetTdlibParameters();
 			params.useTestDc = settings.isUsingTestDatacenter();
 			params.databaseDirectory = settings.getDatabaseDirectoryPath().toString();
 			params.filesDirectory = settings.getDownloadedFilesDirectoryPath().toString();
@@ -41,7 +40,8 @@ final class AuthorizationStateWaitTdlibParametersHandler implements GenericUpdat
 			params.applicationVersion = settings.getApplicationVersion();
 			params.enableStorageOptimizer = settings.isStorageOptimizerEnabled();
 			params.ignoreFileNames = settings.isIgnoreFileNames();
-			client.send(new SetTdlibParameters(params), ok -> {
+			params.databaseEncryptionKey = null;
+			client.send(params, ok -> {
 				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
 					throw new TelegramError((TdApi.Error) ok);
 				}

@@ -71,9 +71,6 @@ public final class SimpleTelegramClient implements Authenticable {
 				new AuthorizationStateWaitTdlibParametersHandler(client, settings, this::handleDefaultException)
 		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitEncryptionKeyHandler(client, this::handleDefaultException)
-		);
-		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				new AuthorizationStateWaitAuthenticationDataHandler(client, this, this::handleDefaultException)
 		);
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
