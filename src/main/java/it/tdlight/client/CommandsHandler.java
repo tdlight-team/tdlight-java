@@ -86,7 +86,7 @@ final class CommandsHandler implements GenericUpdateHandler<UpdateNewMessage> {
 
 	private Optional<String> getMyUsername() {
 		User user = this.me.get();
-		if (user == null || user.usernames.editableUsername == null || user.usernames.editableUsername.isEmpty()) {
+		if (user == null || user.usernames == null) {
 			return Optional.empty();
 		} else {
 			return Optional.of(user.usernames.editableUsername);
