@@ -70,25 +70,26 @@ public final class ConsoleInteractiveAuthenticationData implements Authenticatio
 			// Choose login type
 			String mode;
 			do {
-				choice = ScannerUtils
-						.askParameter("login",
-								"Do you want to login using a bot [token], a [phone] number, or a [qr] code? [token/phone/qr]"
-						)
-						.trim()
-						.toLowerCase(Locale.ROOT);
-				switch (choice) {
-					case "phone":
-						mode = "PHONE";
-						break;
-					case "token":
-						mode = "TOKEN";
-						break;
-					case "qr":
-						mode = "QR";
-						break;
-					default:
-						mode = null;
-						break;
+				var response = ScannerUtils.askParameter("login",
+						"Do you want to login using a bot [token], a [phone] number, or a [qr] code? [token/phone/qr]");
+				if (response != null) {
+					choice = response.trim().toLowerCase(Locale.ROOT);
+					switch (choice) {
+						case "phone":
+							mode = "PHONE";
+							break;
+						case "token":
+							mode = "TOKEN";
+							break;
+						case "qr":
+							mode = "QR";
+							break;
+						default:
+							mode = null;
+							break;
+					}
+				} else {
+					mode = null;
 				}
 			} while (mode == null);
 
