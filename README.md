@@ -2,10 +2,10 @@
     <a href="https://github.com/tdlight-team/tdlight-java"><img src="./.media/tdlight-logo.png" alt="TDLight logo" style="width: 5rem; height: 5rem"></a>
     <h1>TDLight Java</h1>
     <p>Complete Bot and Userbot Telegram library written in Java, based on <a href="https://github.com/tdlib/td">TDLib</a></p>
-    <a href="https://travis-ci.com/tdlight-team/tdlight-java-natives">
-<img alt="Java CI" src="https://img.shields.io/github/workflow/status/tdlight-team/tdlight-java/Maven%20Package?style=flat-square)"></a>
+    <a href="https://github.com/tdlight-team/tdlight-java/actions/workflows/maven-publish.yml">
+<img alt="Maven package" src="https://github.com/tdlight-team/tdlight-java/actions/workflows/maven-publish.yml/badge.svg?branch=master"></a>
     <a href="https://github.com/tdlight-team/tdlight-java/releases">
-        <img alt="Release" src="https://img.shields.io/github/v/release/tdlight-team/tdlight-java.svg?include_prereleases&style=flat-square)">
+        <img alt="Release" src="https://img.shields.io/github/v/release/tdlight-team/tdlight-java.svg?include_prereleases&style=flat-square">
     </a>
     <a href="https://www.ej-technologies.com/products/jprofiler/overview.html">
         <img alt="JProfiler" src="https://local.cavallium.it/mirrors/jprofiler-logo/jprofiler-logo-badge.svg">
