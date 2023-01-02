@@ -4,7 +4,7 @@
 cd "../../"
 
 cd "bom"
-mvn -B clean deploy
+mvn -B clean deploy -Dtdlight.build.type=standard
 cd "../"
 
 echo "Done."

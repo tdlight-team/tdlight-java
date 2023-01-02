@@ -11,7 +11,8 @@ fi
 cd "../../"
 
 cd "bom"
-mvn -B -Drevision="${REVISION}" clean deploy
+mvn -B -Drevision="${REVISION}" -Dtdlight.build.type=legacy clean deploy
+mvn -B -Drevision="${REVISION}" -Dtdlight.build.type=standard clean deploy
 cd "../"
 
 echo "Done."

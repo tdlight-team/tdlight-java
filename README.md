@@ -15,7 +15,7 @@
 
 ## 💻 Supported platforms
 
-**Java versions**: from Java 8 to Java 17
+**Java versions**: from Java 17 to Java 19+ (Legacy Java 8+ support with `tdlight-java-8`)
 
 **Operating systems**: Linux, Windows, MacOS
 
@@ -84,7 +84,7 @@ If you are using Maven, edit your `pom.xml` file as below:
 		<!-- Add the following dependencies -->
 		<dependency>
 			<groupId>it.tdlight</groupId>
-			<artifactId>tdlight-java</artifactId>
+			<artifactId>tdlight-java</artifactId> <!-- Use tdlight-java-8 if you are using java 8 to 16 -->
 			<!-- don't specify the version here -->
 		</dependency>
 		<dependency>
@@ -114,7 +114,7 @@ dependencies {
 	implementation platform('it.tdlight:tdlight-java-bom:VERSION')
 
 	// do not specify the versions on the dependencies below!
-	implementation 'it.tdlight:tdlight-java'
+	implementation 'it.tdlight:tdlight-java' // Use tdlight-java-8 if you are using java 8 to 16
 	implementation 'it.tdlight:tdlight-natives-linux-amd64'
 	// Include other native versions that you want, for example for windows, osx, ...
 }
