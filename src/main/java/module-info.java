@@ -2,7 +2,7 @@ module tdlight.java {
 	requires tdlight.api;
 	requires org.reactivestreams;
 	requires org.slf4j;
-	requires it.unimi.dsi.fastutil;
+	requires it.unimi.dsi.fastutil.core;
 	requires com.google.zxing;
 	exports it.tdlight.tdlight;
 	exports it.tdlight.tdnative;
