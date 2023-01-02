@@ -1,8 +1,6 @@
 package it.tdlight.common.utils;
 
-import it.unimi.dsi.fastutil.Swapper;
-
-public final class IntSwapper implements Swapper {
+public final class IntSwapper {
 
 	private final int[] array;
 	int tmp;
@@ -12,7 +10,6 @@ public final class IntSwapper implements Swapper {
 		tmp = 0;
 	}
 
-	@Override
 	public void swap(int a, int b) {
 		tmp = array[a];
 		array[a] = array[b];

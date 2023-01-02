@@ -7,8 +7,9 @@ import it.tdlight.common.TelegramClient;
 import it.tdlight.common.UpdatesHandler;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Function;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.tdlight.jni.TdApi.Object;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,7 +48,7 @@ public final class InternalClient implements ClientEventsHandler, TelegramClient
 	@Override
 	public void handleEvents(boolean isClosed, long[] eventIds, TdApi.Object[] events, int arrayOffset, int arrayLength) {
 		if (updatesHandler != null) {
-			ObjectArrayList<TdApi.Object> updatesList = new ObjectArrayList<>(arrayLength);
+			List<Object> updatesList = new ArrayList<>(arrayLength);
 
 			for (int i = (arrayOffset + arrayLength) - 1; i >= arrayOffset; i--) {
 				if (eventIds[i] != 0) {
