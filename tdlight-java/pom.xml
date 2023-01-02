@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>${tdlight.lib.artifact.id}</artifactId>
+	<artifactId>tdlight-java</artifactId>
 	<name>TDLight Java Wrapper</name>
 	<packaging>jar</packaging>
 	<parent>
@@ -13,8 +13,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>1.0.0.0-SNAPSHOT</revision>
-		<tdlight.api.artifact.id>tdlight-api-legacy</tdlight.api.artifact.id>
-		<tdlight.lib.artifact.id>tdlight-java-8</tdlight.lib.artifact.id>
 	</properties>
 	<repositories>
 		<repository>
@@ -48,7 +46,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>it.tdlight</groupId>
-			<artifactId>${tdlight.api.artifact.id}</artifactId>
+			<artifactId>tdlight-api-sealed</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>it.unimi.dsi</groupId>
@@ -102,32 +100,6 @@
 			<build>
 				<directory>target-snapshot</directory>
 			</build>
-		</profile>
-		<profile>
-			<id>jdk-with-sealed-interfaces</id>
-			<activation>
-				<property>
-					<name>tdlight.build.type</name>
-					<value>standard</value>
-				</property>
-			</activation>
-			<properties>
-				<tdlight.api.artifact.id>tdlight-api-sealed</tdlight.api.artifact.id>
-				<tdlight.lib.artifact.id>tdlight-java</tdlight.lib.artifact.id>
-			</properties>
-		</profile>
-		<profile>
-			<id>jdk-with-legacy-interfaces</id>
-			<activation>
-				<property>
-					<name>tdlight.build.type</name>
-					<value>legacy</value>
-				</property>
-			</activation>
-			<properties>
-				<tdlight.api.artifact.id>tdlight-api-legacy</tdlight.api.artifact.id>
-				<tdlight.lib.artifact.id>tdlight-java-8</tdlight.lib.artifact.id>
-			</properties>
 		</profile>
 	</profiles>
 	<build>

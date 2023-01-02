@@ -15,7 +15,8 @@
 	</properties>
 	<modules>
 		<!--disabled: <module>../tdlib</module>-->
-		<module>../tdlight</module>
+		<module>../tdlight-java</module>
+		<module>../tdlight-java-8</module>
 	</modules>
 
 	<build>
