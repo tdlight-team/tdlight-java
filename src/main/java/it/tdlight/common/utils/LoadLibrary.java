@@ -192,65 +192,18 @@ public final class LoadLibrary {
 		System.load(tempFile.toFile().getAbsolutePath());
 	}
 
-	private static Class<?> tryLoadLibraryVersionClass(String classForResource, Os os, Arch arch) throws CantLoadLibrary {
+	private static Class<?> tryLoadLibraryVersionClass(String classForResource, Os os, Arch arch) {
 		try {
 			return Class.forName(classForResource);
 		} catch (ClassNotFoundException e1) {
-			// exact library not found
-
-			//Check if a wrong version is installed
-			try {
-				Class<?> foundAnotherVersion = Class.forName(removeFromVersion(classForResource));
-				throw new CantLoadLibrary("Can't load the native libraries."
-						+ " A different version of the native libraries was found."
-						+ " Please make sure that you installed the correct one."
-						+ " Required version: " + getRequiredVersionName(os, arch), e1);
-			} catch (ClassNotFoundException e2) {
-				// not found arch
-
-				//Check if a wrong arch is installed
-				try {
-					Class<?> foundAnotherArch = Class.forName(removeFromArch(classForResource));
-					throw new CantLoadLibrary("Can't load the native libraries."
-							+ " A different architecture of the native libraries was found."
-							+ " Please make sure that you installed the correct one."
-							+ " Required version: " + getRequiredVersionName(os, arch), e1);
-				} catch (ClassNotFoundException e3) {
-					// not found os
-
-					//Check if a wrong os is installed
-					try {
-						Class<?> foundAnotherOs = Class.forName(removeFromOs(classForResource));
-						throw new CantLoadLibrary("Can't load the native libraries."
-								+ " A different OS of the native libraries was found."
-								+ " Please make sure that you installed the correct one."
-								+ " Required version: " + getRequiredVersionName(os, arch), e1);
-					} catch (ClassNotFoundException e4) {
-						// not found anything
-
-						// No library was found, return
-						return null;
-					}
-				}
-			}
+			// No library was found, return
+			return null;
 		}
 	}
 
 	private static String getRequiredVersionName(Os os, Arch arch) {
 		return LibraryVersion.IMPLEMENTATION_NAME + " " + os.toString().toLowerCase() + " " + arch.toString().toLowerCase()
 				+ " " + LibraryVersion.NATIVES_VERSION;
-	}
-
-	private static String removeFromVersion(String libraryVersionClass) {
-		return removeLastPackageParts(libraryVersionClass, 1, "AnyVersion");
-	}
-
-	private static String removeFromArch(String libraryVersionClass) {
-		return removeLastPackageParts(libraryVersionClass, 2, "AnyArch");
-	}
-
-	private static String removeFromOs(String libraryVersionClass) {
-		return removeLastPackageParts(libraryVersionClass, 3, "AnyOs");
 	}
 
 	private static Arch getCpuArch() {
