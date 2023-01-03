@@ -59,12 +59,9 @@
 			<version>1.0.4</version>
 		</dependency>
 		<dependency>
-			<groupId>net.harawata</groupId>
-			<artifactId>appdirs</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>core</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

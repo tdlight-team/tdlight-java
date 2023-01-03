@@ -4,8 +4,12 @@ import it.tdlight.common.utils.ScannerUtils;
 import it.tdlight.jni.TdApi.TermsOfService;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class ScannerClientInteraction implements ClientInteraction {
+
+	private static final Logger LOG = LoggerFactory.getLogger(ScannerClientInteraction.class);
 
 	private final ExecutorService blockingExecutor;
 	private final Authenticable authenticable;
@@ -83,8 +87,13 @@ final class ScannerClientInteraction implements ClientInteraction {
 						String link = ((ParameterInfoNotifyLink) parameterInfo).getLink();
 						System.out.println("Please confirm this login link on another device: " + link);
 						System.out.println();
-						System.out.println(QrCodeTerminal.getQr(link));
-						System.out.println();
+						try {
+							System.out.println(QrCodeTerminal.getQr(link));
+							System.out.println();
+						} catch (NoClassDefFoundError ex) {
+							LOG.warn("QR code library is missing!"
+									+ " Please add the following dependency to your project: com.google.zxing:core");
+						}
 						resultCons.accept("");
 						return;
 					case TERMS_OF_SERVICE:

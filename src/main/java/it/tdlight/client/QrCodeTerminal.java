@@ -8,7 +8,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import java.util.Hashtable;
 
-class QrCodeTerminal {
+public class QrCodeTerminal {
 
 	public static String getQr(String url) {
 		int width = 40;
@@ -24,7 +24,7 @@ class QrCodeTerminal {
 		}
 	}
 
-	public static String toAscii(BitMatrix bitMatrix) {
+	static String toAscii(BitMatrix bitMatrix) {
 		StringBuilder sb = new StringBuilder();
 		for (int rows = 0; rows < bitMatrix.getHeight(); rows++) {
 			for (int cols = 0; cols < bitMatrix.getWidth(); cols++) {
