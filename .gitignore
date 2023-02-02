@@ -88,3 +88,6 @@ parent/.classpath
 /.classpath
 
 .flattened-pom.xml
+
+*.iml
+
