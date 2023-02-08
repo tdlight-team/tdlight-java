@@ -48,6 +48,8 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/v') && matrix.ssl == 'ssl1' }}
         shell: bash
         run: |
+          echo "SSL_TYPE: $SSL_TYPE"
+
           source ./scripts/continuous-integration/github-workflows/deploy-snapshot.sh
         env:
           MAVEN_USERNAME: ${{ secrets.MCHV_USERNAME }}
