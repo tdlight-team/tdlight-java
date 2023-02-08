@@ -3,12 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.tdlight</groupId>
 	<artifactId>tdlight-java-bom</artifactId>
-	<version>${revision}${nativesSsl3Suffix}${revisionSuffix}</version>
+	<version>${revision}</version>
 	<packaging>pom</packaging>
 	<name>TDLight Java BOM</name>
 	<properties>
-		<revision>1.0.0.0</revision>
-		<revisionSuffix>-SNAPSHOT</revisionSuffix>
+		<revision>1.0.0.0-SNAPSHOT</revision>
 		<nativesSsl3Suffix/>
 		<nativesRevisionNumber>299</nativesRevisionNumber>
 		<apiRevisionNumber>297</apiRevisionNumber>

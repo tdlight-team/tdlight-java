@@ -6,14 +6,12 @@
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>it.tdlight</groupId>
-		<version>${revision}${nativesSsl3Suffix}${revisionSuffix}</version>
+		<version>${revision}</version>
 		<artifactId>tdlight-java-bom</artifactId>
 		<relativePath>../bom/pom.xml</relativePath>
 	</parent>
 	<properties>
-		<revision>1.0.0.0</revision>
-		<revisionSuffix>-SNAPSHOT</revisionSuffix>
-		<nativesSsl3Suffix/>
+		<revision>1.0.0.0-SNAPSHOT</revision>
 	</properties>
 	<modules>
 		<!--disabled: <module>../tdlib</module>-->

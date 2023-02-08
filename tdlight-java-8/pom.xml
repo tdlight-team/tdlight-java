@@ -6,14 +6,13 @@
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>it.tdlight</groupId>
-		<version>${revision}${nativesSsl3Suffix}${revisionSuffix}</version>
+		<version>${revision}</version>
 		<artifactId>tdlight-java-parent</artifactId>
 		<relativePath>../parent/pom.xml</relativePath>
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>1.0.0.0</revision>
-		<revisionSuffix>-SNAPSHOT</revisionSuffix>
+		<revision>1.0.0.0-SNAPSHOT</revision>
 		<nativesSsl3Suffix/>
 	</properties>
 	<repositories>
