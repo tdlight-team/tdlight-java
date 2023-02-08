@@ -3,20 +3,23 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.tdlight</groupId>
 	<artifactId>tdlight-java-bom</artifactId>
-	<version>${revision}</version>
+	<version>${revision}${nativesSsl3Suffix}${revisionSuffix}</version>
 	<packaging>pom</packaging>
 	<name>TDLight Java BOM</name>
-    <properties>
-        <revision>1.0.0.0-SNAPSHOT</revision>
-        <nativesRevisionNumber>293</nativesRevisionNumber>
-        <apiRevisionNumber>291</apiRevisionNumber>
-        <nativesRevisionSuffix/>
-        <tdlight.natives.version>4.0.${nativesRevisionNumber}${nativesRevisionSuffix}</tdlight.natives.version>
-        <apiRevisionSuffix/>
-        <tdlight.api.version>4.0.${apiRevisionNumber}${apiRevisionSuffix}</tdlight.api.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+	<properties>
+		<revision>1.0.0.0</revision>
+		<revisionSuffix>-SNAPSHOT</revisionSuffix>
+		<nativesRevisionNumber>299</nativesRevisionNumber>
+		<apiRevisionNumber>297</apiRevisionNumber>
+		<nativesRevisionSuffix/>
+		<nativesSsl3Suffix/>
+		<tdlight.natives.version>4.0.${nativesRevisionNumber}${nativesRevisionSuffix}</tdlight.natives.version>
+		<tdlight.natives.ssl3.version>4.0.${nativesRevisionNumber}${nativesSsl3Suffix}${nativesRevisionSuffix}</tdlight.natives.ssl3.version>
+		<apiRevisionSuffix/>
+		<tdlight.api.version>4.0.${apiRevisionNumber}${apiRevisionSuffix}</tdlight.api.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
 	<repositories>
 		<repository>
 			<id>mchv-release</id>
@@ -106,12 +109,12 @@
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives-linux-amd64</artifactId>
-				<version>${tdlight.natives.version}</version>
+				<version>${tdlight.natives.ssl3.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives-linux-aarch64</artifactId>
-				<version>${tdlight.natives.version}</version>
+				<version>${tdlight.natives.ssl3.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>

@@ -11,7 +11,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - { os: ubuntu-20.04, arch: "linux/amd64" }
+          - { os: ubuntu-20.04, arch: "linux/amd64", ssl: "ssl1" }
+          - { os: ubuntu-20.04, arch: "linux/amd64", ssl: "ssl3" }
     runs-on: ${{ matrix.os }}
     steps:
       - name: Branch name
@@ -29,8 +30,10 @@ jobs:
         run: |
           # ====== Variables
           export REVISION=${{ steps.branch_name.outputs.SOURCE_TAG_VERSION }}
+          export SSL_TYPE=${{ matrix.ssl }}
 
           echo "REVISION=$REVISION" >> $GITHUB_ENV
+          echo "SSL_TYPE=$SSL_TYPE" >> $GITHUB_ENV
       - name: Set up JDK 17 (Snapshot)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/setup-java@v3
@@ -42,7 +45,7 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
       - name: Build (Snapshot)
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') && matrix.ssl == 'ssl1' }}
         shell: bash
         run: |
           source ./scripts/continuous-integration/github-workflows/deploy-snapshot.sh
@@ -64,6 +67,7 @@ jobs:
         shell: bash
         run: |
           echo "REVISION: $REVISION"
+          echo "SSL_TYPE: $SSL_TYPE"
 
           source ./scripts/continuous-integration/github-workflows/deploy-release.sh
         env:
