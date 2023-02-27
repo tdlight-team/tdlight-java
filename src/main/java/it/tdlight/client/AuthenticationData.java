@@ -6,7 +6,7 @@ public interface AuthenticationData {
 
 	boolean isBot();
 
-	long getUserPhoneNumber();
+	String getUserPhoneNumber();
 
 	String getBotToken();
 
@@ -14,7 +14,15 @@ public interface AuthenticationData {
 		return new AuthenticationDataQrCode();
 	}
 
+	/**
+	 * Deprecated, use {@link #user(String)} instead
+	 */
+	@Deprecated
 	static AuthenticationData user(long userPhoneNumber) {
+		return user(String.valueOf(userPhoneNumber));
+	}
+
+	static AuthenticationData user(String userPhoneNumber) {
 		return new AuthenticationDataImpl(userPhoneNumber, null);
 	}
 

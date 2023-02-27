@@ -5,10 +5,10 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 final class AuthenticationDataImpl implements AuthenticationData {
 
-	private final Long userPhoneNumber;
+	private final String userPhoneNumber;
 	private final String botToken;
 
-	AuthenticationDataImpl(Long userPhoneNumber, String botToken) {
+	AuthenticationDataImpl(String userPhoneNumber, String botToken) {
 		if ((userPhoneNumber == null) == (botToken == null)) {
 			throw new IllegalArgumentException("Please use either a bot token or a phone number");
 		}
@@ -32,7 +32,7 @@ final class AuthenticationDataImpl implements AuthenticationData {
 	}
 
 	@Override
-	public long getUserPhoneNumber() {
+	public String getUserPhoneNumber() {
 		if (userPhoneNumber == null) {
 			throw new UnsupportedOperationException("This is not a user");
 		}
@@ -50,7 +50,7 @@ final class AuthenticationDataImpl implements AuthenticationData {
 	@Override
 	public String toString() {
 		if (userPhoneNumber != null) {
-			return "+" + userPhoneNumber;
+			return userPhoneNumber;
 		} else {
 			return "\"" + botToken + "\"";
 		}
