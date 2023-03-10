@@ -13,7 +13,7 @@ class AuthenticationDataQrCode implements AuthenticationData {
 	}
 
 	@Override
-	public long getUserPhoneNumber() {
+	public String getUserPhoneNumber() {
 		throw new UnsupportedOperationException("This is not a user");
 	}
 

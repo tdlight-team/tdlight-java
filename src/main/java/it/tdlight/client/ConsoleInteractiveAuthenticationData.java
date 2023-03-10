@@ -11,7 +11,7 @@ public final class ConsoleInteractiveAuthenticationData implements Authenticatio
 	private boolean isQr;
 	private boolean isBot;
 	private String botToken;
-	private long phoneNumber;
+	private String phoneNumber;
 
 	ConsoleInteractiveAuthenticationData() {
 
@@ -38,7 +38,7 @@ public final class ConsoleInteractiveAuthenticationData implements Authenticatio
 	}
 
 	@Override
-	public long getUserPhoneNumber() {
+	public String getUserPhoneNumber() {
 		initializeIfNeeded();
 		if (isBot || isQr) {
 			throw new UnsupportedOperationException("This is not a user");
@@ -100,7 +100,7 @@ public final class ConsoleInteractiveAuthenticationData implements Authenticatio
 				} while (token.length() < 5 || !token.contains(":"));
 
 				this.isBot = true;
-				this.phoneNumber = -1;
+				this.phoneNumber = null;
 				this.botToken = token;
 				this.isQr = false;
 			} else if ("PHONE".equals(mode)) {
@@ -109,16 +109,14 @@ public final class ConsoleInteractiveAuthenticationData implements Authenticatio
 					phoneNumber = ScannerUtils.askParameter("login", "Please type your phone number");
 				} while (phoneNumber.length() < 3);
 
-				long phoneNumberLong = Long.parseLong(phoneNumber.replaceAll("\\D", ""));
-
 				this.isBot = false;
-				this.phoneNumber = phoneNumberLong;
+				this.phoneNumber = phoneNumber;
 				this.botToken = null;
 				this.isQr = false;
 			} else {
 
 				this.isBot = false;
-				this.phoneNumber = -1;
+				this.phoneNumber = null;
 				this.botToken = null;
 				this.isQr = true;
 			}

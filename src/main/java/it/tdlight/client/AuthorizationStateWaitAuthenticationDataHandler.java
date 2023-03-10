@@ -47,7 +47,7 @@ final class AuthorizationStateWaitAuthenticationDataHandler implements GenericUp
 		} else {
 			PhoneNumberAuthenticationSettings phoneSettings = new PhoneNumberAuthenticationSettings(false, false, false, false, null);
 
-			String phoneNumber = String.valueOf(authenticationData.getUserPhoneNumber());
+			String phoneNumber = authenticationData.getUserPhoneNumber();
 			SetAuthenticationPhoneNumber response = new SetAuthenticationPhoneNumber(phoneNumber, phoneSettings);
 			client.send(response, ok -> {
 				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
