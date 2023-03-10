@@ -231,7 +231,7 @@ public final class SimpleTelegramClient implements Authenticable {
 	 * Send a function and get the result
 	 */
 	public <R extends TdApi.Object> void send(TdApi.Function<R> function, GenericResultHandler<R> resultHandler) {
-		client.send(function, result -> resultHandler.onResult(Result.of(result)), this::handleResultHandlingException);
+		send(function, result -> resultHandler.onResult(Result.of(result)), this::handleResultHandlingException);
 	}
 
 	/**
