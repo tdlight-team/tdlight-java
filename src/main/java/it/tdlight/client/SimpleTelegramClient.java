@@ -235,6 +235,13 @@ public final class SimpleTelegramClient implements Authenticable {
 	}
 
 	/**
+	 * Send a function and get the result
+	 */
+	public <R extends TdApi.Object> void send(TdApi.Function<R> function, GenericResultHandler<R> resultHandler, ExceptionHandler exceptionHandler) {
+		client.send(function, result -> resultHandler.onResult(Result.of(result)), exceptionHandler);
+	}
+
+	/**
 	 * Execute a synchronous function.
 	 * <strong>Please note that only some functions can be executed using this method.</strong>
 	 * If you want to execute a function please use {@link #send(Function, GenericResultHandler)}!
