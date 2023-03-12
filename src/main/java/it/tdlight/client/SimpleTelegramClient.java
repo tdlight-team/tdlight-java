@@ -236,7 +236,7 @@ public final class SimpleTelegramClient implements Authenticable {
 	 * @throws NullPointerException if function is null.
 	 */
 	public <R extends TdApi.Object> void send(TdApi.Function<R> function, GenericResultHandler<R> resultHandler) {
-		this.send(function, resultHandler, null);
+		client.send(function, result -> resultHandler.onResult(Result.of(result)), this::handleResultHandlingException);
 	}
 
 	/**
@@ -250,10 +250,10 @@ public final class SimpleTelegramClient implements Authenticable {
 	 */
 	public <R extends TdApi.Object> void send(TdApi.Function<R> function, GenericResultHandler<R> resultHandler,
 			ExceptionHandler resultHandlerExceptionHandler) {
-		client.send(function,
-				result -> resultHandler.onResult(Result.of(result)),
-				Objects.requireNonNullElse(resultHandlerExceptionHandler, this::handleResultHandlingException)
-		);
+		if (resultHandlerExceptionHandler == null) {
+			resultHandlerExceptionHandler = this::handleResultHandlingException;
+		}
+		client.send(function, result -> resultHandler.onResult(Result.of(result)), resultHandlerExceptionHandler);
 	}
 
 	/**
