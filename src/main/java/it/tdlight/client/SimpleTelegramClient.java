@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -228,10 +229,31 @@ public final class SimpleTelegramClient implements Authenticable {
 	}
 
 	/**
-	 * Send a function and get the result
+	 * Sends a request to TDLib and get the result.
+	 *
+	 * @param function         The request to TDLib.
+	 * @param resultHandler    Result handler. If it is null, nothing will be called.
+	 * @throws NullPointerException if function is null.
 	 */
 	public <R extends TdApi.Object> void send(TdApi.Function<R> function, GenericResultHandler<R> resultHandler) {
-		client.send(function, result -> resultHandler.onResult(Result.of(result)), this::handleResultHandlingException);
+		this.send(function, resultHandler, null);
+	}
+
+	/**
+	 * Sends a request to TDLib and get the result.
+	 *
+	 * @param function         The request to TDLib.
+	 * @param resultHandler    Result handler. If it is null, nothing will be called.
+	 * @param resultHandlerExceptionHandler Handle exceptions thrown inside the result handler.
+	 *                                       If it is null, the default exception handler will be called.
+	 * @throws NullPointerException if function is null.
+	 */
+	public <R extends TdApi.Object> void send(TdApi.Function<R> function, GenericResultHandler<R> resultHandler,
+			ExceptionHandler resultHandlerExceptionHandler) {
+		client.send(function,
+				result -> resultHandler.onResult(Result.of(result)),
+				Objects.requireNonNullElse(resultHandlerExceptionHandler, this::handleResultHandlingException)
+		);
 	}
 
 	/**
