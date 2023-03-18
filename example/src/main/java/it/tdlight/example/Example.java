@@ -5,7 +5,6 @@ import it.tdlight.client.AuthenticationData;
 import it.tdlight.client.CommandHandler;
 import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.client.TDLibSettings;
-import it.tdlight.common.utils.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
 import java.nio.file.Paths;
 
@@ -23,7 +22,7 @@ public final class Example {
 
 	private static SimpleTelegramClient client;
 
-	public static void main(String[] args) throws CantLoadLibrary, InterruptedException {
+	public static void main(String[] args) throws InterruptedException {
 		// Obtain the API token
 		var apiToken = APIToken.example();
 
