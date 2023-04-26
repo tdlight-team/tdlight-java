@@ -91,3 +91,7 @@ parent/.classpath
 
 *.iml
 
+
+tdlight-java/target-snapshot/
+
+tdlight-java-8/target-snapshot/

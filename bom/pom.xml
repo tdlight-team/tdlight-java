@@ -7,10 +7,10 @@
 	<packaging>pom</packaging>
 	<name>TDLight Java BOM</name>
 	<properties>
-		<revision>1.0.0.0-SNAPSHOT</revision>
+		<revision>1.1.0.0-SNAPSHOT</revision>
 		<nativesSsl3Suffix/>
-		<nativesRevisionNumber>299</nativesRevisionNumber>
-		<apiRevisionNumber>297</apiRevisionNumber>
+		<nativesRevisionNumber>307</nativesRevisionNumber>
+		<apiRevisionNumber>305</apiRevisionNumber>
 		<nativesRevisionSuffix/>
 		<tdlight.natives.version>4.0.${nativesRevisionNumber}${nativesRevisionSuffix}</tdlight.natives.version>
 		<tdlight.natives.ssl3.version>4.0.${nativesRevisionNumber}${nativesSsl3Suffix}${nativesRevisionSuffix}</tdlight.natives.ssl3.version>
@@ -51,12 +51,9 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>com.google.zxing</groupId>
-				<artifactId>core</artifactId>
-				<version>3.5.0</version>
-				<optional>true</optional>
-			</dependency>
+
+			<!-- TDLight packages and APIs -->
+
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-api-legacy</artifactId>
@@ -89,17 +86,7 @@
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-java</artifactId>
-				<version>${revision}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-java-parent</artifactId>
-				<version>${revision}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-java-parent</artifactId>
 				<version>${revision}</version>
 			</dependency>
 
@@ -143,49 +130,6 @@
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives-osx-amd64</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-
-			<!-- TDLib natives -->
-
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-linux-amd64</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-linux-aarch64</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-linux-x86</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-linux-armhf</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-linux-ppc64le</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-linux-s390x</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-windows-amd64</artifactId>
-				<version>${tdlight.natives.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlib-natives-osx-amd64</artifactId>
 				<version>${tdlight.natives.version}</version>
 			</dependency>
 

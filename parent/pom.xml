@@ -11,10 +11,14 @@
 		<relativePath>../bom/pom.xml</relativePath>
 	</parent>
 	<properties>
-		<revision>1.0.0.0-SNAPSHOT</revision>
+		<revision>1.1.0.0-SNAPSHOT</revision>
+		<zxing.version>3.5.0</zxing.version>
+		<reactive.streams.version>1.0.4</reactive.streams.version>
+		<slf4j.api.version>2.0.5</slf4j.api.version>
+		<junit.jupiter.engine.version>5.9.0</junit.jupiter.engine.version>
+		<fastutil.core.version>8.5.11</fastutil.core.version>
 	</properties>
 	<modules>
-		<!--disabled: <module>../tdlib</module>-->
 		<module>../tdlight-java</module>
 		<module>../tdlight-java-8</module>
 	</modules>
