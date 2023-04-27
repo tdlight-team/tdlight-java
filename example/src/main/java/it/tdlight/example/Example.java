@@ -1,14 +1,17 @@
 package it.tdlight.example;
 
 import it.tdlight.client.*;
-import it.tdlight.client.AuthenticationData;
+import it.tdlight.client.AuthenticationSupplier;
 import it.tdlight.client.CommandHandler;
 import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.client.TDLibSettings;
-import it.tdlight.common.Init;
-import it.tdlight.common.Log;
-import it.tdlight.common.utils.CantLoadLibrary;
+import it.tdlight.Init;
+import it.tdlight.jni.TdApi.AuthorizationState;
+import it.tdlight.jni.TdApi.Chat;
+import it.tdlight.jni.TdApi.MessageContent;
+import it.tdlight.utils.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -29,37 +32,45 @@ public final class Example {
 		// Initialize TDLight native libraries
 		Init.start();
 
-		// Obtain the API token
-		var apiToken = APIToken.example();
+		// Create the client factory
+		try (SimpleTelegramClientFactory clientFactory = new SimpleTelegramClientFactory()) {
 
-		// Configure the client
-		var settings = TDLibSettings.create(apiToken);
+			// Obtain the API token
+			//
+			// var apiToken = new APIToken(your-api-id-here, "your-api-hash-here");
+			//
+			APIToken apiToken = APIToken.example();
 
-		// Configure the session directory
-		var sessionPath = Paths.get("example-tdlight-session");
-		settings.setDatabaseDirectoryPath(sessionPath.resolve("data"));
-		settings.setDownloadedFilesDirectoryPath(sessionPath.resolve("downloads"));
 
-		// Create a client
-		client = new SimpleTelegramClient(settings);
+			// Configure the client
+			TDLibSettings settings = TDLibSettings.create(apiToken);
 
-		// Configure the authentication info
-		var authenticationData = AuthenticationData.consoleLogin();
+			// Configure the session directory
+			Path sessionPath = Paths.get("example-tdlight-session");
+			settings.setDatabaseDirectoryPath(sessionPath.resolve("data"));
+			settings.setDownloadedFilesDirectoryPath(sessionPath.resolve("downloads"));
 
-		// Add an example update handler that prints when the bot is started
-		client.addUpdateHandler(TdApi.UpdateAuthorizationState.class, Example::onUpdateAuthorizationState);
+			// Prepare a new client builder
+			SimpleTelegramClientBuilder clientBuilder = clientFactory.builder(settings);
 
-		// Add an example update handler that prints every received message
-		client.addUpdateHandler(TdApi.UpdateNewMessage.class, Example::onUpdateNewMessage);
+			// Configure the authentication info
+			ConsoleInteractiveAuthenticationData authenticationData = AuthenticationSupplier.consoleLogin();
 
-		// Add an example command handler that stops the bot
-		client.addCommandHandler("stop", new StopCommandHandler());
+			// Add an example update handler that prints when the bot is started
+			clientBuilder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, Example::onUpdateAuthorizationState);
 
-		// Start the client
-		client.start(authenticationData);
+			// Add an example update handler that prints every received message
+			clientBuilder.addUpdateHandler(TdApi.UpdateNewMessage.class, Example::onUpdateNewMessage);
 
-		// Wait for exit
-		client.waitForExit();
+			// Add an example command handler that stops the bot
+			clientBuilder.addCommandHandler("stop", new StopCommandHandler());
+
+			// Create and start the client
+			client = clientBuilder.build(authenticationData);
+
+			// Wait for exit
+			client.waitForExit();
+		}
 	}
 
 	/**
@@ -67,7 +78,7 @@ public final class Example {
 	 */
 	private static void onUpdateNewMessage(TdApi.UpdateNewMessage update) {
 		// Get the message content
-		var messageContent = update.message.content;
+		MessageContent messageContent = update.message.content;
 
 		// Get the message text
 		String text;
@@ -82,9 +93,9 @@ public final class Example {
 		// Get the chat title
 		client.send(new TdApi.GetChat(update.message.chatId), chatIdResult -> {
 			// Get the chat response
-			var chat = chatIdResult.get();
+			Chat chat = chatIdResult.get();
 			// Get the chat name
-			var chatName = chat.title;
+			String chatName = chat.title;
 
 			// Print the message
 			System.out.printf("Received new message from chat %s: %s%n", chatName, text);
@@ -111,7 +122,7 @@ public final class Example {
 	 * Print the bot status
 	 */
 	private static void onUpdateAuthorizationState(TdApi.UpdateAuthorizationState update) {
-		var authorizationState = update.authorizationState;
+		AuthorizationState authorizationState = update.authorizationState;
 		if (authorizationState instanceof TdApi.AuthorizationStateReady) {
 			System.out.println("Logged in");
 		} else if (authorizationState instanceof TdApi.AuthorizationStateClosing) {

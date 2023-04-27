@@ -7,7 +7,7 @@
 	<packaging>pom</packaging>
 	<name>TDLight Java BOM</name>
 	<properties>
-		<revision>1.1.0.0-SNAPSHOT</revision>
+		<revision>3.0.0.0-SNAPSHOT</revision>
 		<nativesSsl3Suffix/>
 		<nativesRevisionNumber>307</nativesRevisionNumber>
 		<apiRevisionNumber>305</apiRevisionNumber>
@@ -81,8 +81,9 @@
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
-				<artifactId>tdlight-java-8</artifactId>
+				<artifactId>tdlight-java</artifactId>
 				<version>${revision}</version>
+				<classifier>jdk8</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
@@ -137,7 +138,7 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>../parent</module>
+		<module>../</module>
 	</modules>
 
 	<build>

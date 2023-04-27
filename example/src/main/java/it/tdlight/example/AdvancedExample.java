@@ -1,10 +1,10 @@
 package it.tdlight.example;
 
-import it.tdlight.common.Init;
-import it.tdlight.common.TelegramClient;
-import it.tdlight.common.utils.CantLoadLibrary;
+import it.tdlight.Init;
+import it.tdlight.TelegramClient;
+import it.tdlight.utils.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
-import it.tdlight.tdlight.ClientManager;
+import it.tdlight.ClientFactory;
 
 /**
  * This is an advanced example that uses directly the native client without using the SimpleClient implementation
@@ -15,8 +15,11 @@ public class AdvancedExample {
 		// Initialize TDLight native libraries
 		Init.start();
 
-		// Create a client
-		TelegramClient client = ClientManager.create();
+		// Create a client manager, it should be closed before shutdown
+		ClientFactory clientManager = new ClientFactory();
+
+		// Create a client, it should be closed before shutdown
+		TelegramClient client = clientManager.createClient();
 
 		// Initialize the client
 		client.initialize(AdvancedExample::onUpdate, AdvancedExample::onUpdateError, AdvancedExample::onError);

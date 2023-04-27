@@ -22,7 +22,7 @@ fi
 cd "../../"
 
 cd "bom"
-mvn -B -Drevision="${REVISION}${SSL_SUFFIX}" -DnativesSsl3Suffix="${SSL_SUFFIX}" clean deploy
+mvn -B -Drevision="${REVISION}${SSL_SUFFIX}" -DnativesSsl3Suffix="${SSL_SUFFIX}" -P "java8,java17" clean deploy
 cd "../"
 
 echo "Done."

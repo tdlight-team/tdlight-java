@@ -4,7 +4,7 @@
 cd "../../"
 
 cd "bom"
-mvn -B clean deploy
+mvn -B -P "java8,java17" clean deploy
 cd "../"
 
 echo "Done."
