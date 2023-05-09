@@ -37,7 +37,7 @@ public final class CantLoadLibrary extends Exception {
 		super(message, cause);
 	}
 
-	public CantLoadLibrary(Exception cause) {
+	public CantLoadLibrary(Throwable cause) {
 		super(cause);
 	}
 }

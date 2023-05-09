@@ -14,42 +14,32 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package it.tdlight.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The class to load the libraries needed to run Tdlib
  */
 public final class LoadLibrary {
 
-	private static final ConcurrentHashMap<String, Boolean> libraryLoaded = new ConcurrentHashMap<>();
-	private static final Path librariesPath = Paths.get(".cache");
-	private static final String libsVersion =
+	private static final Set<String> LIBRARY_LOADED = new ConcurrentHashMap<String, Boolean>().keySet(true);
+	private static final String LIBS_VERSION =
 			LibraryVersion.IMPLEMENTATION_NAME + "-" + LibraryVersion.VERSION + "-" + LibraryVersion.NATIVES_VERSION;
-
-	static {
-		if (Files.notExists(librariesPath)) {
-			try {
-				Files.createDirectories(librariesPath);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
 
 	/**
 	 * Load a library installed in the system (priority choice) or a library included in the jar.
@@ -62,35 +52,34 @@ public final class LoadLibrary {
 			throw new IllegalArgumentException();
 		}
 
-		if (libraryLoaded.containsKey(libname)) {
-			if (libraryLoaded.get(libname)) {
-				return;
-			}
-		}
+		if (LIBRARY_LOADED.contains(libname)) return;
+		synchronized (LoadLibrary.class) {
+			if (LIBRARY_LOADED.contains(libname)) return;
 
-		loadLibrary(libname);
-		libraryLoaded.put(libname, true);
+			String libraryCachePathString = System.getProperty("it.tdlight.libraryCachePath");
+			Path libraryCachePath = libraryCachePathString != null ? Paths.get(libraryCachePathString) : null;
+			loadLibrary(libname, libraryCachePath);
+			LIBRARY_LOADED.add(libname);
+		}
 	}
 
-	private static void loadLibrary(String libname) throws CantLoadLibrary {
-		Arch arch = getCpuArch();
-		Os os = getOs();
-
-		if (arch == Arch.UNKNOWN) {
-			throw new CantLoadLibrary("Arch: \"" + System.getProperty("os.arch") + "\" is unknown");
+	/**
+	 * Load a native library
+	 * @param libraryName Library name
+	 * @param libraryCachePath optional, path in which the library will be extracted
+	 * @throws CantLoadLibrary The library can't be loaded
+	 */
+	private static void loadLibrary(String libraryName, Path libraryCachePath) throws CantLoadLibrary {
+		if (libraryCachePath == null) {
+			libraryCachePath = Paths.get(System.getProperty("user.home")).resolve(".cache").resolve("tdlight-jni-cache");
 		}
-
-		if (os == Os.UNKNOWN) {
-			throw new CantLoadLibrary("Os: \"" + System.getProperty("os.name") + "\" is unknown");
-		}
-
 		try {
-			loadJarLibrary(libname, arch, os);
+			loadJarLibrary(libraryName, libraryCachePath);
 		} catch (CantLoadLibrary | UnsatisfiedLinkError e) {
-			if (loadSysLibrary(libname)) {
+			if (loadSysLibrary(libraryName)) {
 				return;
 			}
-			throw (CantLoadLibrary) new CantLoadLibrary().initCause(e);
+			throw new CantLoadLibrary(e);
 		}
 	}
 
@@ -104,132 +93,112 @@ public final class LoadLibrary {
 		return true;
 	}
 
-	private static String removeLastPackageParts(String clazz, int count, String className) {
-		List<String> parts = new ArrayList<>(Arrays.asList(clazz.split("\\.")));
-		parts.remove(parts.size() - 1);
-		for (int i = 0; i < count; i++) {
-			parts.remove(parts.size() - 1);
-		}
-		StringJoiner joiner = new StringJoiner(".");
-		for (String part : parts) {
-			joiner.add(part);
-		}
-		joiner.add(className);
-		return joiner.toString();
-	}
-
-	private static void loadJarLibrary(String libname, Arch arch, Os os) throws CantLoadLibrary {
+	private static void loadJarLibrary(String libraryName, Path libraryCachePath) throws CantLoadLibrary {
 		Path tempPath;
 		try {
-			tempPath = Files.createDirectories(librariesPath.resolve("version-" + libsVersion).resolve(libname));
+			tempPath = libraryCachePath.resolve("version-" + LIBS_VERSION).resolve(libraryName);
+			if (Files.notExists(tempPath)) {
+				tempPath = Files.createDirectories(tempPath);
+			}
 		} catch (IOException e) {
 			throw new CantLoadLibrary("Can't create temporary files", e);
 		}
-		Path tempFile = Paths.get(tempPath.toString(), libname + getExt(os));
-		Class<?> classForResource = null;
-		switch (os) {
-			case LINUX:
-				switch (arch) {
-					case AMD64:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_AMD64_CLASS, os, arch);
-						break;
-					case I386:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_X86_CLASS, os, arch);
-						break;
-					case AARCH64:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_AARCH64_CLASS, os, arch);
-						break;
-					case ARMHF:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_ARMHF_CLASS, os, arch);
-						break;
-					case S390X:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_S390X_CLASS, os, arch);
-						break;
-					case PPC64LE:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.LINUX_PPC64LE_CLASS, os, arch);
-						break;
-				}
-				break;
-			case OSX:
-				if (arch == Arch.AMD64) {
-					classForResource = tryLoadLibraryVersionClass(LibraryVersion.OSX_AMD64_CLASS, os, arch);
-				}
-				break;
-			case WINDOWS:
-				switch (arch) {
-					case AMD64:
-						classForResource = tryLoadLibraryVersionClass(LibraryVersion.WINDOWS_AMD64_CLASS, os, arch);
-						break;
-					case I386:
-						break;
-				}
-				break;
-		}
-		if (classForResource == null) {
-			throw new CantLoadLibrary("Native libraries for platform " + os + "-" + arch + " not found!"
-					+ " Required version: " + getRequiredVersionName(os, arch));
-		}
-		InputStream libInputStream;
-		try {
-			libInputStream = Objects.requireNonNull((InputStream) classForResource
-					.getDeclaredMethod("getLibraryAsStream")
-					.invoke(InputStream.class));
-		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NullPointerException e) {
-			throw new CantLoadLibrary("Native libraries for platform " + os + "-" + arch + " not found!", e);
-		}
-		if (Files.notExists(tempFile)) {
+
+		ClassLoader classForResource = LoadLibrary.class.getClassLoader();
+		List<String> normalizedArchs = getNormalizedArchitectures().collect(Collectors.toList());
+		Exception lastEx = null;
+		loadAny: for (String normalizedArch : normalizedArchs) {
+			Path tempFile = tempPath.resolve(libraryName + "." + normalizedArch);
+			InputStream libInputStream;
 			try {
-				Files.copy(libInputStream, tempFile);
-			} catch (IOException e) {
-				throw new CantLoadLibrary("Can't copy native libraries into temporary files", e);
+				libInputStream = Objects.requireNonNull(classForResource.getResourceAsStream("META-INF/tdlight-jni/lib" + libraryName + "." + normalizedArch));
+				if (Files.notExists(tempFile)) {
+					try {
+						Files.copy(libInputStream, tempFile);
+					} catch (IOException e) {
+						throw new CantLoadLibrary("Can't copy native libraries into temporary files", e);
+					}
+				}
+				try {
+					libInputStream.close();
+				} catch (IOException e) {
+					throw new CantLoadLibrary("Can't load the native libraries", e);
+				}
+				System.load(tempFile.toAbsolutePath().toString());
+				lastEx = null;
+				break loadAny;
+			} catch (Throwable e) {
+				lastEx = new CantLoadLibrary(e);
 			}
 		}
-		try {
-			libInputStream.close();
-		} catch (IOException e) {
-			throw new CantLoadLibrary("Can't load the native libraries", e);
-		}
-		System.load(tempFile.toFile().getAbsolutePath());
-	}
-
-	private static Class<?> tryLoadLibraryVersionClass(String classForResource, Os os, Arch arch) {
-		try {
-			return Class.forName(classForResource);
-		} catch (ClassNotFoundException e1) {
-			// No library was found, return
-			return null;
+		if (lastEx != null) {
+			throw new CantLoadLibrary("Native libraries for platforms "
+					+ String.join(", ", normalizedArchs) + " not found!", lastEx);
 		}
 	}
 
-	private static String getRequiredVersionName(Os os, Arch arch) {
-		return LibraryVersion.IMPLEMENTATION_NAME + " " + os.toString().toLowerCase() + " " + arch.toString().toLowerCase()
-				+ " " + LibraryVersion.NATIVES_VERSION;
+	private static Stream<String> getNormalizedArchitectures() {
+		String os = getOs();
+		String arch = getCpuArch();
+		if (os.equals("unknown") || arch.equals("unknown")) {
+			return getAllNormalizedArchitectures();
+		}
+		return getNormalizedArchitectures(os, arch);
 	}
 
-	private static Arch getCpuArch() {
+	private static Stream<String> getAllNormalizedArchitectures() {
+		Set<String> all = new LinkedHashSet<>();
+		for (String os : new String[]{"windows"}) {
+			for (String arch : new String[]{"arm64", "amd64", "armhf", "i386", "s390x", "ppc64le"}) {
+				getNormalizedArchitectures(os, arch).forEach(all::add);
+			}
+		}
+		return all.stream();
+	}
+
+	private static Stream<String> getNormalizedArchitectures(String os, String arch) {
+		switch (os) {
+			case "linux": {
+				return Stream.of("linux-" + arch + "-ssl1.so", "linux-" + arch + "-ssl3.so");
+			}
+			case "windows": {
+				return Stream.of("windows-" + arch + ".dll");
+			}
+			case "osx": {
+				return Stream.of("osx-" + arch + ".dylib");
+			}
+			default: {
+				throw new UnsupportedOperationException();
+			}
+		}
+	}
+
+	private static String getCpuArch() {
 		String architecture = System.getProperty("os.arch").trim();
 		switch (architecture) {
 			case "amd64":
 			case "x86_64":
-				return Arch.AMD64;
+				return "amd64";
 			case "i386":
 			case "x86":
 			case "386":
 			case "i686":
 			case "686":
-				return Arch.I386;
+				return "i386";
 			case "armv6":
 			case "arm":
 			case "armhf":
 			case "aarch32":
 			case "armv7":
 			case "armv7l":
-				return Arch.ARMHF;
+				return "armhf";
 			case "arm64":
 			case "aarch64":
 			case "armv8":
 			case "armv8l":
-				return Arch.AARCH64;
+				return "arm64";
+			case "s390x":
+				return "s390x";
 			case "powerpc":
 			case "powerpc64":
 			case "powerpc64le":
@@ -242,42 +211,29 @@ public final class LoadLibrary {
 						.nativeOrder()
 						.equals(ByteOrder.LITTLE_ENDIAN)) // Java always returns ppc64 for all 64-bit powerpc but
 				{
-					return Arch.PPC64LE;                                       // powerpc64le (our target) is very different, it uses this condition to accurately identify the architecture
+					return "ppc64le";                                       // powerpc64le (our target) is very different, it uses this condition to accurately identify the architecture
 				} else {
-					return Arch.UNKNOWN;
+					return "unknown";
 				}
 			default:
-				return Arch.UNKNOWN;
+				return "unknown";
 		}
 	}
 
-	public static Os getOs() {
+	public static String getOs() {
 		String os = System.getProperty("os.name").toLowerCase().trim();
 		if (os.contains("linux")) {
-			return Os.LINUX;
+			return "linux";
 		}
 		if (os.contains("windows")) {
-			return Os.WINDOWS;
+			return "windows";
 		}
 		if (os.contains("mac")) {
-			return Os.OSX;
+			return "osx";
 		}
 		if (os.contains("darwin")) {
-			return Os.OSX;
+			return "osx";
 		}
-		return Os.UNKNOWN;
-	}
-
-	private static String getExt(Os os) {
-		switch (os) {
-			case WINDOWS:
-				return ".dll";
-			case OSX:
-				return ".dylib";
-			case LINUX:
-			case UNKNOWN:
-			default:
-				return ".so";
-		}
+		return "unknown";
 	}
 }

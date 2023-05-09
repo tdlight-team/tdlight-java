@@ -4,7 +4,7 @@
 cd "../../"
 
 cd "bom"
-mvn -B clean package
+mvn -B package
 cd "../"
 
 echo "Done."

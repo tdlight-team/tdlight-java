@@ -11,13 +11,13 @@ jobs:
     strategy:
       matrix:
         include:
-          - { os: ubuntu-20.04, arch: "linux/amd64", ssl: "ssl1" }
-          - { os: ubuntu-20.04, arch: "linux/amd64", ssl: "ssl3" }
+          - { os: ubuntu-20.04, arch: "linux/amd64" }
     runs-on: ${{ matrix.os }}
     steps:
       - name: Branch name
         id: branch_name
         run: |
+          set -xeo pipefail
           echo ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
           echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
           echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
@@ -28,6 +28,7 @@ jobs:
       - name: Setup variables
         shell: bash
         run: |
+          set -xeo pipefail
           # ====== Variables
           export REVISION=${{ steps.branch_name.outputs.SOURCE_TAG_VERSION }}
           export SSL_TYPE=${{ matrix.ssl }}
@@ -44,13 +45,15 @@ jobs:
           server-id: mchv-snapshot-distribution
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
-      - name: Build (Snapshot)
+      - name: Build and deploy to Maven (Snapshot)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') && matrix.ssl == 'ssl1' }}
         shell: bash
         run: |
+          set -xeo pipefail
           echo "SSL_TYPE: $SSL_TYPE"
 
-          source ./scripts/continuous-integration/github-workflows/deploy-snapshot.sh
+          mvn -B -f bom/pom.xml -P "java8,java17" clean deploy
+          echo "Done."
         env:
           MAVEN_USERNAME: ${{ secrets.MCHV_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MCHV_TOKEN }}
@@ -64,14 +67,16 @@ jobs:
           server-id: mchv-release-distribution
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
-      - name: Deploy to Maven (Release)
+      - name: Build and deploy to Maven (Release)
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         shell: bash
         run: |
+          set -xeo pipefail
           echo "REVISION: $REVISION"
           echo "SSL_TYPE: $SSL_TYPE"
-
-          source ./scripts/continuous-integration/github-workflows/deploy-release.sh
+          
+          mvn -B -f bom/pom.xml -Drevision="${REVISION}" -P "java8,java17" clean deploy
+          echo "Done."
         env:
           MAVEN_USERNAME: ${{ secrets.MCHV_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MCHV_TOKEN }}

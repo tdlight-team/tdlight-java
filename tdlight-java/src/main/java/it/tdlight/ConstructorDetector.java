@@ -19,6 +19,9 @@ package it.tdlight;
 
 import it.tdlight.jni.TdApi;
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,8 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("rawtypes")
 public final class ConstructorDetector {
 
-	private static ConcurrentHashMap<Integer, Class> constructorHashMap;
-	private static ConcurrentHashMap<Class, Integer> constructorHashMapInverse;
+	private static Map<Integer, Class> constructorHashMap;
+	private static IdentityHashMap<Class, Integer> constructorHashMapInverse;
 
 	private static void tryInit() {
 		// Call this to load static methods and prevent errors during startup!
@@ -75,8 +78,8 @@ public final class ConstructorDetector {
 	}
 
 	private static void setConstructorHashMap(Class[] tdApiClasses) {
-		constructorHashMap = new ConcurrentHashMap<>();
-		constructorHashMapInverse = new ConcurrentHashMap<>();
+		constructorHashMap = new HashMap<>();
+		constructorHashMapInverse = new IdentityHashMap<>();
 
 		for (Class apiClass : tdApiClasses) {
 			Field CONSTRUCTORField;

@@ -13,7 +13,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>3.0.0.0-SNAPSHOT</revision>
-		<nativesSsl3Suffix/>
 	</properties>
 	<repositories>
 		<repository>
@@ -76,8 +75,14 @@
 		<dependency>
 			<groupId>io.projectreactor.tools</groupId>
 			<artifactId>blockhound</artifactId>
-			<version>1.0.7.RELEASE</version>
+			<version>1.0.8.RELEASE</version>
+			<optional>true</optional>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>kr.motd.maven</groupId>
+			<artifactId>os-maven-plugin</artifactId>
+			<version>1.5.0.Final</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
@@ -112,7 +117,8 @@
 			<dependencies>
 				<dependency>
 					<groupId>it.tdlight</groupId>
-					<artifactId>tdlight-api-legacy</artifactId>
+					<artifactId>tdlight-api</artifactId>
+					<classifier>legacy</classifier>
 				</dependency>
 			</dependencies>
 			<build>
@@ -172,7 +178,7 @@
 			<dependencies>
 				<dependency>
 					<groupId>it.tdlight</groupId>
-					<artifactId>tdlight-api-sealed</artifactId>
+					<artifactId>tdlight-api</artifactId>
 				</dependency>
 			</dependencies>
 			<build>
@@ -350,12 +356,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-install-plugin</artifactId>
-				<version>3.0.0-M1</version>
+				<version>3.1.1</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.8.2</version>
+				<version>3.1.1</version>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
