@@ -79,11 +79,6 @@
 			<optional>true</optional>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>kr.motd.maven</groupId>
-			<artifactId>os-maven-plugin</artifactId>
-			<version>1.5.0.Final</version>
-		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
