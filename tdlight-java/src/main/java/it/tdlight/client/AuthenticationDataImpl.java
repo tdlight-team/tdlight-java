@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("unused")
-final class AuthenticationDataImpl implements AuthenticationSupplier<AuthenticationDataImpl>, AuthenticationData {
+final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<AuthenticationDataImpl> {
 
 	private final String userPhoneNumber;
 	private final String botToken;

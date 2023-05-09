@@ -6,7 +6,7 @@ public interface AuthenticationSupplier<T extends AuthenticationData> {
 
 	CompletableFuture<T> get();
 
-	static AuthenticationSupplier<?> qrCode() {
+	static SimpleAuthenticationSupplier<?> qrCode() {
 		return new AuthenticationDataQrCode();
 	}
 
@@ -14,15 +14,15 @@ public interface AuthenticationSupplier<T extends AuthenticationData> {
 	 * Deprecated, use {@link #user(String)} instead
 	 */
 	@Deprecated
-	static AuthenticationSupplier<?> user(long userPhoneNumber) {
+	static SimpleAuthenticationSupplier<?> user(long userPhoneNumber) {
 		return user(String.valueOf(userPhoneNumber));
 	}
 
-	static AuthenticationSupplier<?> user(String userPhoneNumber) {
+	static SimpleAuthenticationSupplier<?> user(String userPhoneNumber) {
 		return new AuthenticationDataImpl(userPhoneNumber, null);
 	}
 
-	static AuthenticationSupplier<?> bot(String botToken) {
+	static SimpleAuthenticationSupplier<?> bot(String botToken) {
 		return new AuthenticationDataImpl(null, botToken);
 	}
 
