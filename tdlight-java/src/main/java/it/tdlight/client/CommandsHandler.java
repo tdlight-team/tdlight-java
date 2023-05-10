@@ -1,5 +1,6 @@
 package it.tdlight.client;
 
+import io.atlassian.util.concurrent.CopyOnWriteMap;
 import it.tdlight.TelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Chat;
@@ -7,10 +8,7 @@ import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.MessageText;
 import it.tdlight.jni.TdApi.UpdateNewMessage;
 import it.tdlight.jni.TdApi.User;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +16,14 @@ import org.slf4j.LoggerFactory;
 final class CommandsHandler implements GenericUpdateHandler<UpdateNewMessage> {
 
 	private static final Logger logger = LoggerFactory.getLogger(CommandsHandler.class);
+	private static final CopyOnWriteMap<CommandHandler, Void> EMPTY_COW_MAP = CopyOnWriteMap.newHashMap();
 
 	private final TelegramClient client;
-	private final Map<String, Set<CommandHandler>> commandHandlers;
+	private final CopyOnWriteMap<String, CopyOnWriteMap<CommandHandler, Void>> commandHandlers;
 	private final Supplier<User> me;
 
 	public CommandsHandler(TelegramClient client,
-			Map<String, Set<CommandHandler>> commandHandlers,
+			CopyOnWriteMap<String, CopyOnWriteMap<CommandHandler, Void>> commandHandlers,
 			Supplier<User> me) {
 		this.client = client;
 		this.commandHandlers = commandHandlers;
@@ -66,9 +65,9 @@ final class CommandsHandler implements GenericUpdateHandler<UpdateNewMessage> {
 
 						if (correctTarget) {
 							String commandName = currentCommandName;
-							Set<CommandHandler> handlers = commandHandlers.getOrDefault(currentCommandName, Collections.emptySet());
+							CopyOnWriteMap<CommandHandler, Void> handlers = commandHandlers.getOrDefault(currentCommandName, EMPTY_COW_MAP);
 
-							for (CommandHandler handler : handlers) {
+							for (CommandHandler handler : handlers.keySet()) {
 								client.send(new TdApi.GetChat(message.chatId), response -> {
 									if (response.getConstructor() == TdApi.Error.CONSTRUCTOR) {
 										throw new TelegramError((TdApi.Error) response);

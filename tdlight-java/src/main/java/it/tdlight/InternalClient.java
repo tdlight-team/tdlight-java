@@ -5,8 +5,9 @@ import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.Object;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import org.jctools.maps.NonBlockingHashMapLong;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -18,7 +19,7 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 	private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
 
 	private ClientRegistrationEventHandler clientRegistrationEventHandler;
-	private final NonBlockingHashMapLong<Handler<?>> handlers = new NonBlockingHashMapLong<>();
+	private final Map<Long, Handler<?>> handlers = new ConcurrentHashMap<>();
 
 	private volatile Integer clientId = null;
 	private final InternalClientsState clientManagerState;

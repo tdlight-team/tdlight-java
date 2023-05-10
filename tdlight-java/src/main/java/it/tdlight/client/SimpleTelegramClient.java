@@ -1,11 +1,13 @@
 package it.tdlight.client;
 
+import io.atlassian.util.concurrent.CopyOnWriteMap;
 import it.tdlight.ClientFactory;
 import it.tdlight.ExceptionHandler;
 import it.tdlight.Init;
 import it.tdlight.ResultHandler;
 import it.tdlight.TelegramClient;
 import it.tdlight.jni.TdApi.Update;
+import it.tdlight.util.MapUtils;
 import it.tdlight.util.UnsupportedNativeLibraryException;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.ChatListArchive;
@@ -15,16 +17,17 @@ import it.tdlight.jni.TdApi.User;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RejectedExecutionException;
-import org.jctools.maps.NonBlockingHashMap;
-import org.jctools.maps.NonBlockingHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static it.tdlight.util.MapUtils.addAllKeys;
 
 @SuppressWarnings("unused")
 public final class SimpleTelegramClient implements Authenticable, MutableTelegramClient {
@@ -44,10 +47,10 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	private final TDLibSettings settings;
 	private AuthenticationSupplier<?> authenticationData;
 
-	private final Map<String, Set<CommandHandler>> commandHandlers = new NonBlockingHashMap<>();
-	private final Set<ResultHandler<TdApi.Update>> updateHandlers = new NonBlockingHashSet<>();
-	private final Set<ExceptionHandler> updateExceptionHandlers = new NonBlockingHashSet<>();
-	private final Set<ExceptionHandler> defaultExceptionHandlers = new NonBlockingHashSet<>();
+	private final CopyOnWriteMap<String, CopyOnWriteMap<CommandHandler, Void>> commandHandlers = CopyOnWriteMap.newHashMap();
+	private final CopyOnWriteMap<ResultHandler<TdApi.Update>, Void> updateHandlers = CopyOnWriteMap.newHashMap();
+	private final CopyOnWriteMap<ExceptionHandler, Void> updateExceptionHandlers = CopyOnWriteMap.newHashMap();
+	private final CopyOnWriteMap<ExceptionHandler, Void> defaultExceptionHandlers = CopyOnWriteMap.newHashMap();
 
 	private final AuthorizationStateReadyGetMe meGetter;
 	private final AuthorizationStateReadyLoadChats mainChatsLoader;
@@ -65,10 +68,14 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 		this.client = clientFactory.createClient();
 		this.settings = Objects.requireNonNull(settings, "TDLight client settings are null");
 
-		this.commandHandlers.putAll(commandHandlers);
-		this.updateHandlers.addAll(updateHandlers);
-		this.updateExceptionHandlers.addAll(updateExceptionHandlers);
-		this.defaultExceptionHandlers.addAll(defaultExceptionHandlers);
+		commandHandlers.forEach((k, v) -> {
+			CopyOnWriteMap<CommandHandler, Void> mapped = CopyOnWriteMap.newHashMap();
+			addAllKeys(mapped, v, null);
+			this.commandHandlers.put(k, mapped);
+		});
+		addAllKeys(this.updateHandlers, updateHandlers, null);
+		addAllKeys(this.updateExceptionHandlers, updateExceptionHandlers, null);
+		addAllKeys(this.defaultExceptionHandlers, defaultExceptionHandlers, null);
 		this.clientInteraction = clientInteraction != null ? clientInteraction
 				: new ScannerClientInteraction(SequentialRequestsExecutor.getInstance(), this);
 
@@ -112,7 +119,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 
 	private void handleUpdate(TdApi.Object update) {
 		boolean handled = false;
-		for (ResultHandler<TdApi.Update> updateHandler : updateHandlers) {
+		for (ResultHandler<TdApi.Update> updateHandler : updateHandlers.keySet()) {
 			updateHandler.onResult(update);
 			handled = true;
 		}
@@ -123,7 +130,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 
 	private void handleUpdateException(Throwable ex) {
 		boolean handled = false;
-		for (ExceptionHandler updateExceptionHandler : updateExceptionHandlers) {
+		for (ExceptionHandler updateExceptionHandler : updateExceptionHandlers.keySet()) {
 			updateExceptionHandler.onException(ex);
 			handled = true;
 		}
@@ -134,7 +141,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 
 	private void handleDefaultException(Throwable ex) {
 		boolean handled = false;
-		for (ExceptionHandler exceptionHandler : defaultExceptionHandlers) {
+		for (ExceptionHandler exceptionHandler : defaultExceptionHandlers.keySet()) {
 			exceptionHandler.onException(ex);
 			handled = true;
 		}
@@ -159,18 +166,18 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 
 	@Override
 	public <T extends TdApi.Update> void addCommandHandler(String commandName, CommandHandler handler) {
-		Set<CommandHandler> handlers = this.commandHandlers.computeIfAbsent(commandName, k -> new NonBlockingHashSet<>());
-		handlers.add(handler);
+		CopyOnWriteMap<CommandHandler, Void> handlers = this.commandHandlers.computeIfAbsent(commandName, k -> CopyOnWriteMap.newHashMap());
+		handlers.put(handler, null);
 	}
 
 	@Override
 	public <T extends TdApi.Update> void addUpdateHandler(Class<T> updateType, GenericUpdateHandler<T> handler) {
-		this.updateHandlers.add(new SimpleResultHandler<>(updateType, handler));
+		this.updateHandlers.put(new SimpleResultHandler<>(updateType, handler), null);
 	}
 
 	@Override
 	public void addUpdatesHandler(GenericUpdateHandler<TdApi.Update> handler) {
-		this.updateHandlers.add(new SimpleUpdateHandler(handler, LOG));
+		this.updateHandlers.put(new SimpleUpdateHandler(handler, LOG), null);
 	}
 
 	/**
@@ -178,7 +185,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	 */
 	@Override
 	public void addUpdateExceptionHandler(ExceptionHandler updateExceptionHandler) {
-		this.updateExceptionHandlers.add(updateExceptionHandler);
+		this.updateExceptionHandlers.put(updateExceptionHandler, null);
 	}
 
 	/**
@@ -186,7 +193,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	 */
 	@Override
 	public void addDefaultExceptionHandler(ExceptionHandler defaultExceptionHandlers) {
-		this.defaultExceptionHandlers.add(defaultExceptionHandlers);
+		this.defaultExceptionHandlers.put(defaultExceptionHandlers, null);
 	}
 
 	/**

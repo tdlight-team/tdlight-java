@@ -34,6 +34,7 @@ jobs:
           export REVISION=${{ steps.branch_name.outputs.SOURCE_TAG_VERSION }}
 
           echo "REVISION=$REVISION" >> $GITHUB_ENV
+          cat $GITHUB_ENV >> github.env
       - name: Set up JDK 17 (Snapshot)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/setup-java@v3

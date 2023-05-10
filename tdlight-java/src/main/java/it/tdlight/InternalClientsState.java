@@ -1,6 +1,7 @@
 package it.tdlight;
 
-import org.jctools.maps.NonBlockingHashMapLong;
+import io.atlassian.util.concurrent.CopyOnWriteMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -12,7 +13,7 @@ public class InternalClientsState {
 	static final int STATE_STOPPED = 4;
 	private final AtomicInteger runState = new AtomicInteger();
 	private final AtomicLong currentQueryId = new AtomicLong();
-	private final NonBlockingHashMapLong<ClientEventsHandler> registeredClientEventHandlers = new NonBlockingHashMapLong<>();
+	private final Map<Integer, ClientEventsHandler> registeredClientEventHandlers = CopyOnWriteMap.newHashMap();
 
 
 	public long getNextQueryId() {
