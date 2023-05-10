@@ -44,17 +44,17 @@
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives</artifactId>
-			<classifier>linux-amd64-ssl1</classifier>
+			<classifier>linux_amd64_ssl1</classifier>
 		</dependency>
 		<!--
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives</artifactId>
-			<classifier>windows-amd64</classifier>
+			<classifier>windows_amd64</classifier>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
-			<artifactId>osx-amd64</artifactId>
+			<artifactId>osx_amd64</artifactId>
 		</dependency>
 		-->
 
