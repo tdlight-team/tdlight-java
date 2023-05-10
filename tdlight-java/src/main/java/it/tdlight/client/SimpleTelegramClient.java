@@ -6,7 +6,7 @@ import it.tdlight.Init;
 import it.tdlight.ResultHandler;
 import it.tdlight.TelegramClient;
 import it.tdlight.jni.TdApi.Update;
-import it.tdlight.utils.CantLoadLibrary;
+import it.tdlight.util.UnsupportedNativeLibraryException;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.ChatListArchive;
 import it.tdlight.jni.TdApi.ChatListMain;
@@ -21,9 +21,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +32,8 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 
 	static {
 		try {
-			Init.start();
-		} catch (CantLoadLibrary e) {
+			Init.init();
+		} catch (UnsupportedNativeLibraryException e) {
 			throw new RuntimeException("Can't load native libraries", e);
 		}
 	}

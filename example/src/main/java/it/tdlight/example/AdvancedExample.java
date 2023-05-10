@@ -2,7 +2,7 @@ package it.tdlight.example;
 
 import it.tdlight.Init;
 import it.tdlight.TelegramClient;
-import it.tdlight.utils.CantLoadLibrary;
+import it.tdlight.util.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
 import it.tdlight.ClientFactory;
 

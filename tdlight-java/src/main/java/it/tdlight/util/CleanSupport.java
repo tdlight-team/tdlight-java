@@ -1,4 +1,4 @@
-package it.tdlight.utils;
+package it.tdlight.util;
 
 public class CleanSupport {
 

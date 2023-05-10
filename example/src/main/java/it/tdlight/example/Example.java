@@ -9,7 +9,7 @@ import it.tdlight.Init;
 import it.tdlight.jni.TdApi.AuthorizationState;
 import it.tdlight.jni.TdApi.Chat;
 import it.tdlight.jni.TdApi.MessageContent;
-import it.tdlight.utils.CantLoadLibrary;
+import it.tdlight.util.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
 import java.nio.file.Path;
 import java.nio.file.Paths;

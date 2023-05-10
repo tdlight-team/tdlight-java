@@ -3,8 +3,8 @@ package it.tdlight;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import it.tdlight.utils.IntSwapper;
-import it.tdlight.utils.SpinWaitSupport;
+import it.tdlight.util.IntSwapper;
+import it.tdlight.util.SpinWaitSupport;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import java.util.ArrayList;
@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 abstract class ResponseReceiver extends Thread implements AutoCloseable {
 

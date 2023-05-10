@@ -1,4 +1,4 @@
-package it.tdlight.utils;
+package it.tdlight.util;
 
 import java.io.Console;
 import java.io.IOException;

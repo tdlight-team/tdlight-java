@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Identify the class by using the Constructor.
@@ -37,7 +36,7 @@ public final class ConstructorDetector {
 	private static void tryInit() {
 		// Call this to load static methods and prevent errors during startup!
 		try {
-			Init.start();
+			Init.init();
 		} catch (Throwable throwable) {
 			throwable.printStackTrace();
 		}
@@ -58,7 +57,7 @@ public final class ConstructorDetector {
 	/**
 	 * Identify the class.
 	 *
-	 * @param CONSTRUCTOR CONSTRUCTOR of the Tdlib API.
+	 * @param CONSTRUCTOR CONSTRUCTOR of the TDLight API.
 	 * @return The class related to CONSTRUCTOR.
 	 */
 	public static Class getClass(int CONSTRUCTOR) {
@@ -69,7 +68,7 @@ public final class ConstructorDetector {
 	/**
 	 * Identify the class.
 	 *
-	 * @param clazz class of the TDLib API.
+	 * @param clazz class of the TDLight API.
 	 * @return The CONSTRUCTOR.
 	 */
 	public static int getConstructor(Class<? extends TdApi.Object> clazz) {

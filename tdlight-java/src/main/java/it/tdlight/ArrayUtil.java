@@ -1,6 +1,6 @@
 package it.tdlight;
 
-import it.tdlight.utils.IntSwapper;
+import it.tdlight.util.IntSwapper;
 
 class ArrayUtil {
 

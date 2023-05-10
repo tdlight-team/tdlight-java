@@ -6,6 +6,6 @@ module tdlight.java {
 	requires static reactor.blockhound;
 	exports it.tdlight.tdnative;
 	exports it.tdlight;
-	exports it.tdlight.utils;
+	exports it.tdlight.util;
 	exports it.tdlight.client;
 }

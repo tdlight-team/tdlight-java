@@ -1,6 +1,6 @@
 package it.tdlight.client;
 
-import it.tdlight.utils.LibraryVersion;
+import it.tdlight.util.LibraryVersion;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;

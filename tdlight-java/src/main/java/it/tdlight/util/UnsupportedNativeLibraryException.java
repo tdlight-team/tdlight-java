@@ -15,29 +15,29 @@
  *     along with JTdlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.tdlight.utils;
+package it.tdlight.util;
 
 /**
- * An exception that is thrown when the LoadLibrary class fails to load the library.
+ * An exception that is thrown when a native library can't be loaded.
  */
-public final class CantLoadLibrary extends Exception {
+public final class UnsupportedNativeLibraryException extends Exception {
 
 	/**
-	 * Creates a new CantLoadLibrary exception.
+	 * Creates a new UnsupportedNativeLibraryException.
 	 */
-	CantLoadLibrary() {
-		super("Init failed when loading TDLib native libraries, execution can't continue");
+	UnsupportedNativeLibraryException() {
+		super("Failed to load TDLight native libraries");
 	}
 
-	public CantLoadLibrary(String message) {
+	public UnsupportedNativeLibraryException(String message) {
 		super(message);
 	}
 
-	public CantLoadLibrary(String message, Exception cause) {
+	public UnsupportedNativeLibraryException(String message, Exception cause) {
 		super(message, cause);
 	}
 
-	public CantLoadLibrary(Throwable cause) {
-		super(cause);
+	public UnsupportedNativeLibraryException(Throwable cause) {
+		super("Failed to load TDLight native libraries", cause);
 	}
 }

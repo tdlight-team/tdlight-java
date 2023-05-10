@@ -1,6 +1,6 @@
 package it.tdlight.client;
 
-import it.tdlight.utils.ScannerUtils;
+import it.tdlight.util.ScannerUtils;
 import it.tdlight.jni.TdApi.TermsOfService;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;

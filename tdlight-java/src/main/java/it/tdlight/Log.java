@@ -15,7 +15,7 @@ public final class Log {
 
 	static {
 		try {
-			Init.start();
+			Init.init();
 		} catch (Throwable throwable) {
 			throwable.printStackTrace();
 			System.exit(0);

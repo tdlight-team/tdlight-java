@@ -17,8 +17,8 @@
 
 package it.tdlight;
 
-import it.tdlight.utils.CantLoadLibrary;
-import it.tdlight.utils.LoadLibrary;
+import it.tdlight.util.UnsupportedNativeLibraryException;
+import it.tdlight.util.Native;
 import it.tdlight.jni.TdApi.LogStreamEmpty;
 import it.tdlight.jni.TdApi.SetLogStream;
 import it.tdlight.jni.TdApi.SetLogVerbosityLevel;
@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Init class to successfully initialize Tdlib
+ * Initialize TDLight
  */
 public final class Init {
 
@@ -35,15 +35,16 @@ public final class Init {
 	private static volatile boolean started = false;
 
 	/**
-	 * Initialize Tdlib
+	 * Initialize TDLight.
+	 * This method is idempotent.
 	 *
-	 * @throws CantLoadLibrary An exception that is thrown when the LoadLibrary class fails to load the library.
+	 * @throws UnsupportedNativeLibraryException An exception that is thrown when the LoadLibrary class fails to load the library.
 	 */
-	public static void start() throws CantLoadLibrary {
+	public static void init() throws UnsupportedNativeLibraryException {
 		if (!started) {
 			synchronized (Init.class) {
 				if (!started) {
-					LoadLibrary.load("tdjni");
+					Native.loadNativesInternal();
 					ConstructorDetector.init();
 					try {
 						NativeClientAccess.execute(new SetLogVerbosityLevel(3));

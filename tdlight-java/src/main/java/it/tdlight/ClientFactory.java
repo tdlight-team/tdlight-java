@@ -2,9 +2,9 @@ package it.tdlight;
 
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
-import it.tdlight.utils.CantLoadLibrary;
-import it.tdlight.utils.CleanSupport;
-import it.tdlight.utils.CleanSupport.CleanableSupport;
+import it.tdlight.util.UnsupportedNativeLibraryException;
+import it.tdlight.util.CleanSupport;
+import it.tdlight.util.CleanSupport.CleanableSupport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,8 +52,8 @@ public class ClientFactory implements AutoCloseable {
 
 	public ClientFactory() {
 		try {
-			Init.start();
-		} catch (CantLoadLibrary e) {
+			Init.init();
+		} catch (UnsupportedNativeLibraryException e) {
 			throw new RuntimeException("Can't load the client factory because TDLight can't be loaded", e);
 		}
 	}
@@ -69,7 +69,7 @@ public class ClientFactory implements AutoCloseable {
 	public void startIfNeeded() {
 		if (state.shouldStartNow()) {
 			try {
-				Init.start();
+				Init.init();
 				responseReceiver.start();
 				this.cleanable = CleanSupport.register(responseReceiver, () -> {
 					try {

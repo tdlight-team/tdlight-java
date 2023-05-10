@@ -1,4 +1,4 @@
-package it.tdlight.utils;
+package it.tdlight.util;
 
 import java.util.concurrent.locks.LockSupport;
 

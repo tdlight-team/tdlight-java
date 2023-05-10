@@ -1,10 +1,9 @@
 package it.tdlight.client;
 
-import it.tdlight.utils.ScannerUtils;
+import it.tdlight.util.ScannerUtils;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 
 public final class ConsoleInteractiveAuthenticationData implements AuthenticationSupplier<AuthenticationData> {
 
