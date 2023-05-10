@@ -46,6 +46,7 @@
 			<artifactId>tdlight-natives</artifactId>
 			<classifier>linux-amd64-ssl1</classifier>
 		</dependency>
+		<!--
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives</artifactId>
@@ -55,6 +56,7 @@
 			<groupId>it.tdlight</groupId>
 			<artifactId>osx-amd64</artifactId>
 		</dependency>
+		-->
 
 		<!-- log4j logging -->
 		<dependency>
