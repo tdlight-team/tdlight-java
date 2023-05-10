@@ -62,17 +62,16 @@ public final class SimpleTelegramClientBuilder implements MutableTelegramClient 
 	 * Build and start the client
 	 * @return Telegram client
 	 */
-	public SimpleTelegramClient build(AuthenticationSupplier authenticationData) {
-		SimpleTelegramClient client = new SimpleTelegramClient(clientManager,
+	public SimpleTelegramClient build(AuthenticationSupplier<?> authenticationData) {
+		return new SimpleTelegramClient(clientManager,
 				clientSettings,
 				commandHandlers,
 				updateHandlers,
 				updateExceptionHandlers,
 				defaultExceptionHandlers,
-				clientInteraction
+				clientInteraction,
+				authenticationData
 		);
-		client.start(authenticationData);
-		return client;
 	}
 
 }

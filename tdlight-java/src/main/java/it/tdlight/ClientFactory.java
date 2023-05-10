@@ -115,9 +115,9 @@ public class ClientFactory implements AutoCloseable {
 		}
 
 		if (isClosed) {
-			logger.trace("Removing Client {} from event handlers", clientId);
+			logger.debug("Removing Client {} from event handlers", clientId);
 			state.removeClientEventHandlers(clientId);
-			logger.trace("Removed Client {} from event handlers", clientId);
+			logger.debug("Removed Client {} from event handlers", clientId);
 		}
 	}
 

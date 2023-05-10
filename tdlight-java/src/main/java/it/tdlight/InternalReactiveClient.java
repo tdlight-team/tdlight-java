@@ -80,11 +80,11 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 	 * This method will be called exactly once
 	 */
 	private void handleClose() {
-		logger.trace(TG_MARKER, "Received close");
+		logger.debug(TG_MARKER, "Received close");
 		try {
 			Runtime.getRuntime().removeShutdownHook(shutdownHook);
 		} catch (IllegalStateException ignored) {
-			logger.trace(TG_MARKER, "Can't remove shutdown hook because the JVM is already shutting down");
+			logger.debug(TG_MARKER, "Can't remove shutdown hook because the JVM is already shutting down");
 		}
 		TdApi.Error instanceClosedError = new Error(500, "Instance closed");
 		handlers.forEach((eventId, handler) -> this.handleResponse(eventId, instanceClosedError, handler));
@@ -186,7 +186,7 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 							subscriber.onNext(new TdApi.Ok());
 							subscriber.onComplete();
 						} else if (clientId == null) {
-							logger.trace(TG_MARKER,
+							logger.debug(TG_MARKER,
 									"Can't send a request to TDLib before calling \"createAndRegisterClient\" function!"
 							);
 							subscriber.onError(new IllegalStateException(

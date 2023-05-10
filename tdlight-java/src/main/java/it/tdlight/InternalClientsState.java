@@ -2,6 +2,7 @@ package it.tdlight;
 
 import io.atlassian.util.concurrent.CopyOnWriteMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -13,11 +14,11 @@ public class InternalClientsState {
 	static final int STATE_STOPPED = 4;
 	private final AtomicInteger runState = new AtomicInteger();
 	private final AtomicLong currentQueryId = new AtomicLong();
-	private final Map<Integer, ClientEventsHandler> registeredClientEventHandlers = CopyOnWriteMap.newHashMap();
+	private final Map<Integer, ClientEventsHandler> registeredClientEventHandlers = new ConcurrentHashMap<>();
 
 
 	public long getNextQueryId() {
-		return currentQueryId.updateAndGet(value -> (value >= Long.MAX_VALUE ? 0 : value) + 1);
+		return currentQueryId.updateAndGet(value -> (value == Long.MAX_VALUE ? 0 : value) + 1);
 	}
 
 	public void registerClient(int clientId, ClientEventsHandler internalClient) {

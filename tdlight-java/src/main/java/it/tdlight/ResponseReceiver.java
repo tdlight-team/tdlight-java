@@ -15,9 +15,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.CountDownLatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
+	private static final Logger LOG = LoggerFactory.getLogger(ResponseReceiver.class);
 	private static final String FLAG_USE_OPTIMIZED_DISPATCHER = "tdlight.dispatcher.use_optimized_dispatcher";
 	private static final boolean USE_OPTIMIZED_DISPATCHER
 			= Boolean.parseBoolean(System.getProperty(FLAG_USE_OPTIMIZED_DISPATCHER, "true"));
@@ -59,6 +62,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
 	@Override
 	public void run() {
+		LOG.debug("ResponseReceiver is now running");
 		int[] sortIndex;
 		final SimpleIntQueue closedClients = new SimpleIntQueue();
 		try {
@@ -66,6 +70,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 			while (!(interrupted = Thread.interrupted()) && registeredClients.length > 0) {
 				// Timeout is expressed in seconds
 				int resultsCount = receive(clientIds, eventIds, events, 2.0);
+				LOG.trace("Received {} events", resultsCount);
 
 				if (resultsCount <= 0) {
 					SpinWaitSupport.onSpinWait();
@@ -207,12 +212,15 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 				}
 			}
 
+			LOG.trace("ResponseReceiver will no longer process updates");
+
 			if (interrupted) {
 				for (int clientId : registeredClients) {
 					eventsHandler.handleClientEvents(clientId, true, clientEventIds, clientEvents, 0, 0);
 				}
 			}
 		} finally {
+			LOG.debug("ResponseReceiver stopped");
 			this.closeWait.countDown();
 		}
 	}
@@ -266,6 +274,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 	public void close() throws InterruptedException {
 		this.closeWait.await();
 		if (registeredClients.length == 0) {
+			LOG.debug("Interrupting response receiver");
 			ResponseReceiver.this.interrupt();
 		}
 	}

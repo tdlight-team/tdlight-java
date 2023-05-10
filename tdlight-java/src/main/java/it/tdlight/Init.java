@@ -42,38 +42,42 @@ public final class Init {
 	 */
 	public static void init() throws UnsupportedNativeLibraryException {
 		if (!started) {
+			boolean shouldStart = false;
 			synchronized (Init.class) {
 				if (!started) {
-					Native.loadNativesInternal();
-					ConstructorDetector.init();
-					try {
-						NativeClientAccess.execute(new SetLogVerbosityLevel(3));
-						Log.setLogMessageHandler(3, (verbosityLevel, message) -> {
-							switch (verbosityLevel) {
-								case -1:
-								case 0:
-								case 1:
-									LOG.error(message);
-									break;
-								case 2:
-									LOG.warn(message);
-									break;
-								case 3:
-									LOG.info(message);
-									break;
-								case 4:
-									LOG.debug(message);
-									break;
-								default:
-									LOG.trace(message);
-									break;
-							}
-						});
-						NativeClientAccess.execute(new SetLogStream(new LogStreamEmpty()));
-					} catch (Throwable ex) {
-						LOG.error("Can't set verbosity level on startup", ex);
-					}
 					started = true;
+					shouldStart = true;
+				}
+			}
+			if (shouldStart) {
+				Native.loadNativesInternal();
+				ConstructorDetector.init();
+				try {
+					NativeClientAccess.execute(new SetLogVerbosityLevel(3));
+					Log.setLogMessageHandler(3, (verbosityLevel, message) -> {
+						switch (verbosityLevel) {
+							case -1:
+							case 0:
+							case 1:
+								LOG.error(message);
+								break;
+							case 2:
+								LOG.warn(message);
+								break;
+							case 3:
+								LOG.info(message);
+								break;
+							case 4:
+								LOG.debug(message);
+								break;
+							default:
+								LOG.trace(message);
+								break;
+						}
+					});
+					NativeClientAccess.execute(new SetLogStream(new LogStreamEmpty()));
+				} catch (Throwable ex) {
+					LOG.error("Can't set verbosity level on startup", ex);
 				}
 			}
 		}

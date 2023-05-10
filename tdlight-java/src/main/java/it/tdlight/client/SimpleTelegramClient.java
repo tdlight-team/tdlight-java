@@ -7,7 +7,6 @@ import it.tdlight.Init;
 import it.tdlight.ResultHandler;
 import it.tdlight.TelegramClient;
 import it.tdlight.jni.TdApi.Update;
-import it.tdlight.util.MapUtils;
 import it.tdlight.util.UnsupportedNativeLibraryException;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.ChatListArchive;
@@ -17,7 +16,6 @@ import it.tdlight.jni.TdApi.User;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
-import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -45,7 +43,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	private final TelegramClient client;
 	private ClientInteraction clientInteraction;
 	private final TDLibSettings settings;
-	private AuthenticationSupplier<?> authenticationData;
+	private final AuthenticationSupplier<?> authenticationData;
 
 	private final CopyOnWriteMap<String, CopyOnWriteMap<CommandHandler, Void>> commandHandlers = CopyOnWriteMap.newHashMap();
 	private final CopyOnWriteMap<ResultHandler<TdApi.Update>, Void> updateHandlers = CopyOnWriteMap.newHashMap();
@@ -64,7 +62,8 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 			Set<ResultHandler<Update>> updateHandlers,
 			Set<ExceptionHandler> updateExceptionHandlers,
 			Set<ExceptionHandler> defaultExceptionHandlers,
-			ClientInteraction clientInteraction) {
+			ClientInteraction clientInteraction,
+			AuthenticationSupplier<?> authenticationData) {
 		this.client = clientFactory.createClient();
 		this.settings = Objects.requireNonNull(settings, "TDLight client settings are null");
 
@@ -115,6 +114,9 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				this.meGetter = new AuthorizationStateReadyGetMe(client, mainChatsLoader, archivedChatsLoader));
 		this.addUpdateHandler(TdApi.UpdateNewMessage.class, new CommandsHandler(client, this.commandHandlers, this::getMe));
+		this.authenticationData = authenticationData;
+		createDirectories();
+		client.initialize(this::handleUpdate, this::handleUpdateException, this::handleDefaultException);
 	}
 
 	private void handleUpdate(TdApi.Object update) {
@@ -194,15 +196,6 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	@Override
 	public void addDefaultExceptionHandler(ExceptionHandler defaultExceptionHandlers) {
 		this.defaultExceptionHandlers.put(defaultExceptionHandlers, null);
-	}
-
-	/**
-	 * Start the client
-	 */
-	public void start(AuthenticationSupplier<?> authenticationData) {
-		this.authenticationData = authenticationData;
-		createDirectories();
-		client.initialize(this::handleUpdate, this::handleUpdateException, this::handleDefaultException);
 	}
 
 	private void createDirectories() {

@@ -9,6 +9,7 @@ class SequentialRequestsExecutor implements Executor {
 
 	private final Executor executor = Executors.newSingleThreadExecutor(r -> {
 		final Thread thread = new Thread(r);
+		thread.setName("TDLight user input request");
 		thread.setDaemon(true);
 		return thread;
 	});

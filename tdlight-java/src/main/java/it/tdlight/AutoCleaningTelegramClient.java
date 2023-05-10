@@ -6,11 +6,14 @@ import it.tdlight.jni.TdApi.Object;
 import it.tdlight.jni.TdApi.Update;
 import it.tdlight.util.CleanSupport;
 import it.tdlight.util.CleanSupport.CleanableSupport;
+import java.util.Map;
 import java.util.function.LongSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MarkerFactory;
 
 class AutoCleaningTelegramClient implements TelegramClient {
-
-	private final TelegramClient client;
+	private final InternalClient client;
 	private volatile CleanableSupport cleanable;
 
 	AutoCleaningTelegramClient(InternalClientsState state) {
@@ -18,7 +21,12 @@ class AutoCleaningTelegramClient implements TelegramClient {
 	}
 
 	public void onClientRegistered(int clientId, LongSupplier nextQueryIdSupplier) {
-		Runnable shutDown = () -> NativeClientAccess.send(clientId, nextQueryIdSupplier.getAsLong(), new TdApi.Close());
+		Runnable shutDown = () -> {
+			Logger logger = LoggerFactory.getLogger(TelegramClient.class);
+			logger.debug(MarkerFactory.getMarker("TG"), "The client is being shut down automatically");
+			long reqId = nextQueryIdSupplier.getAsLong();
+			NativeClientAccess.send(clientId, reqId, new TdApi.Close());
+		};
 		Thread shutdownHook = new Thread(shutDown);
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 		cleanable = CleanSupport.register(this, shutDown);

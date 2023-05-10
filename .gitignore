@@ -95,3 +95,7 @@ parent/.classpath
 tdlight-java/target-snapshot/
 
 tdlight-java-8/target-snapshot/
+/example-tdlight-session/data/db.sqlite
+/example-tdlight-session/data/db.sqlite-shm
+/example-tdlight-session/data/db.sqlite-wal
+/example-tdlight-session/data/td.binlog

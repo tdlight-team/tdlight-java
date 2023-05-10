@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -15,8 +17,8 @@ import org.slf4j.MarkerFactory;
 
 final class InternalClient implements ClientEventsHandler, TelegramClient {
 
-	private static final Marker TG_MARKER = MarkerFactory.getMarker("TG");
-	private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
+	static final Marker TG_MARKER = MarkerFactory.getMarker("TG");
+	static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
 
 	private ClientRegistrationEventHandler clientRegistrationEventHandler;
 	private final Map<Long, Handler<?>> handlers = new ConcurrentHashMap<>();
@@ -80,11 +82,11 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 	}
 
 	private void handleClose() {
-		logger.trace(TG_MARKER, "Received close");
+		logger.debug(TG_MARKER, "Received close");
 		handlers.forEach((eventId, handler) ->
 				handleResponse(eventId, new TdApi.Error(500, "Instance closed"), handler));
 		handlers.clear();
-		logger.info(TG_MARKER, "Client closed {}", clientId);
+		logger.debug(TG_MARKER, "Client closed {}", clientId);
 	}
 
 	/**
@@ -98,7 +100,7 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 				handleException(handler.getExceptionHandler(), cause);
 			}
 		} else {
-			logger.error(TG_MARKER, "Unknown event id \"{}\", the event has been dropped! {}", eventId, event);
+			logger.trace(TG_MARKER, "Client {}, request event id is not registered \"{}\", the following response has been dropped. {}", clientId, eventId, event);
 		}
 	}
 
@@ -106,7 +108,7 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 	 * Handles a response or an update
 	 */
 	private void handleEvent(long eventId, TdApi.Object event) {
-		logger.trace(TG_MARKER, "Received response {}: {}", eventId, event);
+		logger.trace(TG_MARKER, "Client {}, response received for request {}: {}", clientId, eventId, event);
 		if (updatesHandler != null || updateHandler == null) {
 			throw new IllegalStateException();
 		}
@@ -164,18 +166,23 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 		logger.info(TG_MARKER, "Registered new client {}", clientId);
 
 		// Send a dummy request to start TDLib
-		this.send(new TdApi.GetOption("version"), (result) -> {}, ex -> {});
+		logger.debug(TG_MARKER, "Sending dummy startup request as client {}", clientId);
+		TdApi.Function<?> dummyRequest = new TdApi.GetOption("version");
+		this.send(dummyRequest, null, null);
+		// test Client.execute
+		this.execute(new TdApi.GetTextEntities("@telegram /test_command https://telegram.org telegram.me @gif @test"));
 	}
 
 	@Override
 	public <R extends TdApi.Object> void send(Function<R> query,
 			ResultHandler<R> resultHandler,
 			ExceptionHandler exceptionHandler) {
-		logger.trace(TG_MARKER, "Trying to send {}", query);
+		logger.trace(TG_MARKER, "Trying to send async request {}", query);
 
 		// Handle special requests
 		TdApi.Object specialResult = tryHandleSpecial(query);
 		if (specialResult != null) {
+			logger.trace(TG_MARKER, "Handling special result for async request {}: {}", query, specialResult);
 			if (resultHandler != null) {
 				resultHandler.onResult(specialResult);
 			}
@@ -191,11 +198,12 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 
 	@Override
 	public <R extends TdApi.Object> TdApi.Object execute(Function<R> query) {
-		logger.trace(TG_MARKER, "Trying to execute {}", query);
+		logger.trace(TG_MARKER, "Trying to execute sync request {}", query);
 
 		// Handle special requests
 		TdApi.Object specialResult = tryHandleSpecial(query);
 		if (specialResult != null) {
+			logger.trace(TG_MARKER, "Handling special result for sync request {}: {}", query, specialResult);
 			return specialResult;
 		}
 

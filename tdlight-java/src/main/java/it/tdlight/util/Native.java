@@ -34,7 +34,7 @@ public final class Native {
 	 * Internal util
 	 */
 	public static void loadNativesInternal() throws UnsupportedNativeLibraryException {
-		loadLibrary("tdlight");
+		loadLibrary("tdjni");
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(Native.class);
