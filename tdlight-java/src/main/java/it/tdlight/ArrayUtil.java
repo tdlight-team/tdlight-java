@@ -1,8 +1,28 @@
 package it.tdlight;
 
 import it.tdlight.util.IntSwapper;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 class ArrayUtil {
+
+	public static int[] copyFromCollection(Collection<Integer> list) {
+		int[] result = new int[list.size()];
+		int i = 0;
+		for (Integer item : list) {
+			result[i++] = item;
+		}
+		return result;
+	}
+
+	public static Set<Integer> toSet(int[] list) {
+		Set<Integer> set = new HashSet<>(list.length);
+		for (int item : list) {
+			set.add(item);
+		}
+		return set;
+	}
 
 	public interface IntComparator {
 		int compare(int k1, int k2);

@@ -3,18 +3,17 @@ package it.tdlight;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import it.tdlight.util.SimpleIntQueue;
 import it.tdlight.util.IntSwapper;
 import it.tdlight.util.SpinWaitSupport;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
 abstract class ResponseReceiver extends Thread implements AutoCloseable {
@@ -42,8 +41,9 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 	private int clientEventsLastUsedLength = 0;
 
 	private final CountDownLatch closeWait = new CountDownLatch(1);
-	private final Set<Integer> registeredClients = new ConcurrentHashMap<Integer, java.lang.Object>()
-			.keySet(new java.lang.Object());
+	private final Object registeredClientsLock = new Object();
+	// Do not modify the int[] directly, this should be replaced
+	private volatile int[] registeredClients = new int[0];
 
 
 	public ResponseReceiver(EventsHandler eventsHandler) {
@@ -60,9 +60,10 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 	@Override
 	public void run() {
 		int[] sortIndex;
+		final SimpleIntQueue closedClients = new SimpleIntQueue();
 		try {
 			boolean interrupted;
-			while (!(interrupted = Thread.interrupted()) && !registeredClients.isEmpty()) {
+			while (!(interrupted = Thread.interrupted()) && registeredClients.length > 0) {
 				// Timeout is expressed in seconds
 				int resultsCount = receive(clientIds, eventIds, events, 2.0);
 
@@ -71,7 +72,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 					continue;
 				}
 
-				Set<Integer> closedClients = new HashSet<>();
+				closedClients.reset();
 
 				if (USE_OPTIMIZED_DISPATCHER) {
 					// Generate a list of indices sorted by client id, from 0 to resultsCount
@@ -197,13 +198,17 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
 				cleanEventsArray(resultsCount);
 
-				if (!closedClients.isEmpty()) {
-					this.registeredClients.removeAll(closedClients);
+				if (closedClients.isContentful()) {
+					synchronized (this.registeredClientsLock) {
+						Set<Integer> remainingRegisteredClients = ArrayUtil.toSet(this.registeredClients);
+						closedClients.drain(remainingRegisteredClients::remove);
+						this.registeredClients = ArrayUtil.copyFromCollection(remainingRegisteredClients);
+					}
 				}
 			}
 
 			if (interrupted) {
-				for (Integer clientId : this.registeredClients) {
+				for (int clientId : registeredClients) {
 					eventsHandler.handleClientEvents(clientId, true, clientEventIds, clientEvents, 0, 0);
 				}
 			}
@@ -250,13 +255,17 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 	}
 
 	public void registerClient(int clientId) {
-		registeredClients.add(clientId);
+		synchronized (registeredClientsLock) {
+			Set<Integer> modifiableRegisteredClients = ArrayUtil.toSet(this.registeredClients);
+			modifiableRegisteredClients.add(clientId);
+			this.registeredClients = ArrayUtil.copyFromCollection(modifiableRegisteredClients);
+		}
 	}
 
 	@Override
 	public void close() throws InterruptedException {
 		this.closeWait.await();
-		if (registeredClients.isEmpty()) {
+		if (registeredClients.length == 0) {
 			ResponseReceiver.this.interrupt();
 		}
 	}

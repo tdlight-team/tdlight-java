@@ -5,8 +5,6 @@ import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,6 +12,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import it.tdlight.util.NonBlockingHashSetLong;
+import org.jctools.maps.NonBlockingHashMapLong;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
@@ -27,9 +27,14 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 	private static final Logger logger = LoggerFactory.getLogger(InternalReactiveClient.class);
 	private static final Handler<?> EMPTY_HANDLER = new Handler<>(r -> {}, ex -> {});
 
-	private final ConcurrentHashMap<Long, Handler<?>> handlers = new ConcurrentHashMap<>();
-	private final Set<Long> timedOutHandlers = new ConcurrentHashMap<Long, Object>().keySet(new Object());
-	private final ScheduledExecutorService timers = Executors.newSingleThreadScheduledExecutor();
+	private final NonBlockingHashMapLong<Handler<?>> handlers = new NonBlockingHashMapLong<>();
+	private final NonBlockingHashSetLong timedOutHandlers = new NonBlockingHashSetLong();
+	private final ScheduledExecutorService timers = Executors.newSingleThreadScheduledExecutor(r -> {
+		Thread t = new Thread(r);
+		t.setName("TDLight-Timers");
+		t.setDaemon(true);
+		return t;
+	});
 	private final ExceptionHandler defaultExceptionHandler;
 	private final Handler<TdApi.Update> updateHandler;
 
@@ -39,9 +44,7 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 	private final InternalClientsState clientManagerState;
 
 	private final AtomicBoolean alreadyReceivedClosed = new AtomicBoolean();
-	// This field is not volatile, but it's not problematic, because ReplayStartupUpdatesListener is able to forward
-	//   updates to the right listener
-	private SignalListener signalListener = new ReplayStartupUpdatesListener();
+	private volatile SignalListener signalListener = new ReplayStartupUpdatesListener();
 
 	public InternalReactiveClient(InternalClientsState clientManagerState) {
 		this.clientManagerState = clientManagerState;

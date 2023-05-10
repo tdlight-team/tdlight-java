@@ -8,8 +8,8 @@
 	<name>TDLight Java BOM</name>
 	<properties>
 		<revision>3.0.0.0-SNAPSHOT</revision>
-		<tdlight.natives.version>4.0.376</tdlight.natives.version>
-		<tdlight.api.version>4.0.374</tdlight.api.version>
+		<tdlight.natives.version>4.0.377</tdlight.natives.version>
+		<tdlight.api.version>4.0.375</tdlight.api.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>

@@ -1,6 +1,6 @@
 package it.tdlight;
 
-import java.util.concurrent.ConcurrentHashMap;
+import org.jctools.maps.NonBlockingHashMapLong;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -12,7 +12,7 @@ public class InternalClientsState {
 	static final int STATE_STOPPED = 4;
 	private final AtomicInteger runState = new AtomicInteger();
 	private final AtomicLong currentQueryId = new AtomicLong();
-	private final ConcurrentHashMap<Integer, ClientEventsHandler> registeredClientEventHandlers = new ConcurrentHashMap<>();
+	private final NonBlockingHashMapLong<ClientEventsHandler> registeredClientEventHandlers = new NonBlockingHashMapLong<>();
 
 
 	public long getNextQueryId() {

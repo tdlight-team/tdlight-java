@@ -2,18 +2,18 @@ package it.tdlight.example;
 
 import it.tdlight.Init;
 import it.tdlight.TelegramClient;
-import it.tdlight.util.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
 import it.tdlight.ClientFactory;
+import it.tdlight.util.UnsupportedNativeLibraryException;
 
 /**
  * This is an advanced example that uses directly the native client without using the SimpleClient implementation
  */
 public class AdvancedExample {
 
-	public static void main(String[] args) throws CantLoadLibrary {
+	public static void main(String[] args) throws UnsupportedNativeLibraryException {
 		// Initialize TDLight native libraries
-		Init.start();
+		Init.init();
 
 		// Create a client manager, it should be closed before shutdown
 		ClientFactory clientManager = new ClientFactory();

@@ -50,7 +50,7 @@ public final class NativeLibraryLoader {
 
 	private static final Logger logger = LoggerFactory.getLogger(NativeLibraryLoader.class);
 
-	private static final String NATIVE_RESOURCE_HOME = "META-INF/tdlight-native/";
+	private static final String NATIVE_RESOURCE_HOME = "META-INF/tdlightjni/";
 	private static final Path WORKDIR;
 	private static final boolean DELETE_NATIVE_LIB_AFTER_LOADING;
 	private static final boolean TRY_TO_PATCH_SHADED_ID;
@@ -154,7 +154,7 @@ public final class NativeLibraryLoader {
 	private static String calculateMangledPackagePrefix() {
 		String maybeShaded = NativeLibraryLoader.class.getName();
 		// Use ! instead of . to avoid shading utilities from modifying the string
-		String expected = "it!tdlight!util!internal!NativeLibraryLoader".replace('!', '.');
+		String expected = "it!tdlight!util!NativeLibraryLoader".replace('!', '.');
 		if (!maybeShaded.endsWith(expected)) {
 			throw new UnsatisfiedLinkError(String.format(
 					"Could not find prefix added to %s to get %s. When shading, only adding a "

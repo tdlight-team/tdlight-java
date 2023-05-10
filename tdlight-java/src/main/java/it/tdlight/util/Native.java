@@ -86,13 +86,13 @@ public final class Native {
 	private static Stream<String> getNormalizedArchitectures(String os, String arch) {
 		switch (os) {
 			case "linux": {
-				return Stream.of("linux-" + arch + "-ssl1", "linux-" + arch + "-ssl3");
+				return Stream.of("linux_" + arch + "_ssl1", "linux_" + arch + "_ssl3");
 			}
 			case "windows": {
-				return Stream.of("windows-" + arch);
+				return Stream.of("windows_" + arch);
 			}
 			case "osx": {
-				return Stream.of("osx-" + arch);
+				return Stream.of("osx_" + arch);
 			}
 			default: {
 				throw new UnsupportedOperationException();

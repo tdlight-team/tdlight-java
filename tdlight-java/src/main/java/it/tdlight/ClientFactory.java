@@ -59,7 +59,7 @@ public class ClientFactory implements AutoCloseable {
 	}
 
 	public TelegramClient createClient() {
-		return new InternalClient(state);
+		return new AutoCleaningTelegramClient(state);
 	}
 
 	public ReactiveTelegramClient createReactive() {
@@ -71,7 +71,7 @@ public class ClientFactory implements AutoCloseable {
 			try {
 				Init.init();
 				responseReceiver.start();
-				this.cleanable = CleanSupport.register(responseReceiver, () -> {
+				this.cleanable = CleanSupport.register(this, () -> {
 					try {
 						this.responseReceiver.close();
 					} catch (InterruptedException e) {

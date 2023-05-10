@@ -19,9 +19,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RejectedExecutionException;
+import org.jctools.maps.NonBlockingHashMap;
+import org.jctools.maps.NonBlockingHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +44,10 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	private final TDLibSettings settings;
 	private AuthenticationSupplier<?> authenticationData;
 
-	private final Map<String, Set<CommandHandler>> commandHandlers = new ConcurrentHashMap<>();
-	private final Set<ResultHandler<TdApi.Update>> updateHandlers = new ConcurrentHashMap<ResultHandler<TdApi.Update>, Object>().keySet(
-			new Object());
-	private final Set<ExceptionHandler> updateExceptionHandlers = new ConcurrentHashMap<ExceptionHandler, Object>().keySet(
-			new Object());
-	private final Set<ExceptionHandler> defaultExceptionHandlers = new ConcurrentHashMap<ExceptionHandler, Object>().keySet(
-			new Object());
+	private final Map<String, Set<CommandHandler>> commandHandlers = new NonBlockingHashMap<>();
+	private final Set<ResultHandler<TdApi.Update>> updateHandlers = new NonBlockingHashSet<>();
+	private final Set<ExceptionHandler> updateExceptionHandlers = new NonBlockingHashSet<>();
+	private final Set<ExceptionHandler> defaultExceptionHandlers = new NonBlockingHashSet<>();
 
 	private final AuthorizationStateReadyGetMe meGetter;
 	private final AuthorizationStateReadyLoadChats mainChatsLoader;
@@ -71,11 +69,8 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 		this.updateHandlers.addAll(updateHandlers);
 		this.updateExceptionHandlers.addAll(updateExceptionHandlers);
 		this.defaultExceptionHandlers.addAll(defaultExceptionHandlers);
-		if (clientInteraction != null) {
-			this.clientInteraction = clientInteraction;
-		} else {
-			this.clientInteraction = new ScannerClientInteraction(SequentialRequestsExecutor.getInstance(), this);
-		}
+		this.clientInteraction = clientInteraction != null ? clientInteraction
+				: new ScannerClientInteraction(SequentialRequestsExecutor.getInstance(), this);
 
 
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
@@ -164,9 +159,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 
 	@Override
 	public <T extends TdApi.Update> void addCommandHandler(String commandName, CommandHandler handler) {
-		Set<CommandHandler> handlers = this.commandHandlers.computeIfAbsent(commandName,
-				k -> new ConcurrentHashMap<CommandHandler, Object>().keySet(new Object())
-		);
+		Set<CommandHandler> handlers = this.commandHandlers.computeIfAbsent(commandName, k -> new NonBlockingHashSet<>());
 		handlers.add(handler);
 	}
 

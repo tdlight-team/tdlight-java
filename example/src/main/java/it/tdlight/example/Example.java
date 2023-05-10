@@ -9,8 +9,8 @@ import it.tdlight.Init;
 import it.tdlight.jni.TdApi.AuthorizationState;
 import it.tdlight.jni.TdApi.Chat;
 import it.tdlight.jni.TdApi.MessageContent;
-import it.tdlight.util.CantLoadLibrary;
 import it.tdlight.jni.TdApi;
+import it.tdlight.util.UnsupportedNativeLibraryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -28,9 +28,9 @@ public final class Example {
 
 	private static SimpleTelegramClient client;
 
-	public static void main(String[] args) throws CantLoadLibrary, InterruptedException {
+	public static void main(String[] args) throws UnsupportedNativeLibraryException, InterruptedException {
 		// Initialize TDLight native libraries
-		Init.start();
+		Init.init();
 
 		// Create the client factory
 		try (SimpleTelegramClientFactory clientFactory = new SimpleTelegramClientFactory()) {

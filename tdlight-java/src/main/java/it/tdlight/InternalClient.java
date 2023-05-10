@@ -6,8 +6,7 @@ import it.tdlight.jni.TdApi.Object;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import org.jctools.maps.NonBlockingHashMapLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -18,9 +17,8 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 	private static final Marker TG_MARKER = MarkerFactory.getMarker("TG");
 	private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
 
-	private final ConcurrentHashMap<Long, Handler<?>> handlers = new ConcurrentHashMap<>();
-
-	private final Thread shutdownHook = new Thread(this::onJVMShutdown);
+	private ClientRegistrationEventHandler clientRegistrationEventHandler;
+	private final NonBlockingHashMapLong<Handler<?>> handlers = new NonBlockingHashMapLong<>();
 
 	private volatile Integer clientId = null;
 	private final InternalClientsState clientManagerState;
@@ -28,11 +26,13 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 	private MultiHandler updatesHandler;
 	private ExceptionHandler defaultExceptionHandler;
 
-	private final AtomicBoolean isClosed = new AtomicBoolean();
+	private final java.lang.Object closeLock = new java.lang.Object();
+	private volatile boolean closed = false;
 
-	public InternalClient(InternalClientsState clientManagerState) {
+	public InternalClient(InternalClientsState clientManagerState,
+			ClientRegistrationEventHandler clientRegistrationEventHandler) {
 		this.clientManagerState = clientManagerState;
-		Runtime.getRuntime().addShutdownHook(shutdownHook);
+		this.clientRegistrationEventHandler = clientRegistrationEventHandler;
 	}
 
 	@Override
@@ -68,20 +68,18 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 			}
 		}
 
-		if (isClosed) {
-			if (this.isClosed.compareAndSet(false, true)) {
-				handleClose();
-			}
+		if (isClosed && !closed) {
+				synchronized (closeLock) {
+					if (!closed) {
+						closed = true;
+						handleClose();
+					}
+				}
 		}
 	}
 
 	private void handleClose() {
 		logger.trace(TG_MARKER, "Received close");
-		try {
-			Runtime.getRuntime().removeShutdownHook(shutdownHook);
-		} catch (IllegalStateException ignored) {
-			logger.trace(TG_MARKER, "Can't remove shutdown hook because the JVM is already shutting down");
-		}
 		handlers.forEach((eventId, handler) ->
 				handleResponse(eventId, new TdApi.Error(500, "Instance closed"), handler));
 		handlers.clear();
@@ -152,7 +150,14 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 			if (clientId != null) {
 				throw new UnsupportedOperationException("Can't initialize the same client twice!");
 			}
-			clientId = NativeClientAccess.create();
+			int clientId = NativeClientAccess.create();
+			InternalClientsState clientManagerState = this.clientManagerState;
+			this.clientId = clientId;
+			if (clientRegistrationEventHandler != null) {
+				clientRegistrationEventHandler.onClientRegistered(clientId, clientManagerState::getNextQueryId);
+				// Remove the event handler
+				clientRegistrationEventHandler = null;
+			}
 		}
 		clientManagerState.registerClient(clientId, this);
 		logger.info(TG_MARKER, "Registered new client {}", clientId);
@@ -166,15 +171,16 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 			ResultHandler<R> resultHandler,
 			ExceptionHandler exceptionHandler) {
 		logger.trace(TG_MARKER, "Trying to send {}", query);
-		if (isClosedAndMaybeThrow(query)) {
-			resultHandler.onResult(new TdApi.Ok());
-		}
-		if (clientId == null) {
-			ExceptionHandler handler = exceptionHandler == null ? defaultExceptionHandler : exceptionHandler;
-			handler.onException(new IllegalStateException(
-					"Can't send a request to TDLib before calling \"initialize\" function!"));
+
+		// Handle special requests
+		TdApi.Object specialResult = tryHandleSpecial(query);
+		if (specialResult != null) {
+			if (resultHandler != null) {
+				resultHandler.onResult(specialResult);
+			}
 			return;
 		}
+
 		long queryId = clientManagerState.getNextQueryId();
 		if (resultHandler != null) {
 			handlers.put(queryId, new Handler<>(resultHandler, exceptionHandler));
@@ -185,36 +191,31 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 	@Override
 	public <R extends TdApi.Object> TdApi.Object execute(Function<R> query) {
 		logger.trace(TG_MARKER, "Trying to execute {}", query);
-		if (isClosedAndMaybeThrow(query)) {
-			return new TdApi.Ok();
-		}
-		return NativeClientAccess.execute(query);
-	}
 
-	private void onJVMShutdown() {
-		if ("true".equalsIgnoreCase(System.getProperty("it.tdlight.enableShutdownHooks", "true"))) {
-			try {
-				logger.info(TG_MARKER, "Client {} is shutting down because the JVM is shutting down", clientId);
-				this.send(new TdApi.Close(), result -> {}, ex -> {});
-			} catch (Throwable ex) {
-				logger.debug("Failed to send shutdown request to session {}", clientId);
-			}
+		// Handle special requests
+		TdApi.Object specialResult = tryHandleSpecial(query);
+		if (specialResult != null) {
+			return specialResult;
 		}
+
+		return NativeClientAccess.execute(query);
 	}
 
 	/**
 	 * @param function function used to check if the check will be enforced or not. Can be null
-	 * @return true if closed
+	 * @return not null if closed. The result, if present, must be sent to the client
 	 */
-	private boolean isClosedAndMaybeThrow(Function<?> function) {
-		boolean closed = isClosed.get();
-		if (closed) {
+	private <R extends TdApi.Object> TdApi.Object tryHandleSpecial(Function<R> function) {
+		if (this.closed) {
 			if (function != null && function.getConstructor() == TdApi.Close.CONSTRUCTOR) {
-				return true;
+				return new TdApi.Ok();
 			} else {
-				throw new IllegalStateException("The client is closed!");
+				return new TdApi.Error(503, "Client closed");
 			}
+		} else if (clientId == null) {
+			return new TdApi.Error(503, "Client not initialized. TDLib is not available until \"initialize\" is called!");
+		} else {
+			return null;
 		}
-		return false;
 	}
 }
