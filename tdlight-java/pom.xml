@@ -312,6 +312,9 @@
 						</goals>
 						<configuration>
 							<release>9</release>
+							<compilerArgs>
+								<arg>--add-modules=jdk.unsupported</arg>
+							</compilerArgs>
 						</configuration>
 					</execution>
 					<!-- recompile sources as Java 8 to overwrite Java 9 class files, except module-info.java -->
