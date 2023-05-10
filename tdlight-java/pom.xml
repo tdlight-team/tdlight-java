@@ -163,6 +163,9 @@
 									<excludes>
 										<exclude>module-info.java</exclude>
 									</excludes>
+									<compilerArgs>
+										<arg>--add-modules=jdk.unsupported</arg>
+									</compilerArgs>
 								</configuration>
 							</execution>
 						</executions>

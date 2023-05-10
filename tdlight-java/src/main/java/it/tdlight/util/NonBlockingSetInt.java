@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jctools.maps.ConcurrentAutoTable;
+import org.jctools.util.UnsafeAccess;
 import sun.misc.Unsafe;
 
 /**
@@ -42,7 +43,7 @@ import sun.misc.Unsafe;
 
 public class NonBlockingSetInt extends AbstractSet<Integer> implements Serializable {
   private static final long serialVersionUID = 1234123412341234123L;
-  private static final Unsafe _unsafe = Unsafe.getUnsafe();
+  private static final Unsafe _unsafe = UnsafeAccess.UNSAFE;
 
   // --- Bits to allow atomic update of the NBSI
   private static final long _nbsi_offset;
