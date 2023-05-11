@@ -10,6 +10,10 @@ final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<Authe
 
 	private final String userPhoneNumber;
 	private final String botToken;
+	/**
+	 * Safe string representation of the bot token
+	 */
+	private final String botTokenId;
 
 	AuthenticationDataImpl(String userPhoneNumber, String botToken) {
 		if ((userPhoneNumber == null) == (botToken == null)) {
@@ -22,6 +26,16 @@ final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<Authe
 		}
 		this.userPhoneNumber = userPhoneNumber;
 		this.botToken = botToken;
+		if (botToken != null) {
+			String[] parts = botToken.split(":", 2);
+			if (parts.length > 0) {
+				botTokenId = parts[0];
+			} else {
+				botTokenId = "";
+			}
+		} else {
+			botTokenId = "";
+		}
 	}
 
 	@Override
@@ -54,8 +68,8 @@ final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<Authe
 	public String toString() {
 		if (userPhoneNumber != null) {
 			return userPhoneNumber;
-		} else {
-			return "\"" + botToken + "\"";
+		} else  {
+			return botTokenId;
 		}
 	}
 
