@@ -123,8 +123,8 @@ dependencies {
 	implementation platform('it.tdlight:tdlight-java-bom:VERSION')
 
 	// do not specify the versions on the dependencies below!
-	implementation 'it.tdlight:tdlight-java:VERSION' // Java 8 is supported if you use the following dependency classifier: `jdk8`
-	implementation 'it.tdlight:tdlight-natives:VERSION:linux_amd64_ssl1'
+	implementation group: 'it.tdlight', name: 'tdlight-java' // Java 8 is supported if you use the following dependency classifier: `jdk8`
+	implementation group: 'it.tdlight', name: 'tdlight-natives', classifier: 'linux_amd64_ssl1'
 	// Include other native classifiers, for example linux_amd64_ssl3, macos_amd64, ... -->
 }
 ```
@@ -143,6 +143,8 @@ To use TDLight Java you need to include the native libraries, by specifying one 
 - `linux_ppc64le_ssl3`
 - `windows_amd64`
 - `macos_amd64`
+
+Advanced: If you want to use a different precompiled native, please set the java property `it.tdlight.native.workdir`. (Please note that you must build [this](https://github.com/tdlight-team/tdlight-java-natives), you can't put random precompiled tdlib binaries found on the internet)
 
 ## Usage
 
