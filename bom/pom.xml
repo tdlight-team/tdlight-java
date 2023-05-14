@@ -8,8 +8,8 @@
 	<name>TDLight Java BOM</name>
 	<properties>
 		<revision>3.0.0.0-SNAPSHOT</revision>
-		<tdlight.natives.version>4.0.378</tdlight.natives.version>
-		<tdlight.api.version>4.0.376</tdlight.api.version>
+		<tdlight.natives.version>4.0.420</tdlight.natives.version>
+		<tdlight.api.version>4.0.390</tdlight.api.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
@@ -96,30 +96,17 @@
 				<version>${tdlight.natives.version}</version>
 				<classifier>linux_arm64_ssl1</classifier>
 			</dependency>
-			<!--
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>linux_armhf_ssl1</classifier>
+				<classifier>linux_arm64_ssl3</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>linux_i386_ssl1</classifier>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlight-natives</artifactId>
-				<version>${tdlight.natives.version}</version>
-				<classifier>linux_ppc64le_ssl1</classifier>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlight-natives</artifactId>
-				<version>${tdlight.natives.version}</version>
-				<classifier>linux_s390x_ssl1</classifier>
+				<classifier>linux_ppc64le_ssl3</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
@@ -131,15 +118,8 @@
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>osx_amd64</classifier>
+				<classifier>macos_amd64</classifier>
 			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlight-natives</artifactId>
-				<version>${tdlight.natives.version}</version>
-				<classifier>osx_arm64</classifier>
-			</dependency>
-			-->
 		</dependencies>
 	</dependencyManagement>
 
