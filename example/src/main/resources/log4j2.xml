@@ -4,7 +4,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://logging.apache.org/log4j/2.0/config
   https://raw.githubusercontent.com/apache/logging-log4j2/log4j-2.16.0/log4j-core/src/main/resources/Log4j-config.xsd"
-	status="INFO">
+	status="DEBUG">
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout
@@ -13,8 +13,8 @@
 
 	</Appenders>
 	<Loggers>
-		<Logger name="it.tdlight.TDLight" level="ERROR" additivity="false" />
-		<Root level="INFO">
+		<Logger name="it.tdlight.TDLight" level="WARN" additivity="false" />
+		<Root level="DEBUG">
 			<AppenderRef ref="Console"/>
 		</Root>
 	</Loggers>

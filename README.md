@@ -15,21 +15,19 @@
 
 ## 💻 Supported platforms
 
-**Java versions**: from Java 17 to Java 19+ (Java 8 is supported if you use the following dependency classifier: `jdk8`)
+**Java versions**: from Java 17 to Java 19+ (Java 8 to 16 is supported if you use the following dependency classifier: `jdk8`)
 
 **Operating systems**: Linux, Windows, MacOS
 
 **CPU architectures**:
 
-- i386/x86 (Linux, Windows)
-- amd64/x86_64 (Linux, Windows, OSX)
+- amd64/x86_64 (Linux, Windows, MacOS)
 - armhf/armv7 (Linux)
 - aarch64/armv8/arm64 (Linux)
-- s390x (Linux)
 - ppc64el/ppc64le (Linux)
 
 ## 📚 Required libraries
-- **Linux: OpenSSL, zlib**
+- **Linux: libc++, OpenSSL1/OpenSSL3, zlib**
 - **MacOS: OpenSSL**
 - **Windows: [Microsoft Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)**
 
@@ -84,15 +82,26 @@ If you are using Maven, edit your `pom.xml` file as below:
 		<!-- Add the following dependencies -->
 		<dependency>
 			<groupId>it.tdlight</groupId>
-			<artifactId>tdlight-java</artifactId> <!-- Java 8 is supported if you use the following dependency classifier: <classifier>jdk8</classifier> -->
+			<artifactId>tdlight-java</artifactId>
+			<!-- Java 8 is supported if you use the following dependency classifier: <classifier>jdk8</classifier> -->
 			<!-- don't specify the version here -->
 		</dependency>
+		<!-- Example linux amd64 ssl1 natives -->
 		<dependency>
 			<groupId>it.tdlight</groupId>
-			<artifactId>tdlight-natives-linux-amd64</artifactId>
+			<artifactId>tdlight-natives</artifactId>
+			<classifier>linux_amd64_ssl1</classifier>
 			<!-- don't specify the version here -->
 		</dependency>
-		<!-- Include other native versions that you want, for example for windows, osx, ... -->
+		<!-- Example windows amd64 natives -->
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-natives</artifactId>
+			<classifier>windows_amd64</classifier>
+			<!-- don't specify the version here -->
+		</dependency>
+		<!-- ... -->
+		<!-- Include other native classifiers, for example linux_amd64_ssl3, macos_amd64, ... -->
 
 	</dependencies>
 </project>
@@ -114,9 +123,9 @@ dependencies {
 	implementation platform('it.tdlight:tdlight-java-bom:VERSION')
 
 	// do not specify the versions on the dependencies below!
-	implementation 'it.tdlight:tdlight-java' // Java 8 is supported if you use the following dependency classifier: `jdk8`
-	implementation 'it.tdlight:tdlight-natives-linux-amd64'
-	// Include other native versions that you want, for example for windows, osx, ...
+	implementation 'it.tdlight:tdlight-java:VERSION' // Java 8 is supported if you use the following dependency classifier: `jdk8`
+	implementation 'it.tdlight:tdlight-natives:VERSION:linux_amd64_ssl1'
+	// Include other native classifiers, for example linux_amd64_ssl3, macos_amd64, ... -->
 }
 ```
 
@@ -125,16 +134,15 @@ it [here](https://github.com/tdlight-team/tdlight-java/releases).
 
 ## ⚒ Native dependencies
 
-To use TDLight Java you need to include one or more native dependencies:
+To use TDLight Java you need to include the native libraries, by specifying one of the following classifier for each tdlight-natives dependency:
 
-- `tdlight-natives-linux-amd64`
-- `tdlight-natives-linux-aarch64`
-- `tdlight-natives-linux-x86`
-- `tdlight-natives-linux-armhf`
-- `tdlight-natives-linux-ppc64le`
-- `tdlight-natives-linux-s390x`
-- `tdlight-natives-windows-amd64`
-- `tdlight-natives-osx-amd64`
+- `linux_amd64_ssl1`
+- `linux_amd64_ssl3`
+- `linux_arm64_ssl1`
+- `linux_arm64_ssl3`
+- `linux_ppc64le_ssl3`
+- `windows_amd64`
+- `macos_amd64`
 
 ## Usage
 
