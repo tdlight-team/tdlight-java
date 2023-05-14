@@ -47,6 +47,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 	private final Object registeredClientsLock = new Object();
 	// Do not modify the int[] directly, this should be replaced
 	private volatile int[] registeredClients = new int[0];
+	private volatile boolean closeRequested;
 
 
 	public ResponseReceiver(EventsHandler eventsHandler) {
@@ -67,7 +68,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 		final SimpleIntQueue closedClients = new SimpleIntQueue();
 		try {
 			boolean interrupted;
-			while (!(interrupted = Thread.interrupted()) && registeredClients.length > 0) {
+			while (!(interrupted = Thread.interrupted()) && (!closeRequested || registeredClients.length > 0)) {
 				// Timeout is expressed in seconds
 				int resultsCount = receive(clientIds, eventIds, events, 2.0);
 				LOG.trace("Received {} events", resultsCount);
@@ -272,6 +273,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
 	@Override
 	public void close() throws InterruptedException {
+		this.closeRequested = true;
 		this.closeWait.await();
 		if (registeredClients.length == 0) {
 			LOG.debug("Interrupting response receiver");

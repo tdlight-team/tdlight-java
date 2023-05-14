@@ -165,9 +165,15 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 		}
 		logger.debug(TG_MARKER, "Creating new client");
 		clientId = NativeClientAccess.create();
-		logger.debug(TG_MARKER, "Registering new client {}", clientId);
-		clientManagerState.registerClient(clientId, this);
-		logger.debug(TG_MARKER, "Registered new client {}", clientId);
+		var eventsHandlingLock = clientManagerState.getEventsHandlingLock();
+		var stamp = eventsHandlingLock.writeLock();
+		try {
+			logger.debug(TG_MARKER, "Registering new client {}", clientId);
+			clientManagerState.registerClient(clientId, this);
+			logger.info(TG_MARKER, "Registered new client {}", clientId);
+		} finally {
+			eventsHandlingLock.unlockWrite(stamp);
+		}
 	}
 
 	@Override

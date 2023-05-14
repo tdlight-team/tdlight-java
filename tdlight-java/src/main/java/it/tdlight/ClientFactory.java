@@ -92,33 +92,63 @@ public class ClientFactory implements AutoCloseable {
 			TdApi.Object[] clientEvents,
 			int arrayOffset,
 			int arrayLength) {
-		ClientEventsHandler handler = state.getClientEventsHandler(clientId);
+		var eventsHandlingLock = state.getEventsHandlingLock();
+		boolean closeWriteLockAcquisitionFailed = false;
+		var stamp = eventsHandlingLock.readLock();
+		try {
+			ClientEventsHandler handler = state.getClientEventsHandler(clientId);
 
-		if (handler != null) {
-			handler.handleEvents(isClosed, clientEventIds, clientEvents, arrayOffset, arrayLength);
-		} else {
-			java.util.List<DroppedEvent> droppedEvents = getEffectivelyDroppedEvents(clientEventIds,
-					clientEvents,
-					arrayOffset,
-					arrayLength
-			);
+			if (handler != null) {
+				handler.handleEvents(isClosed, clientEventIds, clientEvents, arrayOffset, arrayLength);
+			} else {
+				java.util.List<DroppedEvent> droppedEvents = getEffectivelyDroppedEvents(clientEventIds,
+						clientEvents,
+						arrayOffset,
+						arrayLength
+				);
 
-			if (!droppedEvents.isEmpty()) {
-				logger.error("Unknown client id \"{}\"! {} events have been dropped!", clientId, droppedEvents.size());
-				for (DroppedEvent droppedEvent : droppedEvents) {
-					logger.error("The following event, with id \"{}\", has been dropped: {}",
-							droppedEvent.id,
-							droppedEvent.event
-					);
+				if (!droppedEvents.isEmpty()) {
+					logger.error("Unknown client id \"{}\"! {} events have been dropped!", clientId, droppedEvents.size());
+					for (DroppedEvent droppedEvent : droppedEvents) {
+						logger.error("The following event, with id \"{}\", has been dropped: {}",
+								droppedEvent.id,
+								droppedEvent.event
+						);
+					}
 				}
 			}
+
+			if (isClosed) {
+				var writeLockStamp = eventsHandlingLock.tryConvertToWriteLock(stamp);
+				if (writeLockStamp != 0L) {
+					stamp = writeLockStamp;
+					removeClientEventHandlers(clientId);
+				} else {
+					closeWriteLockAcquisitionFailed = true;
+				}
+			}
+		} finally {
+			eventsHandlingLock.unlock(stamp);
 		}
 
-		if (isClosed) {
-			logger.debug("Removing Client {} from event handlers", clientId);
-			state.removeClientEventHandlers(clientId);
-			logger.debug("Removed Client {} from event handlers", clientId);
+		if (closeWriteLockAcquisitionFailed) {
+			stamp = eventsHandlingLock.writeLock();
+			try {
+				removeClientEventHandlers(clientId);
+			} finally {
+				eventsHandlingLock.unlockWrite(stamp);
+			}
 		}
+	}
+
+	/**
+	 * Call this method only inside handleClientEvents!
+	 * Ensure that state has the eventsHandlingLock locked in write mode
+	 */
+	private void removeClientEventHandlers(int clientId) {
+		logger.debug("Removing Client {} from event handlers", clientId);
+		state.removeClientEventHandlers(clientId);
+		logger.debug("Removed Client {} from event handlers", clientId);
 	}
 
 	/**

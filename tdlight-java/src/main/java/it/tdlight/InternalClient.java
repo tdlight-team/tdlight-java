@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.StampedLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -149,21 +150,25 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 	}
 
 	private void createAndRegisterClient() {
-		synchronized (this) {
+		InternalClientsState clientManagerState = this.clientManagerState;
+		final StampedLock eventsHandlingLock = clientManagerState.getEventsHandlingLock();
+		var stamp = eventsHandlingLock.writeLock();
+		try {
 			if (clientId != null) {
 				throw new UnsupportedOperationException("Can't initialize the same client twice!");
 			}
-			int clientId = NativeClientAccess.create();
-			InternalClientsState clientManagerState = this.clientManagerState;
-			this.clientId = clientId;
+			this.clientId = NativeClientAccess.create();
 			if (clientRegistrationEventHandler != null) {
 				clientRegistrationEventHandler.onClientRegistered(clientId, clientManagerState::getNextQueryId);
 				// Remove the event handler
 				clientRegistrationEventHandler = null;
 			}
+			logger.debug(TG_MARKER, "Registering new client {}", clientId);
+			clientManagerState.registerClient(clientId, this);
+			logger.info(TG_MARKER, "Registered new client {}", clientId);
+		} finally {
+			eventsHandlingLock.unlockWrite(stamp);
 		}
-		clientManagerState.registerClient(clientId, this);
-		logger.info(TG_MARKER, "Registered new client {}", clientId);
 
 		// Send a dummy request to start TDLib
 		logger.debug(TG_MARKER, "Sending dummy startup request as client {}", clientId);
