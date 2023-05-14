@@ -10,12 +10,13 @@ final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<Authe
 
 	private final String userPhoneNumber;
 	private final String botToken;
+	private final boolean test;
 	/**
 	 * Safe string representation of the bot token
 	 */
 	private final String botTokenId;
 
-	AuthenticationDataImpl(String userPhoneNumber, String botToken) {
+	AuthenticationDataImpl(String userPhoneNumber, String botToken, boolean test) {
 		if ((userPhoneNumber == null) == (botToken == null)) {
 			throw new IllegalArgumentException("Please use either a bot token or a phone number");
 		}
@@ -26,6 +27,7 @@ final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<Authe
 		}
 		this.userPhoneNumber = userPhoneNumber;
 		this.botToken = botToken;
+		this.test = test;
 		if (botToken != null) {
 			String[] parts = botToken.split(":", 2);
 			if (parts.length > 0) {
@@ -48,6 +50,10 @@ final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<Authe
 		return botToken != null;
 	}
 
+	public boolean isTest() {
+		return test;
+	}
+
 	@Override
 	public String getUserPhoneNumber() {
 		if (userPhoneNumber == null) {
@@ -66,10 +72,16 @@ final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<Authe
 
 	@Override
 	public String toString() {
+		String value;
 		if (userPhoneNumber != null) {
-			return userPhoneNumber;
+			value = userPhoneNumber;
 		} else  {
-			return botTokenId;
+			value = botTokenId;
+		}
+		if (test) {
+			return value + " (test)";
+		} else {
+			return value;
 		}
 	}
 
@@ -82,12 +94,13 @@ final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<Authe
 			return false;
 		}
 		AuthenticationDataImpl that = (AuthenticationDataImpl) o;
-		return Objects.equals(userPhoneNumber, that.userPhoneNumber) && Objects.equals(botToken, that.botToken);
+		return Objects.equals(userPhoneNumber, that.userPhoneNumber) && Objects.equals(botToken, that.botToken)
+				&& Objects.equals(test, that.test);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(userPhoneNumber, botToken);
+		return Objects.hash(userPhoneNumber, botToken, test);
 	}
 
 	@Override

@@ -105,6 +105,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				new AuthorizationStateWaitCodeHandler(client,
 						new SimpleTelegramClientInteraction(),
+						getTestCode(authenticationData),
 						this::handleDefaultException
 				)
 		);
@@ -117,6 +118,18 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 		this.authenticationData = authenticationData;
 		createDirectories();
 		client.initialize(this::handleUpdate, this::handleUpdateException, this::handleDefaultException);
+	}
+
+	private String getTestCode(AuthenticationSupplier<?> authenticationData) {
+		if (authenticationData instanceof AuthenticationDataImpl) {
+			if (!((AuthenticationDataImpl) authenticationData).isBot()
+					&& ((AuthenticationDataImpl) authenticationData).isTest()) {
+				String phoneNumber = ((AuthenticationDataImpl) authenticationData).getUserPhoneNumber();
+				String substring = phoneNumber.substring(5, 6);
+				return substring + substring + substring + substring;
+			}
+		}
+		return null;
 	}
 
 	private void handleUpdate(TdApi.Object update) {

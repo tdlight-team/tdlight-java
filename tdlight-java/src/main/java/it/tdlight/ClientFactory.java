@@ -8,6 +8,7 @@ import it.tdlight.util.CleanSupport.CleanableSupport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.locks.StampedLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,9 +93,9 @@ public class ClientFactory implements AutoCloseable {
 			TdApi.Object[] clientEvents,
 			int arrayOffset,
 			int arrayLength) {
-		var eventsHandlingLock = state.getEventsHandlingLock();
+		StampedLock eventsHandlingLock = state.getEventsHandlingLock();
 		boolean closeWriteLockAcquisitionFailed = false;
-		var stamp = eventsHandlingLock.readLock();
+		long stamp = eventsHandlingLock.readLock();
 		try {
 			ClientEventsHandler handler = state.getClientEventsHandler(clientId);
 
@@ -119,7 +120,7 @@ public class ClientFactory implements AutoCloseable {
 			}
 
 			if (isClosed) {
-				var writeLockStamp = eventsHandlingLock.tryConvertToWriteLock(stamp);
+				long writeLockStamp = eventsHandlingLock.tryConvertToWriteLock(stamp);
 				if (writeLockStamp != 0L) {
 					stamp = writeLockStamp;
 					removeClientEventHandlers(clientId);

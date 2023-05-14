@@ -44,6 +44,8 @@ public final class Example {
 
 			// Configure the client
 			TDLibSettings settings = TDLibSettings.create(apiToken);
+			// This is an example, remove this line to use the real telegram datacenters!
+			settings.setUseTestDatacenter(true);
 
 			// Configure the session directory
 			Path sessionPath = Paths.get("example-tdlight-session");
@@ -54,7 +56,7 @@ public final class Example {
 			SimpleTelegramClientBuilder clientBuilder = clientFactory.builder(settings);
 
 			// Configure the authentication info
-			ConsoleInteractiveAuthenticationData authenticationData = AuthenticationSupplier.consoleLogin();
+			SimpleAuthenticationSupplier<?> authenticationData = AuthenticationSupplier.testUser(3210); // Replace with AuthenticationSupplier.consoleLogin(), or .user(xxx), or .bot(xxx);
 
 			// Add an example update handler that prints when the bot is started
 			clientBuilder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, Example::onUpdateAuthorizationState);

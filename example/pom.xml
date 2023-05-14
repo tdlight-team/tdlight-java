@@ -26,7 +26,7 @@
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-java-bom</artifactId>
-				<version>3.0.0.0-SNAPSHOT</version>
+				<version>3.0.2+td.1.18.4</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -54,7 +54,7 @@
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
-			<artifactId>osx_amd64</artifactId>
+			<artifactId>macos_amd64</artifactId>
 		</dependency>
 		-->
 

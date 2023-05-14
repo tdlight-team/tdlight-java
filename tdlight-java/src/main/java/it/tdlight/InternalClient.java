@@ -152,7 +152,7 @@ final class InternalClient implements ClientEventsHandler, TelegramClient {
 	private void createAndRegisterClient() {
 		InternalClientsState clientManagerState = this.clientManagerState;
 		final StampedLock eventsHandlingLock = clientManagerState.getEventsHandlingLock();
-		var stamp = eventsHandlingLock.writeLock();
+		long stamp = eventsHandlingLock.writeLock();
 		try {
 			if (clientId != null) {
 				throw new UnsupportedOperationException("Can't initialize the same client twice!");

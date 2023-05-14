@@ -15,6 +15,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.StampedLock;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
@@ -165,8 +166,8 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 		}
 		logger.debug(TG_MARKER, "Creating new client");
 		clientId = NativeClientAccess.create();
-		var eventsHandlingLock = clientManagerState.getEventsHandlingLock();
-		var stamp = eventsHandlingLock.writeLock();
+		StampedLock eventsHandlingLock = clientManagerState.getEventsHandlingLock();
+		long stamp = eventsHandlingLock.writeLock();
 		try {
 			logger.debug(TG_MARKER, "Registering new client {}", clientId);
 			clientManagerState.registerClient(clientId, this);
