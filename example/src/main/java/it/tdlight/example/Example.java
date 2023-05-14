@@ -56,7 +56,7 @@ public final class Example {
 			SimpleTelegramClientBuilder clientBuilder = clientFactory.builder(settings);
 
 			// Configure the authentication info
-			SimpleAuthenticationSupplier<?> authenticationData = AuthenticationSupplier.testUser(3210); // Replace with AuthenticationSupplier.consoleLogin(), or .user(xxx), or .bot(xxx);
+			SimpleAuthenticationSupplier<?> authenticationData = AuthenticationSupplier.testUser(7381); // Replace with AuthenticationSupplier.consoleLogin(), or .user(xxx), or .bot(xxx);
 
 			// Add an example update handler that prints when the bot is started
 			clientBuilder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, Example::onUpdateAuthorizationState);

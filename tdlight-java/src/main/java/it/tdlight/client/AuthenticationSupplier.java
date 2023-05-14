@@ -15,7 +15,7 @@ public interface AuthenticationSupplier<T extends AuthenticationData> {
 		if (value > 9999) {
 			throw new IllegalArgumentException("value must be lower than 10000");
 		}
-		return new AuthenticationDataImpl("999664" + value, null, true);
+		return new AuthenticationDataImpl("999662" + value, null, true);
 	}
 
 	CompletableFuture<T> get();

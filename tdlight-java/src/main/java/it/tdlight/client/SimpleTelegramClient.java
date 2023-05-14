@@ -125,8 +125,13 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 			if (!((AuthenticationDataImpl) authenticationData).isBot()
 					&& ((AuthenticationDataImpl) authenticationData).isTest()) {
 				String phoneNumber = ((AuthenticationDataImpl) authenticationData).getUserPhoneNumber();
-				String substring = phoneNumber.substring(5, 6);
-				return substring + substring + substring + substring;
+				String loginCodeChar = phoneNumber.substring(5, 6);
+				StringBuilder sb = new StringBuilder();
+				//noinspection StringRepeatCanBeUsed
+				for (int i = 0; i < 5; i++) {
+					sb.append(loginCodeChar);
+				}
+				return sb.toString();
 			}
 		}
 		return null;
