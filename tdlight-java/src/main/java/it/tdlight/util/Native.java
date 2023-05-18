@@ -91,8 +91,8 @@ public final class Native {
 			case "windows": {
 				return Stream.of("windows_" + arch);
 			}
-			case "osx": {
-				return Stream.of("osx_" + arch);
+			case "macos": {
+				return Stream.of("macos_" + arch);
 			}
 			default: {
 				throw new UnsupportedOperationException();
@@ -156,10 +156,10 @@ public final class Native {
 			return "windows";
 		}
 		if (os.contains("mac")) {
-			return "osx";
+			return "macos";
 		}
 		if (os.contains("darwin")) {
-			return "osx";
+			return "macos";
 		}
 		return "unknown";
 	}
