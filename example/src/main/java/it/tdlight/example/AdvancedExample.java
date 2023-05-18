@@ -16,7 +16,7 @@ public class AdvancedExample {
 		Init.init();
 
 		// Create a client manager, it should be closed before shutdown
-		ClientFactory clientManager = new ClientFactory();
+		ClientFactory clientManager = ClientFactory.create();
 
 		// Create a client, it should be closed before shutdown
 		TelegramClient client = clientManager.createClient();

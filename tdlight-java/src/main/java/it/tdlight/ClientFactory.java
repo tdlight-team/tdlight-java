@@ -23,6 +23,13 @@ public interface ClientFactory extends AutoCloseable {
 		return common;
 	}
 
+	/**
+	 * Create a new Client Factory
+	 */
+	static ClientFactory create() {
+		return new ClientFactoryImpl();
+	}
+
 	TelegramClient createClient();
 
 	ReactiveTelegramClient createReactive();
