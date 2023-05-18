@@ -1,23 +1,17 @@
 package it.tdlight.client;
 
 import it.tdlight.ClientFactory;
+import java.util.Objects;
 
 public class SimpleTelegramClientFactory implements AutoCloseable {
 	private final ClientFactory clientFactory;
-	private final boolean commonClientFactory;
 
 	public SimpleTelegramClientFactory() {
 		this(null);
 	}
 
 	public SimpleTelegramClientFactory(ClientFactory clientFactory) {
-		if (clientFactory == null) {
-			 this.clientFactory = ClientFactory.getCommonClientFactory();
-			 this.commonClientFactory = true;
-		} else {
-			this.clientFactory = clientFactory;
-			this.commonClientFactory = false;
-		}
+		this.clientFactory = Objects.requireNonNullElseGet(clientFactory, ClientFactory::acquireCommonClientFactory);
 	}
 
 	public SimpleTelegramClientBuilder builder(TDLibSettings clientSettings) {
@@ -26,8 +20,6 @@ public class SimpleTelegramClientFactory implements AutoCloseable {
 
 	@Override
 	public void close() {
-		if (!commonClientFactory) {
-			clientFactory.close();
-		}
+		clientFactory.close();
 	}
 }
