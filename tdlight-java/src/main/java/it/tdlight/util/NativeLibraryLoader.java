@@ -15,6 +15,7 @@
  */
 package it.tdlight.util;
 
+import java.nio.file.AccessDeniedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -263,12 +264,20 @@ public final class NativeLibraryLoader {
 			// We delete the file immediately to free up resources as soon as possible,
 			// and if this fails fallback to deleting on JVM exit.
 			try {
-				if (tmpFile != null && (!DELETE_NATIVE_LIB_AFTER_LOADING || !Files.deleteIfExists(tmpFile))) {
+				if (tmpFile != null && (!DELETE_NATIVE_LIB_AFTER_LOADING || !deleteIfExists(tmpFile))) {
 					tmpFile.toFile().deleteOnExit();
 				}
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
+		}
+	}
+
+	private static boolean deleteIfExists(Path tmpFile) throws IOException {
+		try {
+			return Files.deleteIfExists(tmpFile);
+		} catch (AccessDeniedException ex) {
+			return false;
 		}
 	}
 
