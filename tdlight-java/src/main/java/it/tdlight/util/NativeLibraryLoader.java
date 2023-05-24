@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -263,20 +264,16 @@ public final class NativeLibraryLoader {
 			// After we load the library it is safe to delete the file.
 			// We delete the file immediately to free up resources as soon as possible,
 			// and if this fails fallback to deleting on JVM exit.
-			try {
-				if (tmpFile != null && (!DELETE_NATIVE_LIB_AFTER_LOADING || !deleteIfExists(tmpFile))) {
-					tmpFile.toFile().deleteOnExit();
-				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			if (tmpFile != null && (!DELETE_NATIVE_LIB_AFTER_LOADING || !deleteIfExists(tmpFile))) {
+				tmpFile.toFile().deleteOnExit();
 			}
 		}
 	}
 
-	private static boolean deleteIfExists(Path tmpFile) throws IOException {
+	private static boolean deleteIfExists(Path tmpFile) {
 		try {
 			return Files.deleteIfExists(tmpFile);
-		} catch (AccessDeniedException ex) {
+		} catch (IOException ex) {
 			return false;
 		}
 	}
