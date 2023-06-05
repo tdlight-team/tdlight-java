@@ -86,11 +86,11 @@ If you are using Maven, edit your `pom.xml` file as below:
 			<!-- Java 8 is supported if you use the following dependency classifier: <classifier>jdk8</classifier> -->
 			<!-- don't specify the version here -->
 		</dependency>
-		<!-- Example linux amd64 ssl1 natives -->
+		<!-- Example linux amd64 (GCC) ssl1 natives -->
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives</artifactId>
-			<classifier>linux_amd64_ssl1</classifier>
+			<classifier>linux_amd64_gcc_ssl1</classifier>
 			<!-- don't specify the version here -->
 		</dependency>
 		<!-- Example windows amd64 natives -->
@@ -124,8 +124,8 @@ dependencies {
 
 	// do not specify the versions on the dependencies below!
 	implementation group: 'it.tdlight', name: 'tdlight-java' // Java 8 is supported if you use the following dependency classifier: `jdk8`
-	implementation group: 'it.tdlight', name: 'tdlight-natives', classifier: 'linux_amd64_ssl1'
-	// Include other native classifiers, for example linux_amd64_ssl3, macos_amd64, ... -->
+	implementation group: 'it.tdlight', name: 'tdlight-natives', classifier: 'linux_amd64_gcc_ssl1'
+	// Include other native classifiers, for example linux_amd64_ssl1, linux_amd64_ssl3, macos_amd64, ... -->
 }
 ```
 
@@ -138,6 +138,8 @@ To use TDLight Java you need to include the native libraries, by specifying one 
 
 - `linux_amd64_ssl1`
 - `linux_amd64_ssl3`
+- `linux_amd64_gcc_ssl1`
+- `linux_amd64_gcc_ssl3`
 - `linux_arm64_ssl1`
 - `linux_arm64_ssl3`
 - `linux_ppc64le_ssl3`

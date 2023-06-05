@@ -58,8 +58,12 @@ public final class Native {
 				NativeLibraryLoader.load(staticLibName, cl);
 				logger.debug("Failed to load {}", String.join(", ", sharedLibNames), e1);
 			} catch (UnsatisfiedLinkError e2) {
-				e1.addSuppressed(e2);
-				throw new UnsupportedNativeLibraryException(e1);
+				if (e2.getMessage().contains("libc++.so.1: cannot open shared")) {
+					throw new UnsupportedNativeLibraryException("Install \"libc++\" to use TDLight Java!");
+				} else {
+					e1.addSuppressed(e2);
+					throw new UnsupportedNativeLibraryException(e1);
+				}
 			}
 		}
 	}

@@ -46,7 +46,21 @@
 			<artifactId>tdlight-natives</artifactId>
 			<classifier>linux_amd64_ssl1</classifier>
 		</dependency>
-		<!--
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-natives</artifactId>
+			<classifier>linux_amd64_gcc_ssl1</classifier>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-natives</artifactId>
+			<classifier>linux_amd64_ssl3</classifier>
+		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-natives</artifactId>
+			<classifier>linux_amd64_gcc_ssl3</classifier>
+		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives</artifactId>
@@ -54,9 +68,9 @@
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
-			<artifactId>macos_amd64</artifactId>
+			<artifactId>tdlight-natives</artifactId>
+			<classifier>macos_amd64</classifier>
 		</dependency>
-		-->
 
 		<!-- log4j logging -->
 		<dependency>
