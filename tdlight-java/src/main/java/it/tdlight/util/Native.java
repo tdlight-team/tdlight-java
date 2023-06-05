@@ -90,7 +90,7 @@ public final class Native {
 	private static Stream<String> getNormalizedArchitectures(String os, String arch) {
 		switch (os) {
 			case "linux": {
-				return Stream.of("linux_" + arch + "_ssl1", "linux_" + arch + "_ssl3");
+				return Stream.of("linux_" + arch + "_ssl1", "linux_" + arch + "_ssl3", "linux_" + arch + "_gcc_ssl1", "linux_" + arch + "_gcc_ssl3");
 			}
 			case "windows": {
 				return Stream.of("windows_" + arch);
