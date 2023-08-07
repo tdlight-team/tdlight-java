@@ -53,7 +53,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 	public ResponseReceiver(EventsHandler eventsHandler) {
 		super("TDLib thread");
 		this.eventsHandler = eventsHandler;
-		this.setDaemon(false);
+		this.setDaemon(true);
 	}
 
 	/**
