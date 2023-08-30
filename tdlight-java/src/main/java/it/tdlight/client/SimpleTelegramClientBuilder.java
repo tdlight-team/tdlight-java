@@ -39,7 +39,7 @@ public final class SimpleTelegramClientBuilder implements MutableTelegramClient 
 	}
 
 	@Override
-	public <T extends Update> void addUpdateHandler(Class<T> updateType, GenericUpdateHandler<T> handler) {
+	public <T extends Update> void addUpdateHandler(Class<T> updateType, GenericUpdateHandler<? super T> handler) {
 		this.updateHandlers.add(new SimpleResultHandler<>(updateType, handler));
 	}
 

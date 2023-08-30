@@ -80,7 +80,7 @@ public final class Native {
 	private static Stream<String> getAllNormalizedArchitectures() {
 		Set<String> all = new LinkedHashSet<>();
 		for (String os : new String[]{"windows"}) {
-			for (String arch : new String[]{"arm64", "amd64", "armhf", "i386", "s390x", "ppc64le"}) {
+			for (String arch : new String[]{"arm64", "amd64", "armhf", "i386", "s390x", "ppc64el", "riscv64"}) {
 				getNormalizedArchitectures(os, arch).forEach(all::add);
 			}
 		}
@@ -90,7 +90,7 @@ public final class Native {
 	private static Stream<String> getNormalizedArchitectures(String os, String arch) {
 		switch (os) {
 			case "linux": {
-				return Stream.of("linux_" + arch + "_ssl1", "linux_" + arch + "_ssl3", "linux_" + arch + "_gcc_ssl1", "linux_" + arch + "_gcc_ssl3");
+				return Stream.of("linux_" + arch + "_clang_ssl1", "linux_" + arch + "_clang_ssl3", "linux_" + arch + "_gnu_ssl1", "linux_" + arch + "_gnu_ssl3");
 			}
 			case "windows": {
 				return Stream.of("windows_" + arch);
@@ -130,6 +130,8 @@ public final class Native {
 				return "arm64";
 			case "s390x":
 				return "s390x";
+			case "riscv64":
+				return "riscv64";
 			case "powerpc":
 			case "powerpc64":
 			case "powerpc64le":
@@ -142,7 +144,7 @@ public final class Native {
 						.nativeOrder()
 						.equals(ByteOrder.LITTLE_ENDIAN)) // Java always returns ppc64 for all 64-bit powerpc but
 				{
-					return "ppc64le";                                       // powerpc64le (our target) is very different, it uses this condition to accurately identify the architecture
+					return "ppc64el";                                       // powerpc64le (our target) is very different, it uses this condition to accurately identify the architecture
 				} else {
 					return "unknown";
 				}

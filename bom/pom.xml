@@ -8,8 +8,8 @@
 	<name>TDLight Java BOM</name>
 	<properties>
 		<revision>3.0.0.0-SNAPSHOT</revision>
-		<tdlight.natives.version>4.0.440</tdlight.natives.version>
-		<tdlight.api.version>4.0.410</tdlight.api.version>
+		<tdlight.natives.version>4.0.480</tdlight.natives.version>
+		<tdlight.api.version>4.0.450</tdlight.api.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
@@ -82,43 +82,61 @@
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>linux_amd64_ssl1</classifier>
+				<classifier>linux_amd64_clang_ssl3</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>linux_amd64_ssl3</classifier>
+				<classifier>linux_amd64_gnu_ssl1</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>linux_amd64_gcc_ssl1</classifier>
+				<classifier>linux_amd64_gnu_ssl3</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>linux_amd64_gcc_ssl3</classifier>
+				<classifier>linux_arm64_clang_ssl3</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>linux_arm64_ssl1</classifier>
+				<classifier>linux_arm64_gnu_ssl1</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>linux_arm64_ssl3</classifier>
+				<classifier>linux_arm64_gnu_ssl3</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>linux_ppc64le_ssl3</classifier>
+				<classifier>linux_armhf_gnu_ssl1</classifier>
+			</dependency>
+			<dependency>
+				<groupId>it.tdlight</groupId>
+				<artifactId>tdlight-natives</artifactId>
+				<version>${tdlight.natives.version}</version>
+				<classifier>linux_armhf_gnu_ssl3</classifier>
+			</dependency>
+			<dependency>
+				<groupId>it.tdlight</groupId>
+				<artifactId>tdlight-natives</artifactId>
+				<version>${tdlight.natives.version}</version>
+				<classifier>linux_ppc64el_gnu_ssl3</classifier>
+			</dependency>
+			<dependency>
+				<groupId>it.tdlight</groupId>
+				<artifactId>tdlight-natives</artifactId>
+				<version>${tdlight.natives.version}</version>
+				<classifier>linux_riscv64_gnu_ssl3</classifier>
 			</dependency>
 			<dependency>
 				<groupId>it.tdlight</groupId>

@@ -44,22 +44,17 @@
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives</artifactId>
-			<classifier>linux_amd64_ssl1</classifier>
+			<classifier>linux_amd64_gnu_ssl1</classifier>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives</artifactId>
-			<classifier>linux_amd64_gcc_ssl1</classifier>
+			<classifier>linux_amd64_clang_ssl3</classifier>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-natives</artifactId>
-			<classifier>linux_amd64_ssl3</classifier>
-		</dependency>
-		<dependency>
-			<groupId>it.tdlight</groupId>
-			<artifactId>tdlight-natives</artifactId>
-			<classifier>linux_amd64_gcc_ssl3</classifier>
+			<classifier>linux_amd64_gnu_ssl3</classifier>
 		</dependency>
 		<dependency>
 			<groupId>it.tdlight</groupId>

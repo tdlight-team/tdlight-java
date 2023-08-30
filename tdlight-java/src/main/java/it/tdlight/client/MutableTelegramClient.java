@@ -9,7 +9,7 @@ public interface MutableTelegramClient {
 
 	<T extends TdApi.Update> void addCommandHandler(String commandName, CommandHandler handler);
 
-	<T extends TdApi.Update> void addUpdateHandler(Class<T> updateType, GenericUpdateHandler<T> handler);
+	<T extends TdApi.Update> void addUpdateHandler(Class<T> updateType, GenericUpdateHandler<? super T> handler);
 
 	void addUpdatesHandler(GenericUpdateHandler<TdApi.Update> handler);
 

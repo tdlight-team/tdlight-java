@@ -7,16 +7,16 @@ import java.util.concurrent.CountDownLatch;
 
 final class AuthorizationStateWaitForExit implements GenericUpdateHandler<TdApi.UpdateAuthorizationState> {
 
-	private final CountDownLatch closed;
+	private final Runnable setClosed;
 
-	public AuthorizationStateWaitForExit(CountDownLatch closed) {
-		this.closed = closed;
+	public AuthorizationStateWaitForExit(Runnable setClosed) {
+		this.setClosed = setClosed;
 	}
 
 	@Override
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == AuthorizationStateClosed.CONSTRUCTOR) {
-			closed.countDown();
+			setClosed.run();
 		}
 	}
 }

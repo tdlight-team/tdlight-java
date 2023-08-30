@@ -8,9 +8,9 @@ import it.tdlight.jni.TdApi.Update;
 class SimpleResultHandler<T extends Update> implements ResultHandler<Update> {
 
 	private final int updateConstructor;
-	private final GenericUpdateHandler<T> handler;
+	private final GenericUpdateHandler<? super T> handler;
 
-	public SimpleResultHandler(Class<T> type, GenericUpdateHandler<T> handler) {
+	public SimpleResultHandler(Class<T> type, GenericUpdateHandler<? super T> handler) {
 		this.updateConstructor = ConstructorDetector.getConstructor(type);
 		this.handler = handler;
 	}

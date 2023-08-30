@@ -6,6 +6,7 @@ import it.tdlight.ExceptionHandler;
 import it.tdlight.Init;
 import it.tdlight.ResultHandler;
 import it.tdlight.TelegramClient;
+import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.Update;
 import it.tdlight.util.UnsupportedNativeLibraryException;
 import it.tdlight.jni.TdApi;
@@ -20,7 +21,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +60,8 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	private final AuthorizationStateReadyLoadChats mainChatsLoader;
 	private final AuthorizationStateReadyLoadChats archivedChatsLoader;
 
-	private final CountDownLatch closed = new CountDownLatch(1);
+	private final CompletableFuture<Void> closed = new CompletableFuture<>();
+	private final ConcurrentMap<TemporaryMessageURL, CompletableFuture<Message>> temporaryMessages = new ConcurrentHashMap<>();
 
 	SimpleTelegramClient(ClientFactory clientFactory,
 			TDLibSettings settings,
@@ -109,12 +116,15 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 						this::handleDefaultException
 				)
 		);
-		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitForExit(this.closed));
+		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitForExit(this::onCloseUpdate));
 		this.mainChatsLoader = new AuthorizationStateReadyLoadChats(client, new ChatListMain());
 		this.archivedChatsLoader = new AuthorizationStateReadyLoadChats(client, new ChatListArchive());
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				this.meGetter = new AuthorizationStateReadyGetMe(client, mainChatsLoader, archivedChatsLoader));
 		this.addUpdateHandler(TdApi.UpdateNewMessage.class, new CommandsHandler(client, this.commandHandlers, this::getMe));
+		var temporaryMessageHandler = new TemporaryMessageHandler(this.temporaryMessages);
+		this.addUpdateHandler(TdApi.UpdateMessageSendSucceeded.class, temporaryMessageHandler);
+		this.addUpdateHandler(TdApi.UpdateMessageSendFailed.class, temporaryMessageHandler);
 		this.authenticationData = authenticationData;
 		createDirectories();
 		client.initialize(this::handleUpdate, this::handleUpdateException, this::handleDefaultException);
@@ -191,7 +201,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	}
 
 	@Override
-	public <T extends TdApi.Update> void addUpdateHandler(Class<T> updateType, GenericUpdateHandler<T> handler) {
+	public <T extends TdApi.Update> void addUpdateHandler(Class<T> updateType, GenericUpdateHandler<? super T> handler) {
 		this.updateHandlers.put(new SimpleResultHandler<>(updateType, handler), null);
 	}
 
@@ -258,12 +268,57 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	}
 
 	/**
+	 * Sends a request to TDLib and get the result.
+	 *
+	 * @param function         The request to TDLib.
+	 * @throws NullPointerException if function is null.
+	 */
+	@SuppressWarnings("unchecked")
+	public <R extends TdApi.Object> CompletableFuture<R> send(TdApi.Function<R> function) {
+		CompletableFuture<R> future = new CompletableFuture<>();
+		client.send(function, result -> {
+			if (result instanceof TdApi.Error) {
+				future.completeExceptionally(new TelegramError((TdApi.Error) result));
+			} else {
+				future.complete((R) result);
+			}
+		}, future::completeExceptionally);
+		return future;
+	}
+
+	/**
+	 * Sends a message
+	 *
+	 * @param function The request to TDLib.
+	 * @param wait     Wait until the message has been sent.
+	 *                  If false, the returned message will not represent the real message, but it will be a temporary message.
+	 * @throws NullPointerException if function is null.
+	 */
+	public CompletableFuture<TdApi.Message> sendMessage(TdApi.SendMessage function, boolean wait) {
+		return this.send(function).thenCompose(msg -> {
+			CompletableFuture<TdApi.Message> future = new CompletableFuture<>();
+			CompletableFuture<?> prev = temporaryMessages.put(new TemporaryMessageURL(msg.chatId, msg.id), future);
+			if (prev != null) {
+				prev.completeExceptionally(new IllegalStateException("Another temporary message has the same id"));
+			}
+			return future;
+		});
+	}
+
+	/**
 	 * Execute a synchronous function.
 	 * <strong>Please note that only some functions can be executed using this method.</strong>
 	 * If you want to execute a function please use {@link #send(Function, GenericResultHandler)}!
 	 */
 	public <R extends TdApi.Object> Result<R> execute(TdApi.Function<R> function) {
 		return Result.of(client.execute(function));
+	}
+
+	/**
+	 * Send the close signal but don't wait
+	 */
+	public CompletableFuture<Void> close() {
+		return this.send(new TdApi.Close()).thenCompose(x -> this.waitForExitAsync());
 	}
 
 	/**
@@ -293,7 +348,23 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	 * Wait until TDLight is closed
 	 */
 	public void waitForExit() throws InterruptedException {
-		closed.await();
+		try {
+			closed.get();
+		} catch (ExecutionException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Wait until TDLight is closed
+	 */
+	public CompletableFuture<Void> waitForExitAsync() {
+		return closed.copy();
+	}
+
+	private void onCloseUpdate() {
+		this.closed.complete(null);
+		this.temporaryMessages.clear();
 	}
 
 	private final class SimpleTelegramClientInteraction implements ClientInteraction {
