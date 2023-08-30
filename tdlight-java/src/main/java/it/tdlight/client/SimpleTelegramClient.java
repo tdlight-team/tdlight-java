@@ -122,7 +122,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				this.meGetter = new AuthorizationStateReadyGetMe(client, mainChatsLoader, archivedChatsLoader));
 		this.addUpdateHandler(TdApi.UpdateNewMessage.class, new CommandsHandler(client, this.commandHandlers, this::getMe));
-		var temporaryMessageHandler = new TemporaryMessageHandler(this.temporaryMessages);
+		TemporaryMessageHandler temporaryMessageHandler = new TemporaryMessageHandler(this.temporaryMessages);
 		this.addUpdateHandler(TdApi.UpdateMessageSendSucceeded.class, temporaryMessageHandler);
 		this.addUpdateHandler(TdApi.UpdateMessageSendFailed.class, temporaryMessageHandler);
 		this.authenticationData = authenticationData;

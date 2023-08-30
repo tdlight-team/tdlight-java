@@ -28,7 +28,7 @@ final class TemporaryMessageURL {
 		if (obj == null || obj.getClass() != this.getClass()) {
 			return false;
 		}
-		var that = (TemporaryMessageURL) obj;
+		TemporaryMessageURL that = (TemporaryMessageURL) obj;
 		return this.chatId == that.chatId && this.messageId == that.messageId;
 	}
 
