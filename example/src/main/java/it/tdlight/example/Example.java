@@ -32,7 +32,7 @@ public final class Example {
 
 	private static SimpleTelegramClient CLIENT;
 
-	public static void main(String[] args) throws UnsupportedNativeLibraryException, InterruptedException {
+	public static void main(String[] args) throws Exception {
 		// Initialize TDLight native libraries
 		Init.init();
 
@@ -111,7 +111,7 @@ public final class Example {
 		}
 
 		// Get the chat title
-		client.send(new TdApi.GetChat(update.message.chatId), chatIdResult -> {
+		CLIENT.send(new TdApi.GetChat(update.message.chatId), chatIdResult -> {
 			// Get the chat response
 			Chat chat = chatIdResult.get();
 			// Get the chat name
@@ -133,7 +133,7 @@ public final class Example {
 			if (isAdmin(commandSender)) {
 				// Stop the client
 				System.out.println("Received stop command. closing...");
-				client.sendClose();
+				CLIENT.sendClose();
 			}
 		}
 	}
