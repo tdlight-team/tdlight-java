@@ -1,11 +1,13 @@
 package it.tdlight.example;
 
+import it.tdlight.Log;
 import it.tdlight.client.*;
 import it.tdlight.client.AuthenticationSupplier;
 import it.tdlight.client.CommandHandler;
 import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.client.TDLibSettings;
 import it.tdlight.Init;
+import it.tdlight.Slf4JLogMessageHandler;
 import it.tdlight.jni.TdApi.AuthorizationState;
 import it.tdlight.jni.TdApi.Chat;
 import it.tdlight.jni.TdApi.FormattedText;
@@ -14,7 +16,6 @@ import it.tdlight.jni.TdApi.MessageContent;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.SendMessage;
 import it.tdlight.jni.TdApi.TextEntity;
-import it.tdlight.util.UnsupportedNativeLibraryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -35,6 +36,9 @@ public final class Example {
 	public static void main(String[] args) throws Exception {
 		// Initialize TDLight native libraries
 		Init.init();
+
+		// Set the log level
+		Log.setLogMessageHandler(1, new Slf4JLogMessageHandler());
 
 		// Create the client factory
 		try (SimpleTelegramClientFactory clientFactory = new SimpleTelegramClientFactory()) {

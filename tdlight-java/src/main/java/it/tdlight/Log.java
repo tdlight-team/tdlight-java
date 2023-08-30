@@ -1,15 +1,18 @@
 package it.tdlight;
 
 import it.tdlight.jni.TdApi;
+import it.tdlight.jni.TdApi.LogStream;
 import it.tdlight.jni.TdApi.LogStreamDefault;
+import it.tdlight.jni.TdApi.LogStreamEmpty;
 import it.tdlight.jni.TdApi.LogStreamFile;
+import it.tdlight.jni.TdApi.SetLogStream;
 import it.tdlight.jni.TdApi.SetLogVerbosityLevel;
 import it.tdlight.tdnative.NativeClient.LogMessageHandler;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Class used for managing internal TDLib logging. Use TdApi.*Log* methods instead.
+ * Class used for managing internal TDLib logging.
  */
 public final class Log {
 
@@ -86,6 +89,11 @@ public final class Log {
 		updateLog();
 	}
 
+	public static void disable() {
+		setLogMessageHandler(0, null);
+		setLogStream(null);
+	}
+
 	/**
 	 *
 	 * Sets the log message handler
@@ -96,6 +104,14 @@ public final class Log {
 	 * @param logMessageHandler handler
 	 */
 	public static void setLogMessageHandler(int maxVerbosityLevel, LogMessageHandler logMessageHandler) {
-		NativeClientAccess.setLogMessageHandler(maxVerbosityLevel, logMessageHandler);
+		NativeClientAccess.setLogMessageHandler(logMessageHandler != null ? maxVerbosityLevel : Math.min(maxVerbosityLevel, 1),
+				logMessageHandler != null ? logMessageHandler : new Slf4JLogMessageHandler());
+	}
+
+	/**
+	 * Sets the log stream
+	 */
+	public static void setLogStream(LogStream logStream) {
+		NativeClientAccess.execute(new SetLogStream(logStream != null ? logStream : new LogStreamEmpty()));
 	}
 }
