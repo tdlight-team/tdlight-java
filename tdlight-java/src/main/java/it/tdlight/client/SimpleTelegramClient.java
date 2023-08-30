@@ -8,6 +8,7 @@ import it.tdlight.ResultHandler;
 import it.tdlight.TelegramClient;
 import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.Update;
+import it.tdlight.util.FutureSupport;
 import it.tdlight.util.UnsupportedNativeLibraryException;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.ChatListArchive;
@@ -359,7 +360,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	 * Wait until TDLight is closed
 	 */
 	public CompletableFuture<Void> waitForExitAsync() {
-		return closed.copy();
+		return FutureSupport.copy(closed);
 	}
 
 	private void onCloseUpdate() {
