@@ -34,10 +34,14 @@ final class AuthorizationStateReadyGetMe implements GenericUpdateHandler<UpdateA
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == AuthorizationStateReady.CONSTRUCTOR) {
 			client.send(new GetMe(), me -> {
-				if (me.getConstructor() == Error.CONSTRUCTOR) {
-					throw new TelegramError((Error) me);
+				try {
+					if (me.getConstructor() == Error.CONSTRUCTOR) {
+						throw new TelegramError((Error) me);
+					}
+					this.me.set((User) me);
+				} finally {
+					this.meReceived.complete(null);
 				}
-				this.me.set((User) me);
 				if (((User) me).type.getConstructor() == UserTypeRegular.CONSTRUCTOR) {
 					mainChatsLoader.onUpdate(update);
 					archivedChatsLoader.onUpdate(update);
