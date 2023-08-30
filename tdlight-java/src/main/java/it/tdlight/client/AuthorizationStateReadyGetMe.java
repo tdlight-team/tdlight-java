@@ -7,6 +7,7 @@ import it.tdlight.jni.TdApi.UpdateAuthorizationState;
 import it.tdlight.jni.TdApi.User;
 import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.UserTypeRegular;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ final class AuthorizationStateReadyGetMe implements GenericUpdateHandler<UpdateA
 	private static final Logger logger = LoggerFactory.getLogger(AuthorizationStateReadyGetMe.class);
 
 	private final TelegramClient client;
+	private final CompletableFuture<Void> meReceived = new CompletableFuture<>();
 	private final AtomicReference<User> me = new AtomicReference<>();
 	private final AuthorizationStateReadyLoadChats mainChatsLoader;
 	private final AuthorizationStateReadyLoadChats archivedChatsLoader;
@@ -46,5 +48,9 @@ final class AuthorizationStateReadyGetMe implements GenericUpdateHandler<UpdateA
 
 	public User getMe() {
 		return me.get();
+	}
+
+	public CompletableFuture<User> getMeAsync() {
+		return meReceived.thenApply(v -> me.get());
 	}
 }

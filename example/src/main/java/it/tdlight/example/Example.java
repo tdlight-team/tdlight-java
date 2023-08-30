@@ -8,8 +8,12 @@ import it.tdlight.client.TDLibSettings;
 import it.tdlight.Init;
 import it.tdlight.jni.TdApi.AuthorizationState;
 import it.tdlight.jni.TdApi.Chat;
+import it.tdlight.jni.TdApi.FormattedText;
+import it.tdlight.jni.TdApi.InputMessageText;
 import it.tdlight.jni.TdApi.MessageContent;
 import it.tdlight.jni.TdApi;
+import it.tdlight.jni.TdApi.SendMessage;
+import it.tdlight.jni.TdApi.TextEntity;
 import it.tdlight.util.UnsupportedNativeLibraryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,7 +30,7 @@ public final class Example {
 	 */
 	private static final TdApi.MessageSender ADMIN_ID = new TdApi.MessageSenderUser(667900586);
 
-	private static SimpleTelegramClient client;
+	private static SimpleTelegramClient CLIENT;
 
 	public static void main(String[] args) throws UnsupportedNativeLibraryException, InterruptedException {
 		// Initialize TDLight native libraries
@@ -34,7 +38,6 @@ public final class Example {
 
 		// Create the client factory
 		try (SimpleTelegramClientFactory clientFactory = new SimpleTelegramClientFactory()) {
-
 			// Obtain the API token
 			//
 			// var apiToken = new APIToken(your-api-id-here, "your-api-hash-here");
@@ -69,10 +72,24 @@ public final class Example {
 			clientBuilder.addCommandHandler("stop", new StopCommandHandler());
 
 			// Create and start the client
-			client = clientBuilder.build(authenticationData);
+			SimpleTelegramClient client = CLIENT = clientBuilder.build(authenticationData);
+			try (client) {
 
-			// Wait for exit
-			client.waitForExit();
+				// Get me
+				TdApi.User me = client.getMeAsync().join();
+
+				// Send a test message
+				var req = new SendMessage();
+				req.chatId = me.id;
+				var txt = new InputMessageText();
+				txt.text = new FormattedText("TDLight test", new TextEntity[0]);
+				req.inputMessageContent = txt;
+				var result = client.sendMessage(req, true).join();
+				System.out.println("Sent message:" + result);
+
+				// Wait for exit
+				client.waitForExit();
+			};
 		}
 	}
 
