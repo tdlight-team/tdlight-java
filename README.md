@@ -15,19 +15,20 @@
 
 ## 💻 Supported platforms
 
-**Java versions**: from Java 17 to Java 19+ (Java 8 to 16 is supported if you use the following dependency classifier: `jdk8`)
+**Java versions**: from Java 17 to Java 21+ (Java 8 to 16 is supported if you use the following dependency classifier: `jdk8`)
 
 **Operating systems**: Linux, Windows, MacOS
 
 **CPU architectures**:
 
-- amd64/x86_64 (Linux, Windows, MacOS)
-- armhf/armv7 (Linux)
-- aarch64/armv8/arm64 (Linux)
-- ppc64el/ppc64le (Linux)
+- amd64 (Linux, Windows, MacOS)
+- armhf (Linux)
+- arm64 (Linux)
+- ppc64el (Linux)
+- riscv64 (linux)
 
 ## 📚 Required libraries
-- **Linux: libc++, OpenSSL1/OpenSSL3, zlib**
+- **Linux: OpenSSL1/OpenSSL3, zlib, (libc++ if you use clang)**
 - **MacOS: OpenSSL**
 - **Windows: [Microsoft Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)**
 
