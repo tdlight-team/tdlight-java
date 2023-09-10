@@ -1,19 +1,21 @@
 package it.tdlight.example;
 
-import it.tdlight.Log;
-import it.tdlight.client.*;
-import it.tdlight.client.AuthenticationSupplier;
-import it.tdlight.client.CommandHandler;
-import it.tdlight.client.SimpleTelegramClient;
-import it.tdlight.client.TDLibSettings;
 import it.tdlight.Init;
+import it.tdlight.Log;
 import it.tdlight.Slf4JLogMessageHandler;
+import it.tdlight.client.APIToken;
+import it.tdlight.client.AuthenticationSupplier;
+import it.tdlight.client.SimpleAuthenticationSupplier;
+import it.tdlight.client.SimpleTelegramClient;
+import it.tdlight.client.SimpleTelegramClientBuilder;
+import it.tdlight.client.SimpleTelegramClientFactory;
+import it.tdlight.client.TDLibSettings;
+import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationState;
 import it.tdlight.jni.TdApi.FormattedText;
 import it.tdlight.jni.TdApi.InputMessageText;
 import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.MessageContent;
-import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.MessageSenderUser;
 import it.tdlight.jni.TdApi.SendMessage;
 import it.tdlight.jni.TdApi.TextEntity;
@@ -103,7 +105,7 @@ public final class Example {
 			clientBuilder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, this::onUpdateAuthorizationState);
 
 			// Add an example command handler that stops the bot
-			clientBuilder.addCommandHandler("stop", new StopCommandHandler());
+			clientBuilder.addCommandHandler("stop", this::onStopCommand);
 
 			// Add an example update handler that prints every received message
 			clientBuilder.addUpdateHandler(TdApi.UpdateNewMessage.class, this::onUpdateNewMessage);
@@ -176,16 +178,12 @@ public final class Example {
 		/**
 		 * Close the bot if the /stop command is sent by the administrator
 		 */
-		private class StopCommandHandler implements CommandHandler {
-
-			@Override
-			public void onCommand(TdApi.Chat chat, TdApi.MessageSender commandSender, String arguments) {
-				// Check if the sender is the admin
-				if (isAdmin(commandSender)) {
-					// Stop the client
-					System.out.println("Received stop command. closing...");
-					client.sendClose();
-				}
+		private void onStopCommand(TdApi.Chat chat, TdApi.MessageSender commandSender, String arguments) {
+			// Check if the sender is the admin
+			if (isAdmin(commandSender)) {
+				// Stop the client
+				System.out.println("Received stop command. closing...");
+				client.sendClose();
 			}
 		}
 
