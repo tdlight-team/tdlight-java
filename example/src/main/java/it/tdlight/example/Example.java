@@ -152,21 +152,18 @@ public final class Example {
 			long chatId = update.message.chatId;
 
 			// Get the chat title
-			client.send(new TdApi.GetChat(chatId))
-					.thenApply(chatIdResult -> {
-						// Get the chat name
-						return chatIdResult.title;
-					})
-					.whenComplete((chatTitle, error) -> {
-						if (error != null) {
-							// Print error
-							System.err.printf("Can't get chat title of chat %s%n", chatId);
-							error.printStackTrace(System.err);
-						} else {
-							// Print the message
-							System.out.printf("Received new message from chat %s (%s): %s%n", chatTitle, chatId, text);
-						}
-					});
+			client.send(new TdApi.GetChat(chatId)).whenCompleteAsync((chatIdResult, error) -> {
+				if (error != null) {
+					// Print error
+					System.err.printf("Can't get chat title of chat %s%n", chatId);
+					error.printStackTrace(System.err);
+				} else {
+					// Get the chat name
+					String title = chatIdResult.title;
+					// Print the message
+					System.out.printf("Received new message from chat %s (%s): %s%n", title, chatId, text);
+				}
+			});
 		}
 
 		/**
