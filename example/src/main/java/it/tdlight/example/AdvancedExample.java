@@ -1,6 +1,8 @@
 package it.tdlight.example;
 
 import it.tdlight.Init;
+import it.tdlight.Log;
+import it.tdlight.Slf4JLogMessageHandler;
 import it.tdlight.TelegramClient;
 import it.tdlight.jni.TdApi;
 import it.tdlight.ClientFactory;
@@ -14,6 +16,9 @@ public class AdvancedExample {
 	public static void main(String[] args) throws UnsupportedNativeLibraryException {
 		// Initialize TDLight native libraries
 		Init.init();
+
+		// Set the log level
+		Log.setLogMessageHandler(1, new Slf4JLogMessageHandler());
 
 		// Create a client manager, it should be closed before shutdown
 		ClientFactory clientManager = ClientFactory.create();
