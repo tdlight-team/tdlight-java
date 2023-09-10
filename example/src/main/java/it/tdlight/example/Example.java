@@ -37,7 +37,9 @@ public final class Example {
 		// Set the log level
 		Log.setLogMessageHandler(1, new Slf4JLogMessageHandler());
 
-		// Create the client factory
+		// Create the client factory (You can create more than one client,
+		// BUT only a single instance of ClientFactory is allowed globally!
+		// You must reuse it if you want to create more than one client!)
 		try (SimpleTelegramClientFactory clientFactory = new SimpleTelegramClientFactory()) {
 			// Obtain the API token
 			//
@@ -49,7 +51,10 @@ public final class Example {
 			// Configure the client
 			TDLibSettings settings = TDLibSettings.create(apiToken);
 
-			// Configure the session directory
+			// Configure the session directory.
+			// After you authenticate into a session, the authentication will be skipped from the next restart!
+			// If you want to ensure to match the authentication supplier user/bot with your session user/bot,
+			//   you can name your session directory after your user id, for example: "tdlib-session-id12345"
 			Path sessionPath = Paths.get("example-tdlight-session");
 			settings.setDatabaseDirectoryPath(sessionPath.resolve("data"));
 			settings.setDownloadedFilesDirectoryPath(sessionPath.resolve("downloads"));
@@ -152,18 +157,20 @@ public final class Example {
 			long chatId = update.message.chatId;
 
 			// Get the chat title
-			client.send(new TdApi.GetChat(chatId)).whenCompleteAsync((chatIdResult, error) -> {
-				if (error != null) {
-					// Print error
-					System.err.printf("Can't get chat title of chat %s%n", chatId);
-					error.printStackTrace(System.err);
-				} else {
-					// Get the chat name
-					String title = chatIdResult.title;
-					// Print the message
-					System.out.printf("Received new message from chat %s (%s): %s%n", title, chatId, text);
-				}
-			});
+			client.send(new TdApi.GetChat(chatId))
+					// Use the async completion handler, to avoid blocking the TDLib response thread accidentally
+					.whenCompleteAsync((chatIdResult, error) -> {
+						if (error != null) {
+							// Print error
+							System.err.printf("Can't get chat title of chat %s%n", chatId);
+							error.printStackTrace(System.err);
+						} else {
+							// Get the chat name
+							String title = chatIdResult.title;
+							// Print the message
+							System.out.printf("Received new message from chat %s (%s): %s%n", title, chatId, text);
+						}
+					});
 		}
 
 		/**
