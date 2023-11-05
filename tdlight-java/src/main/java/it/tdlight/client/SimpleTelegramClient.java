@@ -92,30 +92,33 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				new AuthorizationStateWaitAuthenticationDataHandler(client, this, this::handleDefaultException)
 		);
-		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitRegistrationHandler(client,
-						new SimpleTelegramClientInteraction(),
+		var updateHandlerInteraction = new SimpleTelegramClientInteraction();
+		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitRegistrationHandler(client,
+				updateHandlerInteraction,
+				this::handleDefaultException
+		));
+		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitPasswordHandler(client,
+				updateHandlerInteraction,
+				this::handleDefaultException
+		));
+		this.addUpdateHandler(
+				TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitOtherDeviceConfirmationHandler(
+						updateHandlerInteraction,
 						this::handleDefaultException
-				)
-		);
-		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitPasswordHandler(client,
-						new SimpleTelegramClientInteraction(),
-						this::handleDefaultException
-				)
-		);
-		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitOtherDeviceConfirmationHandler(new SimpleTelegramClientInteraction(),
-						this::handleDefaultException
-				)
-		);
-		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
-				new AuthorizationStateWaitCodeHandler(client,
-						new SimpleTelegramClientInteraction(),
-						getTestCode(authenticationData),
-						this::handleDefaultException
-				)
-		);
+				));
+		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitCodeHandler(client,
+				updateHandlerInteraction,
+				getTestCode(authenticationData),
+				this::handleDefaultException
+		));
+		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitEmailAddressHandler(client,
+				updateHandlerInteraction,
+				this::handleDefaultException
+		));
+		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitEmailCodeHandler(client,
+				updateHandlerInteraction,
+				this::handleDefaultException
+		));
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitReady(this::onReady));
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitForExit(this::onCloseUpdate));
 		this.mainChatsLoader = new AuthorizationStateReadyLoadChats(client, new ChatListMain());
@@ -353,7 +356,6 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	 * @param function         The request to TDLib.
 	 * @throws NullPointerException if function is null.
 	 */
-	@SuppressWarnings("unchecked")
 	public <R extends TdApi.Object> CompletableFuture<R> send(TdApi.Function<R> function) {
 		CompletableFuture<Void> future = new CompletableFuture<>();
 		if (shouldWaitForReadiness(function)) {
