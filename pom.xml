@@ -12,11 +12,11 @@
 	</parent>
 	<properties>
 		<revision>3.0.0.0-SNAPSHOT</revision>
-		<zxing.version>3.5.0</zxing.version>
+		<zxing.version>3.5.1</zxing.version>
 		<reactive.streams.version>1.0.4</reactive.streams.version>
 		<slf4j.api.version>2.0.5</slf4j.api.version>
-		<junit.jupiter.engine.version>5.9.0</junit.jupiter.engine.version>
-		<fastutil.core.version>8.5.11</fastutil.core.version>
+		<junit.jupiter.engine.version>5.9.2</junit.jupiter.engine.version>
+		<fastutil.core.version>8.5.12</fastutil.core.version>
 	</properties>
 	<modules>
 		<module>tdlight-java</module>
