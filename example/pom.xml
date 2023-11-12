@@ -26,7 +26,7 @@
 			<dependency>
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-java-bom</artifactId>
-				<version>3.2.1+td.1.8.21</version>
+				<version>3.2.2+td.1.8.21</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
