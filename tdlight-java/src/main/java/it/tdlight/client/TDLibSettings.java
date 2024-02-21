@@ -29,9 +29,8 @@ public final class TDLibSettings {
 	private String deviceModel;
 	private String systemVersion;
 	private String applicationVersion;
-	private boolean enableStorageOptimizer;
-	private boolean ignoreFileNames;
 
+	@Deprecated
 	private TDLibSettings(boolean useTestDatacenter,
 			Path databaseDirectoryPath,
 			Path downloadedFilesDirectoryPath,
@@ -45,6 +44,31 @@ public final class TDLibSettings {
 			String applicationVersion,
 			boolean enableStorageOptimizer,
 			boolean ignoreFileNames) {
+		this(useTestDatacenter,
+				databaseDirectoryPath,
+				downloadedFilesDirectoryPath,
+				fileDatabaseEnabled,
+				chatInfoDatabaseEnabled,
+				messageDatabaseEnabled,
+				apiToken,
+				systemLanguageCode,
+				deviceModel,
+				systemVersion,
+				applicationVersion
+		);
+	}
+
+	private TDLibSettings(boolean useTestDatacenter,
+			Path databaseDirectoryPath,
+			Path downloadedFilesDirectoryPath,
+			boolean fileDatabaseEnabled,
+			boolean chatInfoDatabaseEnabled,
+			boolean messageDatabaseEnabled,
+			APIToken apiToken,
+			String systemLanguageCode,
+			String deviceModel,
+			String systemVersion,
+			String applicationVersion) {
 		this.useTestDatacenter = useTestDatacenter;
 		this.databaseDirectoryPath = databaseDirectoryPath;
 		this.downloadedFilesDirectoryPath = downloadedFilesDirectoryPath;
@@ -56,8 +80,6 @@ public final class TDLibSettings {
 		this.deviceModel = deviceModel;
 		this.systemVersion = systemVersion;
 		this.applicationVersion = applicationVersion;
-		this.enableStorageOptimizer = enableStorageOptimizer;
-		this.ignoreFileNames = ignoreFileNames;
 	}
 
 	public static TDLibSettings create(APIToken apiToken) {
@@ -165,20 +187,22 @@ public final class TDLibSettings {
 		this.applicationVersion = applicationVersion;
 	}
 
+	@Deprecated
 	public boolean isStorageOptimizerEnabled() {
-		return enableStorageOptimizer;
+		return false;
 	}
 
+	@Deprecated
 	public void setEnableStorageOptimizer(boolean enableStorageOptimizer) {
-		this.enableStorageOptimizer = enableStorageOptimizer;
 	}
 
+	@Deprecated
 	public boolean isIgnoreFileNames() {
-		return ignoreFileNames;
+		return false;
 	}
 
+	@Deprecated
 	public void setIgnoreFileNames(boolean ignoreFileNames) {
-		this.ignoreFileNames = ignoreFileNames;
 	}
 
 	@Override
@@ -193,7 +217,6 @@ public final class TDLibSettings {
 		return useTestDatacenter == that.useTestDatacenter && fileDatabaseEnabled == that.fileDatabaseEnabled
 				&& chatInfoDatabaseEnabled == that.chatInfoDatabaseEnabled
 				&& messageDatabaseEnabled == that.messageDatabaseEnabled
-				&& enableStorageOptimizer == that.enableStorageOptimizer && ignoreFileNames == that.ignoreFileNames
 				&& Objects.equals(databaseDirectoryPath, that.databaseDirectoryPath) && Objects.equals(
 				downloadedFilesDirectoryPath,
 				that.downloadedFilesDirectoryPath
@@ -214,9 +237,7 @@ public final class TDLibSettings {
 				systemLanguageCode,
 				deviceModel,
 				systemVersion,
-				applicationVersion,
-				enableStorageOptimizer,
-				ignoreFileNames
+				applicationVersion
 		);
 	}
 
@@ -234,8 +255,6 @@ public final class TDLibSettings {
 				.add("deviceModel='" + deviceModel + "'")
 				.add("systemVersion='" + systemVersion + "'")
 				.add("applicationVersion='" + applicationVersion + "'")
-				.add("enableStorageOptimizer=" + enableStorageOptimizer)
-				.add("ignoreFileNames=" + ignoreFileNames)
 				.toString();
 	}
 }

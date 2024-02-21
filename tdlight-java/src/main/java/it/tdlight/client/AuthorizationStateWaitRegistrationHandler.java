@@ -48,7 +48,7 @@ final class AuthorizationStateWaitRegistrationHandler implements GenericUpdateHa
 							exceptionHandler.onException(new IllegalArgumentException("Last name must be under 64 characters"));
 							return;
 						}
-						RegisterUser response = new RegisterUser(firstName, lastName);
+						RegisterUser response = new RegisterUser(firstName, lastName, true);
 						client.send(response, ok -> {
 							if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
 								throw new TelegramError((TdApi.Error) ok);

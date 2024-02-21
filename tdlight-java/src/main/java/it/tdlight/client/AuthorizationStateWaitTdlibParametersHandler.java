@@ -37,8 +37,6 @@ final class AuthorizationStateWaitTdlibParametersHandler implements GenericUpdat
 			params.deviceModel = settings.getDeviceModel();
 			params.systemVersion = settings.getSystemVersion();
 			params.applicationVersion = settings.getApplicationVersion();
-			params.enableStorageOptimizer = settings.isStorageOptimizerEnabled();
-			params.ignoreFileNames = settings.isIgnoreFileNames();
 			params.databaseEncryptionKey = null;
 			client.send(params, ok -> {
 				if (ok.getConstructor() == TdApi.Error.CONSTRUCTOR) {
