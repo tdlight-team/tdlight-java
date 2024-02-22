@@ -150,6 +150,12 @@
 				<version>${tdlight.natives.version}</version>
 				<classifier>macos_amd64</classifier>
 			</dependency>
+			<dependency>
+				<groupId>it.tdlight</groupId>
+				<artifactId>tdlight-natives</artifactId>
+				<version>${tdlight.natives.version}</version>
+				<classifier>macos_arm64</classifier>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
