@@ -12,6 +12,8 @@ import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.ChatListArchive;
 import it.tdlight.jni.TdApi.ChatListMain;
 import it.tdlight.jni.TdApi.Function;
+import it.tdlight.jni.TdApi.LoadChats;
+import it.tdlight.jni.TdApi.LogOut;
 import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.Update;
 import it.tdlight.jni.TdApi.User;
@@ -502,6 +504,22 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 
 	public CompletableFuture<User> getMeAsync() {
 		return meGetter.getMeAsync();
+	}
+
+	/**
+	 * Loads more chats from the main chat list. The loaded chats and their positions in the chat list will be sent through updates. Chats are sorted by the pair (chat.position.order, chat.id) in descending order. Returns a 404 error if all chats have been loaded.
+	 *
+	 **/
+	public CompletableFuture<Void> loadChatListMainAsync() {
+		return send(new LoadChats(new ChatListMain(), 2000)).thenAccept(ok -> {});
+	}
+
+	/**
+	 * Closes the TDLib instance after a proper logout. Requires an available network connection. All local data will be destroyed. After the logout completes, updateAuthorizationState with authorizationStateClosed will be sent.
+	 *
+	 **/
+	public CompletableFuture<Void> logOutAsync() {
+		return send(new LogOut()).thenAccept(ok -> {});
 	}
 
 	public boolean isMainChatsListLoaded() {

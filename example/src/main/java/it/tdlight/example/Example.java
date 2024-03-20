@@ -12,7 +12,9 @@ import it.tdlight.client.SimpleTelegramClientFactory;
 import it.tdlight.client.TDLibSettings;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.AuthorizationState;
+import it.tdlight.jni.TdApi.CreatePrivateChat;
 import it.tdlight.jni.TdApi.FormattedText;
+import it.tdlight.jni.TdApi.GetChat;
 import it.tdlight.jni.TdApi.InputMessageText;
 import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.MessageContent;
@@ -75,9 +77,12 @@ public final class Example {
 				// Get me
 				TdApi.User me = app.getClient().getMeAsync().get(1, TimeUnit.MINUTES);
 
+				// Create the "saved messages" chat
+				var savedMessagesChat = app.getClient().send(new CreatePrivateChat(me.id, true)).get(1, TimeUnit.MINUTES);
+
 				// Send a test message
 				var req = new SendMessage();
-				req.chatId = me.id;
+				req.chatId = savedMessagesChat.id;
 				var txt = new InputMessageText();
 				txt.text = new FormattedText("TDLight test", new TextEntity[0]);
 				req.inputMessageContent = txt;
