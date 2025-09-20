@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018. Ernesto Castellotti <erny.castell@gmail.com>
+ * Copyright (c) 2018. Emily Castellotti <info@emy.sh>
  * This file is part of JTdlib.
  *
  *     JTdlib is free software: you can redistribute it and/or modify
