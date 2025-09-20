@@ -180,7 +180,7 @@ TDLight is licensed by Andrea Cavalli <andrea@cavallium.it> under the terms of t
 
 ### **Libraries licenses**
 
-JTDLib is licensed by Ernesto Castellotti <erny.castell@gmail.com> under the terms of the GNU Lesser General Public
+JTDLib is licensed by Emily Castellotti <info@emy.sh> under the terms of the GNU Lesser General Public
 License 3
 
 TDLib is licensed by Aliaksei Levin <levlam@telegram.org> and Arseny Smirnov <arseny30@gmail.com> under the terms of the
