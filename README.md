@@ -21,7 +21,7 @@
 
 **CPU architectures**:
 
-- amd64 (Linux, Windows, MacOS)
+- amd64 (Linux, Windows)
 - armhf (Linux)
 - arm64 (Linux, MacOS)
 - ppc64el (Linux)
@@ -102,7 +102,7 @@ If you are using Maven, edit your `pom.xml` file as below:
 			<!-- don't specify the version here -->
 		</dependency>
 		<!-- ... -->
-		<!-- Include other native classifiers, for example linux_amd64_ssl3, macos_amd64, ... -->
+		<!-- Include other native classifiers, for example linux_amd64_ssl3, macos_arm64, ... -->
 
 	</dependencies>
 </project>
@@ -126,7 +126,7 @@ dependencies {
 	// do not specify the versions on the dependencies below!
 	implementation group: 'it.tdlight', name: 'tdlight-java' // Java 8 is supported if you use the following dependency classifier: `jdk8`
 	implementation group: 'it.tdlight', name: 'tdlight-natives', classifier: 'linux_amd64_gnu_ssl1'
-	// Include other native classifiers, for example linux_amd64_clang_ssl3, macos_amd64, ... -->
+	// Include other native classifiers, for example linux_amd64_clang_ssl3, macos_arm64, ... -->
 }
 ```
 
@@ -149,7 +149,6 @@ To use TDLight Java you need to include the native libraries, by specifying one 
 - `linux_riscv64_gnu_ssl3`
 - `windows_amd64`
 - `macos_arm64`
-- `macos_amd64`
 
 Advanced: If you want to use a different precompiled native, please set the java property `it.tdlight.native.workdir`. (Please note that you must build [this](https://github.com/tdlight-team/tdlight-java-natives), you can't put random precompiled tdlib binaries found on the internet)
 
