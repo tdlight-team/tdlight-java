@@ -74,8 +74,15 @@ public final class Example {
 
 			// Create and start the client
 			try (var app = new ExampleApp(clientBuilder, authenticationData, adminId)) {
-				// Get me
-				TdApi.User me = app.getClient().getMeAsync().get(1, TimeUnit.MINUTES);
+ 			// Get me
+ 			TdApi.User me = app.getClient().getMeAsync().get(1, TimeUnit.MINUTES);
+
+ 			// Print the bot username so the user knows where to write
+ 			if (me.usernames != null && me.usernames.activeUsernames.length > 0) {
+ 				System.out.println("Bot ready! Send messages to: @" + me.usernames.activeUsernames[0]);
+ 			} else {
+ 				System.out.println("Bot ready! User ID: " + me.id);
+ 			}
 
 				// Create the "saved messages" chat
 				var savedMessagesChat = app.getClient().send(new CreatePrivateChat(me.id, true)).get(1, TimeUnit.MINUTES);
