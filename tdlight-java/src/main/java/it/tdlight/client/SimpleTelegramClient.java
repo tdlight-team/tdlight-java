@@ -270,7 +270,6 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 			case TdApi.PingProxy.CONSTRUCTOR:
 			case TdApi.TestProxy.CONSTRUCTOR:
 			case TdApi.EnableProxy.CONSTRUCTOR:
-			case TdApi.GetProxyLink.CONSTRUCTOR:
 			case TdApi.GetProxies.CONSTRUCTOR:
 			case TdApi.LogOut.CONSTRUCTOR:
 			case TdApi.SetTdlibParameters.CONSTRUCTOR:
@@ -519,7 +518,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	 *
 	 **/
 	public CompletableFuture<Void> logOutAsync() {
-		return send(new LogOut()).thenAccept(ok -> {});
+		return send(new LogOut()).thenApply(ok -> null);
 	}
 
 	public boolean isMainChatsListLoaded() {

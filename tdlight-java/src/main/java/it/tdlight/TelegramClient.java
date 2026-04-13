@@ -1,6 +1,8 @@
 package it.tdlight;
 
+import it.tdlight.client.TelegramError;
 import it.tdlight.jni.TdApi;
+import java.util.concurrent.CompletableFuture;
 
 public interface TelegramClient {
 
@@ -65,4 +67,31 @@ public interface TelegramClient {
 	 * @throws NullPointerException if query is null.
 	 */
 	<R extends TdApi.Object> TdApi.Object execute(TdApi.Function<R> query);
+
+	/**
+	 * Sends a request to the TDLib and returns a {@link CompletableFuture} that will be completed
+	 * with the result or completed exceptionally with a {@link TelegramError} if TDLib returns an error.
+	 *
+	 * <p>The returned future has no timeout by default. To avoid hanging indefinitely on a
+	 * non-responsive request, use {@link CompletableFuture#orTimeout(long, java.util.concurrent.TimeUnit)}
+	 * on the returned future.</p>
+	 *
+	 * @param query Object representing a query to the TDLib.
+	 * @param <R>   The expected result type.
+	 * @return a {@link CompletableFuture} that completes with the result or fails with {@link TelegramError}.
+	 * @throws NullPointerException if query is null.
+	 */
+	default <R extends TdApi.Object> CompletableFuture<R> sendAsync(TdApi.Function<R> query) {
+		CompletableFuture<R> future = new CompletableFuture<>();
+		send(query, result -> {
+			if (result.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+				future.completeExceptionally(new TelegramError((TdApi.Error) result));
+			} else {
+				@SuppressWarnings("unchecked")
+				R r = (R) result;
+				future.complete(r);
+			}
+		});
+		return future;
+	}
 }

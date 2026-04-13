@@ -2,6 +2,7 @@ package it.tdlight.util;
 
 import java.io.Console;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.regex.Matcher;
@@ -13,13 +14,17 @@ public final class ScannerUtils {
 	private static InputStreamReader scanner = null;
 
 	public static String askParameter(String displayName, String question) {
+		return askParameter(displayName, question, System.in);
+	}
+
+	public static String askParameter(String displayName, String question, InputStream inputStream) {
 		synchronized (LOCK) {
 			Console console = System.console();
 			if (console != null) {
 				return console.readLine("[%s] %s: ", displayName, question);
 			} else {
-				if (scanner == null) {
-					scanner = new InputStreamReader(System.in);
+				if (scanner == null || inputStream != System.in) {
+					scanner = new InputStreamReader(inputStream);
 				}
 				System.out.printf("[%s] %s: ", displayName, question);
 				try {
