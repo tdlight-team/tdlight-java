@@ -12,6 +12,7 @@ from pathlib import Path
 
 MAVEN_NAMESPACE = "http://maven.apache.org/POM/4.0.0"
 NS = {"m": MAVEN_NAMESPACE}
+TDLIGHT_RELEASE_REPOSITORY = "https://mvn.mchv.eu/repository/mchv"
 EXPECTED_NATIVE_CLASSIFIERS = {
 	"linux_amd64_clang_ssl3",
 	"linux_amd64_gnu_ssl1",
@@ -380,7 +381,6 @@ final class TdlightConsumerProbe {
 			result = subprocess.run(
 				[
 					gradle_command,
-					"--offline",
 					"--no-daemon",
 					"--console=plain",
 					"-q",
@@ -405,7 +405,11 @@ final class TdlightConsumerProbe {
 def validate_gradle_consumers(gradle_command: str, version: str, api_version: str) -> None:
 	common = """
 plugins { id 'java' }
-repositories { mavenLocal() }
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url = uri('%s') }
+}
 tasks.register('printCompileClasspath') {
     doLast {
         configurations.compileClasspath.resolve().collect { it.name }.sort().each {
@@ -413,7 +417,7 @@ tasks.register('printCompileClasspath') {
         }
     }
 }
-"""
+""" % TDLIGHT_RELEASE_REPOSITORY
 	default_artifacts = run_gradle_probe(
 		gradle_command,
 		common + """
@@ -503,6 +507,12 @@ final class TdlightConsumerProbe {
   <properties>
     <maven.compiler.release>8</maven.compiler.release>
   </properties>
+  <repositories>
+    <repository>
+      <id>mchv-release</id>
+      <url>%s</url>
+    </repository>
+  </repositories>
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -533,7 +543,7 @@ final class TdlightConsumerProbe {
     </dependency>
   </dependencies>
 </project>
-""" % version,
+""" % (TDLIGHT_RELEASE_REPOSITORY, version),
 			encoding="utf-8",
 		)
 		try:

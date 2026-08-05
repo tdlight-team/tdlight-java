@@ -138,6 +138,7 @@ If you are using Gradle, add the following lines into your `build.gradle` file
 
 ```groovy
 repositories {
+	mavenCentral()
 	maven { url "https://mvn.mchv.eu/repository/mchv/" }
 }
 dependencies {
