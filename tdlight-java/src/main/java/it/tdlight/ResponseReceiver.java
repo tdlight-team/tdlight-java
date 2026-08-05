@@ -1,24 +1,34 @@
 package it.tdlight;
 
+import static it.tdlight.util.TdApiObjectDescriptor.describe;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import it.tdlight.util.SimpleIntQueue;
-import it.tdlight.util.IntSwapper;
-import it.tdlight.util.SpinWaitSupport;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
+import it.tdlight.util.IntSwapper;
+import it.tdlight.util.SimpleIntQueue;
+import it.tdlight.util.SpinWaitSupport;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 abstract class ResponseReceiver extends Thread implements AutoCloseable {
+
+	@FunctionalInterface
+	interface EmergencyClientSender {
+
+		void send(int clientId, long eventId, TdApi.Function<?> query);
+	}
 
 	private static final Logger LOG = LoggerFactory.getLogger(ResponseReceiver.class);
 	private static final String FLAG_USE_OPTIMIZED_DISPATCHER = "tdlight.dispatcher.use_optimized_dispatcher";
@@ -26,6 +36,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 			= Boolean.parseBoolean(System.getProperty(FLAG_USE_OPTIMIZED_DISPATCHER, "true"));
 	private static final int MAX_EVENTS = 100;
 	private static final int[] originalSortingSource = new int[MAX_EVENTS];
+	private static final AtomicLong FALLBACK_EMERGENCY_QUERY_ID = new AtomicLong();
 
 	static {
 		for (int i = 0; i < originalSortingSource.length; i++) {
@@ -34,6 +45,10 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 	}
 
 	private final EventsHandler eventsHandler;
+	private final boolean useOptimizedDispatcher;
+	private final EmergencyClientSender emergencyClientSender;
+	private final LongSupplier emergencyQueryIdSupplier;
+	private final Set<Long> expectedEmergencyResponseIds = ConcurrentHashMap.newKeySet();
 	private final int[] clientIds = new int[MAX_EVENTS];
 	private final long[] eventIds = new long[MAX_EVENTS];
 	private final TdApi.Object[] events = new TdApi.Object[MAX_EVENTS];
@@ -48,11 +63,39 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 	// Do not modify the int[] directly, this should be replaced
 	private volatile int[] registeredClients = new int[0];
 	private volatile boolean closeRequested;
+	private volatile Thread failedCloseNotifier;
 
 
 	public ResponseReceiver(EventsHandler eventsHandler) {
+		this(eventsHandler,
+				USE_OPTIMIZED_DISPATCHER,
+				NativeClientAccess::send,
+				ResponseReceiver::nextFallbackEmergencyQueryId
+		);
+	}
+
+	ResponseReceiver(EventsHandler eventsHandler, LongSupplier emergencyQueryIdSupplier) {
+		this(eventsHandler, USE_OPTIMIZED_DISPATCHER, NativeClientAccess::send, emergencyQueryIdSupplier);
+	}
+
+	ResponseReceiver(EventsHandler eventsHandler, boolean useOptimizedDispatcher) {
+		this(eventsHandler,
+				useOptimizedDispatcher,
+				NativeClientAccess::send,
+				ResponseReceiver::nextFallbackEmergencyQueryId
+		);
+	}
+
+	ResponseReceiver(EventsHandler eventsHandler,
+			boolean useOptimizedDispatcher,
+			EmergencyClientSender emergencyClientSender,
+			LongSupplier emergencyQueryIdSupplier) {
 		super("TDLib thread");
-		this.eventsHandler = eventsHandler;
+		this.eventsHandler = Objects.requireNonNull(eventsHandler, "Events handler is null");
+		this.useOptimizedDispatcher = useOptimizedDispatcher;
+		this.emergencyClientSender = Objects.requireNonNull(emergencyClientSender, "Emergency client sender is null");
+		this.emergencyQueryIdSupplier = Objects.requireNonNull(emergencyQueryIdSupplier,
+				"Emergency query id supplier is null");
 		this.setDaemon(false);
 	}
 
@@ -72,6 +115,9 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 				// Timeout is expressed in seconds
 				int resultsCount = receive(clientIds, eventIds, events, 2.0);
 				LOG.trace("Received {} events", resultsCount);
+				if (resultsCount > 0) {
+					resultsCount = filterEmergencyResponses(resultsCount);
+				}
 
 				if (resultsCount <= 0) {
 					SpinWaitSupport.onSpinWait();
@@ -80,7 +126,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
 				closedClients.reset();
 
-				if (USE_OPTIMIZED_DISPATCHER) {
+				if (useOptimizedDispatcher) {
 					// Generate a list of indices sorted by client id, from 0 to resultsCount
 					sortIndex = generateSortIndex(0, resultsCount, clientIds);
 
@@ -165,7 +211,7 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 							return new StringJoiner(", ", Event.class.getSimpleName() + "[", "]")
 									.add("clientId=" + clientId)
 									.add("eventId=" + eventId)
-									.add("event=" + event)
+									.add("event=" + describe(event))
 									.toString();
 						}
 					}
@@ -216,10 +262,11 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 			LOG.trace("ResponseReceiver will no longer process updates");
 
 			if (interrupted) {
-				for (int clientId : registeredClients) {
-					eventsHandler.handleClientEvents(clientId, true, clientEventIds, clientEvents, 0, 0);
-				}
+				notifyRegisteredClientsClosed();
 			}
+		} catch (Throwable ex) {
+			LOG.error("Response receiver failed", ex);
+			notifyRegisteredClientsClosed();
 		} finally {
 			LOG.debug("ResponseReceiver stopped");
 			this.closeWait.countDown();
@@ -252,6 +299,25 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 		clientEventsLastUsedLength = clientEventsCount;
 	}
 
+	private int filterEmergencyResponses(int eventsCount) {
+		int retainedEvents = 0;
+		for (int i = 0; i < eventsCount; i++) {
+			long eventId = eventIds[i];
+			if (eventId != 0 && expectedEmergencyResponseIds.remove(eventId)) {
+				events[i] = null;
+				continue;
+			}
+			if (retainedEvents != i) {
+				clientIds[retainedEvents] = clientIds[i];
+				eventIds[retainedEvents] = eventId;
+				events[retainedEvents] = events[i];
+				events[i] = null;
+			}
+			retainedEvents++;
+		}
+		return retainedEvents;
+	}
+
 	@SuppressWarnings("SameParameterValue")
 	private int[] generateSortIndex(int from, int to, int[] data) {
 		int[] sortedIndices = Arrays.copyOfRange(originalSortingSource, from, to);
@@ -265,6 +331,9 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
 	public void registerClient(int clientId) {
 		synchronized (registeredClientsLock) {
+			if (closeRequested) {
+				throw new IllegalStateException("Response receiver is closed");
+			}
 			Set<Integer> modifiableRegisteredClients = ArrayUtil.toSet(this.registeredClients);
 			modifiableRegisteredClients.add(clientId);
 			this.registeredClients = ArrayUtil.copyFromCollection(modifiableRegisteredClients);
@@ -273,11 +342,115 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 
 	@Override
 	public void close() throws InterruptedException {
-		this.closeRequested = true;
-		this.closeWait.await();
-		if (registeredClients.length == 0) {
+		requestClose();
+		awaitClose();
+	}
+
+	void requestClose() {
+		int[] clientsToClose;
+		boolean receiverIsNew;
+		synchronized (registeredClientsLock) {
+			if (closeRequested) {
+				return;
+			}
+			this.closeRequested = true;
+			clientsToClose = Arrays.copyOf(registeredClients, registeredClients.length);
+			receiverIsNew = getState() == State.NEW;
+			if (receiverIsNew) {
+				this.closeWait.countDown();
+			}
+		}
+		List<Integer> failedClientCloses = new ArrayList<>();
+		for (int clientId : clientsToClose) {
+			if (!sendEmergencyClose(clientId)) {
+				failedClientCloses.add(clientId);
+			}
+		}
+		if (!failedClientCloses.isEmpty()) {
+			synchronized (registeredClientsLock) {
+				Set<Integer> remainingRegisteredClients = ArrayUtil.toSet(registeredClients);
+				failedClientCloses.forEach(remainingRegisteredClients::remove);
+				registeredClients = ArrayUtil.copyFromCollection(remainingRegisteredClients);
+			}
+			Thread notifier = new Thread(() -> failedClientCloses.forEach(this::notifyClientClosedLocally),
+					"TDLight failed emergency-close notifier");
+			notifier.setDaemon(true);
+			failedCloseNotifier = notifier;
+			notifier.start();
+		}
+		boolean interruptReceiver;
+		synchronized (registeredClientsLock) {
+			interruptReceiver = !receiverIsNew && registeredClients.length == 0;
+		}
+		if (interruptReceiver) {
 			LOG.debug("Interrupting response receiver");
 			ResponseReceiver.this.interrupt();
 		}
+	}
+
+	void awaitClose() throws InterruptedException {
+		if (Thread.currentThread() == this) {
+			return;
+		}
+		this.closeWait.await();
+		Thread notifier = failedCloseNotifier;
+		if (notifier != null && Thread.currentThread() != notifier) {
+			notifier.join();
+		}
+	}
+
+	private void notifyRegisteredClientsClosed() {
+		int[] clientsToClose;
+		synchronized (registeredClientsLock) {
+			closeRequested = true;
+			clientsToClose = registeredClients;
+			registeredClients = new int[0];
+		}
+		for (int clientId : clientsToClose) {
+			sendEmergencyClose(clientId);
+		}
+		for (int clientId : clientsToClose) {
+			notifyClientClosedLocally(clientId);
+		}
+	}
+
+	private boolean sendEmergencyClose(int clientId) {
+		long eventId = 0;
+		try {
+			// No response handler is needed; a live receiver will safely drop the nonzero response id.
+			eventId = emergencyQueryIdSupplier.getAsLong();
+			if (eventId == 0) {
+				throw new IllegalStateException("Emergency close query id must be nonzero");
+			}
+			expectedEmergencyResponseIds.add(eventId);
+			emergencyClientSender.send(clientId, eventId, new TdApi.Close());
+			return true;
+		} catch (Throwable ex) {
+			if (eventId != 0) {
+				expectedEmergencyResponseIds.remove(eventId);
+			}
+			LOG.error("Failed to send emergency close to client {} while stopping the response receiver", clientId, ex);
+			return false;
+		}
+	}
+
+	private void notifyClientClosedLocally(int clientId) {
+		try {
+			eventsHandler.handleClientEvents(clientId,
+					true,
+					new long[] {0},
+					new TdApi.Object[] {
+							new TdApi.UpdateAuthorizationState(new TdApi.AuthorizationStateClosed())
+					},
+					0,
+					1
+			);
+		} catch (Throwable ex) {
+			LOG.error("Failed to notify client {} that the response receiver stopped", clientId, ex);
+		}
+	}
+
+	private static long nextFallbackEmergencyQueryId() {
+		return FALLBACK_EMERGENCY_QUERY_ID.updateAndGet(value -> value == Long.MAX_VALUE ? 1 : value + 1);
 	}
 }

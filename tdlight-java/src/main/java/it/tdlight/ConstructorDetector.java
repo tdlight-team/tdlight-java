@@ -18,6 +18,7 @@
 package it.tdlight;
 
 import it.tdlight.jni.TdApi;
+import it.tdlight.util.UnsupportedNativeLibraryException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -35,10 +36,20 @@ public final class ConstructorDetector {
 
 	private static void tryInit() {
 		// Call this to load static methods and prevent errors during startup!
+		tryInit(Init::init);
+	}
+
+	@FunctionalInterface
+	interface InitAction {
+
+		void run() throws UnsupportedNativeLibraryException;
+	}
+
+	static void tryInit(InitAction initAction) {
 		try {
-			Init.init();
-		} catch (Throwable throwable) {
-			throwable.printStackTrace();
+			initAction.run();
+		} catch (UnsupportedNativeLibraryException ex) {
+			throw new IllegalStateException("TDLight constructor metadata initialization failed", ex);
 		}
 	}
 

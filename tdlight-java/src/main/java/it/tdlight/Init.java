@@ -17,11 +17,11 @@
 
 package it.tdlight;
 
-import it.tdlight.util.UnsupportedNativeLibraryException;
-import it.tdlight.util.Native;
 import it.tdlight.jni.TdApi.LogStreamEmpty;
 import it.tdlight.jni.TdApi.SetLogStream;
 import it.tdlight.jni.TdApi.SetLogVerbosityLevel;
+import it.tdlight.util.Native;
+import it.tdlight.util.UnsupportedNativeLibraryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +32,7 @@ public final class Init {
 
 	public static final Logger LOG = LoggerFactory.getLogger("it.tdlight.TDLight");
 
-	private static volatile boolean started = false;
+	private static final Initializer INITIALIZER = new Initializer();
 
 	/**
 	 * Initialize TDLight.
@@ -41,27 +41,60 @@ public final class Init {
 	 * @throws UnsupportedNativeLibraryException An exception that is thrown when the LoadLibrary class fails to load the library.
 	 */
 	public static void init() throws UnsupportedNativeLibraryException {
-		if (!started) {
-			boolean shouldStart = false;
-			synchronized (Init.class) {
-				if (!started) {
-					started = true;
-					shouldStart = true;
-				}
-			}
-			if (shouldStart) {
-				Native.loadNativesInternal();
-				ConstructorDetector.init();
-				try {
-					NativeClientAccess.execute(new SetLogVerbosityLevel(3));
-					Log.setLogMessageHandler(3, new Slf4JLogMessageHandler());
-					Log.setLogStream(null);
-					NativeClientAccess.execute(new SetLogStream(new LogStreamEmpty()));
-				} catch (Throwable ex) {
-					LOG.error("Can't set verbosity level on startup", ex);
-				}
-			}
-		}
+		INITIALIZER.initialize(Init::initialize);
 	}
 
+	private static void initialize() throws UnsupportedNativeLibraryException {
+		Native.loadNativesInternal();
+		ConstructorDetector.init();
+		NativeClientAccess.execute(new SetLogVerbosityLevel(3));
+		NativeClientAccess.setLogMessageHandler(3, new Slf4JLogMessageHandler());
+		NativeClientAccess.execute(new SetLogStream(new LogStreamEmpty()));
+	}
+
+	@FunctionalInterface
+	interface InitializationAction {
+
+		void run() throws Throwable;
+	}
+
+	/**
+	 * Coordinates initialization without publishing success before initialization has actually completed.
+	 */
+	static final class Initializer {
+
+		private boolean initializing;
+		private boolean initialized;
+
+		synchronized void initialize(InitializationAction action) throws UnsupportedNativeLibraryException {
+			if (initialized) {
+				return;
+			}
+			if (initializing) {
+				throw new IllegalStateException("Recursive TDLight initialization");
+			}
+			initializing = true;
+			try {
+				action.run();
+			} catch (Throwable ex) {
+				rethrow(ex);
+			} finally {
+				initializing = false;
+			}
+			initialized = true;
+		}
+
+		private static void rethrow(Throwable failure) throws UnsupportedNativeLibraryException {
+			if (failure instanceof UnsupportedNativeLibraryException) {
+				throw (UnsupportedNativeLibraryException) failure;
+			}
+			if (failure instanceof RuntimeException) {
+				throw (RuntimeException) failure;
+			}
+			if (failure instanceof Error) {
+				throw (Error) failure;
+			}
+			throw new IllegalStateException("TDLight initialization failed", failure);
+		}
+	}
 }

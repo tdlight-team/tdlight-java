@@ -22,21 +22,39 @@ final class AuthenticationDataImpl implements SimpleAuthenticationSupplier<Authe
 		}
 		if (botToken != null) {
 			if (botToken.length() < 5 || botToken.length() > 200) {
-				throw new IllegalArgumentException("Bot token is invalid: " + botToken);
+				throw new IllegalArgumentException("Bot token is invalid");
 			}
 		}
 		this.userPhoneNumber = userPhoneNumber;
 		this.botToken = botToken;
 		this.test = test;
 		if (botToken != null) {
-			String[] parts = botToken.split(":", 2);
-			if (parts.length > 0) {
-				botTokenId = parts[0];
-			} else {
-				botTokenId = "";
-			}
+			botTokenId = safeBotId(botToken);
 		} else {
 			botTokenId = "";
+		}
+	}
+
+	static String safeBotId(String botToken) {
+		int separator = botToken.indexOf(':');
+		String candidateId = separator > 0 ? botToken.substring(0, separator) : "";
+		return isDecimalBotId(candidateId) ? candidateId : "[REDACTED]";
+	}
+
+	private static boolean isDecimalBotId(String value) {
+		if (value.isEmpty() || value.length() > 19) {
+			return false;
+		}
+		for (int i = 0; i < value.length(); i++) {
+			char character = value.charAt(i);
+			if (character < '0' || character > '9') {
+				return false;
+			}
+		}
+		try {
+			return Long.parseLong(value) > 0;
+		} catch (NumberFormatException ignored) {
+			return false;
 		}
 	}
 

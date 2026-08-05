@@ -15,7 +15,7 @@
 
 ## 💻 Supported platforms
 
-**Java versions**: from Java 17 to Java 21+ (Java 8 to 16 is supported if you use the following dependency classifier: `jdk8`)
+**Java versions**: from Java 17 to Java 21+ (Java 8 to 16 is supported with the `jdk8` wrapper and legacy API shown below)
 
 **Operating systems**: Linux, Windows, MacOS
 
@@ -84,7 +84,6 @@ If you are using Maven, edit your `pom.xml` file as below:
 		<dependency>
 			<groupId>it.tdlight</groupId>
 			<artifactId>tdlight-java</artifactId>
-			<!-- Java 8 is supported if you use the following dependency classifier: <classifier>jdk8</classifier> -->
 			<!-- don't specify the version here -->
 		</dependency>
 		<!-- Example linux amd64 (GNU GCC) ssl1 natives -->
@@ -102,10 +101,32 @@ If you are using Maven, edit your `pom.xml` file as below:
 			<!-- don't specify the version here -->
 		</dependency>
 		<!-- ... -->
-		<!-- Include other native classifiers, for example linux_amd64_ssl3, macos_arm64, ... -->
+		<!-- Include other native classifiers, for example linux_amd64_gnu_ssl3, macos_arm64, ... -->
 
 	</dependencies>
 </project>
+```
+
+For Java 8 to 16, replace the `tdlight-java` dependency above with the following two dependencies. The explicit
+API selection is required even when Maven itself runs on a newer JDK (for example, when using toolchains):
+
+```xml
+<dependency>
+	<groupId>it.tdlight</groupId>
+	<artifactId>tdlight-java</artifactId>
+	<classifier>jdk8</classifier>
+	<exclusions>
+		<exclusion>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-api</artifactId>
+		</exclusion>
+	</exclusions>
+</dependency>
+<dependency>
+	<groupId>it.tdlight</groupId>
+	<artifactId>tdlight-api</artifactId>
+	<classifier>legacy</classifier>
+</dependency>
 ```
 
 Replace `VERSION` with the latest release version, you can find
@@ -124,10 +145,19 @@ dependencies {
 	implementation platform('it.tdlight:tdlight-java-bom:VERSION')
 
 	// do not specify the versions on the dependencies below!
-	implementation group: 'it.tdlight', name: 'tdlight-java' // Java 8 is supported if you use the following dependency classifier: `jdk8`
+	implementation group: 'it.tdlight', name: 'tdlight-java'
 	implementation group: 'it.tdlight', name: 'tdlight-natives', classifier: 'linux_amd64_gnu_ssl1'
 	// Include other native classifiers, for example linux_amd64_clang_ssl3, macos_arm64, ... -->
 }
+```
+
+For Java 8 to 16, use the following wrapper/API declarations instead:
+
+```groovy
+implementation(group: 'it.tdlight', name: 'tdlight-java', classifier: 'jdk8') {
+	exclude group: 'it.tdlight', module: 'tdlight-api'
+}
+implementation group: 'it.tdlight', name: 'tdlight-api', classifier: 'legacy'
 ```
 
 Replace `VERSION` with the latest release version, you can find

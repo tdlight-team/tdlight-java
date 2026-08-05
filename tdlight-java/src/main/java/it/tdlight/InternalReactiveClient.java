@@ -1,9 +1,14 @@
 package it.tdlight;
 
+import static it.tdlight.util.TdApiObjectDescriptor.describe;
+
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.Function;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -15,7 +20,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.StampedLock;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
@@ -25,12 +29,20 @@ import org.slf4j.MarkerFactory;
 
 final class InternalReactiveClient implements ClientEventsHandler, ReactiveTelegramClient {
 
+	@FunctionalInterface
+	interface ClientSender {
+
+		void send(int clientId, long queryId, TdApi.Function<?> query);
+	}
+
 	private static final Marker TG_MARKER = MarkerFactory.getMarker("TG");
 	private static final Logger logger = LoggerFactory.getLogger(InternalReactiveClient.class);
 	private static final Handler<?> EMPTY_HANDLER = new Handler<>(r -> {}, ex -> {});
+	private static final int MAX_RETAINED_TIMED_OUT_HANDLERS = 4096;
 
 	private final Map<Long, Handler<?>> handlers = new ConcurrentHashMap<>();
-	private final Set<Long> timedOutHandlers = new ConcurrentHashMap<Long, Boolean>().keySet(true);
+	private final Object timedOutHandlersLock = new Object();
+	private final Set<Long> timedOutHandlers = new LinkedHashSet<>();
 	private final ScheduledExecutorService timers = Executors.newSingleThreadScheduledExecutor(r -> {
 		Thread t = new Thread(r);
 		t.setName("TDLight-Timers");
@@ -40,23 +52,35 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 	private final ExceptionHandler defaultExceptionHandler;
 	private final Handler<TdApi.Update> updateHandler;
 
-	private final Thread shutdownHook = new Thread(this::onJVMShutdown);
-
 	private volatile Integer clientId = null;
+	private volatile Thread shutdownHook;
 	private final InternalClientsState clientManagerState;
+	private final ClientSender clientSender;
+	private final Runnable clientClosedHandler;
+	private final java.lang.Object closeLock = new java.lang.Object();
+	private boolean initializationAttempted;
+	private boolean listenerRegistered;
+	private volatile boolean initialized;
 
 	private final AtomicBoolean alreadyReceivedClosed = new AtomicBoolean();
 	private volatile SignalListener signalListener = new ReplayStartupUpdatesListener();
 
 	public InternalReactiveClient(InternalClientsState clientManagerState) {
+		this(clientManagerState, NativeClientAccess::send, () -> {});
+	}
+
+	InternalReactiveClient(InternalClientsState clientManagerState, ClientSender clientSender) {
+		this(clientManagerState, clientSender, () -> {});
+	}
+
+	InternalReactiveClient(InternalClientsState clientManagerState,
+			ClientSender clientSender,
+			Runnable clientClosedHandler) {
 		this.clientManagerState = clientManagerState;
+		this.clientSender = clientSender;
+		this.clientClosedHandler = clientClosedHandler;
 		this.updateHandler = new Handler<>(this::onUpdateFromHandler, this::onUpdateException);
 		this.defaultExceptionHandler = this::onDefaultException;
-		try {
-			Runtime.getRuntime().addShutdownHook(shutdownHook);
-		} catch (IllegalStateException ex) {
-			this.onJVMShutdown();
-		}
 	}
 
 	@Override
@@ -71,9 +95,7 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 		}
 
 		if (isClosed) {
-			if (this.alreadyReceivedClosed.compareAndSet(false, true)) {
-				handleClose();
-			}
+			handleClose();
 		}
 	}
 
@@ -81,30 +103,36 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 	 * This method will be called exactly once
 	 */
 	private void handleClose() {
-		logger.debug(TG_MARKER, "Received close");
-		try {
-			Runtime.getRuntime().removeShutdownHook(shutdownHook);
-		} catch (IllegalStateException ignored) {
-			logger.debug(TG_MARKER, "Can't remove shutdown hook because the JVM is already shutting down");
-		}
-		TdApi.Error instanceClosedError = new Error(500, "Instance closed");
-		handlers.forEach((eventId, handler) -> this.handleResponse(eventId, instanceClosedError, handler));
-		handlers.clear();
-		this.timedOutHandlers.clear();
-		timers.shutdown();
-		try {
-			boolean terminated = timers.awaitTermination(1, TimeUnit.MINUTES);
-			if (!terminated) {
-				timers.shutdownNow();
+		Map<Long, Handler<?>> pendingHandlers = new HashMap<>();
+		synchronized (closeLock) {
+			if (!this.alreadyReceivedClosed.compareAndSet(false, true)) {
+				return;
 			}
-		} catch (InterruptedException e) {
-			logger.debug(TG_MARKER, "Interrupted", e);
+			logger.debug(TG_MARKER, "Received close");
+			initialized = false;
+			handlers.forEach((eventId, handler) -> {
+				if (handlers.remove(eventId, handler)) {
+					pendingHandlers.put(eventId, handler);
+				}
+			});
+			timers.shutdownNow();
+		}
+		removeShutdownHook();
+		TdApi.Error instanceClosedError = new Error(500, "Instance closed");
+		pendingHandlers.forEach((eventId, handler) -> this.handleResponse(eventId, instanceClosedError, handler));
+		synchronized (timedOutHandlersLock) {
+			this.timedOutHandlers.clear();
 		}
 		SignalListener signalListener = this.signalListener;
 		// Close the signal listener if it still exists
 		if (signalListener != null) {
-			signalListener.onSignal(Signal.ofClosed());
+			try {
+				signalListener.onSignal(Signal.ofClosed());
+			} catch (Throwable ex) {
+				logger.warn(TG_MARKER, "Client {} signal listener failed while closing", clientId, ex);
+			}
 		}
+		notifyClientClosed();
 		logger.info(TG_MARKER, "Client closed {}", clientId);
 	}
 
@@ -115,9 +143,14 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 		if (handler != null) {
 			try {
 				if (eventId == 0) {
-					logger.trace(TG_MARKER, "Client {} received an event: {}", clientId, event);
+					logger.trace(TG_MARKER, "Client {} received an event of type {}", clientId, describe(event));
 				} else {
-					logger.trace(TG_MARKER, "Client {} received a response for query id {}: {}", clientId, eventId, event);
+					logger.trace(TG_MARKER,
+							"Client {} received a response of type {} for query id {}",
+							clientId,
+							describe(event),
+							eventId
+					);
 				}
 				handler.getResultHandler().onResult(event);
 			} catch (Throwable cause) {
@@ -130,15 +163,46 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 					return;
 				}
 			}
-			if (timedOutHandlers.remove(eventId)) {
+			if (forgetTimedOutHandler(eventId)) {
 				logger.trace(TG_MARKER,
-						"Received event id \"{}\", but the event has been dropped because it" + "timed out some time ago! {}",
+						"Received event id \"{}\", but the event has been dropped because it timed out; type {}",
 						eventId,
-						event
+						describe(event)
 				);
 			} else {
-				logger.error(TG_MARKER, "Unknown event id \"{}\", the event has been dropped! {}", eventId, event);
+				logger.error(TG_MARKER,
+						"Unknown event id \"{}\"; dropped event type {}",
+						eventId,
+						describe(event)
+				);
 			}
+		}
+	}
+
+	private void rememberTimedOutHandler(long eventId) {
+		synchronized (timedOutHandlersLock) {
+			timedOutHandlers.add(eventId);
+			if (timedOutHandlers.size() > MAX_RETAINED_TIMED_OUT_HANDLERS) {
+				Iterator<Long> iterator = timedOutHandlers.iterator();
+				iterator.next();
+				iterator.remove();
+			}
+		}
+	}
+
+	private boolean forgetTimedOutHandler(long eventId) {
+		synchronized (timedOutHandlersLock) {
+			return timedOutHandlers.remove(eventId);
+		}
+	}
+
+	int pendingResponseCount() {
+		return handlers.size();
+	}
+
+	int retainedTimeoutCount() {
+		synchronized (timedOutHandlersLock) {
+			return timedOutHandlers.size();
 		}
 	}
 
@@ -160,96 +224,211 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 		}
 	}
 
-	public void createAndRegisterClient() {
-		if (clientId != null) {
+	public synchronized void createAndRegisterClient() {
+		if (initializationAttempted) {
 			throw new UnsupportedOperationException("Can't initialize the same client twice!");
 		}
+		initializationAttempted = true;
 		logger.debug(TG_MARKER, "Creating new client");
-		clientId = NativeClientAccess.create();
-		StampedLock eventsHandlingLock = clientManagerState.getEventsHandlingLock();
-		long stamp = eventsHandlingLock.writeLock();
 		try {
-			logger.debug(TG_MARKER, "Registering new client {}", clientId);
-			clientManagerState.registerClient(clientId, this);
+			clientManagerState.createAndRegisterClient(this, newClientId -> {
+				synchronized (closeLock) {
+					clientId = newClientId;
+					initialized = true;
+					installShutdownHook(newClientId);
+				}
+			});
 			logger.info(TG_MARKER, "Registered new client {}", clientId);
-		} finally {
-			eventsHandlingLock.unlockWrite(stamp);
+		} catch (RuntimeException | java.lang.Error ex) {
+			synchronized (closeLock) {
+				initialized = false;
+				alreadyReceivedClosed.set(true);
+			}
+			timers.shutdownNow();
+			removeShutdownHook();
+			notifyClientClosed();
+			throw ex;
+		}
+	}
+
+	private void notifyClientClosed() {
+		try {
+			clientClosedHandler.run();
+		} catch (Throwable ex) {
+			logger.warn(TG_MARKER, "Failed to release client {} owner after close", clientId, ex);
+		}
+	}
+
+	private void installShutdownHook(int newClientId) {
+		Thread newShutdownHook = new Thread(this::onJVMShutdown, "TDLight reactive client shutdown " + newClientId);
+		try {
+			Runtime.getRuntime().addShutdownHook(newShutdownHook);
+			shutdownHook = newShutdownHook;
+		} catch (IllegalStateException ex) {
+			onJVMShutdown();
+		} catch (SecurityException ex) {
+			logger.warn(TG_MARKER, "Can't install shutdown hook for client {}", newClientId, ex);
+		}
+	}
+
+	private void removeShutdownHook() {
+		Thread currentShutdownHook = shutdownHook;
+		if (currentShutdownHook == null) {
+			return;
+		}
+		shutdownHook = null;
+		try {
+			Runtime.getRuntime().removeShutdownHook(currentShutdownHook);
+		} catch (IllegalStateException | SecurityException ignored) {
+			logger.debug(TG_MARKER, "Can't remove shutdown hook because the JVM is already shutting down");
 		}
 	}
 
 	@Override
 	public <R extends TdApi.Object> Publisher<TdApi.Object> send(Function<R> query, Duration responseTimeout) {
+		Objects.requireNonNull(query, "Query is null");
+		Objects.requireNonNull(responseTimeout, "Response timeout is null");
 		return subscriber -> {
 			Subscription subscription = new Subscription() {
 
 				private final AtomicBoolean alreadyRequested = new AtomicBoolean(false);
 				private volatile boolean cancelled = false;
+				private volatile long queryId;
+				private volatile ScheduledFuture<?> timeoutFuture;
 
 				@Override
 				public void request(long n) {
-					if (n > 0 && alreadyRequested.compareAndSet(false, true)) {
-						if (isClosedAndMaybeThrow(query)) {
-							logger.trace(TG_MARKER, "Client {} is already closed, sending \"Ok\" to: {}", clientId, query);
-							subscriber.onNext(new TdApi.Ok());
-							subscriber.onComplete();
-						} else if (clientId == null) {
-							logger.debug(TG_MARKER,
-									"Can't send a request to TDLib before calling \"createAndRegisterClient\" function!"
-							);
-							subscriber.onError(new IllegalStateException(
-									"Can't send a request to TDLib before calling \"createAndRegisterClient\" function!"));
+					if (n <= 0) {
+						if (alreadyRequested.compareAndSet(false, true)) {
+							subscriber.onError(new IllegalArgumentException("A positive request amount is required"));
+						}
+						return;
+					}
+					if (cancelled || !alreadyRequested.compareAndSet(false, true)) {
+						logger.debug(TG_MARKER,
+								"Client {} tried to request again the same request type {}; ignored",
+								clientId,
+								describe(query)
+						);
+						return;
+					}
+
+					TdApi.Object immediateResult = null;
+					Throwable immediateFailure = null;
+					synchronized (closeLock) {
+						if (cancelled) {
+							return;
+						}
+						if (alreadyReceivedClosed.get()) {
+							if (query.getConstructor() == TdApi.Close.CONSTRUCTOR) {
+								immediateResult = new TdApi.Ok();
+							} else {
+								immediateFailure = new IllegalStateException("The client is closed!");
+							}
+						} else if (!initialized) {
+							immediateFailure = new IllegalStateException(
+									"Can't send a request to TDLib before calling \"createAndRegisterClient\" function!");
 						} else {
-							long queryId = clientManagerState.getNextQueryId();
-
-							// Handle timeout
-							ScheduledFuture<?> timeoutFuture = timers.schedule(() -> {
-								logger.trace(TG_MARKER, "Client {} timed out on query id {}: {}", clientId, queryId, query);
-								if (handlers.remove(queryId) != null) {
-									if (!cancelled) {
-										timedOutHandlers.add(queryId);
-
-										subscriber.onNext(new Error(408, "Request Timeout"));
-									}
-									if (!cancelled) {
-										subscriber.onComplete();
-									}
-								}
-							}, responseTimeout.toMillis(), TimeUnit.MILLISECONDS);
-
-							handlers.put(queryId, new Handler<>(result -> {
+							queryId = clientManagerState.getNextQueryId();
+							Handler<R> responseHandler = new Handler<>(result -> {
 								logger.trace(TG_MARKER,
-										"Client {} is replying the query id {}: request: {} result: {}",
+										"Client {} is replying to query id {}: request type {}, result type {}",
 										clientId,
 										queryId,
-										query,
-										result
+										describe(query),
+										describe(result)
 								);
-								boolean timeoutCancelled = timeoutFuture.cancel(false);
-								if (!cancelled && timeoutCancelled) {
+								this.timeoutFuture.cancel(false);
+								if (!cancelled) {
 									subscriber.onNext(result);
 								}
-								if (!cancelled && timeoutCancelled) {
+								if (!cancelled) {
 									subscriber.onComplete();
 								}
 							}, t -> {
-								logger.trace(TG_MARKER, "Client {} has failed the query id {}: {}", clientId, queryId, query);
-								boolean timeoutCancelled = timeoutFuture.cancel(false);
-								if (!cancelled && timeoutCancelled) {
+								logger.trace(TG_MARKER,
+										"Client {} has failed query id {} of type {}",
+										clientId,
+										queryId,
+										describe(query)
+								);
+								this.timeoutFuture.cancel(false);
+								if (!cancelled) {
 									subscriber.onError(t);
 								}
-							}));
-							logger.trace(TG_MARKER, "Client {} is requesting with query id {}: {}", clientId, queryId, query);
-							NativeClientAccess.send(clientId, queryId, query);
-							logger.trace(TG_MARKER, "Client {} requested with query id {}: {}", clientId, queryId, query);
+							});
+							handlers.put(queryId, responseHandler);
+							try {
+								timeoutFuture = timers.schedule(() -> {
+									logger.trace(TG_MARKER,
+											"Client {} timed out on query id {} of type {}",
+											clientId,
+											queryId,
+											describe(query)
+									);
+									boolean deliverTimeout;
+									synchronized (closeLock) {
+										deliverTimeout = !cancelled && handlers.remove(queryId, responseHandler);
+										if (deliverTimeout) {
+											rememberTimedOutHandler(queryId);
+										}
+									}
+									if (deliverTimeout && !cancelled) {
+										subscriber.onNext(new Error(408, "Request Timeout"));
+										subscriber.onComplete();
+									}
+								}, responseTimeout.toMillis(), TimeUnit.MILLISECONDS);
+							} catch (RuntimeException | java.lang.Error ex) {
+								handlers.remove(queryId, responseHandler);
+								immediateFailure = ex;
+							}
+							try {
+								if (immediateFailure == null) {
+									logger.trace(TG_MARKER,
+											"Client {} is requesting query id {} of type {}",
+											clientId,
+											queryId,
+											describe(query)
+									);
+									clientSender.send(clientId, queryId, query);
+									logger.trace(TG_MARKER,
+											"Client {} requested query id {} of type {}",
+											clientId,
+											queryId,
+											describe(query)
+									);
+								}
+							} catch (RuntimeException | java.lang.Error ex) {
+								boolean responsePending = handlers.remove(queryId, responseHandler);
+								timeoutFuture.cancel(false);
+								if (responsePending) {
+									immediateFailure = ex;
+								}
+							}
 						}
-					} else {
-						logger.debug(TG_MARKER, "Client {} tried to request again the same request, ignored: {}", clientId, query);
+					}
+
+					if (immediateFailure != null) {
+						subscriber.onError(immediateFailure);
+					} else if (immediateResult != null) {
+						subscriber.onNext(immediateResult);
+						subscriber.onComplete();
 					}
 				}
 
 				@Override
 				public void cancel() {
-					cancelled = true;
+					synchronized (closeLock) {
+						cancelled = true;
+						long currentQueryId = queryId;
+						if (currentQueryId != 0) {
+							handlers.remove(currentQueryId);
+						}
+						ScheduledFuture<?> currentTimeout = timeoutFuture;
+						if (currentTimeout != null) {
+							currentTimeout.cancel(false);
+						}
+					}
 				}
 			};
 			subscriber.onSubscribe(subscription);
@@ -266,30 +445,51 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 
 	@Override
 	public void setListener(SignalListener listener) {
+		Objects.requireNonNull(listener, "Listener is null");
 		logger.debug(TG_MARKER, "Setting handler of client {}", clientId);
+		ReplayStartupUpdatesListener replayStartupUpdatesListener;
+		synchronized (closeLock) {
+			if (alreadyReceivedClosed.get()) {
+				throw new IllegalStateException("The client is closed!");
+			}
+			if (!initialized) {
+				throw new IllegalStateException(
+						"Can't set a listener before calling \"createAndRegisterClient\" function!");
+			}
 
-		SignalListener prevSignalListener = this.signalListener;
-		if (!(prevSignalListener instanceof ReplayStartupUpdatesListener)) {
-			throw new IllegalStateException("Already subscribed");
-		}
-		ReplayStartupUpdatesListener replayStartupUpdatesListener = (ReplayStartupUpdatesListener) prevSignalListener;
-		// Set the new listener into the startup listener, then drain its startup queue
-		replayStartupUpdatesListener.setNewListener(listener);
-		replayStartupUpdatesListener.drain();
+			SignalListener prevSignalListener = this.signalListener;
+			if (listenerRegistered || !(prevSignalListener instanceof ReplayStartupUpdatesListener)) {
+				throw new IllegalStateException("Already subscribed");
+			}
+			replayStartupUpdatesListener = (ReplayStartupUpdatesListener) prevSignalListener;
 
-		// Set the new listener
-		this.signalListener = listener;
+			TdApi.GetAuthorizationState query = new TdApi.GetAuthorizationState();
+			long queryId = clientManagerState.getNextQueryId();
 
-		TdApi.GetAuthorizationState query = new TdApi.GetAuthorizationState();
-		long queryId = clientManagerState.getNextQueryId();
-
-		// Send a dummy request to effectively start the TDLib session
-		{
+			// Send a dummy request to effectively start the TDLib session
 			handlers.put(queryId, EMPTY_HANDLER);
-			logger.trace(TG_MARKER, "Client {} is requesting with query id {}: {}", clientId, queryId, query);
-			NativeClientAccess.send(clientId, queryId, query);
-			logger.trace(TG_MARKER, "Client {} requested with query id {}: {}", clientId, queryId, query);
+			try {
+				logger.trace(TG_MARKER,
+						"Client {} is requesting query id {} of type {}",
+						clientId,
+						queryId,
+						describe(query)
+				);
+				clientSender.send(clientId, queryId, query);
+				logger.trace(TG_MARKER,
+						"Client {} requested query id {} of type {}",
+						clientId,
+						queryId,
+						describe(query)
+				);
+			} catch (RuntimeException | java.lang.Error ex) {
+				handlers.remove(queryId, EMPTY_HANDLER);
+				throw ex;
+			}
+			listenerRegistered = true;
 		}
+		// User callbacks are drained only after releasing closeLock.
+		replayStartupUpdatesListener.activate(listener);
 
 		logger.debug(TG_MARKER, "Set handler of client {}", clientId);
 	}
@@ -307,14 +507,32 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 	}
 
 	private void sendCloseAndIgnoreResponse() {
-		if (!alreadyReceivedClosed.get()) {
+		synchronized (closeLock) {
+			if (alreadyReceivedClosed.get() || clientId == null) {
+				return;
+			}
 			TdApi.Close query = new TdApi.Close();
 			long queryId = clientManagerState.getNextQueryId();
 
 			handlers.put(queryId, EMPTY_HANDLER);
-			logger.trace(TG_MARKER, "Client {} is requesting with query id {}: {}", clientId, queryId, query);
-			NativeClientAccess.send(clientId, queryId, query);
-			logger.trace(TG_MARKER, "Client {} requested with query id {}: {}", clientId, queryId, query);
+			try {
+				logger.trace(TG_MARKER,
+						"Client {} is requesting query id {} of type {}",
+						clientId,
+						queryId,
+						describe(query)
+				);
+				clientSender.send(clientId, queryId, query);
+				logger.trace(TG_MARKER,
+						"Client {} requested query id {} of type {}",
+						clientId,
+						queryId,
+						describe(query)
+				);
+			} catch (RuntimeException | java.lang.Error ex) {
+				handlers.remove(queryId, EMPTY_HANDLER);
+				throw ex;
+			}
 		}
 	}
 
@@ -371,48 +589,82 @@ final class InternalReactiveClient implements ClientEventsHandler, ReactiveTeleg
 		if (signalListener != null) {
 			signalListener.onSignal(item);
 		} else {
-			logger.error(TG_MARKER, "No signal listener set. Dropped update {}", updateItem);
+			logger.error(TG_MARKER, "No signal listener set. Dropped update type {}", describe(updateItem));
 		}
 	}
 
 	private class ReplayStartupUpdatesListener implements SignalListener {
 
 		private final ConcurrentLinkedQueue<Signal> queue = new ConcurrentLinkedQueue<>();
+		private final Object dispatchLock = new Object();
 		private final AtomicReference<SignalListener> listener = new AtomicReference<>(null);
+		private boolean dispatching;
 
 		@Override
 		public void onSignal(Signal signal) {
-			SignalListener listener;
-			if ((listener = this.listener.get()) != null) {
-				drainQueue(listener);
-				assert queue.isEmpty();
-				listener.onSignal(signal);
-				// Replace itself with the child signal listener, to reduce overhead permanently
-				InternalReactiveClient.this.signalListener = listener;
-			} else {
-				queue.add(signal);
+			SignalListener currentListener;
+			synchronized (dispatchLock) {
+				currentListener = listener.get();
+				if (currentListener == null || dispatching) {
+					queue.add(signal);
+					return;
+				}
+				dispatching = true;
 			}
+			drainSignals(currentListener, signal);
 		}
 
-		/**
-		 * This method could be called multiple times
-		 */
-		public void setNewListener(SignalListener listener) {
-			this.listener.set(listener);
-		}
-
-		public void drain() {
-			SignalListener listener;
-			if ((listener = this.listener.get()) != null) {
-				drainQueue(listener);
-				assert queue.isEmpty();
+		public void activate(SignalListener newListener) {
+			Signal firstSignal;
+			synchronized (dispatchLock) {
+				if (!listener.compareAndSet(null, newListener)) {
+					throw new IllegalStateException("Already subscribed");
+				}
+				firstSignal = queue.poll();
+				if (firstSignal == null) {
+					return;
+				}
+				dispatching = true;
 			}
+			drainSignals(newListener, firstSignal);
 		}
 
-		private void drainQueue(SignalListener listener) {
-			Signal elem;
-			while ((elem = queue.poll()) != null) {
-				listener.onSignal(elem);
+		private void drainSignals(SignalListener currentListener, Signal firstSignal) {
+			RuntimeException runtimeFailure = null;
+			java.lang.Error errorFailure = null;
+			Signal signal = firstSignal;
+			while (signal != null) {
+				try {
+					currentListener.onSignal(signal);
+				} catch (RuntimeException ex) {
+					if (runtimeFailure == null && errorFailure == null) {
+						runtimeFailure = ex;
+					} else if (runtimeFailure != null) {
+						runtimeFailure.addSuppressed(ex);
+					} else {
+						errorFailure.addSuppressed(ex);
+					}
+				} catch (java.lang.Error ex) {
+					if (runtimeFailure == null && errorFailure == null) {
+						errorFailure = ex;
+					} else if (runtimeFailure != null) {
+						runtimeFailure.addSuppressed(ex);
+					} else {
+						errorFailure.addSuppressed(ex);
+					}
+				}
+				synchronized (dispatchLock) {
+					signal = queue.poll();
+					if (signal == null) {
+						dispatching = false;
+					}
+				}
+			}
+			if (runtimeFailure != null) {
+				throw runtimeFailure;
+			}
+			if (errorFailure != null) {
+				throw errorFailure;
 			}
 		}
 	}

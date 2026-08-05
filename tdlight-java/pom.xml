@@ -12,7 +12,9 @@
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>3.0.0.0-SNAPSHOT</revision>
+		<tdlight.api.version>4.0.562</tdlight.api.version>
+		<!-- Gradle ignores Maven JDK-activated dependency profiles, so keep one visible dependency. -->
+		<tdlight.api.classifier></tdlight.api.classifier>
 	</properties>
 	<repositories>
 		<repository>
@@ -84,6 +86,12 @@
 			<artifactId>atlassian-util-concurrent</artifactId>
 			<version>4.0.1</version>
 		</dependency>
+		<dependency>
+			<groupId>it.tdlight</groupId>
+			<artifactId>tdlight-api</artifactId>
+			<version>${tdlight.api.version}</version>
+			<classifier>${tdlight.api.classifier}</classifier>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -114,13 +122,12 @@
 			<activation>
 				<jdk>[,17)</jdk>
 			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>it.tdlight</groupId>
-					<artifactId>tdlight-api</artifactId>
-					<classifier>legacy</classifier>
-				</dependency>
-			</dependencies>
+			<properties>
+				<tdlight.api.classifier>legacy</tdlight.api.classifier>
+			</properties>
+		</profile>
+		<profile>
+			<id>jdk8-artifact</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -175,12 +182,9 @@
 			<activation>
 				<jdk>[17,)</jdk>
 			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>it.tdlight</groupId>
-					<artifactId>tdlight-api</artifactId>
-				</dependency>
-			</dependencies>
+			<properties>
+				<tdlight.api.classifier></tdlight.api.classifier>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -333,10 +337,11 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>flatten-maven-plugin</artifactId>
-				<version>1.1.0</version>
+				<version>1.7.3</version>
 				<configuration>
 					<updatePomFile>true</updatePomFile>
-					<flattenMode>oss</flattenMode>
+					<flattenMode>resolveCiFriendliesOnly</flattenMode>
+					<embedBuildProfileDependencies>false</embedBuildProfileDependencies>
 				</configuration>
 				<executions>
 					<execution>

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteOrder;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,7 +59,8 @@ public final class Native {
 				NativeLibraryLoader.load(staticLibName, cl);
 				logger.debug("Failed to load {}", String.join(", ", sharedLibNames), e1);
 			} catch (UnsatisfiedLinkError e2) {
-				if (e2.getMessage().contains("libc++.so.1: cannot open shared")) {
+				String message = e2.getMessage();
+				if (message != null && message.contains("libc++.so.1: cannot open shared")) {
 					throw new UnsupportedNativeLibraryException("Install \"libc++\" to use TDLight Java!");
 				} else {
 					e1.addSuppressed(e2);
@@ -79,7 +81,7 @@ public final class Native {
 
 	private static Stream<String> getAllNormalizedArchitectures() {
 		Set<String> all = new LinkedHashSet<>();
-		for (String os : new String[]{"windows"}) {
+		for (String os : new String[]{"linux", "windows", "macos"}) {
 			for (String arch : new String[]{"arm64", "amd64", "armhf", "i386", "s390x", "ppc64el", "riscv64"}) {
 				getNormalizedArchitectures(os, arch).forEach(all::add);
 			}
@@ -105,7 +107,7 @@ public final class Native {
 	}
 
 	private static String getCpuArch() {
-		String architecture = System.getProperty("os.arch").trim();
+		String architecture = System.getProperty("os.arch", "").trim().toLowerCase(Locale.ROOT);
 		switch (architecture) {
 			case "amd64":
 			case "x86_64":
@@ -154,7 +156,7 @@ public final class Native {
 	}
 
 	public static String getOs() {
-		String os = System.getProperty("os.name").toLowerCase().trim();
+		String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).trim();
 		if (os.contains("linux")) {
 			return "linux";
 		}

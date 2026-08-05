@@ -7,9 +7,8 @@
 	<packaging>pom</packaging>
 	<name>TDLight Java BOM</name>
 	<properties>
-		<revision>3.0.0.0-SNAPSHOT</revision>
 		<tdlight.natives.version>4.0.591</tdlight.natives.version>
-		<tdlight.api.version>4.0.561</tdlight.api.version>
+		<tdlight.api.version>4.0.562</tdlight.api.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
@@ -74,6 +73,7 @@
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-java-parent</artifactId>
 				<version>${revision}</version>
+				<type>pom</type>
 			</dependency>
 
 			<!-- TDLight natives -->
@@ -148,12 +148,6 @@
 				<groupId>it.tdlight</groupId>
 				<artifactId>tdlight-natives</artifactId>
 				<version>${tdlight.natives.version}</version>
-				<classifier>macos_amd64</classifier>
-			</dependency>
-			<dependency>
-				<groupId>it.tdlight</groupId>
-				<artifactId>tdlight-natives</artifactId>
-				<version>${tdlight.natives.version}</version>
 				<classifier>macos_arm64</classifier>
 			</dependency>
 		</dependencies>
@@ -168,7 +162,8 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>flatten-maven-plugin</artifactId>
-				<version>1.1.0</version>
+				<version>1.7.3</version>
+				<inherited>false</inherited>
 				<configuration>
 					<updatePomFile>true</updatePomFile>
 					<flattenMode>oss</flattenMode>

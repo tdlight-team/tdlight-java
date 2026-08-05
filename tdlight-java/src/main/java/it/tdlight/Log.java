@@ -8,6 +8,7 @@ import it.tdlight.jni.TdApi.LogStreamFile;
 import it.tdlight.jni.TdApi.SetLogStream;
 import it.tdlight.jni.TdApi.SetLogVerbosityLevel;
 import it.tdlight.tdnative.NativeClient.LogMessageHandler;
+import it.tdlight.util.UnsupportedNativeLibraryException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -19,9 +20,8 @@ public final class Log {
 	static {
 		try {
 			Init.init();
-		} catch (Throwable throwable) {
-			throwable.printStackTrace();
-			System.exit(0);
+		} catch (UnsupportedNativeLibraryException ex) {
+			throw new ExceptionInInitializerError(ex);
 		}
 	}
 
@@ -38,7 +38,7 @@ public final class Log {
 				NativeClientAccess.execute(new TdApi.SetLogStream(new LogStreamFile(path, maxSize, false)));
 			}
 		} catch (Throwable ex) {
-			ex.printStackTrace();
+			Init.LOG.error("Failed to update TDLib logging configuration", ex);
 			return false;
 		}
 		return true;

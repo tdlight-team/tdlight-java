@@ -5,6 +5,7 @@ module tdlight.java {
 	requires atlassian.util.concurrent;
 	requires static com.google.zxing;
 	requires static reactor.blockhound;
+	provides reactor.blockhound.integration.BlockHoundIntegration with it.tdlight.util.TDLightBlockHoundIntegration;
 	exports it.tdlight.tdnative;
 	exports it.tdlight;
 	exports it.tdlight.util;

@@ -62,7 +62,7 @@ public final class APIToken {
 	public String toString() {
 		return new StringJoiner(", ", APIToken.class.getSimpleName() + "[", "]")
 				.add("apiID=" + apiID)
-				.add("apiHash='" + apiHash + "'")
+				.add("apiHash='[REDACTED]'")
 				.toString();
 	}
 }

@@ -14,7 +14,6 @@ import it.tdlight.jni.TdApi.ChatListMain;
 import it.tdlight.jni.TdApi.Function;
 import it.tdlight.jni.TdApi.LoadChats;
 import it.tdlight.jni.TdApi.LogOut;
-import it.tdlight.jni.TdApi.Message;
 import it.tdlight.jni.TdApi.Update;
 import it.tdlight.jni.TdApi.User;
 import it.tdlight.util.FutureSupport;
@@ -27,7 +26,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -63,7 +61,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 
 	private final CompletableFuture<Void> ready = new CompletableFuture<>();
 	private final CompletableFuture<Void> closed = new CompletableFuture<>();
-	private final ConcurrentMap<TemporaryMessageURL, CompletableFuture<Message>> temporaryMessages = new ConcurrentHashMap<>();
+	private final TemporaryMessageHandler temporaryMessageHandler;
 
 	SimpleTelegramClient(ClientFactory clientFactory,
 			TDLibSettings settings,
@@ -121,6 +119,8 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 				updateHandlerInteraction,
 				this::handleDefaultException
 		));
+		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
+				new AuthorizationStateWaitPremiumPurchaseHandler(client, this::onAuthorizationFailure));
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitReady(this::onReady));
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class, new AuthorizationStateWaitForExit(this::onCloseUpdate));
 		this.mainChatsLoader = new AuthorizationStateReadyLoadChats(client, new ChatListMain());
@@ -128,7 +128,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 		this.addUpdateHandler(TdApi.UpdateAuthorizationState.class,
 				this.meGetter = new AuthorizationStateReadyGetMe(client, mainChatsLoader, archivedChatsLoader));
 		this.addUpdateHandler(TdApi.UpdateNewMessage.class, new CommandsHandler(client, this.commandHandlers, this::getMe));
-		TemporaryMessageHandler temporaryMessageHandler = new TemporaryMessageHandler(this.temporaryMessages);
+		this.temporaryMessageHandler = new TemporaryMessageHandler(new ConcurrentHashMap<>());
 		this.addUpdateHandler(TdApi.UpdateMessageSendSucceeded.class, temporaryMessageHandler);
 		this.addUpdateHandler(TdApi.UpdateMessageSendFailed.class, temporaryMessageHandler);
 		this.authenticationData = authenticationData;
@@ -188,6 +188,11 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 
 	private void handleResultHandlingException(Throwable ex) {
 		LOG.error("Failed to handle the request result", ex);
+	}
+
+	private void onAuthorizationFailure(Throwable error) {
+		this.ready.completeExceptionally(error);
+		this.handleDefaultException(error);
 	}
 
 	@Override
@@ -303,7 +308,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	 * Sends a request to TDLib and get the result.
 	 *
 	 * @param function         The request to TDLib.
-	 * @param resultHandler    Result handler. If it is null, nothing will be called.
+	 * @param resultHandler    Non-null result handler.
 	 * @throws NullPointerException if function is null.
 	 */
 	public <R extends TdApi.Object> void send(TdApi.Function<R> function, GenericResultHandler<R> resultHandler) {
@@ -314,9 +319,9 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	 * Sends a request to TDLib and get the result.
 	 *
 	 * @param function         The request to TDLib.
-	 * @param resultHandler    Result handler. If it is null, nothing will be called.
+	 * @param resultHandler    Non-null result handler.
 	 * @param resultHandlerExceptionHandler Handle exceptions thrown inside the result handler.
-	 *                                       If it is null, the default exception handler will be called.
+	 *                                       If it is null, exceptions will be logged.
 	 * @throws NullPointerException if function is null.
 	 */
 	public <R extends TdApi.Object> void send(TdApi.Function<R> function, GenericResultHandler<R> resultHandler,
@@ -338,9 +343,9 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	 * Sends a request to TDLib and get the result.
 	 *
 	 * @param function         The request to TDLib.
-	 * @param resultHandler    Result handler. If it is null, nothing will be called.
+	 * @param resultHandler    Non-null result handler.
 	 * @param resultHandlerExceptionHandler Handle exceptions thrown inside the result handler.
-	 *                                       If it is null, the default exception handler will be called.
+	 *                                       If it is null, exceptions will be logged.
 	 * @throws NullPointerException if function is null.
 	 */
 	public <R extends TdApi.Object> void sendUnsafe(TdApi.Function<R> function, GenericResultHandler<R> resultHandler,
@@ -396,14 +401,7 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	public CompletableFuture<TdApi.Message> sendMessage(TdApi.SendMessage function, boolean wait) {
 		CompletableFuture<TdApi.Message> sendRequest = this.send(function);
 		if (wait) {
-			return sendRequest.thenCompose(msg -> {
-				CompletableFuture<TdApi.Message> future = new CompletableFuture<>();
-				CompletableFuture<?> prev = temporaryMessages.put(new TemporaryMessageURL(msg.chatId, msg.id), future);
-				if (prev != null) {
-					prev.completeExceptionally(new IllegalStateException("Another temporary message has the same id"));
-				}
-				return future;
-			});
+			return temporaryMessageHandler.waitForSentMessage(sendRequest);
 		} else {
 			return sendRequest;
 		}
@@ -471,9 +469,10 @@ public final class SimpleTelegramClient implements Authenticable, MutableTelegra
 	}
 
 	private void onCloseUpdate() {
-		this.ready.completeExceptionally(new TelegramError(new TdApi.Error(400, "Client closed")));
+		TelegramError closeError = new TelegramError(new TdApi.Error(400, "Client closed"));
+		this.ready.completeExceptionally(closeError);
+		this.temporaryMessageHandler.close(closeError);
 		this.closed.complete(null);
-		this.temporaryMessages.clear();
 	}
 
 	@Override

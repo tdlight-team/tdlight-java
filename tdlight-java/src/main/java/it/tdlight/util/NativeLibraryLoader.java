@@ -123,7 +123,7 @@ public final class NativeLibraryLoader {
 				load(name, loader);
 				logger.debug("Loaded library with name '{}'", name);
 				return;
-			} catch (Throwable t) {
+			} catch (Exception | UnsatisfiedLinkError t) {
 				suppressed.add(t);
 			}
 		}
@@ -178,7 +178,7 @@ public final class NativeLibraryLoader {
 			// first try to load from java.library.path
 			loadLibrary(loader, name, false);
 			return;
-		} catch (Throwable ex) {
+		} catch (Exception | UnsatisfiedLinkError ex) {
 			suppressed.add(ex);
 		}
 
@@ -279,7 +279,7 @@ public final class NativeLibraryLoader {
 	}
 
 	private static boolean isOsx() {
-		return Native.getOs().equals("osx");
+		return Native.getOs().equals("macos");
 	}
 
 	private static Path createTempFile(String prefix, String suffix, Path workdir) {

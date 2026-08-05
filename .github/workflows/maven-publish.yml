@@ -4,6 +4,10 @@
 name: Maven Package
 
 on:
+  pull_request:
+    branches:
+      - master
+      - develop
   push:
     branches:
       - master
@@ -11,8 +15,87 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+
 jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { java: 11, api_classifier: legacy, skip_javadoc: true, validate_artifacts: false }
+          - { java: 17, api_classifier: default, skip_javadoc: false, validate_artifacts: true }
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: temurin
+          cache: 'maven'
+      - name: Validate JDK profile
+        shell: bash
+        run: |
+          set -xeo pipefail
+
+          validation_version="0.0.0-profile-validation-SNAPSHOT"
+          published_bom="${HOME}/.m2/repository/it/tdlight/tdlight-java-bom/${validation_version}/tdlight-java-bom-${validation_version}.pom"
+          published_parent="${HOME}/.m2/repository/it/tdlight/tdlight-java-parent/${validation_version}/tdlight-java-parent-${validation_version}.pom"
+          published_directory="${HOME}/.m2/repository/it/tdlight/tdlight-java/${validation_version}"
+          published_pom="${published_directory}/tdlight-java-${validation_version}.pom"
+          mvn -B -f bom/pom.xml -Drevision="${validation_version}" -Pjdk8-artifact \
+            -Dmaven.javadoc.skip="${{ matrix.skip_javadoc }}" clean install
+          test -f "${published_bom}" -a -f "${published_parent}" -a -f "${published_pom}"
+          mvn -B -q -f "${published_pom}" \
+            -Doutput="${RUNNER_TEMP}/effective-pom.xml" help:effective-pom
+          python3 .github/scripts/validate-release-model.py \
+            --source-bom-pom bom/pom.xml \
+            --published-bom-pom "${published_bom}" \
+            --source-parent-pom pom.xml \
+            --published-parent-pom "${published_parent}" \
+            --flattened-pom "${published_pom}" \
+            --effective-pom "${RUNNER_TEMP}/effective-pom.xml" \
+            --generated-version tdlight-java/target/generated-sources/java-templates/it/tdlight/util/LibraryVersion.java \
+            --expected-version "${validation_version}" \
+            --expected-api-classifier "${{ matrix.api_classifier }}"
+          echo "VALIDATION_BOM=${published_bom}" >> "${GITHUB_ENV}"
+          echo "VALIDATION_PARENT=${published_parent}" >> "${GITHUB_ENV}"
+          echo "VALIDATION_POM=${published_pom}" >> "${GITHUB_ENV}"
+          echo "VALIDATION_ARTIFACT_DIRECTORY=${published_directory}" >> "${GITHUB_ENV}"
+          echo "VALIDATION_VERSION=${validation_version}" >> "${GITHUB_ENV}"
+      - name: Set up Gradle consumer validation
+        if: ${{ matrix.validate_artifacts }}
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.6.1'
+          cache-provider: basic
+      - name: Validate published artifacts and consumers
+        if: ${{ matrix.validate_artifacts }}
+        shell: bash
+        run: |
+          set -xeo pipefail
+
+          python3 .github/scripts/validate-release-model.py \
+            --source-bom-pom bom/pom.xml \
+            --published-bom-pom "${VALIDATION_BOM}" \
+            --source-parent-pom pom.xml \
+            --published-parent-pom "${VALIDATION_PARENT}" \
+            --flattened-pom "${VALIDATION_POM}" \
+            --effective-pom "${RUNNER_TEMP}/effective-pom.xml" \
+            --generated-version tdlight-java/target/generated-sources/java-templates/it/tdlight/util/LibraryVersion.java \
+            --expected-version "${VALIDATION_VERSION}" \
+            --expected-api-classifier default \
+            --artifact-directory "${VALIDATION_ARTIFACT_DIRECTORY}" \
+            --gradle-command gradle \
+            --maven-command mvn
+
   build:
+    if: ${{ github.event_name == 'push' }}
+    needs: validate
     strategy:
       matrix:
         include:
@@ -34,12 +117,13 @@ jobs:
           echo "REVISION=$REVISION" >> $GITHUB_ENV
           
           cat $GITHUB_ENV > github.env
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
+          persist-credentials: false
       - name: Set up JDK 17 (Snapshot)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           java-version: 17
           distribution: temurin
@@ -53,14 +137,14 @@ jobs:
         run: |
           set -xeo pipefail
 
-          mvn -B -f bom/pom.xml -P "java8,java17" clean deploy
+          mvn -B -f bom/pom.xml -Pjdk8-artifact clean deploy
           echo "Done."
         env:
           MAVEN_USERNAME: ${{ secrets.MCHV_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MCHV_TOKEN }}
       - name: Set up JDK 17 (Release)
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           java-version: 17
           distribution: temurin
@@ -75,7 +159,7 @@ jobs:
           set -xeo pipefail
           echo "REVISION: $REVISION"
           
-          mvn -B -f bom/pom.xml -Drevision="${REVISION}" -P "java8,java17" clean deploy
+          mvn -B -f bom/pom.xml -Drevision="${REVISION}" -Pjdk8-artifact clean deploy
           echo "Done."
         env:
           MAVEN_USERNAME: ${{ secrets.MCHV_USERNAME }}

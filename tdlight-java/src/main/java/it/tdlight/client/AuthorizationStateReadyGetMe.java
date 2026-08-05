@@ -33,20 +33,32 @@ final class AuthorizationStateReadyGetMe implements GenericUpdateHandler<UpdateA
 	@Override
 	public void onUpdate(UpdateAuthorizationState update) {
 		if (update.authorizationState.getConstructor() == AuthorizationStateReady.CONSTRUCTOR) {
-			client.send(new GetMe(), me -> {
-				try {
-					if (me.getConstructor() == Error.CONSTRUCTOR) {
-						throw new TelegramError((Error) me);
-					}
-					this.me.set((User) me);
-				} finally {
-					this.meReceived.complete(null);
+			client.send(new GetMe(), result -> {
+				if (result == null) {
+					this.meReceived.completeExceptionally(new IllegalStateException("TdApi.GetMe returned null"));
+					return;
 				}
-				if (((User) me).type.getConstructor() == UserTypeRegular.CONSTRUCTOR) {
+				if (result.getConstructor() == Error.CONSTRUCTOR) {
+					this.meReceived.completeExceptionally(new TelegramError((Error) result));
+					return;
+				}
+				if (!(result instanceof User)) {
+					this.meReceived.completeExceptionally(new IllegalStateException(
+							"TdApi.GetMe returned " + result.getClass().getName()
+					));
+					return;
+				}
+				User user = (User) result;
+				this.me.set(user);
+				this.meReceived.complete(null);
+				if (user.type.getConstructor() == UserTypeRegular.CONSTRUCTOR) {
 					mainChatsLoader.onUpdate(update);
 					archivedChatsLoader.onUpdate(update);
 				}
-			}, error -> logger.warn("Failed to execute TdApi.GetMe()"));
+			}, error -> {
+				this.meReceived.completeExceptionally(error);
+				logger.warn("Failed to execute TdApi.GetMe()", error);
+			});
 		}
 	}
 

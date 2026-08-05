@@ -1,5 +1,7 @@
 package it.tdlight.client;
 
+import static it.tdlight.util.TdApiObjectDescriptor.describe;
+
 import it.tdlight.ResultHandler;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
@@ -21,7 +23,7 @@ public class SimpleUpdateHandler implements ResultHandler<Update> {
 		if (update instanceof TdApi.Update) {
 			handler.onUpdate((TdApi.Update) update);
 		} else {
-			logger.warn("Unknown update type: {}", update);
+			logger.warn("Unknown update type: {}", describe(update));
 		}
 	}
 }

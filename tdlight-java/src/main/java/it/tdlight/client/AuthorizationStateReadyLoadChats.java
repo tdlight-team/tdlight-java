@@ -1,11 +1,14 @@
 package it.tdlight.client;
 
+import static it.tdlight.util.TdApiObjectDescriptor.describe;
+
 import it.tdlight.TelegramClient;
 import it.tdlight.jni.TdApi.AuthorizationStateReady;
 import it.tdlight.jni.TdApi.ChatList;
 import it.tdlight.jni.TdApi.Error;
 import it.tdlight.jni.TdApi.LoadChats;
 import it.tdlight.jni.TdApi.UpdateAuthorizationState;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +19,7 @@ final class AuthorizationStateReadyLoadChats implements GenericUpdateHandler<Upd
 	private final TelegramClient client;
 	private final ChatList chatList;
 
-	private boolean loaded;
+	private final AtomicBoolean loaded = new AtomicBoolean();
 
 	public AuthorizationStateReadyLoadChats(TelegramClient client, ChatList chatList) {
 		this.client = client;
@@ -32,15 +35,16 @@ final class AuthorizationStateReadyLoadChats implements GenericUpdateHandler<Upd
 					if (error.code != 404) {
 						throw new TelegramError((Error) ok);
 					}
-					logger.debug("All {} chats have already been loaded", chatList);
+					logger.debug("All {} chats have already been loaded", describe(chatList));
 				} else {
-					logger.debug("All chats have been loaded");
+					logger.debug("Initial {} chats have been loaded", describe(chatList));
 				}
-			}, error -> logger.warn("Failed to execute TdApi.LoadChats()"));
+				loaded.set(true);
+			}, error -> logger.warn("Failed to execute TdApi.LoadChats()", error));
 		}
 	}
 
 	public boolean isLoaded() {
-		return loaded;
+		return loaded.get();
 	}
 }

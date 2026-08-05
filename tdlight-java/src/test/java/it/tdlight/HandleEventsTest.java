@@ -2,25 +2,20 @@ package it.tdlight;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import it.tdlight.ResponseReceiver;
 import it.tdlight.jni.TdApi;
 import it.tdlight.jni.TdApi.Object;
-import it.unimi.dsi.fastutil.longs.LongArraySet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 public class HandleEventsTest {
 
 	@Test
 	public void test() throws InterruptedException {
-		System.setProperty("tdlight.dispatcher.use_optimized_dispatcher", "false");
 		List<Event> initialEvents = new ArrayList<>();
 		initialEvents.add(new Event(2, 0, new TdApi.LogVerbosityLevel(0)));
 		initialEvents.add(new Event(1, 1, new TdApi.LogVerbosityLevel(1)));
@@ -47,7 +42,7 @@ public class HandleEventsTest {
 					arrayOffset,
 					arrayLength
 			));
-		}) {
+		}, false) {
 			@Override
 			public int receive(int[] clientIds, long[] eventIds, Object[] events, double timeout) {
 				int i = 0;
@@ -104,18 +99,38 @@ public class HandleEventsTest {
 		assertEquals(1, client1Results.clientId());
 		assertEquals(7, client7Results.clientId());
 
-		assertEquals(getClientEventIds(initialEvents, 2), LongArraySet.of(Arrays.copyOfRange(client2Results.clientEventIds(), client2Results.arrayOffset(), client2Results.arrayOffset() + client2Results.arrayLength())));
-		assertEquals(getClientEventIds(initialEvents, 1), LongArraySet.of(Arrays.copyOfRange(client1Results.clientEventIds(), client1Results.arrayOffset(), client1Results.arrayOffset() + client1Results.arrayLength())));
-		assertEquals(getClientEventIds(initialEvents, 7), LongArraySet.of(Arrays.copyOfRange(client7Results.clientEventIds(), client7Results.arrayOffset(), client7Results.arrayOffset() + client7Results.arrayLength())));
+		assertClientEvents(initialEvents, client2Results);
+		assertClientEvents(initialEvents, client1Results);
+		assertClientEvents(initialEvents, client7Results);
 
-		assertEquals(initialEvents.size(), client2Results.arrayLength() + client1Results.arrayLength() + client7Results.arrayLength());
+		assertEquals(initialEvents.size() + 3,
+				client2Results.arrayLength() + client1Results.arrayLength() + client7Results.arrayLength());
 
-		assertEquals(3, client2Results.arrayLength());
-		assertEquals(7, client1Results.arrayLength());
-		assertEquals(3, client7Results.arrayLength());
+		assertEquals(4, client2Results.arrayLength());
+		assertEquals(8, client1Results.arrayLength());
+		assertEquals(4, client7Results.arrayLength());
 	}
 
-	private Set<Long> getClientEventIds(List<Event> initialEvents, long clientId) {
-		return initialEvents.stream().filter(e -> e.clientId() == clientId).map(Event::eventId).collect(Collectors.toSet());
+	private void assertClientEvents(List<Event> initialEvents, Result actual) {
+		List<Event> expected = new ArrayList<>();
+		for (Event event : initialEvents) {
+			if (event.clientId() == actual.clientId()) {
+				expected.add(event);
+			}
+		}
+
+		assertTrue(actual.isClosed());
+		assertEquals(expected.size() + 1, actual.arrayLength());
+		for (int i = 0; i < expected.size(); i++) {
+			Event expectedEvent = expected.get(i);
+			int actualIndex = actual.arrayOffset() + i;
+			assertEquals(expectedEvent.eventId(), actual.clientEventIds()[actualIndex]);
+			assertSame(expectedEvent.event(), actual.clientEvents()[actualIndex]);
+		}
+		int closeIndex = actual.arrayOffset() + expected.size();
+		assertEquals(0, actual.clientEventIds()[closeIndex]);
+		assertTrue(actual.clientEvents()[closeIndex] instanceof TdApi.UpdateAuthorizationState);
+		TdApi.UpdateAuthorizationState closeUpdate = (TdApi.UpdateAuthorizationState) actual.clientEvents()[closeIndex];
+		assertTrue(closeUpdate.authorizationState instanceof TdApi.AuthorizationStateClosed);
 	}
 }
