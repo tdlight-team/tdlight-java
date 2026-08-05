@@ -384,6 +384,71 @@ public class CallbackLifecycleTest {
 	}
 
 	@Test
+	public void concurrentFailedEmergencyCloseAndReceiverTerminationNotifiesClientOnce() throws Exception {
+		int clientId = 224;
+		CountDownLatch receiveStarted = new CountDownLatch(1);
+		CountDownLatch firstEmergencyCloseStarted = new CountDownLatch(1);
+		CountDownLatch allowFirstEmergencyCloseToFail = new CountDownLatch(1);
+		AtomicInteger emergencyCloseAttempts = new AtomicInteger();
+		AtomicInteger localClosures = new AtomicInteger();
+		ResponseReceiver receiver = new ResponseReceiver((receivedClientId,
+				isClosed,
+				clientEventIds,
+				clientEvents,
+				arrayOffset,
+				arrayLength) -> {
+			assertEquals(clientId, receivedClientId);
+			if (isClosed) {
+				localClosures.incrementAndGet();
+			}
+		}, true, (receivedClientId, eventId, query) -> {
+			if (emergencyCloseAttempts.incrementAndGet() == 1) {
+				firstEmergencyCloseStarted.countDown();
+				try {
+					assertTrue(allowFirstEmergencyCloseToFail.await(5, TimeUnit.SECONDS));
+				} catch (InterruptedException ex) {
+					Thread.currentThread().interrupt();
+					throw new AssertionError(ex);
+				}
+				throw new IllegalStateException("synthetic emergency close failure");
+			}
+		}, new AtomicLong(850)::incrementAndGet) {
+			@Override
+			public int receive(int[] clientIds, long[] eventIds, TdApi.Object[] events, double timeout) {
+				receiveStarted.countDown();
+				try {
+					new CountDownLatch(1).await();
+				} catch (InterruptedException ex) {
+					Thread.currentThread().interrupt();
+				}
+				return 0;
+			}
+		};
+		receiver.registerClient(clientId);
+		receiver.start();
+		Thread closeThread = new Thread(receiver::requestClose, "concurrent-close-test");
+		try {
+			assertTrue(receiveStarted.await(5, TimeUnit.SECONDS));
+			closeThread.start();
+			assertTrue(firstEmergencyCloseStarted.await(5, TimeUnit.SECONDS));
+			receiver.interrupt();
+			receiver.join(TimeUnit.SECONDS.toMillis(5));
+			assertFalse(receiver.isAlive());
+		} finally {
+			allowFirstEmergencyCloseToFail.countDown();
+			closeThread.join(TimeUnit.SECONDS.toMillis(5));
+			if (receiver.isAlive()) {
+				receiver.interrupt();
+				receiver.join(TimeUnit.SECONDS.toMillis(5));
+			}
+		}
+
+		assertFalse(closeThread.isAlive());
+		assertEquals(2, emergencyCloseAttempts.get());
+		assertEquals(1, localClosures.get());
+	}
+
+	@Test
 	public void emergencyCloseResponseIsConsumedBeforeClientDispatch() throws Exception {
 		int clientId = 124;
 		AtomicLong emergencyEventId = new AtomicLong();

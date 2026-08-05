@@ -367,16 +367,26 @@ abstract class ResponseReceiver extends Thread implements AutoCloseable {
 			}
 		}
 		if (!failedClientCloses.isEmpty()) {
+			List<Integer> failedClientClosesToNotify = new ArrayList<>();
 			synchronized (registeredClientsLock) {
 				Set<Integer> remainingRegisteredClients = ArrayUtil.toSet(registeredClients);
-				failedClientCloses.forEach(remainingRegisteredClients::remove);
+				// A concurrent terminal drain may already own notification for this client.
+				for (int clientId : failedClientCloses) {
+					if (remainingRegisteredClients.remove(clientId)) {
+						failedClientClosesToNotify.add(clientId);
+					}
+				}
 				registeredClients = ArrayUtil.copyFromCollection(remainingRegisteredClients);
 			}
-			Thread notifier = new Thread(() -> failedClientCloses.forEach(this::notifyClientClosedLocally),
-					"TDLight failed emergency-close notifier");
-			notifier.setDaemon(true);
-			failedCloseNotifier = notifier;
-			notifier.start();
+			if (!failedClientClosesToNotify.isEmpty()) {
+				Thread notifier = new Thread(
+						() -> failedClientClosesToNotify.forEach(this::notifyClientClosedLocally),
+						"TDLight failed emergency-close notifier"
+				);
+				notifier.setDaemon(true);
+				failedCloseNotifier = notifier;
+				notifier.start();
+			}
 		}
 		boolean interruptReceiver;
 		synchronized (registeredClientsLock) {
