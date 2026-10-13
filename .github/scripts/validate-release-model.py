@@ -406,7 +406,13 @@ def validate_gradle_consumers(gradle_command: str, version: str, api_version: st
 	common = """
 plugins { id 'java' }
 repositories {
-    mavenLocal()
+    mavenLocal {
+        content {
+            includeModule('it.tdlight', 'tdlight-java')
+            includeModule('it.tdlight', 'tdlight-java-parent')
+            includeModule('it.tdlight', 'tdlight-java-bom')
+        }
+    }
     mavenCentral()
     maven { url = uri('%s') }
 }
