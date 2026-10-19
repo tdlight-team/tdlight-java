@@ -7,7 +7,7 @@
 	<packaging>pom</packaging>
 	<name>TDLight Java BOM</name>
 	<properties>
-		<tdlight.natives.version>4.0.596</tdlight.natives.version>
+		<tdlight.natives.version>4.0.597</tdlight.natives.version>
 		<tdlight.api.version>4.0.565</tdlight.api.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
