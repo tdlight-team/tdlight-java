@@ -12,7 +12,7 @@
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<tdlight.api.version>4.0.564</tdlight.api.version>
+		<tdlight.api.version>4.0.565</tdlight.api.version>
 		<!-- Gradle ignores Maven JDK-activated dependency profiles, so keep one visible dependency. -->
 		<tdlight.api.classifier></tdlight.api.classifier>
 	</properties>
